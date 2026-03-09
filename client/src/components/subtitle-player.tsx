@@ -5,7 +5,7 @@ import {
   Subtitles, Languages, MousePointerClick, Lock,
   Monitor, Play, Pause, SkipBack, SkipForward,
   Repeat, RotateCcw, ChevronDown, ChevronUp,
-  Minus, Plus
+  Minus, Plus, ZoomIn, ZoomOut, Type
 } from "lucide-react";
 import WordInspector, { type WordInfo } from "./word-inspector";
 
@@ -124,6 +124,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [subtitleZoom, setSubtitleZoom] = useState(1);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -454,8 +455,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
             {activeSubtitle && (
-              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-2 md:px-4" data-testid="subtitle-overlay">
-                <div className="inline-block px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]">
+              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-1" data-testid="subtitle-overlay">
+                <div
+                  className="px-5 md:px-6 py-2 md:py-2.5 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]"
+                  style={{ fontSize: `${subtitleZoom * 100}%` }}
+                >
                   {renderOverlayText(activeSubtitle)}
                 </div>
               </div>
@@ -572,6 +576,34 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               data-testid="button-speed-up"
             >
               <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+
+          <div className="w-px h-5 bg-border/50 shrink-0 hidden sm:block" />
+
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button
+              variant="ghost" size="icon"
+              className="h-7 w-7"
+              onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
+              disabled={subtitleZoom <= 0.7}
+              title="Kichikroq"
+              data-testid="button-zoom-out"
+            >
+              <ZoomOut className="w-3 h-3" />
+            </Button>
+            <span className="text-[9px] md:text-[10px] font-mono min-w-[1.8rem] text-center text-muted-foreground" data-testid="text-zoom">
+              {Math.round(subtitleZoom * 100)}%
+            </span>
+            <Button
+              variant="ghost" size="icon"
+              className="h-7 w-7"
+              onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
+              disabled={subtitleZoom >= 1.6}
+              title="Kattaroq"
+              data-testid="button-zoom-in"
+            >
+              <ZoomIn className="w-3 h-3" />
             </Button>
           </div>
 

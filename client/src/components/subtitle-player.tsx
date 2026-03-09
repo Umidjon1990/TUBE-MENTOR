@@ -408,8 +408,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
     if (displayMode === "original") {
       return (
-        <div className="pointer-events-auto" data-testid="text-subtitle-overlay-original">
-          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white">
+        <div className="pointer-events-auto text-center" data-testid="text-subtitle-overlay-original">
+          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white" dir="auto">
             {renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
@@ -417,20 +417,20 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     }
     if (displayMode === "translation") {
       return (
-        <div data-testid="text-subtitle-overlay-translation">
-          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white">
+        <div className="text-center" data-testid="text-subtitle-overlay-translation">
+          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white" dir="auto">
             {translation ? renderTranslationText(translation, true) : renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
       );
     }
     return (
-      <div className="space-y-1.5 pointer-events-auto">
-        <div className="text-sm md:text-base lg:text-lg font-semibold leading-relaxed text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" data-testid="text-subtitle-overlay-original">
+      <div className="space-y-1.5 pointer-events-auto text-center">
+        <div className="text-sm md:text-base lg:text-lg font-semibold leading-relaxed text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" dir="auto" data-testid="text-subtitle-overlay-original">
           {renderClickableWords(item.originalText, item, true)}
         </div>
         {translation && (
-          <div className="text-xs md:text-sm lg:text-base leading-relaxed text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" data-testid="text-subtitle-overlay-translation">
+          <div className="text-xs md:text-sm lg:text-base leading-relaxed text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" dir="auto" data-testid="text-subtitle-overlay-translation">
             {renderTranslationText(translation, true)}
           </div>
         )}

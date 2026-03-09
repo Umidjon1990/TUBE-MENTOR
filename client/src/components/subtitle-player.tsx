@@ -454,8 +454,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
             {activeSubtitle && (
-              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-3 md:px-6" data-testid="subtitle-overlay">
-                <div className="max-w-[92%] md:max-w-[75%] lg:max-w-[65%] px-4 md:px-6 py-2.5 md:py-3 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]">
+              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-2 md:px-4" data-testid="subtitle-overlay">
+                <div className="inline-block px-4 md:px-5 py-2 md:py-2.5 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]">
                   {renderOverlayText(activeSubtitle)}
                 </div>
               </div>

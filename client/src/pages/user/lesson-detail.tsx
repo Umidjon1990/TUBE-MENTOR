@@ -21,9 +21,17 @@ import {
   Bookmark, BookmarkCheck, Star, ChevronLeft, ChevronRight,
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
-  ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe
+  ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
+  Download
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
+import { ExportStudio } from "@/components/export-studio";
+import { buildExportData } from "@/lib/export-transform";
+import { generatePDF } from "@/lib/export-pdf";
+import { generateDocx } from "@/lib/export-docx";
+import { generateXLSX } from "@/lib/export-xlsx";
+import { saveAs } from "file-saver";
+import type { ExportConfig } from "@/lib/export-types";
 
 interface WordMapItem {
   word: string;
@@ -192,6 +200,39 @@ export default function LessonDetailPage() {
       .filter(swm => swm.wordMap.length > 0);
   }, [sentences]);
 
+  const [exportOpen, setExportOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportData = useMemo(() => {
+    if (!lesson) return null;
+    return buildExportData(lesson, sentences, vocabulary, phrases, quizzes, presetFlashcards);
+  }, [lesson, sentences, vocabulary, phrases, quizzes, presetFlashcards]);
+
+  const handleExport = async (config: ExportConfig) => {
+    if (!exportData) return;
+    setIsExporting(true);
+    try {
+      const safeName = exportData.title.replace(/[^a-zA-Z0-9\u0400-\u04FF\u0600-\u06FF]/g, "_").substring(0, 40);
+      if (config.format === "pdf") {
+        const blob = await generatePDF(exportData, config);
+        saveAs(blob, `${safeName}_guide.pdf`);
+      } else if (config.format === "docx") {
+        const blob = await generateDocx(exportData, config);
+        saveAs(blob, `${safeName}_worksheet.docx`);
+      } else if (config.format === "xlsx") {
+        const blob = await generateXLSX(exportData, config);
+        saveAs(blob, `${safeName}_vocabulary.xlsx`);
+      }
+      toast({ title: "Yuklandi!", description: "Fayl muvaffaqiyatli yuklab olindi." });
+      setExportOpen(false);
+    } catch (err: any) {
+      console.error("Export error:", err);
+      toast({ title: "Xatolik", description: err?.message || "Faylni yaratishda xatolik yuz berdi.", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <UserLayout title="Dars yuklanmoqda...">
@@ -243,7 +284,25 @@ export default function LessonDetailPage() {
               <span>{sentences.length} gap</span>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 gap-1.5 border-primary/30 hover:bg-primary/10"
+            onClick={() => setExportOpen(true)}
+            data-testid="button-export"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Yuklab olish</span>
+          </Button>
         </div>
+
+        <ExportStudio
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          lessonData={exportData}
+          onExport={handleExport}
+          isExporting={isExporting}
+        />
 
         {lesson.youtubeUrl && /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(lesson.youtubeUrl) ? (
           <SubtitlePlayer

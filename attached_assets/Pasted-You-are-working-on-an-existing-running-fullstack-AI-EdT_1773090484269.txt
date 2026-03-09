@@ -1,0 +1,236 @@
+You are working on an existing running fullstack AI EdTech project called TubeMentor AI.
+
+Do not rebuild the whole project.
+Do not break existing lesson generation, subtitle, vocabulary, quiz, and flashcard systems.
+
+Your task is to add a premium **Export Center / Download System** so users can download lesson materials as polished mini-guides and worksheets.
+
+## Core export goal
+Downloaded files must feel like ready-made learning materials, not raw data dumps.
+
+The export system must support these lesson resources:
+- arabcha-o‘zbekcha matn
+- so‘zma-so‘z tarjima
+- lug‘at boyligi
+- birikmalar
+- testlar
+- flashcardlar
+- xulosa
+
+## User selection flow
+When the user clicks Download, open a modern premium export modal/studio.
+
+The user must be able to choose:
+- format: PDF / DOCX / XLSX
+- faqat arabcha matn
+- arabcha + o‘zbekcha tarjima
+- so‘zma-so‘z tarjima bilan
+- lug‘at bilan
+- birikmalar bilan
+- testlar bilan
+- flashcardlar bilan
+- xulosa bilan
+- barchasi
+
+For quizzes, add these options:
+- barcha testlar
+- random testlar
+- 5 ta
+- 10 ta
+- javobi bilan
+- javobsiz
+
+## Use current lesson data
+Reuse the existing lesson data structure, including:
+- summaryShort
+- summaryDetailed
+- summaryShortAr
+- summaryDetailedAr
+- vocabulary[]
+- phrases[]
+- quizzes[]
+- flashcards[]
+- sentenceAnalysis[]
+
+## Required export products
+Build these exports:
+
+### 1. Mini Guide PDF
+A premium downloadable lesson guide with:
+- Mavzu
+- Arabcha matn
+- O‘zbekcha tarjima
+- So‘zma-so‘z tarjima
+- Lug‘at boyligi
+- Birikmalar
+- Testlar
+- Flashcardlar
+- Xulosa
+
+### 2. Quiz Sheet PDF
+- student version
+- optionally answer-free
+
+### 3. Answer Key PDF
+- teacher version
+- correct answers with explanations if available
+
+### 4. Vocabulary Export XLSX
+Columns:
+- Arabic word
+- Uzbek translation
+- Arabic form
+- part of speech
+- example
+- difficulty
+
+### 5. Flashcards PDF
+Beautiful flashcard layout with:
+- front: arabcha so‘z
+- back: o‘zbekcha tarjima + arabcha shakli + namunaviy gap
+
+### 6. Teacher Worksheet DOCX
+Editable document with:
+- title
+- text
+- translation
+- vocabulary
+- quiz
+- answer area
+
+## Recommended libraries
+Use modern stable libraries:
+- @react-pdf/renderer for PDF
+- docx for Word export
+- exceljs for XLSX export
+
+## Design requirements
+The exported files must look premium and branded.
+
+Use a polished color-coded design:
+- Arabcha matn: emerald / dark green
+- O‘zbekcha tarjima: blue
+- So‘zma-so‘z tarjima: amber/orange
+- Lug‘at blocks: cyan/violet accents
+- Flashcards: strong card design
+- Summary: soft highlighted info blocks
+
+Files must feel like:
+- mini handbook
+- teacher worksheet
+- printable study pack
+
+Do not generate plain ugly documents.
+
+## Export Studio UI
+Add a premium Export Center modal/page with:
+- section toggles
+- format chooser
+- quiz options
+- random/all selector
+- answer on/off toggle
+- preview summary
+- page estimate
+- download button
+
+All UI must be in Uzbek.
+
+Use labels like:
+- Yuklab olish
+- Mini qo‘llanma
+- Arabcha matn
+- O‘zbekcha tarjima
+- So‘zma-so‘z tarjima
+- Lug‘at boyligi
+- Birikmalar
+- Testlar
+- Javobi bilan
+- Javobsiz
+- Kartochkalar
+- Xulosa
+- Barchasi
+- Random
+- Yuklashga tayyor
+
+## Architecture requirements
+Implement this cleanly in three layers:
+1. Export config layer
+2. Export transform layer
+3. Export renderer layer
+
+### Export config layer
+Handles user choices:
+- format
+- selected sections
+- random count
+- answers on/off
+
+### Export transform layer
+Transforms current lesson JSON into export-ready sections:
+- text blocks
+- translation blocks
+- word-by-word tables
+- vocabulary tables
+- quiz pages
+- flashcard layouts
+- summaries
+
+### Export renderer layer
+Renders:
+- PDF
+- DOCX
+- XLSX
+
+## Data mapping requirements
+
+### Arabcha matn
+Use sentenceAnalysis[].sentence
+
+### O‘zbekcha tarjima
+Use sentenceAnalysis[].translation
+
+### So‘zma-so‘z tarjima
+Use sentenceAnalysis[].wordMap[]
+
+### Lug‘at boyligi
+Use vocabulary[]
+
+### Birikmalar
+Use phrases[]
+
+### Testlar
+Use quizzes[]
+
+### Flashcardlar
+Use flashcards[]
+
+### Xulosa
+Use summaryShort, summaryDetailed, summaryShortAr, summaryDetailedAr
+
+## Quiz export rules
+For quiz exports:
+- support all questions
+- support random selection
+- support student version without answers
+- support teacher version with answers
+- support explanations if available
+
+## Flashcard export rules
+Each flashcard should visually include:
+- asosiy so‘z
+- o‘zbekcha tarjima
+- arabcha shakli
+- namunaviy gap if available
+
+## Important constraints
+- do not break existing lesson/player pages
+- do not break current APIs
+- do not remove current tabs
+- integrate into existing project cleanly
+- reuse current data structures
+- keep code maintainable
+
+## Final delivery
+After implementation, the existing project must have a polished export/download feature that lets users generate premium mini-guides and study packs from each lesson.
+
+The export feature should feel like a flagship premium capability of the product.

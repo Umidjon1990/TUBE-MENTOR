@@ -274,6 +274,19 @@ Managed via admin settings page, stored in `system_settings` table:
 
 Auto-seeds on first startup: 4+ users, 5 categories, 10 tags, 5 lessons with content, flashcards, notes, bookmarks, coin transactions, 17+ system settings.
 
+## Export Center / Download System
+
+- **Export Studio Modal**: `client/src/components/export-studio.tsx` — premium download modal with section toggles, format chooser, quiz options
+- **Export Types**: `client/src/lib/export-types.ts` — ExportConfig, LessonExportData, section/format types
+- **Export Transform**: `client/src/lib/export-transform.ts` — transforms lesson JSON into export-ready structures, quiz randomization
+- **PDF Renderer**: `client/src/lib/export-pdf.tsx` — @react-pdf/renderer with MiniGuidePDF, QuizSheetPDF, FlashcardsPDF; color-coded sections (Arabic=emerald, Uzbek=blue, wordByWord=amber, vocab=cyan/violet)
+- **DOCX Renderer**: `client/src/lib/export-docx.ts` — `docx` library for Teacher Worksheet with branded design, RTL Arabic support
+- **XLSX Renderer**: `client/src/lib/export-xlsx.ts` — `exceljs` library for vocabulary export with styled headers and alternating rows
+- **Integration**: Download button in lesson-detail.tsx header, opens ExportStudio modal
+- **Supported formats**: PDF (mini guide, quiz sheet, flashcards), DOCX (teacher worksheet), XLSX (vocabulary)
+- **Quiz options**: all/random mode, count (5/10/15/20), with/without answers
+- **Dependencies**: @react-pdf/renderer, docx, exceljs, file-saver
+
 ## Database Schema
 
 11 tables: users, categories, tags, lessons, lesson_tags, lesson_progress, flashcards, notes, bookmarks, coin_transactions, system_settings. User table includes gamification fields: xp, level, streakDays, lastStudyDate, badges.

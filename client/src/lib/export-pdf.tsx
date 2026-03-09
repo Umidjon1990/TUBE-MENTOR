@@ -1,0 +1,722 @@
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Font,
+  pdf,
+} from "@react-pdf/renderer";
+import type {
+  ExportConfig,
+  LessonExportData,
+  SentenceBlock,
+  VocabEntry,
+  PhraseEntry,
+  QuizEntry,
+  FlashcardEntry,
+  SummaryData,
+} from "./export-types";
+import {
+  prepareTextBlocks,
+  prepareVocabulary,
+  preparePhrases,
+  prepareQuizzes,
+  prepareFlashcards,
+  prepareSummary,
+} from "./export-transform";
+
+const colors = {
+  arabText: "#059669",
+  arabBg: "#ecfdf5",
+  uzTranslation: "#2563eb",
+  uzBg: "#eff6ff",
+  wordByWord: "#d97706",
+  wordByWordBg: "#fffbeb",
+  vocab: "#0891b2",
+  vocabBg: "#ecfeff",
+  vocabAlt: "#7c3aed",
+  phrases: "#7c3aed",
+  phrasesBg: "#f5f3ff",
+  quiz: "#dc2626",
+  quizBg: "#fef2f2",
+  flashcard: "#0d9488",
+  flashcardBg: "#f0fdfa",
+  summary: "#4f46e5",
+  summaryBg: "#eef2ff",
+  brand: "#059669",
+  brandLight: "#d1fae5",
+  gray: "#6b7280",
+  grayLight: "#f3f4f6",
+  dark: "#111827",
+  white: "#ffffff",
+  border: "#e5e7eb",
+};
+
+const styles = StyleSheet.create({
+  page: {
+    paddingTop: 50,
+    paddingBottom: 60,
+    paddingHorizontal: 40,
+    fontSize: 10,
+    fontFamily: "Helvetica",
+    color: colors.dark,
+  },
+  brandBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: colors.brand,
+  },
+  header: {
+    marginBottom: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.brand,
+  },
+  brandName: {
+    fontSize: 8,
+    color: colors.brand,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 4,
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontFamily: "Helvetica-Bold",
+    color: colors.dark,
+    marginBottom: 4,
+  },
+  level: {
+    fontSize: 9,
+    color: colors.gray,
+    fontFamily: "Helvetica",
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 8,
+    marginTop: 16,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+  },
+  sentenceBlock: {
+    marginBottom: 10,
+    padding: 8,
+    borderRadius: 4,
+  },
+  sentenceIndex: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: colors.gray,
+    marginBottom: 3,
+  },
+  arabicText: {
+    fontSize: 14,
+    color: colors.arabText,
+    textAlign: "right" as const,
+    marginBottom: 4,
+    fontFamily: "Helvetica-Bold",
+  },
+  uzText: {
+    fontSize: 10,
+    color: colors.uzTranslation,
+    marginBottom: 4,
+  },
+  wordMapRow: {
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    gap: 4,
+    marginTop: 4,
+  },
+  wordMapItem: {
+    backgroundColor: colors.wordByWordBg,
+    borderWidth: 1,
+    borderColor: "#fde68a",
+    borderRadius: 3,
+    padding: 3,
+    marginBottom: 2,
+  },
+  wordMapAr: {
+    fontSize: 9,
+    color: colors.wordByWord,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "right" as const,
+  },
+  wordMapUz: {
+    fontSize: 8,
+    color: colors.gray,
+  },
+  tableHeader: {
+    flexDirection: "row" as const,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 4,
+    marginBottom: 4,
+  },
+  tableRow: {
+    flexDirection: "row" as const,
+    paddingVertical: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.border,
+  },
+  tableRowAlt: {
+    backgroundColor: colors.grayLight,
+  },
+  tableCell: {
+    fontSize: 9,
+    paddingHorizontal: 4,
+  },
+  phraseBlock: {
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: colors.phrasesBg,
+    borderRadius: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.phrases,
+  },
+  phraseText: {
+    fontSize: 12,
+    color: colors.phrases,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "right" as const,
+    marginBottom: 2,
+  },
+  phraseTranslation: {
+    fontSize: 10,
+    color: colors.dark,
+    marginBottom: 2,
+  },
+  phraseContext: {
+    fontSize: 8,
+    color: colors.gray,
+    fontStyle: "italic" as const,
+  },
+  quizBlock: {
+    marginBottom: 10,
+    padding: 8,
+    backgroundColor: colors.quizBg,
+    borderRadius: 4,
+  },
+  quizQuestion: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: colors.dark,
+    marginBottom: 6,
+  },
+  quizOption: {
+    fontSize: 9,
+    color: colors.dark,
+    marginBottom: 3,
+    paddingLeft: 12,
+  },
+  quizOptionCorrect: {
+    fontSize: 9,
+    color: colors.brand,
+    fontFamily: "Helvetica-Bold",
+    marginBottom: 3,
+    paddingLeft: 12,
+  },
+  quizExplanation: {
+    fontSize: 8,
+    color: colors.gray,
+    fontStyle: "italic" as const,
+    marginTop: 4,
+  },
+  flashcardGrid: {
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    gap: 8,
+  },
+  flashcard: {
+    width: "48%",
+    padding: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  flashcardFront: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: colors.flashcard,
+    textAlign: "right" as const,
+    marginBottom: 6,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  flashcardBack: {
+    fontSize: 10,
+    color: colors.dark,
+  },
+  summaryBlock: {
+    padding: 12,
+    backgroundColor: colors.summaryBg,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  summaryLabel: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: colors.summary,
+    marginBottom: 4,
+  },
+  summaryText: {
+    fontSize: 10,
+    color: colors.dark,
+    lineHeight: 1.5,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 20,
+    left: 40,
+    right: 40,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.border,
+    paddingTop: 8,
+  },
+  footerText: {
+    fontSize: 7,
+    color: colors.gray,
+  },
+  pageNumber: {
+    fontSize: 7,
+    color: colors.gray,
+  },
+});
+
+function Header({ title, level }: { title: string; level: string }) {
+  return (
+    <View style={styles.header} fixed>
+      <View style={styles.brandBar} />
+      <Text style={styles.brandName}>TUBE MENTOR AI</Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.level}>Daraja: {level}</Text>
+    </View>
+  );
+}
+
+function Footer() {
+  return (
+    <View style={styles.footer} fixed>
+      <Text style={styles.footerText}>Tube Mentor AI | tubementor.ai</Text>
+      <Text
+        style={styles.pageNumber}
+        render={({ pageNumber, totalPages }) =>
+          `${pageNumber} / ${totalPages}`
+        }
+      />
+    </View>
+  );
+}
+
+function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
+  if (!blocks.length) return null;
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.arabText, borderBottomColor: colors.arabText },
+        ]}
+      >
+        Matn va Tarjima
+      </Text>
+      {blocks.map((block) => (
+        <View key={block.index} style={styles.sentenceBlock} wrap={false}>
+          <Text style={styles.sentenceIndex}>#{block.index}</Text>
+          {block.sentence ? (
+            <Text style={styles.arabicText}>{block.sentence}</Text>
+          ) : null}
+          {block.translation ? (
+            <Text style={styles.uzText}>{block.translation}</Text>
+          ) : null}
+          {block.wordMap && block.wordMap.length > 0 ? (
+            <View style={styles.wordMapRow}>
+              {block.wordMap.map((w, wi) => (
+                <View key={wi} style={styles.wordMapItem}>
+                  <Text style={styles.wordMapAr}>{w.word}</Text>
+                  <Text style={styles.wordMapUz}>{w.translation}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
+  if (!vocab.length) return null;
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.vocab, borderBottomColor: colors.vocab },
+        ]}
+      >
+        Lug'at
+      </Text>
+      <View style={styles.tableHeader}>
+        <Text
+          style={[
+            styles.tableCell,
+            { width: "25%", fontFamily: "Helvetica-Bold", color: colors.vocab },
+          ]}
+        >
+          Arab so'zi
+        </Text>
+        <Text
+          style={[
+            styles.tableCell,
+            { width: "25%", fontFamily: "Helvetica-Bold", color: colors.vocab },
+          ]}
+        >
+          Tarjima
+        </Text>
+        <Text
+          style={[
+            styles.tableCell,
+            {
+              width: "15%",
+              fontFamily: "Helvetica-Bold",
+              color: colors.vocab,
+            },
+          ]}
+        >
+          Turi
+        </Text>
+        <Text
+          style={[
+            styles.tableCell,
+            {
+              width: "25%",
+              fontFamily: "Helvetica-Bold",
+              color: colors.vocab,
+            },
+          ]}
+        >
+          Misol
+        </Text>
+        <Text
+          style={[
+            styles.tableCell,
+            {
+              width: "10%",
+              fontFamily: "Helvetica-Bold",
+              color: colors.vocab,
+            },
+          ]}
+        >
+          Daraja
+        </Text>
+      </View>
+      {vocab.map((v, i) => (
+        <View
+          key={i}
+          style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}
+          wrap={false}
+        >
+          <Text
+            style={[
+              styles.tableCell,
+              {
+                width: "25%",
+                textAlign: "right" as const,
+                fontFamily: "Helvetica-Bold",
+                color: colors.arabText,
+              },
+            ]}
+          >
+            {v.word}
+          </Text>
+          <Text style={[styles.tableCell, { width: "25%" }]}>
+            {v.translation}
+          </Text>
+          <Text
+            style={[styles.tableCell, { width: "15%", color: colors.gray }]}
+          >
+            {v.partOfSpeech || "—"}
+          </Text>
+          <Text
+            style={[styles.tableCell, { width: "25%", color: colors.gray }]}
+          >
+            {v.example || "—"}
+          </Text>
+          <Text
+            style={[styles.tableCell, { width: "10%", color: colors.vocabAlt }]}
+          >
+            {v.difficulty || "—"}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function PhrasesSection({ phrases }: { phrases: PhraseEntry[] }) {
+  if (!phrases.length) return null;
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.phrases, borderBottomColor: colors.phrases },
+        ]}
+      >
+        Iboralar
+      </Text>
+      {phrases.map((p, i) => (
+        <View key={i} style={styles.phraseBlock} wrap={false}>
+          <Text style={styles.phraseText}>{p.phrase}</Text>
+          <Text style={styles.phraseTranslation}>{p.translation}</Text>
+          {p.context ? (
+            <Text style={styles.phraseContext}>{p.context}</Text>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function QuizzesSection({
+  quizzes,
+  withAnswers,
+}: {
+  quizzes: QuizEntry[];
+  withAnswers: boolean;
+}) {
+  if (!quizzes.length) return null;
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.quiz, borderBottomColor: colors.quiz },
+        ]}
+      >
+        {withAnswers ? "Test (Javoblar bilan)" : "Test"}
+      </Text>
+      {quizzes.map((q, qi) => (
+        <View key={qi} style={styles.quizBlock} wrap={false}>
+          <Text style={styles.quizQuestion}>
+            {qi + 1}. {q.question}
+          </Text>
+          {q.options.map((opt, oi) => (
+            <Text
+              key={oi}
+              style={
+                withAnswers && oi === q.correctIndex
+                  ? styles.quizOptionCorrect
+                  : styles.quizOption
+              }
+            >
+              {String.fromCharCode(65 + oi)}) {opt}
+              {withAnswers && oi === q.correctIndex ? " ✓" : ""}
+            </Text>
+          ))}
+          {withAnswers && q.explanation ? (
+            <Text style={styles.quizExplanation}>{q.explanation}</Text>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function FlashcardsSection({
+  flashcards,
+}: {
+  flashcards: FlashcardEntry[];
+}) {
+  if (!flashcards.length) return null;
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.flashcard, borderBottomColor: colors.flashcard },
+        ]}
+      >
+        Flashkartalar
+      </Text>
+      <View style={styles.flashcardGrid}>
+        {flashcards.map((f, i) => (
+          <View
+            key={i}
+            style={[styles.flashcard, { backgroundColor: colors.flashcardBg }]}
+            wrap={false}
+          >
+            <Text style={styles.flashcardFront}>{f.front}</Text>
+            <Text style={styles.flashcardBack}>{f.back}</Text>
+            {f.type ? (
+              <Text
+                style={{ fontSize: 7, color: colors.gray, marginTop: 4 }}
+              >
+                {f.type}
+              </Text>
+            ) : null}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function SummarySection({ summary }: { summary: SummaryData }) {
+  return (
+    <View>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.summary, borderBottomColor: colors.summary },
+        ]}
+      >
+        Xulosa
+      </Text>
+      {summary.summaryShort ? (
+        <View style={styles.summaryBlock} wrap={false}>
+          <Text style={styles.summaryLabel}>Qisqa xulosa</Text>
+          <Text style={styles.summaryText}>{summary.summaryShort}</Text>
+        </View>
+      ) : null}
+      {summary.summaryDetailed ? (
+        <View style={styles.summaryBlock} wrap={false}>
+          <Text style={styles.summaryLabel}>Batafsil xulosa</Text>
+          <Text style={styles.summaryText}>{summary.summaryDetailed}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function MiniGuidePDF({
+  data,
+  config,
+}: {
+  data: LessonExportData;
+  config: ExportConfig;
+}) {
+  const textBlocks = prepareTextBlocks(data, config);
+  const vocabulary = prepareVocabulary(data, config);
+  const phrases = preparePhrases(data, config);
+  const quizzes = prepareQuizzes(data, config);
+  const flashcards = prepareFlashcards(data, config);
+  const summary = prepareSummary(data, config);
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Header title={data.title} level={data.level} />
+        <TextBlocksSection blocks={textBlocks} />
+        <VocabularySection vocab={vocabulary} />
+        <PhrasesSection phrases={phrases} />
+        <QuizzesSection
+          quizzes={quizzes}
+          withAnswers={config.quizWithAnswers}
+        />
+        <FlashcardsSection flashcards={flashcards} />
+        {summary ? <SummarySection summary={summary} /> : null}
+        <Footer />
+      </Page>
+    </Document>
+  );
+}
+
+function QuizSheetPDF({
+  data,
+  config,
+}: {
+  data: LessonExportData;
+  config: ExportConfig;
+}) {
+  const quizzes = prepareQuizzes(data, config);
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Header title={`${data.title} — Test varaq`} level={data.level} />
+        <QuizzesSection
+          quizzes={quizzes}
+          withAnswers={config.quizWithAnswers}
+        />
+        <Footer />
+      </Page>
+    </Document>
+  );
+}
+
+function FlashcardsPDF({
+  data,
+  config,
+}: {
+  data: LessonExportData;
+  config: ExportConfig;
+}) {
+  const flashcards = prepareFlashcards(data, config);
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Header
+          title={`${data.title} — Flashkartalar`}
+          level={data.level}
+        />
+        <FlashcardsSection flashcards={flashcards} />
+        <Footer />
+      </Page>
+    </Document>
+  );
+}
+
+export async function generateMiniGuidePDF(
+  data: LessonExportData,
+  config: ExportConfig
+): Promise<Blob> {
+  const doc = <MiniGuidePDF data={data} config={config} />;
+  const blob = await pdf(doc).toBlob();
+  return blob;
+}
+
+export async function generateQuizSheetPDF(
+  data: LessonExportData,
+  config: ExportConfig
+): Promise<Blob> {
+  const doc = <QuizSheetPDF data={data} config={config} />;
+  const blob = await pdf(doc).toBlob();
+  return blob;
+}
+
+export async function generateFlashcardsPDF(
+  data: LessonExportData,
+  config: ExportConfig
+): Promise<Blob> {
+  const doc = <FlashcardsPDF data={data} config={config} />;
+  const blob = await pdf(doc).toBlob();
+  return blob;
+}
+
+export async function generatePDF(
+  data: LessonExportData,
+  config: ExportConfig
+): Promise<Blob> {
+  const hasOnlyQuiz =
+    config.sections.length === 1 && config.sections[0] === "quizzes";
+  const hasOnlyFlashcards =
+    config.sections.length === 1 && config.sections[0] === "flashcards";
+
+  if (hasOnlyQuiz) {
+    return generateQuizSheetPDF(data, config);
+  }
+  if (hasOnlyFlashcards) {
+    return generateFlashcardsPDF(data, config);
+  }
+  return generateMiniGuidePDF(data, config);
+}

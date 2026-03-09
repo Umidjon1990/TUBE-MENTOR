@@ -109,41 +109,20 @@ export default function LessonDetailPage() {
     enabled: !!lessonId,
   });
 
-  if (isLoading) {
-    return (
-      <UserLayout title="Dars yuklanmoqda...">
-        <div className="space-y-4 p-6">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-6 w-96" />
-          <Skeleton className="h-[600px] w-full" />
-        </div>
-      </UserLayout>
-    );
-  }
+  const sentences: SentenceAnalysis[] = useMemo(() =>
+    (lesson?.sentenceAnalysisJson as SentenceAnalysis[] || []), [lesson?.sentenceAnalysisJson]);
+  const vocabulary: VocabItem[] = useMemo(() =>
+    (lesson?.vocabularyJson as VocabItem[] || []), [lesson?.vocabularyJson]);
+  const phrases: PhraseItem[] = useMemo(() =>
+    (lesson?.phrasesJson as PhraseItem[] || []), [lesson?.phrasesJson]);
+  const quizzes: QuizItem[] = useMemo(() =>
+    (lesson?.quizzesJson as QuizItem[] || []), [lesson?.quizzesJson]);
+  const presetFlashcards: FlashcardData[] = useMemo(() =>
+    (lesson?.flashcardsJson as FlashcardData[] || []), [lesson?.flashcardsJson]);
 
-  if (!lesson) {
-    return (
-      <UserLayout title="Dars topilmadi">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Dars topilmadi</h2>
-          <Link href="/lessons">
-            <Button variant="outline" data-testid="link-back-lessons">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Darslarga qaytish
-            </Button>
-          </Link>
-        </div>
-      </UserLayout>
-    );
-  }
-
-  const sentences: SentenceAnalysis[] = lesson.sentenceAnalysisJson as SentenceAnalysis[] || [];
-  const vocabulary: VocabItem[] = lesson.vocabularyJson as VocabItem[] || [];
-  const phrases: PhraseItem[] = lesson.phrasesJson as PhraseItem[] || [];
-  const quizzes: QuizItem[] = lesson.quizzesJson as QuizItem[] || [];
-  const presetFlashcards: FlashcardData[] = lesson.flashcardsJson as FlashcardData[] || [];
-
-  const timedSubs = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+  const timedSubs = useMemo(() =>
+    (lesson?.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null) || null,
+    [lesson?.subtitlesJson]);
 
   const subtitles: SubtitleItem[] = useMemo(() => {
     const normalizeText = (t: string) => t.toLowerCase().replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
@@ -212,6 +191,34 @@ export default function LessonDetailPage() {
       }))
       .filter(swm => swm.wordMap.length > 0);
   }, [sentences]);
+
+  if (isLoading) {
+    return (
+      <UserLayout title="Dars yuklanmoqda...">
+        <div className="space-y-4 p-6">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-6 w-96" />
+          <Skeleton className="h-[600px] w-full" />
+        </div>
+      </UserLayout>
+    );
+  }
+
+  if (!lesson) {
+    return (
+      <UserLayout title="Dars topilmadi">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Dars topilmadi</h2>
+          <Link href="/lessons">
+            <Button variant="outline" data-testid="link-back-lessons">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Darslarga qaytish
+            </Button>
+          </Link>
+        </div>
+      </UserLayout>
+    );
+  }
 
   return (
     <UserLayout title={lesson.title}>

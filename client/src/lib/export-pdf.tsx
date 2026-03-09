@@ -135,12 +135,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
   },
-  sentenceIndex: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: colors.gray,
-    marginBottom: 3,
-  },
   arabicText: {
     fontSize: 14,
     color: colors.arabText,
@@ -367,12 +361,11 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
       </Text>
       {blocks.map((block) => (
         <View key={block.index} style={styles.sentenceBlock} wrap={false}>
-          <Text style={styles.sentenceIndex}>#{block.index}</Text>
           {block.sentence ? (
-            <Text style={styles.arabicText}>{block.sentence}</Text>
+            <Text style={styles.arabicText}>{block.sentence}  {block.index}.</Text>
           ) : null}
           {block.translation ? (
-            <Text style={styles.uzText}>{block.translation}</Text>
+            <Text style={styles.uzText}>{block.index}. {block.translation}</Text>
           ) : null}
           {block.wordMap && block.wordMap.length > 0 ? (
             <View style={styles.wordMapRow}>

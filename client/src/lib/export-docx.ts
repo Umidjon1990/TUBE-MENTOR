@@ -116,21 +116,22 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
       paragraphs.push(
         new Paragraph({
           alignment: AlignmentType.RIGHT,
+          bidirectional: true,
           spacing: { before: 200, after: 80 },
           children: [
-            new TextRun({
-              text: `${block.index}. `,
-              bold: true,
-              size: 20,
-              color: COLORS.gray,
-              font: "Arial",
-            }),
             new TextRun({
               text: block.sentence,
               size: 26,
               color: COLORS.emerald,
               font: "Arial",
               rightToLeft: true,
+            }),
+            new TextRun({
+              text: `  ${block.index}.`,
+              bold: true,
+              size: 20,
+              color: COLORS.gray,
+              font: "Arial",
             }),
           ],
         })
@@ -142,6 +143,13 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
         new Paragraph({
           spacing: { after: 80 },
           children: [
+            new TextRun({
+              text: `${block.index}. `,
+              bold: true,
+              size: 20,
+              color: COLORS.gray,
+              font: "Arial",
+            }),
             new TextRun({
               text: block.translation,
               size: 22,

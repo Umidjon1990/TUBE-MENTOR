@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -297,16 +297,23 @@ export function ExportStudio({ open, onOpenChange, lessonData, onExport, isExpor
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={quizWithAnswers}
-                      onCheckedChange={setQuizWithAnswers}
-                      id="quiz-answers"
-                      data-testid="switch-quiz-answers"
-                    />
-                    <Label htmlFor="quiz-answers" className="cursor-pointer text-sm">
-                      Javoblarni ko'rsatish
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Javoblar</Label>
+                    <RadioGroup
+                      value={quizWithAnswers ? "with" : "without"}
+                      onValueChange={(v) => setQuizWithAnswers(v === "with")}
+                      className="flex items-center gap-4 flex-wrap"
+                      data-testid="radio-quiz-answers"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="with" id="quiz-with-answers" />
+                        <Label htmlFor="quiz-with-answers" className="cursor-pointer text-sm">Javobi bilan</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="without" id="quiz-without-answers" />
+                        <Label htmlFor="quiz-without-answers" className="cursor-pointer text-sm">Javobisiz</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
               </>

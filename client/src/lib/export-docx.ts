@@ -163,16 +163,8 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
 
     if (block.wordMap && block.wordMap.length > 0) {
       const wordColors = [
-        { ar: "DC2626", uz: "DC2626" },
-        { ar: "2563EB", uz: "2563EB" },
-        { ar: "059669", uz: "059669" },
-        { ar: "D97706", uz: "D97706" },
-        { ar: "7C3AED", uz: "7C3AED" },
-        { ar: "DB2777", uz: "DB2777" },
-        { ar: "0891B2", uz: "0891B2" },
-        { ar: "4F46E5", uz: "4F46E5" },
-        { ar: "B45309", uz: "B45309" },
-        { ar: "0D9488", uz: "0D9488" },
+        "DC2626", "2563EB", "059669", "D97706", "7C3AED",
+        "DB2777", "0891B2", "4F46E5", "B45309", "0D9488",
       ];
       const arParts: TextRun[] = [];
       const uzParts: TextRun[] = [];
@@ -183,7 +175,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
             text: w.word,
             bold: true,
             size: 22,
-            color: clr.ar,
+            color: clr,
             font: "Arial",
             rightToLeft: true,
           })
@@ -196,12 +188,12 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
             text: w.translation,
             bold: true,
             size: 20,
-            color: clr.uz,
+            color: clr,
             font: "Arial",
           })
         );
         if (idx < block.wordMap!.length - 1) {
-          uzParts.push(new TextRun({ text: "  ", size: 20, font: "Arial" }));
+          uzParts.push(new TextRun({ text: ", ", size: 20, color: "6B7280", font: "Arial" }));
         }
       });
       paragraphs.push(

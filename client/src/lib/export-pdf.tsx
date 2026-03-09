@@ -373,17 +373,24 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
             <Text style={styles.uzText}>{block.index}. {block.translation}</Text>
           ) : null}
           {block.wordMap && block.wordMap.length > 0 ? (
-            <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 8, marginTop: 4, justifyContent: "flex-end" as const }}>
-              {[...block.wordMap].reverse().map((w, wi) => {
-                const origIdx = block.wordMap!.length - 1 - wi;
-                const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
-                return (
-                  <View key={wi} style={{ alignItems: "center" as const, marginBottom: 4 }}>
-                    <Text style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
-                    <Text style={{ fontSize: 8, color: clr, fontFamily: "NotoSans", marginTop: 1 }}>{w.translation}</Text>
-                  </View>
-                );
-              })}
+            <View style={{ marginTop: 4 }}>
+              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 4, justifyContent: "flex-end" as const }}>
+                {[...block.wordMap].reverse().map((w, wi) => {
+                  const origIdx = block.wordMap!.length - 1 - wi;
+                  const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
+                  return (
+                    <Text key={wi} style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
+                  );
+                })}
+              </View>
+              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, marginTop: 3 }}>
+                {block.wordMap.map((w, wi) => {
+                  const clr = WORD_COLORS[wi % WORD_COLORS.length];
+                  return (
+                    <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const }}>{w.translation}{wi < block.wordMap!.length - 1 ? ", " : ""}</Text>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
         </View>

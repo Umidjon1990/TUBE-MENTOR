@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   BookOpen, Search, PlusCircle, PlayCircle,
-  Calendar, ArrowUpDown, Filter
+  Calendar, ArrowUpDown, Filter, Wand2
 } from "lucide-react";
 import { Link } from "wouter";
 import type { Lesson } from "@shared/schema";
@@ -220,7 +220,13 @@ export default function MyLessonsPage() {
                         <Calendar className="w-3 h-3" />
                         {formatDate(lesson.createdAt)}
                       </div>
-                      {lesson.youtubeUrl && (
+                      {lesson.status === "pending" && !lesson.summaryShort ? (
+                        <Link href={`/lessons/${lesson.id}/process`}>
+                          <span className="text-primary hover:underline flex items-center gap-1 cursor-pointer" data-testid={`link-process-${lesson.id}`}>
+                            <Wand2 className="w-3 h-3" /> Davom etish
+                          </span>
+                        </Link>
+                      ) : lesson.youtubeUrl ? (
                         <a
                           href={lesson.youtubeUrl}
                           target="_blank"
@@ -230,7 +236,7 @@ export default function MyLessonsPage() {
                         >
                           YouTube ↗
                         </a>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </CardContent>

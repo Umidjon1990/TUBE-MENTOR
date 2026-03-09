@@ -85,7 +85,7 @@ export default function CreateLessonPage() {
         title: "Dars yaratildi!",
         description: `"${data.lesson.title}" muvaffaqiyatli yaratildi. Yangi balans: ${data.newBalance} coin`,
       });
-      setLocation("/lessons");
+      setLocation(`/lessons/${data.lesson.id}/process`);
     },
     onError: (error: Error) => {
       const msg = error.message.includes(":") ? error.message.split(":").slice(1).join(":").trim() : error.message;

@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import CreateLessonPage from "@/pages/user/create-lesson";
+import LessonProcessPage from "@/pages/user/lesson-process";
 import MyLessonsPage from "@/pages/user/my-lessons";
 import FlashcardsPage from "@/pages/user/flashcards";
 import NotesPage from "@/pages/user/notes";
@@ -36,6 +37,11 @@ function Router() {
       <Route path="/lessons/create">
         <ProtectedRoute allowedRoles={["student", "teacher"]}>
           <CreateLessonPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/lessons/:id/process">
+        <ProtectedRoute allowedRoles={["student", "teacher"]}>
+          <LessonProcessPage />
         </ProtectedRoute>
       </Route>
       <Route path="/lessons">

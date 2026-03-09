@@ -41,8 +41,9 @@ client/
       dashboard.tsx            # User dashboard (student/teacher)
       not-found.tsx            # 404 page
       user/
-        create-lesson.tsx      # Create lesson placeholder
-        my-lessons.tsx         # My lessons placeholder
+        create-lesson.tsx      # Create lesson form with YouTube URL, coin cost
+        my-lessons.tsx         # My lessons grid with search/filter/sort
+        lesson-process.tsx     # Multi-step transcript extraction + AI generation
         flashcards.tsx         # Flashcards placeholder
         notes.tsx              # Notes placeholder
         analytics.tsx          # Analytics placeholder
@@ -64,6 +65,9 @@ server/
   storage.ts                   # Database storage interface (IStorage)
   db.ts                        # Database connection
   seed.ts                      # Seed script
+  services/
+    transcript.ts              # YouTube caption extraction, manual/demo modes
+    ai-generator.ts            # Pluggable AI content generation (mock → OpenAI)
 shared/
   schema.ts                    # Drizzle schemas + Zod types
 ```
@@ -134,12 +138,22 @@ shared/
 ### User — Dashboard & Lessons
 - `GET /api/user/dashboard` - Aggregated dashboard (coins, counts, recent lessons, recent transactions)
 - `GET /api/user/lessons` - User's own lessons
+- `GET /api/user/lessons/:id` - Single lesson detail (ownership checked)
 - `POST /api/user/lessons` - Create lesson (youtubeUrl, title?, categoryId?, tagIds?, level) — costs 10 coins
+- `POST /api/user/lessons/:id/transcript` - Extract/submit transcript (mode: auto|manual|demo)
+- `POST /api/user/lessons/:id/generate` - Trigger AI lesson generation from transcript
 - `GET /api/user/progress` - User lesson progress
 - `GET /api/categories` - List all categories
 - `GET /api/tags` - List all tags
 - `GET /api/lessons/public` - Public published lessons (up to 10)
 - `GET /api/health` - Health check
+
+## AI Generation Pipeline
+
+- **Transcript extraction**: auto (YouTube captions), manual (user input), demo (built-in sample)
+- **AI generator**: Mock provider generates vocabulary, phrases, quizzes, flashcards, sentence analysis
+- **Architecture**: `server/services/ai-generator.ts` — pluggable, ready for OpenAI replacement
+- **Services**: `server/services/transcript.ts` — transcript extraction/cleaning/splitting
 
 ## Authentication
 

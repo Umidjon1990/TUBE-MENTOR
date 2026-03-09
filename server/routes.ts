@@ -4,6 +4,8 @@ import { storage } from "./storage";
 import { pool } from "./db";
 import { verifyPassword, requireAdmin, requireAuth, hashPassword } from "./auth";
 import { z } from "zod";
+import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from "./services/transcript";
+import { generateLessonContent } from "./services/ai-generator";
 
 const createUserSchema = z.object({
   fullName: z.string().min(2, "Ism kamida 2 ta belgidan iborat bo'lishi kerak"),
@@ -372,6 +374,109 @@ export async function registerRoutes(
       }
       throw err;
     }
+  });
+
+  app.get("/api/user/lessons/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    res.json(lesson);
+  });
+
+  app.post("/api/user/lessons/:id/transcript", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    const { mode, manualText } = req.body;
+
+    if (mode === "auto") {
+      const videoIdMatch = lesson.youtubeUrl?.match(/(?:v=|embed\/|shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      const videoId = videoIdMatch?.[1];
+      if (!videoId) return res.status(400).json({ message: "YouTube video ID topilmadi" });
+
+      const result = await tryExtractTranscript(videoId);
+      if (!result) {
+        return res.json({ success: false, message: "Bu videoda subtitle topilmadi" });
+      }
+
+      await storage.updateLesson(id, {
+        transcript: result.text,
+        transcriptSource: result.source,
+      });
+
+      return res.json({ success: true, transcript: result });
+    }
+
+    if (mode === "manual") {
+      if (!manualText || typeof manualText !== "string" || manualText.trim().length < 20) {
+        return res.status(400).json({ message: "Matn kamida 20 ta belgidan iborat bo'lishi kerak" });
+      }
+
+      const result = processManualTranscript(manualText);
+
+      await storage.updateLesson(id, {
+        transcript: result.text,
+        manualTranscript: manualText,
+        transcriptSource: "manual",
+      });
+
+      return res.json({ success: true, transcript: result });
+    }
+
+    if (mode === "demo") {
+      const result = getDemoTranscript();
+
+      await storage.updateLesson(id, {
+        transcript: result.text,
+        transcriptSource: "demo",
+      });
+
+      return res.json({ success: true, transcript: result });
+    }
+
+    return res.status(400).json({ message: "Noto'g'ri rejim. auto, manual yoki demo bo'lishi kerak" });
+  });
+
+  app.post("/api/user/lessons/:id/generate", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+    if (!lesson.transcript) return res.status(400).json({ message: "Avval transkript qo'shing" });
+    if (lesson.status === "approved" && lesson.summaryShort) {
+      return res.status(400).json({ message: "Bu dars allaqachon generatsiya qilingan" });
+    }
+
+    const sentences = lesson.transcript
+      .split(/(?<=[.!?。？！])\s+|\n+/)
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+
+    const content = await generateLessonContent(lesson.transcript, sentences, lesson.level);
+
+    const updated = await storage.updateLesson(id, {
+      summaryShort: content.summaryShort,
+      summaryDetailed: content.summaryDetailed,
+      vocabularyJson: content.vocabularyJson,
+      phrasesJson: content.phrasesJson,
+      quizzesJson: content.quizzesJson,
+      flashcardsJson: content.flashcardsJson,
+      sentenceAnalysisJson: content.sentenceAnalysisJson,
+      aiMetaJson: content.aiMetaJson,
+      status: "approved",
+    });
+
+    res.json(updated);
   });
 
   app.get("/api/categories", requireAuth, async (_req, res) => {

@@ -1,102 +1,74 @@
-import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { GraduationCap, LogOut, Users, Shield } from "lucide-react";
+import { Users, BookOpen, ShieldCheck, Coins, FolderTree, TrendingUp } from "lucide-react";
+import AdminLayout from "@/components/layouts/admin-layout";
 
 export default function AdminPage() {
-  const { user, logout } = useAuth();
-
-  const usersQuery = useQuery<any[]>({
-    queryKey: ["/api/admin/users"],
-  });
+  const dashboardStats = [
+    { label: "Foydalanuvchilar", value: "4", icon: Users, color: "text-primary", bg: "from-primary/10 to-cyan-500/10" },
+    { label: "Darslar", value: "5", icon: BookOpen, color: "text-emerald-500", bg: "from-emerald-500/10 to-green-500/10" },
+    { label: "Moderatsiya", value: "0", icon: ShieldCheck, color: "text-amber-500", bg: "from-amber-500/10 to-orange-500/10" },
+    { label: "Jami tangalar", value: "1,670", icon: Coins, color: "text-violet-400", bg: "from-violet-500/10 to-purple-500/10" },
+    { label: "Kategoriyalar", value: "5", icon: FolderTree, color: "text-blue-500", bg: "from-blue-500/10 to-indigo-500/10" },
+    { label: "O'sish", value: "+12%", icon: TrendingUp, color: "text-rose-500", bg: "from-rose-500/10 to-pink-500/10" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
+    <AdminLayout title="Admin paneli" subtitle="Tizim umumiy ko'rinishi">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {dashboardStats.map((stat, i) => (
+          <Card key={i} className="glass border-border/50 hover:border-violet-500/20 transition-colors" data-testid={`card-admin-stat-${i}`}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.bg} flex items-center justify-center`}>
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+              </div>
+              <p className="text-2xl font-bold">{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="glass border-border/50" data-testid="card-admin-activity">
+          <CardContent className="p-6">
+            <h2 className="text-base font-semibold mb-4">So'nggi faoliyat</h2>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-sm text-muted-foreground">Faoliyat tarixi tez orada paydo bo'ladi</p>
             </div>
-            <span className="text-lg font-bold" data-testid="text-brand-name">Tube Mentor AI</span>
-            <Badge variant="secondary" className="ml-2" data-testid="badge-admin">Admin</Badge>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground" data-testid="text-admin-name">
-              {user?.fullName}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              data-testid="button-admin-logout"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Chiqish
-            </Button>
-          </div>
-        </div>
-      </header>
+          </CardContent>
+        </Card>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-1">
-            <Shield className="w-5 h-5 text-primary" />
-            <h1 className="text-2xl font-bold" data-testid="text-admin-title">
-              Admin boshqaruv paneli
-            </h1>
-          </div>
-          <p className="text-muted-foreground">
-            Tizim foydalanuvchilarini boshqaring.
-          </p>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">Foydalanuvchilar</h2>
-          </div>
-
-          {usersQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Yuklanmoqda...</p>
-          ) : usersQuery.data ? (
-            <div className="grid gap-3">
-              {usersQuery.data.map((u: any) => (
-                <Card key={u.id} data-testid={`card-user-${u.username}`}>
-                  <CardContent className="p-4 flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary">
-                          {u.fullName?.charAt(0)?.toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{u.fullName}</p>
-                        <p className="text-xs text-muted-foreground">@{u.username}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant={u.role === "admin" ? "default" : "secondary"}>
-                        {u.role}
-                      </Badge>
-                      <Badge variant={u.isActive ? "secondary" : "destructive"}>
-                        {u.isActive ? "Faol" : "Bloklangan"}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        <Card className="glass border-border/50" data-testid="card-admin-overview">
+          <CardContent className="p-6">
+            <h2 className="text-base font-semibold mb-4">Tizim holati</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <span className="text-sm">Ma'lumotlar bazasi</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs text-emerald-500">Faol</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <span className="text-sm">AI tizimi</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs text-emerald-500">Faol</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <span className="text-sm">Sessiyalar</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs text-emerald-500">Faol</span>
+                </div>
+              </div>
             </div>
-          ) : null}
-        </div>
-
-        <div className="mt-12 text-center text-muted-foreground" data-testid="text-admin-placeholder">
-          <p>Admin paneli tez orada to'liq ishga tushiriladi.</p>
-        </div>
-      </main>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
   );
 }

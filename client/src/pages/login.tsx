@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GraduationCap, LogIn, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -38,22 +38,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 dark:from-primary/10 dark:via-transparent dark:to-primary/5" />
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute inset-0 gradient-mesh" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
 
       <div className="relative w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-md bg-primary flex items-center justify-center mb-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center mb-4 neon-glow">
             <GraduationCap className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold" data-testid="text-login-title">Tube Mentor AI</h1>
+          <h1 className="text-2xl font-bold tracking-tight" data-testid="text-login-title">Tube Mentor AI</h1>
           <p className="text-sm text-muted-foreground mt-1" data-testid="text-login-subtitle">
             Tizimga kirish
           </p>
         </div>
 
-        <Card>
+        <Card className="glass border-border/50">
           <CardHeader className="pb-4">
             <h2 className="text-lg font-semibold text-center" data-testid="text-login-heading">Kirish</h2>
           </CardHeader>
@@ -61,7 +61,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMessage && (
                 <div
-                  className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20"
                   data-testid="text-login-error"
                 >
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -79,6 +79,7 @@ export default function LoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={login.isPending}
                   autoComplete="username"
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
                   data-testid="input-username"
                 />
               </div>
@@ -93,13 +94,14 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={login.isPending}
                   autoComplete="current-password"
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
                   data-testid="input-password"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 shadow-lg shadow-primary/20"
                 disabled={login.isPending || !username.trim() || !password.trim()}
                 data-testid="button-submit-login"
               >
@@ -114,7 +116,15 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground mt-6" data-testid="text-login-note">
+        <div className="flex items-center justify-center mt-6">
+          <Link href="/">
+            <span className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer" data-testid="link-back-home">
+              ← Bosh sahifaga qaytish
+            </span>
+          </Link>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-4" data-testid="text-login-note">
           Faqat administrator tomonidan yaratilgan foydalanuvchilar kirishi mumkin.
         </p>
       </div>

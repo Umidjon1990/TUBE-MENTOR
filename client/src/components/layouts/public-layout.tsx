@@ -1,0 +1,88 @@
+import { Button } from "@/components/ui/button";
+import { GraduationCap } from "lucide-react";
+import { Link } from "wouter";
+
+function PublicNavbar() {
+  return (
+    <header className="sticky top-0 z-50 glass-strong" data-testid="navbar-public">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+        <Link href="/">
+          <div className="flex items-center gap-2.5 cursor-pointer group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center neon-glow-sm">
+              <GraduationCap className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-bold tracking-tight" data-testid="text-brand-name">
+              Tube Mentor AI
+            </span>
+          </div>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">
+          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
+          <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-pricing">Narxlar</a>
+          <a href="#cta" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-about">Biz haqimizda</a>
+        </nav>
+        <div className="flex items-center gap-3">
+          <Link href="/login">
+            <Button variant="outline" size="sm" className="border-primary/30 hover:border-primary/60 hover:bg-primary/5" data-testid="button-login">
+              Kirish
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function PublicFooter() {
+  return (
+    <footer className="border-t border-border/50">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid md:grid-cols-4 gap-8">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
+                <GraduationCap className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-bold tracking-tight">Tube Mentor AI</span>
+            </div>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+              Sun'iy intellekt yordamida YouTube videolaridan interaktiv darslar yarating va
+              o'rganish jarayonini samaraliroq qiling.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Platforma</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><a href="#features" className="hover:text-foreground transition-colors">Xususiyatlar</a></li>
+              <li><a href="#stats" className="hover:text-foreground transition-colors">Narxlar</a></li>
+              <li><a href="#cta" className="hover:text-foreground transition-colors">Yordam</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3 text-sm">Kompaniya</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><span className="hover:text-foreground transition-colors">Biz haqimizda</span></li>
+              <li><span className="hover:text-foreground transition-colors">Blog</span></li>
+              <li><span className="hover:text-foreground transition-colors">Aloqa</span></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-border/50 mt-8 pt-8 text-center">
+          <p className="text-sm text-muted-foreground" data-testid="text-copyright">
+            &copy; 2026 Tube Mentor AI. Barcha huquqlar himoyalangan.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <PublicNavbar />
+      <main>{children}</main>
+      <PublicFooter />
+    </div>
+  );
+}

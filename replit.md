@@ -10,88 +10,137 @@ AI-powered EdTech platform that transforms YouTube videos into interactive lesso
 - **Auth**: Session-based with scrypt password hashing (server/auth.ts)
 - **Shared**: Types and schemas (shared/schema.ts)
 
+## Design System
+
+- **Theme**: Dark mode default, futuristic AI lab vibe
+- **Colors**: Neon cyan primary (190 95% 50%), violet accent (260 80% 62%)
+- **Effects**: Glassmorphism (.glass, .glass-strong), neon glow (.neon-glow), gradient mesh backgrounds
+- **Typography**: Inter/DM Sans fonts
+- **Dark mode**: Set via `class="dark"` on html element in index.html
+
 ## Project Structure
 
 ```
-client/               # React frontend
+client/
   src/
-    App.tsx           # Root component with routing + protected routes
-    pages/            # Page components (home, login, dashboard, admin, not-found)
+    App.tsx                    # Root component with all routes
+    index.css                  # Theme variables + glassmorphism utilities
     components/
-      ui/             # shadcn/ui components
-      protected-route.tsx  # Auth guard component
+      layouts/
+        public-layout.tsx      # Public navbar + footer wrapper
+        user-layout.tsx        # User sidebar + topbar + profile menu
+        admin-layout.tsx       # Admin sidebar + topbar + admin badge
+      protected-route.tsx      # Auth guard with role checks
+      ui/                      # shadcn/ui components
     hooks/
-      use-auth.ts     # Auth hook (login, logout, current user)
-      use-toast.ts    # Toast notifications
-    lib/              # Utilities (queryClient, utils)
-server/               # Express backend
-  index.ts            # Server entry point + session middleware
-  auth.ts             # Password hashing, verification, auth middleware
-  routes.ts           # API routes (prefix: /api)
-  storage.ts          # Database storage interface (IStorage)
-  db.ts               # Database connection (Drizzle + pg)
-  seed.ts             # Database seed script (runs on startup)
-  vite.ts             # Vite dev server setup
-  static.ts           # Production static file serving
+      use-auth.ts              # Auth hook (login, logout, current user)
+      use-toast.ts             # Toast notifications
+    pages/
+      home.tsx                 # Public landing page
+      login.tsx                # Login page
+      dashboard.tsx            # User dashboard (student/teacher)
+      not-found.tsx            # 404 page
+      user/
+        create-lesson.tsx      # Create lesson placeholder
+        my-lessons.tsx         # My lessons placeholder
+        flashcards.tsx         # Flashcards placeholder
+        notes.tsx              # Notes placeholder
+        analytics.tsx          # Analytics placeholder
+        profile.tsx            # User profile
+      admin/
+        users.tsx              # Admin user management
+        lessons.tsx            # Admin lessons management placeholder
+        moderation.tsx         # Moderation placeholder
+        coins.tsx              # Coin management placeholder
+        categories.tsx         # Categories management placeholder
+        settings.tsx           # System settings placeholder
+    lib/
+      queryClient.ts           # TanStack Query setup
+      utils.ts                 # Utility functions
+server/
+  index.ts                     # Server entry + session middleware
+  auth.ts                      # Password hashing, auth middleware
+  routes.ts                    # API routes
+  storage.ts                   # Database storage interface (IStorage)
+  db.ts                        # Database connection
+  seed.ts                      # Seed script
 shared/
-  schema.ts           # Drizzle schemas + Zod validation + types
+  schema.ts                    # Drizzle schemas + Zod types
 ```
-
-## Key Commands
-
-- `npm run dev` - Start development server (frontend + backend on port 5000)
-- `npm run build` - Build for production
-- `npm run db:push` - Push schema changes to database
-- `npm run check` - TypeScript type checking
-
-## Authentication
-
-- Session-based auth with express-session
-- Passwords hashed with scrypt (server/auth.ts)
-- No public signup - only admin creates users
-- Middleware: requireAuth, requireAdmin, requireRole(...)
-- Blocked users (isActive=false) cannot log in
-- Role-based redirect after login: admin → /admin, student/teacher → /dashboard
-
-## Roles
-
-- **admin** - Full access, user management
-- **teacher** - Create/manage lessons
-- **student** - Learn, take quizzes, earn coins
 
 ## Frontend Routes
 
-- `/` - Public landing page
+### Public
+- `/` - Landing page (PublicLayout)
 - `/login` - Login page
-- `/dashboard` - Protected: student/teacher dashboard
-- `/admin` - Protected: admin panel (admin only)
+
+### User (student/teacher) — UserLayout with sidebar
+- `/dashboard` - Dashboard
+- `/lessons/create` - Create lesson
+- `/lessons` - My lessons
+- `/flashcards` - Flashcards
+- `/notes` - Notes
+- `/analytics` - Analytics
+- `/profile` - Profile
+
+### Admin — AdminLayout with sidebar
+- `/admin` - Admin dashboard
+- `/admin/users` - User management
+- `/admin/lessons` - Lessons management
+- `/admin/moderation` - Content moderation
+- `/admin/coins` - Coin management
+- `/admin/categories` - Categories management
+- `/admin/settings` - System settings
+
+## Navigation Items (Uzbek)
+
+### User Sidebar
+1. Boshqaruv paneli → /dashboard
+2. Dars yaratish → /lessons/create
+3. Mening darslarim → /lessons
+4. Kartochkalar → /flashcards
+5. Eslatmalar → /notes
+6. Tahlil → /analytics
+7. Profil → /profile
+
+### Admin Sidebar
+1. Admin paneli → /admin
+2. Foydalanuvchilar → /admin/users
+3. Darslar → /admin/lessons
+4. Moderatsiya → /admin/moderation
+5. Coin boshqaruvi → /admin/coins
+6. Kategoriyalar → /admin/categories
+7. Sozlamalar → /admin/settings
 
 ## API Routes
 
 - `GET /api/health` - Health check
-- `POST /api/auth/login` - Login (username, password)
-- `POST /api/auth/logout` - Logout
+- `POST /api/auth/login` - Login (session regeneration on success)
+- `POST /api/auth/logout` - Logout (session destroy)
 - `GET /api/auth/me` - Current user
 - `GET /api/admin/users` - Admin: list all users
 - `GET /api/user/progress` - Auth: user's lesson progress
 
-## Database Models
+## Authentication
 
-- **users** (varchar UUID PK) - fullName, username, passwordHash, role, isActive, coins, lastLoginAt, timestamps
-- **categories** (serial PK) - name, slug, description
-- **tags** (serial PK) - name, slug
-- **lessons** (serial PK) - full lesson data with AI-generated JSON fields, FK to category/creator/approver/publisher
-- **lesson_tags** (serial PK) - lessonId FK, tagId FK (unique index)
-- **lesson_progress** (serial PK) - userId FK, lessonId FK, accuracy, completion (unique user+lesson)
-- **flashcards** (serial PK) - userId FK, lessonId FK, frontText, backText, confidence
-- **notes** (serial PK) - userId FK, lessonId FK, content, isPinned
-- **bookmarks** (serial PK) - userId FK, lessonId FK, type, label
-- **coin_transactions** (serial PK) - userId FK, amount, type, description
-- **system_settings** (serial PK) - key (unique), value
+- Session-based with express-session + MemoryStore
+- Passwords hashed with scrypt (server/auth.ts)
+- Session regeneration on login (fixation prevention)
+- Cookie: httpOnly, sameSite=lax, secure in production
+- Middleware: requireAuth, requireAdmin, requireRole (all re-check DB state)
 
-## Default Admin
+## Roles
 
-- Username: admin / Password: admin123
+- **admin** - Full access, admin layout
+- **teacher** - Create/manage lessons, user layout
+- **student** - Learn, take quizzes, user layout
+
+## Default Credentials
+
+- admin / admin123
+- aziza_k / aziza123 (teacher)
+- bobur_a / bobur123 (student)
+- dilnoza_s / dilnoza123 (student)
 
 ## Environment Variables
 
@@ -99,10 +148,6 @@ shared/
 - `SESSION_SECRET` - Session encryption secret
 - `PORT` - Server port (default: 5000)
 
-## UI Language
-
-All user-facing text is in **Uzbek** (O'zbek tili).
-
 ## Seed Data
 
-Auto-seeds on first startup: 4 users (1 admin, 1 teacher, 2 students), 5 categories, 10 tags, 5 lessons, flashcards, notes, bookmarks, coin transactions, 8 system settings.
+Auto-seeds on first startup: 4 users, 5 categories, 10 tags, 5 lessons, flashcards, notes, bookmarks, coin transactions, 8 system settings.

@@ -162,41 +162,60 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
     }
 
     if (block.wordMap && block.wordMap.length > 0) {
-      const wordParts: TextRun[] = [];
+      const wordColors = [
+        { ar: "DC2626", uz: "DC2626" },
+        { ar: "2563EB", uz: "2563EB" },
+        { ar: "059669", uz: "059669" },
+        { ar: "D97706", uz: "D97706" },
+        { ar: "7C3AED", uz: "7C3AED" },
+        { ar: "DB2777", uz: "DB2777" },
+        { ar: "0891B2", uz: "0891B2" },
+        { ar: "4F46E5", uz: "4F46E5" },
+        { ar: "B45309", uz: "B45309" },
+        { ar: "0D9488", uz: "0D9488" },
+      ];
+      const arParts: TextRun[] = [];
+      const uzParts: TextRun[] = [];
       block.wordMap.forEach((w, idx) => {
-        wordParts.push(
+        const clr = wordColors[idx % wordColors.length];
+        arParts.push(
           new TextRun({
             text: w.word,
             bold: true,
-            size: 20,
-            color: COLORS.emerald,
+            size: 22,
+            color: clr.ar,
             font: "Arial",
             rightToLeft: true,
           })
         );
-        wordParts.push(
+        if (idx < block.wordMap!.length - 1) {
+          arParts.push(new TextRun({ text: "  ", size: 22, font: "Arial" }));
+        }
+        uzParts.push(
           new TextRun({
-            text: `[${w.translation}]`,
-            size: 18,
-            color: COLORS.blue,
+            text: w.translation,
+            bold: true,
+            size: 20,
+            color: clr.uz,
             font: "Arial",
           })
         );
         if (idx < block.wordMap!.length - 1) {
-          wordParts.push(
-            new TextRun({
-              text: "   ",
-              size: 18,
-              font: "Arial",
-            })
-          );
+          uzParts.push(new TextRun({ text: "  ", size: 20, font: "Arial" }));
         }
       });
       paragraphs.push(
         new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          bidirectional: true,
+          spacing: { before: 60, after: 0 },
+          children: arParts,
+        })
+      );
+      paragraphs.push(
+        new Paragraph({
           spacing: { after: 150 },
-          shading: { type: ShadingType.SOLID, color: "FFF0FDF4" },
-          children: wordParts,
+          children: uzParts,
         })
       );
     }

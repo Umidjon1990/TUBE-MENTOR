@@ -54,6 +54,11 @@ Font.register({
   ],
 });
 
+const WORD_COLORS = [
+  "#DC2626", "#2563EB", "#059669", "#D97706", "#7C3AED",
+  "#DB2777", "#0891B2", "#4F46E5", "#B45309", "#0D9488",
+];
+
 const colors = {
   arabText: "#059669",
   arabBg: "#ecfdf5",
@@ -368,13 +373,23 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
             <Text style={styles.uzText}>{block.index}. {block.translation}</Text>
           ) : null}
           {block.wordMap && block.wordMap.length > 0 ? (
-            <View style={styles.wordMapRow}>
-              {block.wordMap.map((w, wi) => (
-                <View key={wi} style={styles.wordMapItem}>
-                  <Text style={styles.wordMapAr}>{w.word}</Text>
-                  <Text style={styles.wordMapUz}>[{w.translation}]</Text>
-                </View>
-              ))}
+            <View style={{ marginTop: 4 }}>
+              <View style={styles.wordMapRow}>
+                {block.wordMap.map((w, wi) => {
+                  const clr = WORD_COLORS[wi % WORD_COLORS.length];
+                  return (
+                    <Text key={wi} style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const, marginRight: 6 }}>{w.word}</Text>
+                  );
+                })}
+              </View>
+              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 6, marginTop: 2 }}>
+                {block.wordMap.map((w, wi) => {
+                  const clr = WORD_COLORS[wi % WORD_COLORS.length];
+                  return (
+                    <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const, marginRight: 6 }}>{w.translation}</Text>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
         </View>

@@ -34,6 +34,19 @@ export interface PhraseLookup {
   context?: string;
 }
 
+export interface WordMapEntry {
+  word: string;
+  normalized: string;
+  translationUz: string;
+  translationAr: string;
+  contextualMeaning: string;
+}
+
+export interface SentenceWordMap {
+  sentenceIndex: number;
+  wordMap: WordMapEntry[];
+}
+
 type DisplayMode = "original" | "both" | "translation";
 type TranslationLang = "uz" | "ar";
 type PanelMode = "auto" | "fixed";
@@ -87,10 +100,11 @@ interface SubtitlePlayerProps {
   lessonId?: number;
   vocabulary?: VocabLookup[];
   phrases?: PhraseLookup[];
+  sentenceWordMaps?: SentenceWordMap[];
   className?: string;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], className = "" }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "" }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -147,24 +161,39 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     return null;
   }, [phrases]);
 
+  const wordMapLookup = useMemo(() => {
+    const m = new Map<number, Map<string, WordMapEntry>>();
+    for (const swm of sentenceWordMaps) {
+      const inner = new Map<string, WordMapEntry>();
+      for (const wm of swm.wordMap) {
+        inner.set(wm.normalized, wm);
+      }
+      m.set(swm.sentenceIndex, inner);
+    }
+    return m;
+  }, [sentenceWordMaps]);
+
   const handleWordClick = useCallback((word: string, subtitle: SubtitleItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const cleanWord = word.replace(/[^\p{L}\p{N}]/gu, "");
     if (!cleanWord) return;
 
+    const wmEntry = wordMapLookup.get(subtitle.id)?.get(cleanWord.toLowerCase());
     const vocabEntry = vocabMap.get(cleanWord.toLowerCase());
     const phraseEntry = findPhraseForWord(cleanWord, subtitle.originalText);
 
     setSelectedWord({
       word: cleanWord,
       normalized: cleanWord.toLowerCase(),
-      translationUz: vocabEntry?.translation || subtitle.translationUz || "",
-      translationAr: vocabEntry?.translationAr || "",
-      contextualMeaning: vocabEntry?.example || "",
+      translationUz: wmEntry?.translationUz || vocabEntry?.translation || "",
+      translationAr: wmEntry?.translationAr || vocabEntry?.translationAr || "",
+      contextualMeaning: wmEntry?.contextualMeaning || vocabEntry?.example || "",
       partOfSpeech: vocabEntry?.partOfSpeech || "",
       pronunciation: "",
       sourceSentence: subtitle.originalText,
+      sourceSentenceUz: subtitle.translationUz || "",
+      sourceSentenceAr: subtitle.translationAr || "",
       subtitleTime: subtitle.startTime,
       lessonId: lessonId || 0,
       phraseText: phraseEntry?.phrase,
@@ -173,7 +202,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       phraseExplanation: phraseEntry?.context,
     });
     setAnchorRect(rect);
-  }, [vocabMap, findPhraseForWord, lessonId]);
+  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);

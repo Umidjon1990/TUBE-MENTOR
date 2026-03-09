@@ -617,6 +617,8 @@ export async function registerRoutes(
     const updated = await storage.updateLesson(id, {
       summaryShort: content.summaryShort,
       summaryDetailed: content.summaryDetailed,
+      summaryShortAr: content.summaryShortAr,
+      summaryDetailedAr: content.summaryDetailedAr,
       vocabularyJson: content.vocabularyJson,
       phrasesJson: content.phrasesJson,
       quizzesJson: content.quizzesJson,

@@ -15,6 +15,8 @@ export interface WordInfo {
   partOfSpeech: string;
   pronunciation: string;
   sourceSentence: string;
+  sourceSentenceUz?: string;
+  sourceSentenceAr?: string;
   subtitleTime: number;
   lessonId: number;
   phraseText?: string;
@@ -28,6 +30,23 @@ interface WordInspectorProps {
   anchorRect: DOMRect | null;
   onClose: () => void;
   isMobile: boolean;
+}
+
+function highlightWord(sentence: string, word: string): JSX.Element {
+  if (!word || !sentence) return <>{sentence}</>;
+  const regex = new RegExp(`(\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b)`, "gi");
+  const parts = sentence.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <span key={i} className="bg-primary/30 text-primary font-semibold px-0.5 rounded">{part}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
 }
 
 export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile }: WordInspectorProps) {
@@ -99,11 +118,13 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
 
   if (!wordInfo) return null;
 
+  const isArabicText = (t: string) => /[\u0600-\u06FF]/.test(t);
+
   const popupStyle = !isMobile && anchorRect ? (() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const popupW = Math.min(340, vw - 24);
-    const popupH = 420;
+    const popupW = Math.min(360, vw - 24);
+    const popupH = 500;
     let left = anchorRect.left + anchorRect.width / 2 - popupW / 2;
     let top = anchorRect.bottom + 8;
     if (left < 12) left = 12;
@@ -115,12 +136,11 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
     return { left, top, width: popupW };
   })() : undefined;
 
-  const isArabicText = (t: string) => /[\u0600-\u06FF]/.test(t);
-
   const content = (
     <div className="space-y-3 md:space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Tanlangan so'z</p>
           <h3 className="text-lg font-bold text-foreground break-words" data-testid="text-inspector-word">
             {wordInfo.word}
           </h3>
@@ -139,8 +159,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
           )}
         </div>
         <Button
-          variant="ghost"
-          size="icon"
+          variant="ghost" size="icon"
           className="shrink-0 h-8 w-8 md:h-7 md:w-7 -mr-1"
           onClick={onClose}
           data-testid="button-close-inspector"
@@ -209,11 +228,30 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         )}
 
         {wordInfo.sourceSentence && (
-          <div className="rounded-lg bg-muted/30 p-2.5 md:p-3">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Manba gap</p>
-            <p className="text-xs text-foreground/80 italic leading-relaxed break-words" data-testid="text-source-sentence">
-              "{wordInfo.sourceSentence}"
+          <div className="rounded-lg bg-muted/30 border border-border/30 p-2.5 md:p-3 space-y-1.5">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Shu gapdagi joyi</p>
+            <p className="text-xs text-foreground/80 leading-relaxed break-words" data-testid="text-source-sentence">
+              {highlightWord(wordInfo.sourceSentence, wordInfo.word)}
             </p>
+            {wordInfo.sourceSentenceUz && (
+              <p className="text-xs text-primary/70 leading-relaxed break-words" data-testid="text-source-sentence-uz">
+                {wordInfo.translationUz ? highlightWord(wordInfo.sourceSentenceUz, wordInfo.translationUz.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceUz}
+              </p>
+            )}
+            {wordInfo.sourceSentenceAr && (
+              <p
+                className="text-xs text-violet-400/70 leading-relaxed break-words"
+                dir="rtl"
+                style={{
+                  textAlign: "right",
+                  fontFamily: isArabicText(wordInfo.sourceSentenceAr) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                  lineHeight: "1.8",
+                }}
+                data-testid="text-source-sentence-ar"
+              >
+                {wordInfo.translationAr ? highlightWord(wordInfo.sourceSentenceAr, wordInfo.translationAr.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceAr}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -241,8 +279,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
           )}
         </Button>
         <Button
-          size="sm"
-          variant="outline"
+          size="sm" variant="outline"
           className="h-10 md:h-9 text-xs shrink-0"
           onClick={() => {
             toast({ title: "Shu gapni tushuntir", description: `"${wordInfo.sourceSentence}"` });

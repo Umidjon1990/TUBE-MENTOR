@@ -72,7 +72,7 @@ server/
     transcript.ts              # YouTube caption extraction, manual/demo modes
     ai-generator.ts            # AI content generation (OpenAI GPT-4o with mock fallback)
 shared/
-  schema.ts                    # 11 Drizzle models + relations + Zod types
+  schema.ts                    # 12 Drizzle models + relations + Zod types (includes summaryShortAr/summaryDetailedAr)
 ```
 
 ## Subtitle Player System
@@ -89,13 +89,14 @@ shared/
 - **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel), with active/hover states
 - **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet with safe-area padding
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
-- Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`
+- Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
+- **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
 - Subtitles generated from sentenceAnalysisJson with mock timestamps (8s per sentence)
 
 ## Word Inspector & Saved Words System
 
 - `client/src/components/word-inspector.tsx` — Desktop popup / mobile bottom sheet for word details
-- Shows: word, pronunciation, UZ/AR translations, contextual meaning, part of speech, phrase info, source sentence
+- Shows: word, pronunciation, UZ/AR translations, contextual meaning, part of speech, phrase info, source sentence with word highlighting across original/UZ/AR views
 - "Mening so'zlarimga qo'shish" button saves word to `saved_words` table
 - Escape key / click-outside / backdrop to close
 - `client/src/pages/user/saved-words.tsx` — Full "Mening so'zlarim" page
@@ -132,6 +133,25 @@ shared/
 - `/admin/coins` - Coin management
 - `/admin/categories` - Categories management
 - `/admin/settings` - System settings management (costs, limits, defaults)
+
+## Lesson Detail Tabs (lesson-detail.tsx)
+
+- **Matn**: Sentence-by-sentence transcript analysis with 4-mode translation toggle (Tarjimasiz / O'zbekcha / Arabcha / Ikki tilli), per-sentence grammar notes, key words, wordMap tooltips, bookmarks, difficulty marking, flashcard saving
+- **Lug'at**: 4 sections (Yangi so'zlar / Birikmalar / So'zma-so'z tarjima / Kontekstdagi ma'nolar), vocab search, save-to-saved-words and flashcard actions per card, Arabic translations displayed
+- **Test**: Quiz system supporting multiple_choice and fill_blank types, Arabic RTL in options, question type badges, up to 10 questions, progress tracking
+- **Xulosa**: Summary with O'zbekcha/Arabcha language toggle, lesson statistics, AI meta info
+- **Kartochkalar**: Preset + saved modes, 3D flip cards, Arabic toggle on back side, confidence tracking, list view
+- **Eslatmalar**: Notes CRUD with pinning, bookmarks list with sentence reference
+
+## AI Generator Arabic Enrichment
+
+- `server/services/ai-generator.ts` generates:
+  - `translationAr` per vocabulary item, phrase, and sentence
+  - `wordMap` array per sentence: word-level UZ+AR translations + contextual meaning
+  - `backAr` per flashcard
+  - `summaryShortAr` / `summaryDetailedAr` for lesson summaries
+- Schema columns: `summary_short_ar`, `summary_detailed_ar` on lessons table
+- Mock fallback includes Arabic data for testing
 
 ## API Routes
 

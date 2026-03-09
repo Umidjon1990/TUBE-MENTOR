@@ -1,0 +1,646 @@
+REPLIT AGENT UCHUN FIX PROMPT — SUBTITLE / TARJIMA / LUG‘AT / TEST / KARTOCHKA TUZATISH
+
+You are working on an existing running TubeMentor AI project.
+
+Do not rebuild the project.
+Do not replace the current architecture.
+Do not remove existing working features.
+Your task is to fix and improve the current subtitle-centered learning system.
+
+This is a bug-fix + feature-correction task, not a full rebuild.
+
+The project already has:
+
+lesson/player page
+
+subtitle rendering
+
+word click interaction
+
+translation-related UI
+
+tabs like Matn / Lug‘at / Test / Xulosa / Kartochkalar
+
+Now fix the following problems carefully and professionally.
+
+GLOBAL RULES
+
+Keep the current project structure
+
+Fix the current behavior instead of rebuilding from scratch
+
+Reuse existing components and APIs where possible
+
+Improve backend and frontend only where necessary
+
+Make the feature stable on desktop and mobile
+
+Preserve Uzbek UI
+
+Preserve Arabic support
+
+Make word-level translation and sentence separation actually work
+
+ISSUE 1 — CLICKED SUBTITLE WORD HAS NO REAL TRANSLATION
+Problem
+
+When the subtitle is paused and the learner clicks a word, the selected word currently does not show a proper translation.
+
+Required fix
+
+When a user pauses the video and clicks a word in the active subtitle, show a rich popup (desktop) or bottom sheet (mobile) with:
+
+clicked word
+
+Uzbek translation of that word
+
+Arabic translation of that word
+
+contextual meaning inside the sentence
+
+if the clicked word belongs to a phrase, show phrase meaning too
+
+show the clicked word highlighted inside:
+
+original subtitle sentence
+
+Uzbek translation sentence
+
+Arabic translation sentence
+
+Very important
+
+The same clicked word must appear visually separated/highlighted in:
+
+original sentence
+
+Uzbek translated sentence
+
+Arabic translated sentence
+
+This must feel like a real language-learning inspector.
+
+Required UI labels
+
+Tanlangan so‘z
+
+O‘zbekcha tarjima
+
+Arabcha tarjima
+
+Gapdagi ma’nosi
+
+Birikma ma’nosi
+
+Shu gapdagi joyi
+
+Mening so‘zlarimga qo‘shish
+
+Data requirement
+
+If current subtitle data does not include enough word-level metadata, extend the subtitle enrichment structure so each subtitle line can support:
+
+originalText
+
+translationUz
+
+translationAr
+
+wordMap
+
+phraseMap
+
+Each wordMap item should support:
+
+word
+
+normalized
+
+translationUz
+
+translationAr
+
+contextualMeaningUz
+
+contextualMeaningAr
+
+phraseGroupId optional
+
+startCharIndex optional
+
+endCharIndex optional
+
+Use this to highlight the clicked word inside all 3 sentence views.
+
+ISSUE 2 — SUBTITLE LINES UNDER VIDEO ARE NOT SEPARATED PROPERLY
+Problem
+
+Under the video, subtitles currently appear like plain merged text and sentence lines are not visually separated during playback.
+
+Required fix
+
+In the subtitle panel under the video:
+
+each subtitle line must be shown as a separate block/row/card
+
+current active subtitle line must be clearly highlighted
+
+previous and next lines must still be visible
+
+subtitle lines must not appear as one continuous plain paragraph
+
+spacing between subtitle lines must be clear
+
+during video playback, lines must visually change in sync with audio
+
+Required behavior
+
+active subtitle line = strong highlight
+
+inactive lines = softer style
+
+click on a subtitle line jumps to its timestamp
+
+panel should support:
+
+Auto-follow
+
+Fixed mode
+
+Important
+
+The subtitle panel must remain visually stable.
+Only active line changes or smooth scroll changes.
+
+Do not render subtitles as a single plain text block anymore.
+
+ISSUE 3 — MANUAL SUBTITLE INPUT MUST SUPPORT TIME PARSING AND AUDIO-SYNCED GENERATED CAPTIONS
+Problem
+
+When subtitle is entered manually, timing and matching with audio is not handled correctly.
+The generated captions, translations, and sentence segmentation must match the audio flow better.
+
+Required fix
+
+When a user manually pastes transcript/subtitle:
+
+Step 1: parse the input
+
+Support these cases:
+
+transcript with timestamps
+
+transcript without timestamps
+
+plain paragraph text
+
+Step 2: normalize it
+
+clean extra spaces
+
+split into subtitle-sized lines
+
+detect sentences
+
+if timestamps exist, parse them
+
+if timestamps do not exist, generate approximate timing
+
+Step 3: generate timed captions
+
+Create auto-generated timed subtitle segments that feel natural for playback.
+
+Step 4: sync translations
+
+For each timed caption line:
+
+generate Uzbek translation
+
+generate Arabic translation
+
+keep sentence alignment stable
+
+keep subtitle boundaries aligned with audio flow as much as possible
+
+Timing rules
+
+If timestamps are missing:
+
+estimate caption timing based on text length
+
+keep subtitle durations readable
+
+keep transitions smooth
+
+avoid giant subtitle blocks
+
+split long text into learnable subtitle chunks
+
+Important
+
+Manual transcript flow must produce a subtitle structure compatible with the normal video player:
+
+startTime
+
+endTime
+
+originalText
+
+translationUz
+
+translationAr
+
+optional wordMap
+
+optional phraseMap
+
+This structure must be the same as auto-generated subtitles.
+
+ISSUE 4 — TABS UNDER SUBTITLE MUST BE REORGANIZED AND ENRICHED PROPERLY
+Problem
+
+The lower learning section under the subtitle/player needs better structure and content.
+
+It should include:
+
+Matn section with subtitle translation toggle
+
+Lug‘at section with new words, phrases, and word-by-word translation
+
+Test section with proper question types including Arabic support
+
+Xulosa section with Uzbek and Arabic options
+
+Kartochkalar section with word + translation + example sentence
+
+Fix the structure and enrich each tab properly.
+
+4A — MATN TAB FIX
+Required content
+
+The Matn tab must show subtitle/transcript content in a learning-friendly way.
+
+It must include:
+
+subtitle lines separated properly
+
+translation mode toggle:
+
+tarjimasiz
+
+o‘zbekcha tarjima bilan
+
+arabcha tarjima bilan
+
+ikki tilli ko‘rinish if useful
+
+click line to jump to time
+
+active line highlight
+
+optional word interaction on active line
+
+Required Uzbek labels
+
+Matn
+
+Tarjimasiz
+
+O‘zbekcha tarjima bilan
+
+Arabcha tarjima bilan
+
+Ikki tilli ko‘rinish
+
+4B — LUG‘AT TAB FIX
+Required content
+
+The Lug‘at tab must show structured learning vocabulary, not a weak generic list.
+
+It must include:
+
+yangi so‘zlar
+
+birikmalar
+
+so‘zma-so‘z tarjima block
+
+phrase-based meanings
+
+context meanings
+
+source sentence
+
+save to my words action
+
+Organize vocabulary into sections
+
+Yangi so‘zlar
+
+Birikmalar
+
+So‘zma-so‘z tarjima
+
+Kontekstdagi ma’nolar
+
+Each vocabulary card should support
+
+word or phrase
+
+Uzbek translation
+
+Arabic translation
+
+example sentence
+
+lesson context
+
+save action
+
+Required Uzbek labels
+
+Yangi so‘zlar
+
+Birikmalar
+
+So‘zma-so‘z tarjima
+
+Kontekstdagi ma’nosi
+
+Mening so‘zlarimga qo‘shish
+
+4C — TEST TAB FIX
+Required content
+
+The Test tab must be improved.
+
+It must include:
+
+10 ta savol
+
+multiple choice
+
+sentence completion
+
+Arabic support
+
+better structured question cards
+
+Required quiz types
+
+At minimum:
+
+Multiple Choice
+
+Sentence Completion
+
+Optional if already supported:
+
+True/False
+
+Matching
+
+Required behavior
+
+10 questions generated from the lesson/subtitles
+
+each question should support Uzbek UI
+
+where relevant, Arabic text/options should render properly
+
+answer state should work
+
+explanation should work if already supported
+
+Required Uzbek labels
+
+Test
+
+Ko‘p variantli savol
+
+Gapni to‘ldirish
+
+Javobni tekshirish
+
+Keyingi savol
+
+To‘g‘ri
+
+Noto‘g‘ri
+
+Izoh
+
+4D — XULOSA TAB FIX
+Required content
+
+The Xulosa tab must support language choice.
+
+It should include:
+
+Uzbek summary
+
+Arabic summary
+
+optional short and detailed summary
+
+clean toggle between languages
+
+Required Uzbek labels
+
+Xulosa
+
+Qisqa xulosa
+
+Batafsil xulosa
+
+O‘zbekcha
+
+Arabcha
+
+4E — KARTOCHKALAR TAB FIX
+Required content
+
+The Kartochkalar tab must show proper bilingual learning cards.
+
+Each flashcard must include:
+
+asosiy so‘z
+
+Uzbek translation
+
+Arabic translation
+
+namunaviy gap
+
+optional pronunciation
+
+save/review interactions if already supported
+
+Required Uzbek labels
+
+Kartochkalar
+
+Asosiy so‘z
+
+O‘zbekcha tarjima
+
+Arabcha tarjima
+
+Namunaviy gap
+
+Make flashcards visually clean, modern, and learnable.
+
+OPENAI / AI ENRICHMENT FIX REQUIREMENT
+
+The current implementation likely lacks enough AI enrichment for word-level subtitle learning.
+
+Improve the backend AI enrichment logic so that subtitle analysis generates better structured educational data.
+
+For each subtitle line, support:
+
+originalText
+
+translationUz
+
+translationAr
+
+wordMap
+
+phraseMap
+
+sentenceExplanationUz
+
+sentenceExplanationAr optional
+
+vocabulary extraction
+
+phrase extraction
+
+Translation logic rules
+
+provide word-by-word translation where appropriate
+
+if word-by-word is misleading, provide phrase-level meaning
+
+preserve context
+
+highlight clicked word inside translated sentence if possible
+
+keep output concise enough for UI rendering
+
+Do not use vague text blobs.
+Return structured data suitable for frontend rendering.
+
+UI/UX QUALITY REQUIREMENTS
+
+Fix the feature so it feels premium and educational.
+
+Requirements:
+
+no plain text dump
+
+no merged subtitle lines
+
+no weak popup content
+
+good spacing
+
+premium card design
+
+clean active states
+
+readable Arabic
+
+readable Uzbek
+
+stable mobile layout
+
+bottom sheet on mobile for clicked word details
+
+no broken wrapping
+
+MOBILE REQUIREMENTS
+
+All fixes must work on mobile too.
+
+On mobile:
+
+clicked word opens bottom sheet
+
+subtitle lines remain readable
+
+subtitle panel under video remains usable
+
+toggles for translation stay usable
+
+Arabic and Uzbek text do not overflow
+
+cards do not break layout
+
+IMPORTANT CONSTRAINTS
+
+do not rebuild the whole app
+
+do not break auth
+
+do not break admin panel
+
+do not break coin logic
+
+do not remove existing lesson/player structure
+
+fix and enhance existing components
+
+preserve current routing
+
+reuse existing tabs and APIs where possible
+
+PRIORITY ORDER
+
+Fix in this order:
+
+word click translation popup data and UI
+
+highlight clicked word in original + Uzbek + Arabic sentence
+
+subtitle line separation under video
+
+manual transcript time parsing and timed caption generation
+
+Matn tab cleanup
+
+Lug‘at tab enrichment
+
+Test tab with 10 questions and Arabic support
+
+Xulosa tab bilingual support
+
+Kartochkalar tab bilingual structure
+
+mobile polish and final QA
+
+FINAL DELIVERY EXPECTATION
+
+After this fix task, the existing project must support:
+
+clicked subtitle word shows real translation
+
+clicked word appears highlighted in original, Uzbek, and Arabic sentence
+
+subtitle lines under video are clearly separated
+
+manual subtitle input produces timed synced captions
+
+Matn tab has translation toggle
+
+Lug‘at tab shows words, phrases, and word-by-word translation
+
+Test tab includes 10 questions with multiple choice and sentence completion
+
+Xulosa supports Uzbek and Arabic
+
+Kartochkalar support Uzbek + Arabic + example sentence
+
+all of this works in the existing app without breaking the project
+
+This must feel like a real subtitle-based AI learning product.

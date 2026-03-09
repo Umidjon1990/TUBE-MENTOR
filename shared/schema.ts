@@ -50,6 +50,8 @@ export const lessons = pgTable("lessons", {
   categoryId: integer("category_id").references(() => categories.id),
   summaryShort: text("summary_short"),
   summaryDetailed: text("summary_detailed"),
+  summaryShortAr: text("summary_short_ar"),
+  summaryDetailedAr: text("summary_detailed_ar"),
   vocabularyJson: json("vocabulary_json"),
   phrasesJson: json("phrases_json"),
   quizzesJson: json("quizzes_json"),

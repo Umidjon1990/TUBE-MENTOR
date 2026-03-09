@@ -163,38 +163,30 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
 
     if (block.wordMap && block.wordMap.length > 0) {
       const wordParts: TextRun[] = [];
-      wordParts.push(
-        new TextRun({
-          text: "So'zma-so'z: ",
-          bold: true,
-          size: 18,
-          color: COLORS.amber,
-          font: "Arial",
-        })
-      );
       block.wordMap.forEach((w, idx) => {
         wordParts.push(
           new TextRun({
             text: w.word,
-            size: 18,
+            bold: true,
+            size: 20,
             color: COLORS.emerald,
             font: "Arial",
+            rightToLeft: true,
           })
         );
         wordParts.push(
           new TextRun({
-            text: ` (${w.translation})`,
+            text: `[${w.translation}]`,
             size: 18,
-            color: COLORS.amber,
+            color: COLORS.blue,
             font: "Arial",
           })
         );
         if (idx < block.wordMap!.length - 1) {
           wordParts.push(
             new TextRun({
-              text: "  |  ",
+              text: "   ",
               size: 18,
-              color: COLORS.gray,
               font: "Arial",
             })
           );
@@ -203,6 +195,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
       paragraphs.push(
         new Paragraph({
           spacing: { after: 150 },
+          shading: { type: ShadingType.SOLID, color: "FFF0FDF4" },
           children: wordParts,
         })
       );

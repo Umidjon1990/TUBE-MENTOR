@@ -44,11 +44,11 @@ Font.register({
   family: "NotoSans",
   fonts: [
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans-Regular.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
       fontWeight: 400,
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans-Bold.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
       fontWeight: 700,
     },
   ],
@@ -153,27 +153,27 @@ const styles = StyleSheet.create({
   wordMapRow: {
     flexDirection: "row" as const,
     flexWrap: "wrap" as const,
-    gap: 4,
+    gap: 6,
     marginTop: 4,
+    backgroundColor: "#f0fdf4",
+    padding: 6,
+    borderRadius: 4,
   },
   wordMapItem: {
-    backgroundColor: colors.wordByWordBg,
-    borderWidth: 1,
-    borderColor: "#fde68a",
-    borderRadius: 3,
-    padding: 3,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 2,
     marginBottom: 2,
   },
   wordMapAr: {
-    fontSize: 10,
-    color: colors.wordByWord,
+    fontSize: 11,
+    color: colors.arabText,
     fontFamily: "Amiri",
     fontWeight: 700 as const,
-    textAlign: "right" as const,
   },
   wordMapUz: {
     fontSize: 8,
-    color: colors.gray,
+    color: colors.uzTranslation,
     fontFamily: "NotoSans",
   },
   tableHeader: {
@@ -372,7 +372,7 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
               {block.wordMap.map((w, wi) => (
                 <View key={wi} style={styles.wordMapItem}>
                   <Text style={styles.wordMapAr}>{w.word}</Text>
-                  <Text style={styles.wordMapUz}>{w.translation}</Text>
+                  <Text style={styles.wordMapUz}>[{w.translation}]</Text>
                 </View>
               ))}
             </View>

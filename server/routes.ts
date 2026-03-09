@@ -1094,6 +1094,27 @@ export async function registerRoutes(
       const results: any[] = [];
       const seen = new Set<string>();
 
+      const findSubtitleTime = (subtitles: any[], sentenceText: string): number => {
+        if (!subtitles.length || !sentenceText) return 0;
+        const sentWords = sentenceText.replace(/[^\p{L}\p{N}\s]/gu, "").toLowerCase().split(/\s+/).filter(Boolean);
+        if (!sentWords.length) return 0;
+        let bestScore = 0;
+        let bestTime = 0;
+        for (const sub of subtitles) {
+          const subText = (sub.text || "").replace(/[^\p{L}\p{N}\s]/gu, "").toLowerCase();
+          let matched = 0;
+          for (const w of sentWords) {
+            if (subText.includes(w)) matched++;
+          }
+          const score = matched / sentWords.length;
+          if (score > bestScore) {
+            bestScore = score;
+            bestTime = sub.startTime || 0;
+          }
+        }
+        return bestScore >= 0.3 ? bestTime : 0;
+      };
+
       for (const lesson of userLessons) {
         const sentences: any[] = lesson.sentenceAnalysisJson as any[] || [];
         const subtitles: any[] = lesson.subtitlesJson as any[] || [];
@@ -1111,7 +1132,7 @@ export async function registerRoutes(
               const key = `${norm || word}__${lesson.id}__${si}`;
               if (seen.has(key)) continue;
               seen.add(key);
-              const sub = subtitles.find((st: any) => st.sentenceIndex === si) || subtitles[si];
+              const startTime = findSubtitleTime(subtitles, s.sentence || "");
               results.push({
                 word: w.word,
                 normalized: w.normalized,
@@ -1123,7 +1144,7 @@ export async function registerRoutes(
                 lessonId: lesson.id,
                 lessonTitle: lesson.title,
                 sentenceIndex: si,
-                startTime: sub?.startTime || 0,
+                startTime,
               });
             }
           }

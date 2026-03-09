@@ -29,13 +29,14 @@ export function prepareTextBlocks(
   ) {
     return [];
   }
+  const hasWordByWord = config.sections.includes("wordByWord");
   return data.sentences.map((s, i) => ({
     index: i + 1,
-    sentence: config.sections.includes("arabText") ? s.sentence : "",
-    translation: config.sections.includes("uzTranslation") ? s.translation : "",
+    sentence: (config.sections.includes("arabText") || hasWordByWord) ? s.sentence : "",
+    translation: (config.sections.includes("uzTranslation") || hasWordByWord) ? s.translation : "",
     translationAr: s.translationAr,
     grammarNotes: s.grammarNotes,
-    wordMap: config.sections.includes("wordByWord") ? s.wordMap : undefined,
+    wordMap: hasWordByWord ? s.wordMap : undefined,
   }));
 }
 

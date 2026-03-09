@@ -75,6 +75,19 @@ shared/
   schema.ts                    # 11 Drizzle models + relations + Zod types
 ```
 
+## Subtitle Player System
+
+- `client/src/components/subtitle-player.tsx` — Self-contained YouTube embed + subtitle system
+- YouTube IFrame API for embedded video playback
+- Subtitle overlay on video with glassmorphism styling
+- Subtitle panel below video with clickable lines and auto-scroll
+- Display modes: "Faqat asl matn", "Asl matn + tarjima", "Faqat tarjima"
+- Translation languages: O'zbekcha / Arabcha
+- Panel modes: "Auto kuzatish" (auto-scroll) / "Joyida turish" (fixed)
+- Arabic RTL support with dir="rtl"
+- Mobile-responsive design
+- Subtitles generated from sentenceAnalysisJson with mock timestamps (8s per sentence)
+
 ## Frontend Routes
 
 ### Public

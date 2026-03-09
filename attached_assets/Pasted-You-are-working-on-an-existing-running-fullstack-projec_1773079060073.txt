@@ -1,0 +1,305 @@
+You are working on an existing running fullstack project called TubeMentor AI.
+
+Do not rebuild the project.
+Do not replace the architecture.
+Do not rewrite unrelated modules.
+Only enhance the existing lesson/video player with a professional subtitle system.
+
+Your task in this step is to build the core subtitle rendering and synchronization layer.
+
+Scope of this task only
+
+Implement only these parts:
+
+subtitle data structure
+
+subtitle overlay over video
+
+subtitle panel under video
+
+timed synchronization
+
+dual subtitle display mode
+
+mobile-safe subtitle rendering
+
+Arabic RTL-safe subtitle rendering
+
+Do not implement word popup or saved words yet.
+Do not implement translation popup logic yet.
+Do not rebuild vocabulary or flashcards yet.
+
+Goal
+
+Upgrade the existing lesson/player page into a real subtitle-based learning player.
+
+The subtitle experience must feel like:
+
+real video subtitles
+
+synced transcript
+
+premium educational player
+
+mobile-friendly
+
+multi-language ready
+
+Integration rule
+
+Enhance the existing lesson page / player page that already exists in the project.
+
+If timed transcript data is already available, reuse it.
+If only plain transcript exists, extend the current lesson data structure to support timed subtitle items.
+
+Do not create disconnected demo pages.
+
+Build these subtitle data structures
+
+Support a subtitle array like this conceptually:
+
+id
+
+startTime
+
+endTime
+
+originalText
+
+translationUz
+
+translationAr
+
+If needed, add a clean typed interface/model for subtitle items.
+
+If real timing data is not yet available, create a clean mock-compatible structure that can later support real timestamps.
+
+Build 1: Real subtitle overlay over video
+
+Add a premium subtitle overlay layer on top of the video area.
+
+Requirements:
+
+subtitle appears near the lower part of the video
+
+it sits inside a beautiful dedicated subtitle box
+
+semi-transparent dark background
+
+high readability
+
+premium spacing
+
+rounded corners
+
+subtle blur/glass effect if suitable
+
+no cheap default styling
+
+active subtitle always clearly readable
+
+responsive on desktop and mobile
+
+Support:
+
+English
+
+Uzbek
+
+Arabic
+
+Arabic requirements:
+
+proper RTL rendering
+
+alignment must not break
+
+mixed language layout should remain stable
+
+Build 2: Dual subtitle modes
+
+Add subtitle display modes:
+
+original only
+
+original + translation
+
+translation only
+
+When using original + translation:
+
+original line must appear visually separated from translation
+
+translation should appear as a second line below
+
+translation line must have distinct styling
+
+do not merge them visually
+
+Translation language options:
+
+Uzbek
+
+Arabic
+
+Allow the player UI to switch between:
+
+Faqat asl matn
+
+Asl matn + tarjima
+
+Faqat tarjima
+
+Build 3: Subtitle panel under the video
+
+Under the video player, add a dedicated subtitle learning panel.
+
+Requirements:
+
+panel remains fixed in layout
+
+subtitle lines update according to video time
+
+current active line is highlighted
+
+previous and next lines visible
+
+click a line to jump video to that time
+
+panel must be readable and premium
+
+stable layout, no jumping
+
+Add two modes:
+
+Auto-follow
+
+Fixed
+
+Behavior:
+
+Auto-follow: panel smoothly scrolls to active line
+
+Fixed: panel stays in place, only active line highlight changes
+
+Use Uzbek labels in UI.
+
+Build 4: Timed synchronization
+
+Synchronize subtitle updates with video playback time.
+
+Requirements:
+
+active subtitle changes by timestamp
+
+smooth updates
+
+no flicker
+
+no layout jumps
+
+visible active state
+
+under-video panel and overlay stay synchronized
+
+If the current player architecture needs a currentTime listener/store, add it cleanly and reuse it.
+
+Build 5: Mobile responsiveness
+
+This feature must be mobile-first compatible.
+
+On mobile:
+
+subtitle overlay must stay readable
+
+not too much text at once
+
+line breaks must be clean
+
+subtitle panel under video must remain usable
+
+controls and toggles must fit small screens
+
+no overflow bugs
+
+no text clipping
+
+Build 6: UI quality requirements
+
+The subtitle module must feel polished and product-grade.
+
+Design direction:
+
+futuristic but readable
+
+premium educational product
+
+dark mode friendly
+
+elegant highlight state
+
+subtle motion transitions
+
+strong typography
+
+no clutter
+
+glassmorphism only where it improves quality
+
+Required Uzbek UI labels
+
+Use Uzbek text:
+
+Asl matn
+
+Tarjima
+
+O‘zbekcha
+
+Arabcha
+
+Faqat asl matn
+
+Asl matn + tarjima
+
+Faqat tarjima
+
+Auto kuzatish
+
+Joyida turish
+
+Hozirgi subtitle
+
+Important constraints
+
+do not break existing lesson page logic
+
+do not remove existing tabs/features
+
+do not modify auth
+
+do not modify admin panel
+
+do not change unrelated backend routes
+
+keep this enhancement isolated and clean
+
+Delivery expectation
+
+After this task, the existing player page must have:
+
+subtitle overlay over video
+
+subtitle panel under video
+
+synced active subtitle
+
+dual subtitle display modes
+
+Uzbek/Arabic translation display support
+
+mobile-safe rendering
+
+Arabic RTL-safe rendering
+
+Do not start word popup or saved words in this task.

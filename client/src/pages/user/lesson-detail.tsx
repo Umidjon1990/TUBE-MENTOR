@@ -5,6 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
+import SubtitlePlayer, { type SubtitleItem } from "@/components/subtitle-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,19 @@ export default function LessonDetailPage() {
   const quizzes: QuizItem[] = lesson.quizzesJson as QuizItem[] || [];
   const presetFlashcards: FlashcardData[] = lesson.flashcardsJson as FlashcardData[] || [];
 
+  const subtitles: SubtitleItem[] = useMemo(() => {
+    if (!sentences.length) return [];
+    const avgDuration = 8;
+    return sentences.map((s, idx) => ({
+      id: idx,
+      startTime: idx * avgDuration,
+      endTime: (idx + 1) * avgDuration,
+      originalText: s.sentence,
+      translationUz: s.translation,
+      translationAr: "",
+    }));
+  }, [sentences]);
+
   return (
     <UserLayout>
       <div className="p-4 md:p-6 space-y-4">
@@ -145,7 +159,13 @@ export default function LessonDetailPage() {
           </div>
         </div>
 
-        {lesson.thumbnailUrl && (
+        {lesson.youtubeUrl && /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(lesson.youtubeUrl) ? (
+          <SubtitlePlayer
+            youtubeUrl={lesson.youtubeUrl}
+            subtitles={subtitles}
+            className="max-w-3xl"
+          />
+        ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">
             <img src={lesson.thumbnailUrl} alt={lesson.title} className="w-full h-full object-cover" />
             {lesson.youtubeUrl && (
@@ -162,7 +182,7 @@ export default function LessonDetailPage() {
               </a>
             )}
           </div>
-        )}
+        ) : null}
 
         <Tabs defaultValue="matn" className="w-full">
           <TabsList className="w-full grid grid-cols-6 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">

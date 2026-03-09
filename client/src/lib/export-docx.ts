@@ -118,55 +118,59 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
 
   for (const block of blocks) {
     if (block.sentence && block.wordMap && block.wordMap.length > 0) {
-      const arParts: TextRun[] = [];
-      block.wordMap.forEach((w, idx) => {
+      const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+      const noBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
+
+      const cells = block.wordMap.map((w, idx) => {
         const clr = wordColors[idx % wordColors.length];
-        arParts.push(
-          new TextRun({
-            text: w.word,
-            bold: true,
-            size: 24,
-            color: clr,
-            font: "Arial",
-            rightToLeft: true,
-          })
-        );
-        if (idx < block.wordMap!.length - 1) {
-          arParts.push(new TextRun({ text: "  ", size: 24, font: "Arial" }));
-        }
+        return new TableCell({
+          borders: noBorders,
+          width: { size: 0, type: WidthType.AUTO },
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 0 },
+              children: [
+                new TextRun({ text: w.word, bold: true, size: 22, color: clr, font: "Arial", rightToLeft: true }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 0 },
+              children: [
+                new TextRun({ text: w.translation, bold: true, size: 16, color: clr, font: "Arial" }),
+              ],
+            }),
+          ],
+        });
       });
-      arParts.push(new TextRun({ text: `  ${block.index}.`, bold: true, size: 18, color: COLORS.gray, font: "Arial" }));
+
+      const indexCell = new TableCell({
+        borders: noBorders,
+        width: { size: 400, type: WidthType.DXA },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 0 },
+            children: [
+              new TextRun({ text: `${block.index}.`, bold: true, size: 18, color: COLORS.gray, font: "Arial" }),
+            ],
+          }),
+        ],
+      });
+
+      const reversedCells = [...cells].reverse();
+      reversedCells.push(indexCell);
+
       paragraphs.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          spacing: { before: 250, after: 40 },
-          children: arParts,
-        })
+        new Paragraph({ spacing: { before: 250, after: 0 }, children: [] })
       );
 
-      const uzParts: TextRun[] = [];
-      block.wordMap.forEach((w, idx) => {
-        const clr = wordColors[idx % wordColors.length];
-        uzParts.push(
-          new TextRun({
-            text: w.translation,
-            bold: true,
-            size: 20,
-            color: clr,
-            font: "Arial",
-          })
-        );
-        if (idx < block.wordMap!.length - 1) {
-          uzParts.push(new TextRun({ text: ", ", size: 20, color: COLORS.gray, font: "Arial" }));
-        }
+      const wordTable = new Table({
+        rows: [new TableRow({ children: reversedCells })],
+        width: { size: 100, type: WidthType.PERCENTAGE },
       });
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: 40 },
-          children: uzParts,
-        })
-      );
+      paragraphs.push(wordTable as any);
     } else if (block.sentence) {
       paragraphs.push(
         new Paragraph({

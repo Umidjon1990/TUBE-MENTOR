@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import UserLayout from "@/components/layouts/user-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   BookOpen, Search, PlusCircle, PlayCircle,
-  Calendar, ArrowUpDown, Filter, Wand2
+  Calendar, ArrowUpDown, Filter, Wand2, Trash2
 } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Lesson } from "@shared/schema";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; color: string }> = {
@@ -46,9 +59,23 @@ export default function MyLessonsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const { toast } = useToast();
 
   const { data: lessons, isLoading, error } = useQuery<Lesson[]>({
     queryKey: ["/api/user/lessons"],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/user/lessons/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      toast({ title: "Dars o'chirildi", description: "Dars muvaffaqiyatli o'chirildi." });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Darsni o'chirishda xatolik yuz berdi.", variant: "destructive" });
+    },
   });
 
   const filtered = useMemo(() => {
@@ -197,7 +224,35 @@ export default function MyLessonsPage() {
                         <PlayCircle className="w-10 h-10 text-muted-foreground/30" />
                       </div>
                     )}
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-2 right-2 flex items-center gap-1">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button
+                            className="w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all opacity-0 group-hover:opacity-100"
+                            data-testid={`button-delete-lesson-${lesson.id}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Darsni o'chirish</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              "{lesson.title}" darsini o'chirishni xohlaysizmi? Bu amalni ortga qaytarib bo'lmaydi.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteMutation.mutate(lesson.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              data-testid={`button-confirm-delete-${lesson.id}`}
+                            >
+                              O'chirish
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
                     </div>
                     {lesson.level && (

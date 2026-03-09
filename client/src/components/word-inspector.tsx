@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, BookmarkPlus, MessageSquareText, Check, Volume2 } from "lucide-react";
@@ -72,7 +72,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
 
   useEffect(() => {
     setSaved(false);
-  }, [wordInfo?.word]);
+  }, [wordInfo?.word, wordInfo?.subtitleTime]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -89,8 +89,11 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
           onClose();
         }
       };
-      setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 100);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 100);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
     }
   }, [isMobile, onClose]);
 
@@ -99,8 +102,8 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
   const popupStyle = !isMobile && anchorRect ? (() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const popupW = 340;
-    const popupH = 400;
+    const popupW = Math.min(340, vw - 24);
+    const popupH = 420;
     let left = anchorRect.left + anchorRect.width / 2 - popupW / 2;
     let top = anchorRect.bottom + 8;
     if (left < 12) left = 12;
@@ -112,16 +115,18 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
     return { left, top, width: popupW };
   })() : undefined;
 
+  const isArabicText = (t: string) => /[\u0600-\u06FF]/.test(t);
+
   const content = (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-bold text-foreground" data-testid="text-inspector-word">
+          <h3 className="text-lg font-bold text-foreground break-words" data-testid="text-inspector-word">
             {wordInfo.word}
           </h3>
           {wordInfo.pronunciation && (
             <div className="flex items-center gap-1.5 mt-0.5">
-              <Volume2 className="w-3 h-3 text-muted-foreground" />
+              <Volume2 className="w-3 h-3 text-muted-foreground shrink-0" />
               <span className="text-xs text-muted-foreground italic" data-testid="text-inspector-pronunciation">
                 {wordInfo.pronunciation}
               </span>
@@ -136,7 +141,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         <Button
           variant="ghost"
           size="icon"
-          className="shrink-0 h-7 w-7"
+          className="shrink-0 h-8 w-8 md:h-7 md:w-7 -mr-1"
           onClick={onClose}
           data-testid="button-close-inspector"
         >
@@ -144,48 +149,69 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         </Button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {wordInfo.translationUz && (
-          <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
-            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-1">O'zbekcha tarjima</p>
-            <p className="text-sm font-medium text-foreground" data-testid="text-translation-uz">{wordInfo.translationUz}</p>
+          <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-0.5">O'zbekcha tarjima</p>
+            <p className="text-sm font-medium text-foreground break-words" data-testid="text-translation-uz">{wordInfo.translationUz}</p>
           </div>
         )}
 
         {wordInfo.translationAr && (
-          <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-3">
-            <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-1">Arabcha tarjima</p>
-            <p className="text-sm font-medium text-foreground" dir="rtl" data-testid="text-translation-ar">{wordInfo.translationAr}</p>
+          <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">Arabcha tarjima</p>
+            <p
+              className="text-sm font-medium text-foreground break-words"
+              dir="rtl"
+              style={{
+                textAlign: "right",
+                fontFamily: isArabicText(wordInfo.translationAr) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                lineHeight: "1.8",
+              }}
+              data-testid="text-translation-ar"
+            >
+              {wordInfo.translationAr}
+            </p>
           </div>
         )}
 
         {wordInfo.contextualMeaning && (
-          <div className="rounded-lg bg-muted/50 border border-border/50 p-3">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Gapdagi ma'nosi</p>
-            <p className="text-sm text-foreground/90" data-testid="text-contextual-meaning">{wordInfo.contextualMeaning}</p>
+          <div className="rounded-lg bg-muted/50 border border-border/50 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Gapdagi ma'nosi</p>
+            <p className="text-sm text-foreground/90 break-words" data-testid="text-contextual-meaning">{wordInfo.contextualMeaning}</p>
           </div>
         )}
 
         {wordInfo.phraseText && (
-          <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 p-3">
-            <p className="text-[10px] font-medium text-amber-400/70 uppercase tracking-wider mb-1">Birikma ma'nosi</p>
-            <p className="text-sm font-semibold text-foreground mb-1" data-testid="text-phrase">{wordInfo.phraseText}</p>
+          <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-amber-400/70 uppercase tracking-wider mb-0.5">Birikma ma'nosi</p>
+            <p className="text-sm font-semibold text-foreground mb-1 break-words" data-testid="text-phrase">{wordInfo.phraseText}</p>
             {wordInfo.phraseTranslationUz && (
-              <p className="text-xs text-foreground/80">UZ: {wordInfo.phraseTranslationUz}</p>
+              <p className="text-xs text-foreground/80 break-words">UZ: {wordInfo.phraseTranslationUz}</p>
             )}
             {wordInfo.phraseTranslationAr && (
-              <p className="text-xs text-foreground/80" dir="rtl">AR: {wordInfo.phraseTranslationAr}</p>
+              <p
+                className="text-xs text-foreground/80 break-words"
+                dir="rtl"
+                style={{
+                  textAlign: "right",
+                  fontFamily: isArabicText(wordInfo.phraseTranslationAr) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                  lineHeight: "1.8",
+                }}
+              >
+                AR: {wordInfo.phraseTranslationAr}
+              </p>
             )}
             {wordInfo.phraseExplanation && (
-              <p className="text-xs text-muted-foreground mt-1">{wordInfo.phraseExplanation}</p>
+              <p className="text-xs text-muted-foreground mt-1 break-words">{wordInfo.phraseExplanation}</p>
             )}
           </div>
         )}
 
         {wordInfo.sourceSentence && (
-          <div className="rounded-lg bg-muted/30 p-3">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Manba gap</p>
-            <p className="text-xs text-foreground/80 italic leading-relaxed" data-testid="text-source-sentence">
+          <div className="rounded-lg bg-muted/30 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Manba gap</p>
+            <p className="text-xs text-foreground/80 italic leading-relaxed break-words" data-testid="text-source-sentence">
               "{wordInfo.sourceSentence}"
             </p>
           </div>
@@ -195,7 +221,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
       <div className="flex gap-2 pt-1">
         <Button
           size="sm"
-          className="flex-1 h-9 text-xs"
+          className="flex-1 h-10 md:h-9 text-xs"
           disabled={saved || saveMutation.isPending}
           onClick={() => saveMutation.mutate(wordInfo)}
           data-testid="button-save-word"
@@ -210,21 +236,21 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
           ) : (
             <>
               <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
-              Mening so'zlarimga qo'shish
+              <span className="truncate">Mening so'zlarimga qo'shish</span>
             </>
           )}
         </Button>
         <Button
           size="sm"
           variant="outline"
-          className="h-9 text-xs"
+          className="h-10 md:h-9 text-xs shrink-0"
           onClick={() => {
             toast({ title: "Shu gapni tushuntir", description: `"${wordInfo.sourceSentence}"` });
           }}
           data-testid="button-explain-sentence"
         >
-          <MessageSquareText className="w-3.5 h-3.5 mr-1.5" />
-          Tushuntir
+          <MessageSquareText className="w-3.5 h-3.5 mr-1" />
+          <span className="hidden sm:inline">Tushuntir</span>
         </Button>
       </div>
     </div>
@@ -236,10 +262,15 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
         <div
           ref={popupRef}
-          className="absolute bottom-0 left-0 right-0 max-h-[75vh] overflow-y-auto rounded-t-2xl bg-background border-t border-border/50 shadow-2xl p-5 pb-8 animate-in slide-in-from-bottom duration-300"
+          className="absolute bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-background border-t border-border/50 shadow-2xl animate-in slide-in-from-bottom duration-300"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 24px)" }}
         >
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
-          {content}
+          <div className="sticky top-0 bg-background z-10 pt-3 pb-2 px-5">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto" />
+          </div>
+          <div className="px-5 pb-6">
+            {content}
+          </div>
         </div>
       </div>
     );
@@ -248,7 +279,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
   return (
     <div
       ref={popupRef}
-      className="fixed z-[100] rounded-xl bg-background/95 backdrop-blur-xl border border-border/60 shadow-2xl shadow-black/30 p-4 animate-in fade-in zoom-in-95 duration-200"
+      className="fixed z-[100] rounded-xl bg-background/95 backdrop-blur-xl border border-border/60 shadow-2xl shadow-black/30 p-4 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto"
       style={popupStyle}
       data-testid="word-inspector-desktop"
     >

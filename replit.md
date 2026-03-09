@@ -77,16 +77,18 @@ shared/
 
 ## Subtitle Player System
 
-- `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + word interaction
+- `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + learning controls + word interaction
 - YouTube IFrame API for embedded video playback
+- **Learning controls bar**: Play/Pause, ±5s skip, prev/next subtitle, replay current, loop toggle (Takror), speed control (0.5x–2x via Sekinroq/Tezroq), current time display
 - Subtitle overlay on video with glassmorphism styling
-- Subtitle panel below video with clickable lines and auto-scroll
-- Display modes: "Faqat asl matn", "Asl matn + tarjima", "Faqat tarjima"
+- **Collapsible subtitle panel** below video with progress indicator (current/total), clickable lines and auto-scroll
+- Display modes: "Asl matn", "Asl + tarjima", "Tarjima"
 - Translation languages: O'zbekcha / Arabcha
-- Panel modes: "Auto kuzatish" (auto-scroll) / "Joyida turish" (fixed)
-- Arabic RTL support with dir="rtl"
-- **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel)
-- **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet
+- Panel modes: "Auto" (auto-scroll) / "Joyida" (fixed)
+- **Arabic RTL support**: dir="rtl", textAlign, fontFamily `'Noto Naskh Arabic', 'Amiri', serif` (loaded via Google Fonts), lineHeight 1.8 for Arabic
+- **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel), with active/hover states
+- **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet with safe-area padding
+- **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`
 - Subtitles generated from sentenceAnalysisJson with mock timestamps (8s per sentence)
 

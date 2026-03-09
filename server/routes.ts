@@ -560,7 +560,9 @@ export async function registerRoutes(
       await storage.updateLesson(id, {
         transcript: result.text,
         transcriptSource: result.source,
-        subtitlesJson: null,
+        subtitlesJson: result.timedSubtitles && result.timedSubtitles.length > 0
+          ? result.timedSubtitles
+          : null,
       });
 
       return res.json({ success: true, transcript: result });

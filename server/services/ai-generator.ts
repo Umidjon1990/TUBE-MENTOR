@@ -206,16 +206,23 @@ Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi struktur
 
 Muhim qoidalar:
 - BARCHA "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
-- vocabulary: 8-12 ta so'z
-- phrases: 4-6 ta ibora
+- vocabulary: 8-15 ta so'z
+- phrases: 4-8 ta ibora
 - quizzes: 8-10 ta savol (har xil turdagi: multiple_choice va fill_blank)
 - flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
-- sentenceAnalysis: 5-8 ta gap tahlili
-- wordMap: har bir gapdagi asosiy so'zlarning so'zma-so'z tarjimasi
+- sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
+- wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
 
-  const userPrompt = `Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat:
+  const sentencesList = sentences.slice(0, 50).map((s, i) => `${i + 1}. ${s}`).join("\n");
+
+  const userPrompt = `Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat.
+
+MUHIM: sentenceAnalysis maydonida quyidagi BARCHA ${Math.min(sentences.length, 50)} ta gapni tahlil qil. Birontasini ham tashlab ketma!
+
+GAPLAR RO'YXATI:
+${sentencesList}
 
 TRANSKRIPT:
 ${trimmedTranscript}`;
@@ -227,7 +234,7 @@ ${trimmedTranscript}`;
       { role: "user", content: userPrompt },
     ],
     temperature: 0.7,
-    max_tokens: 4096,
+    max_tokens: 16384,
     response_format: { type: "json_object" },
   });
 
@@ -371,7 +378,7 @@ function generateMockContent(
 ): GeneratedLessonContent {
   const words = extractWords(transcript);
   const selectedWords = words.slice(0, Math.min(10, words.length));
-  const usableSentences = sentences.filter(s => s.length > 10).slice(0, 20);
+  const usableSentences = sentences.filter(s => s.length > 10);
   const diff = DIFFICULTY_MAP[level] || "medium";
   const lang = detectLanguage(transcript);
 
@@ -429,16 +436,17 @@ function generateMockContent(
     })),
   ];
 
-  const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.slice(0, 8).map(s => {
-    const keyWords = extractWords(s).slice(0, 3);
-    const wordMap: WordMapItem[] = extractWords(s).slice(0, 5).map(w => ({
+  const sentenceContexts = ["Bu gapda", "Ushbu jumlada", "Mazkur gapda", "Bu iborada", "Gapda", "Jumlada", "Bu yerda", "Matnda"];
+  const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.map((s, idx) => {
+    const sentenceWords = extractWords(s);
+    const keyWords = sentenceWords.slice(0, 3);
+    const wordMap: WordMapItem[] = sentenceWords.map(w => ({
       word: w,
       normalized: w.toLowerCase(),
       translationUz: mockUzTranslation(w),
       translationAr: mockArabicTranslation(w),
       contextualMeaning: `"${w}" gapdagi kontekstda ishlatilgan`,
     }));
-    const sentenceContexts = ["Bu gapda", "Ushbu jumlada", "Mazkur gapda", "Bu iborada", "Gapda", "Jumlada", "Bu yerda", "Matnda"];
     return {
       sentence: s,
       translation: `${sentenceContexts[idx % sentenceContexts.length]} ${keyWords.map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,

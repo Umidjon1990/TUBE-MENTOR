@@ -228,30 +228,41 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         )}
 
         {wordInfo.sourceSentence && (
-          <div className="rounded-lg bg-muted/30 border border-border/30 p-2.5 md:p-3 space-y-1.5">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Shu gapdagi joyi</p>
-            <p className="text-xs text-foreground/80 leading-relaxed break-words" data-testid="text-source-sentence">
-              {highlightWord(wordInfo.sourceSentence, wordInfo.word)}
-            </p>
-            {wordInfo.sourceSentenceUz && (
-              <p className="text-xs text-primary/70 leading-relaxed break-words" data-testid="text-source-sentence-uz">
-                {wordInfo.translationUz ? highlightWord(wordInfo.sourceSentenceUz, wordInfo.translationUz.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceUz}
-              </p>
-            )}
-            {wordInfo.sourceSentenceAr && (
-              <p
-                className="text-xs text-violet-400/70 leading-relaxed break-words"
-                dir="rtl"
-                style={{
-                  textAlign: "right",
-                  fontFamily: isArabicText(wordInfo.sourceSentenceAr) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
-                  lineHeight: "1.8",
-                }}
-                data-testid="text-source-sentence-ar"
-              >
-                {wordInfo.translationAr ? highlightWord(wordInfo.sourceSentenceAr, wordInfo.translationAr.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceAr}
-              </p>
-            )}
+          <div className="rounded-lg bg-muted/30 border border-border/30 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">Shu gapdagi joyi</p>
+            <div className="space-y-0">
+              <div className="rounded-md bg-background/60 border border-border/20 px-2.5 py-1.5">
+                <p className="text-[9px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-0.5">Asl matn</p>
+                <p className="text-xs text-foreground/80 leading-relaxed break-words" data-testid="text-source-sentence">
+                  {highlightWord(wordInfo.sourceSentence, wordInfo.word)}
+                </p>
+              </div>
+              {wordInfo.sourceSentenceUz && (
+                <div className="rounded-md bg-primary/5 border border-primary/10 px-2.5 py-1.5 mt-1">
+                  <p className="text-[9px] font-medium text-primary/60 uppercase tracking-wider mb-0.5">O'zbekcha</p>
+                  <p className="text-xs text-primary/70 leading-relaxed break-words" data-testid="text-source-sentence-uz">
+                    {wordInfo.translationUz ? highlightWord(wordInfo.sourceSentenceUz, wordInfo.translationUz.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceUz}
+                  </p>
+                </div>
+              )}
+              {wordInfo.sourceSentenceAr && (
+                <div className="rounded-md bg-violet-500/5 border border-violet-500/10 px-2.5 py-1.5 mt-1">
+                  <p className="text-[9px] font-medium text-violet-400/60 uppercase tracking-wider mb-0.5">Arabcha</p>
+                  <p
+                    className="text-xs text-violet-400/70 leading-relaxed break-words"
+                    dir="rtl"
+                    style={{
+                      textAlign: "right",
+                      fontFamily: isArabicText(wordInfo.sourceSentenceAr) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                      lineHeight: "1.8",
+                    }}
+                    data-testid="text-source-sentence-ar"
+                  >
+                    {wordInfo.translationAr ? highlightWord(wordInfo.sourceSentenceAr, wordInfo.translationAr.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceAr}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

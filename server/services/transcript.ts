@@ -146,19 +146,33 @@ export async function tryExtractTranscript(videoId: string): Promise<TranscriptR
     const textMatches = captionXml.match(/<text[^>]*>(.*?)<\/text>/gs);
     if (!textMatches || textMatches.length === 0) return null;
 
-    const rawText = textMatches
-      .map(m => {
-        const content = m.replace(/<[^>]+>/g, "");
-        return content
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/&nbsp;/g, " ");
-      })
-      .join(" ");
+    const timedSegments: TimedSubtitle[] = [];
+    for (const m of textMatches) {
+      const startMatch = m.match(/start="([\d.]+)"/);
+      const durMatch = m.match(/dur="([\d.]+)"/);
+      const content = m.replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, " ")
+        .trim();
 
+      if (startMatch && content.length > 0) {
+        const startTime = parseFloat(startMatch[1]);
+        const duration = durMatch ? parseFloat(durMatch[1]) : 3;
+        timedSegments.push({
+          startTime,
+          endTime: startTime + duration,
+          text: content,
+        });
+      }
+    }
+
+    const mergedSubs = mergeShortSubtitles(timedSegments, 15);
+
+    const rawText = mergedSubs.map(s => s.text).join(" ");
     const cleaned = cleanTranscript(rawText);
     if (cleaned.length < 20) return null;
 
@@ -166,6 +180,7 @@ export async function tryExtractTranscript(videoId: string): Promise<TranscriptR
       text: cleaned,
       source: "auto",
       sentences: splitIntoSentences(cleaned),
+      timedSubtitles: mergedSubs,
     };
   } catch {
     return null;

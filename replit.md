@@ -92,8 +92,10 @@ shared/
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
 - **Sticky video**: Video + controls stick to top of viewport (`position: sticky`) while subtitle panel and tabs scroll below
 - **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
-- **Timestamped subtitle support**: When manual transcript has `M:SS text` format, real timestamps are parsed and stored in `subtitlesJson` column; subtitles sync with actual YouTube video timing
-- Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson when no timed data available
+- **Timestamped subtitle support**: Both auto (YouTube XML captions with start/dur) and manual (`M:SS text`) transcripts preserve real timing in `subtitlesJson` column
+- **Auto transcript timing**: YouTube XML `<text start="X" dur="Y">` attributes parsed and stored; merged via `mergeShortSubtitles()`
+- **Subtitle↔sentenceAnalysis matching**: Fuzzy matching with word overlap scoring (40%+ threshold) to pair timed subtitles with AI translations
+- Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson only when no timed data available
 
 ## Word Inspector & Saved Words System
 
@@ -148,7 +150,8 @@ shared/
 ## AI Generator — Language-Aware Content Generation
 
 - `server/services/ai-generator.ts` with `detectLanguage()` for Arabic/English/mixed transcripts
-- OpenAI GPT-4o prompt explicitly requires O'ZBEK translations (emphasized with SHART markers)
+- OpenAI GPT-4o-mini (user's own API key prioritized) with explicit O'ZBEK translation requirements (SHART markers)
+- AI prompt sends all sentences as numbered list + instructs "BARCHA gaplarni tahlil qil" for complete analysis
 - Mock fallback produces proper Uzbek placeholder text (not English snippets)
 - `mockUzTranslation()` with dictionary + generic Uzbek terms for unknown words
 - Generates:

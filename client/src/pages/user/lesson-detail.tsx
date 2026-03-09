@@ -146,20 +146,41 @@ export default function LessonDetailPage() {
   const timedSubs = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
 
   const subtitles: SubtitleItem[] = useMemo(() => {
+    const normalizeText = (t: string) => t.toLowerCase().replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
+
     if (timedSubs && timedSubs.length > 0) {
+      const usedSentenceIdxs = new Set<number>();
       return timedSubs.map((ts, idx) => {
-        const matchedSentence = sentences.find(s =>
-          s.sentence === ts.text ||
-          ts.text.includes(s.sentence) ||
-          s.sentence.includes(ts.text)
-        );
+        const tsNorm = normalizeText(ts.text);
+        let bestMatch: typeof sentences[0] | null = null;
+        let bestScore = 0;
+        let bestIdx = -1;
+
+        sentences.forEach((s, sIdx) => {
+          if (usedSentenceIdxs.has(sIdx)) return;
+          const sNorm = normalizeText(s.sentence);
+          if (sNorm === tsNorm) { bestMatch = s; bestScore = 1; bestIdx = sIdx; return; }
+          if (tsNorm.includes(sNorm) || sNorm.includes(tsNorm)) {
+            const score = Math.min(sNorm.length, tsNorm.length) / Math.max(sNorm.length, tsNorm.length);
+            if (score > bestScore) { bestMatch = s; bestScore = score; bestIdx = sIdx; }
+          }
+          const tsWords = tsNorm.split(" ");
+          const sWords = sNorm.split(" ");
+          const commonWords = tsWords.filter(w => sWords.includes(w)).length;
+          const overlap = commonWords / Math.max(tsWords.length, sWords.length);
+          if (overlap > 0.4 && overlap > bestScore) { bestMatch = s; bestScore = overlap; bestIdx = sIdx; }
+        });
+
+        if (bestIdx >= 0) usedSentenceIdxs.add(bestIdx);
+
         return {
           id: idx,
+          sentenceIndex: bestIdx >= 0 ? bestIdx : idx,
           startTime: ts.startTime,
           endTime: ts.endTime,
           originalText: ts.text,
-          translationUz: matchedSentence?.translation || "",
-          translationAr: matchedSentence?.translationAr || "",
+          translationUz: bestMatch?.translation || "",
+          translationAr: bestMatch?.translationAr || "",
         };
       });
     }
@@ -168,6 +189,7 @@ export default function LessonDetailPage() {
     const avgDuration = 8;
     return sentences.map((s, idx) => ({
       id: idx,
+      sentenceIndex: idx,
       startTime: idx * avgDuration,
       endTime: (idx + 1) * avgDuration,
       originalText: s.sentence,

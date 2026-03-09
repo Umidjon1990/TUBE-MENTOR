@@ -374,11 +374,12 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
           ) : null}
           {block.wordMap && block.wordMap.length > 0 ? (
             <View style={{ marginTop: 4 }}>
-              <View style={styles.wordMapRow}>
-                {block.wordMap.map((w, wi) => {
-                  const clr = WORD_COLORS[wi % WORD_COLORS.length];
+              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 6, justifyContent: "flex-end" as const }}>
+                {[...block.wordMap].reverse().map((w, wi) => {
+                  const origIdx = block.wordMap!.length - 1 - wi;
+                  const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
                   return (
-                    <Text key={wi} style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const, marginRight: 6 }}>{w.word}</Text>
+                    <Text key={wi} style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
                   );
                 })}
               </View>
@@ -386,7 +387,7 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
                 {block.wordMap.map((w, wi) => {
                   const clr = WORD_COLORS[wi % WORD_COLORS.length];
                   return (
-                    <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const, marginRight: 6 }}>{w.translation}</Text>
+                    <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const }}>{w.translation}</Text>
                   );
                 })}
               </View>

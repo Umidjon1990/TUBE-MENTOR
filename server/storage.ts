@@ -60,6 +60,7 @@ export interface IStorage {
 
   createBookmark(bookmark: InsertBookmark): Promise<Bookmark>;
   getBookmarksByUser(userId: string): Promise<Bookmark[]>;
+  getBookmarksByUserAndLesson(userId: string, lessonId: number): Promise<Bookmark[]>;
   deleteBookmark(id: number): Promise<void>;
 
   createCoinTransaction(tx: InsertCoinTransaction): Promise<CoinTransaction>;
@@ -235,6 +236,10 @@ export class DatabaseStorage implements IStorage {
 
   async getBookmarksByUser(userId: string): Promise<Bookmark[]> {
     return db.select().from(bookmarks).where(eq(bookmarks.userId, userId));
+  }
+
+  async getBookmarksByUserAndLesson(userId: string, lessonId: number): Promise<Bookmark[]> {
+    return db.select().from(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.lessonId, lessonId)));
   }
 
   async deleteBookmark(id: number): Promise<void> {

@@ -209,9 +209,11 @@ export default function MyLessonsPage() {
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold truncate mb-1 group-hover:text-primary transition-colors">
-                      {lesson.title}
-                    </h3>
+                    <Link href={lesson.summaryShort ? `/lessons/${lesson.id}` : (lesson.status === "pending" ? `/lessons/${lesson.id}/process` : "#")}>
+                      <h3 className="text-sm font-semibold truncate mb-1 group-hover:text-primary transition-colors cursor-pointer">
+                        {lesson.title}
+                      </h3>
+                    </Link>
                     {lesson.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{lesson.description}</p>
                     )}

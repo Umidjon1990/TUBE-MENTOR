@@ -81,6 +81,8 @@ shared/
 ### User (student/teacher) — UserLayout with sidebar
 - `/dashboard` - Dashboard
 - `/lessons/create` - Create lesson
+- `/lessons/:id/process` - Lesson processing (transcript + AI generation)
+- `/lessons/:id` - Lesson detail with 6 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar)
 - `/lessons` - My lessons
 - `/flashcards` - Flashcards
 - `/notes` - Notes
@@ -142,6 +144,19 @@ shared/
 - `POST /api/user/lessons` - Create lesson (youtubeUrl, title?, categoryId?, tagIds?, level) — costs 10 coins
 - `POST /api/user/lessons/:id/transcript` - Extract/submit transcript (mode: auto|manual|demo)
 - `POST /api/user/lessons/:id/generate` - Trigger AI lesson generation from transcript
+- `GET /api/user/lessons/:id/flashcards` - Lesson flashcards
+- `POST /api/user/lessons/:id/flashcards` - Create flashcard
+- `PATCH /api/user/flashcards/:id` - Update flashcard
+- `DELETE /api/user/flashcards/:id` - Delete flashcard
+- `GET /api/user/lessons/:id/notes` - Lesson notes
+- `POST /api/user/lessons/:id/notes` - Create note
+- `PATCH /api/user/notes/:id` - Update note
+- `DELETE /api/user/notes/:id` - Delete note
+- `GET /api/user/lessons/:id/bookmarks` - Lesson bookmarks
+- `POST /api/user/lessons/:id/bookmarks` - Create bookmark
+- `DELETE /api/user/bookmarks/:id` - Delete bookmark
+- `GET /api/user/lessons/:id/progress` - Get lesson progress
+- `POST /api/user/lessons/:id/progress` - Create/update lesson progress
 - `GET /api/user/progress` - User lesson progress
 - `GET /api/categories` - List all categories
 - `GET /api/tags` - List all tags

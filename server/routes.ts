@@ -479,6 +479,162 @@ export async function registerRoutes(
     res.json(updated);
   });
 
+  // ─── Flashcards ───
+  app.get("/api/user/lessons/:id/flashcards", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const cards = await storage.getFlashcardsByUserAndLesson(req.session.userId!, lessonId);
+    res.json(cards);
+  });
+
+  app.post("/api/user/lessons/:id/flashcards", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const { frontText, backText, type } = req.body;
+    if (!frontText || !backText) return res.status(400).json({ message: "frontText va backText majburiy" });
+    const card = await storage.createFlashcard({
+      userId: req.session.userId!,
+      lessonId,
+      frontText,
+      backText,
+      type: type || "vocabulary",
+    });
+    res.status(201).json(card);
+  });
+
+  app.patch("/api/user/flashcards/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const existing = await storage.getFlashcardsByUser(req.session.userId!);
+    const card = existing.find(c => c.id === id);
+    if (!card) return res.status(404).json({ message: "Kartochka topilmadi" });
+    const { confidenceLevel, nextReviewAt } = req.body;
+    const updated = await storage.updateFlashcard(id, { confidenceLevel, nextReviewAt });
+    if (!updated) return res.status(404).json({ message: "Kartochka topilmadi" });
+    res.json(updated);
+  });
+
+  app.delete("/api/user/flashcards/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const existing = await storage.getFlashcardsByUser(req.session.userId!);
+    const card = existing.find(c => c.id === id);
+    if (!card) return res.status(404).json({ message: "Kartochka topilmadi" });
+    await storage.deleteFlashcard(id);
+    res.json({ success: true });
+  });
+
+  // ─── Notes ───
+  app.get("/api/user/lessons/:id/notes", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const items = await storage.getNotesByUserAndLesson(req.session.userId!, lessonId);
+    res.json(items);
+  });
+
+  app.post("/api/user/lessons/:id/notes", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const { content, sentenceIndex, isPinned } = req.body;
+    if (!content) return res.status(400).json({ message: "Mazmun majburiy" });
+    const note = await storage.createNote({
+      userId: req.session.userId!,
+      lessonId,
+      content,
+      sentenceIndex: sentenceIndex ?? null,
+      isPinned: isPinned ?? false,
+    });
+    res.status(201).json(note);
+  });
+
+  app.patch("/api/user/notes/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const userNotes = await storage.getNotesByUser(req.session.userId!);
+    const note = userNotes.find(n => n.id === id);
+    if (!note) return res.status(404).json({ message: "Eslatma topilmadi" });
+    const { content, isPinned } = req.body;
+    const updated = await storage.updateNote(id, { content, isPinned });
+    if (!updated) return res.status(404).json({ message: "Eslatma topilmadi" });
+    res.json(updated);
+  });
+
+  app.delete("/api/user/notes/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const userNotes = await storage.getNotesByUser(req.session.userId!);
+    const note = userNotes.find(n => n.id === id);
+    if (!note) return res.status(404).json({ message: "Eslatma topilmadi" });
+    await storage.deleteNote(id);
+    res.json({ success: true });
+  });
+
+  // ─── Bookmarks ───
+  app.get("/api/user/lessons/:id/bookmarks", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const items = await storage.getBookmarksByUserAndLesson(req.session.userId!, lessonId);
+    res.json(items);
+  });
+
+  app.post("/api/user/lessons/:id/bookmarks", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const { type, sentenceIndex, label } = req.body;
+    const bookmark = await storage.createBookmark({
+      userId: req.session.userId!,
+      lessonId,
+      type: type || "sentence",
+      sentenceIndex: sentenceIndex ?? null,
+      label: label ?? null,
+    });
+    res.status(201).json(bookmark);
+  });
+
+  app.delete("/api/user/bookmarks/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const userBookmarks = await storage.getBookmarksByUser(req.session.userId!);
+    const bm = userBookmarks.find(b => b.id === id);
+    if (!bm) return res.status(404).json({ message: "Xatcho'p topilmadi" });
+    await storage.deleteBookmark(id);
+    res.json({ success: true });
+  });
+
+  // ─── Lesson Progress ───
+  app.get("/api/user/lessons/:id/progress", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const progress = await storage.getLessonProgress(req.session.userId!, lessonId);
+    res.json(progress || { completedQuizzes: 0, learnedWords: 0, studyTimeSeconds: 0, accuracy: 0, completionPercent: 0 });
+  });
+
+  app.post("/api/user/lessons/:id/progress", requireAuth, async (req, res) => {
+    const lessonId = parseInt(req.params.id as string);
+    if (isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const { completedQuizzes, learnedWords, studyTimeSeconds, accuracy, completionPercent } = req.body;
+    const progressData = {
+      ...(completedQuizzes !== undefined && { completedQuizzes }),
+      ...(learnedWords !== undefined && { learnedWords }),
+      ...(studyTimeSeconds !== undefined && { studyTimeSeconds }),
+      ...(accuracy !== undefined && { accuracy }),
+      ...(completionPercent !== undefined && { completionPercent }),
+      lastStudiedAt: new Date(),
+    };
+    const existing = await storage.getLessonProgress(req.session.userId!, lessonId);
+    if (existing) {
+      const updated = await storage.updateLessonProgress(existing.id, progressData);
+      res.json(updated);
+    } else {
+      const created = await storage.createLessonProgress({
+        userId: req.session.userId!,
+        lessonId,
+        ...progressData,
+      });
+      res.status(201).json(created);
+    }
+  });
+
   app.get("/api/categories", requireAuth, async (_req, res) => {
     const cats = await storage.getAllCategories();
     res.json(cats);

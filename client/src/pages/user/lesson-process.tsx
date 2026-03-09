@@ -180,7 +180,7 @@ export default function LessonProcessPage() {
         )}
         {step === "generating" && <GeneratingState />}
         {step === "done" && (
-          <DoneState lessonId={lesson.id} onViewLesson={() => setLocation("/lessons")} />
+          <DoneState lessonId={lesson.id} onViewLesson={() => setLocation(`/lessons/${lesson.id}`)} />
         )}
         {step === "error" && (
           <ErrorState onRetry={startGeneration} onBack={() => setStep("transcript-ready")} />

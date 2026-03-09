@@ -174,11 +174,20 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     return m;
   }, [sentenceWordMaps]);
 
+  const wasPlayingRef = useRef(false);
+
   const handleWordClick = useCallback((word: string, subtitle: SubtitleItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const cleanWord = word.replace(/[^\p{L}\p{N}]/gu, "");
     if (!cleanWord) return;
+
+    if (!selectedWord) {
+      wasPlayingRef.current = isPlaying;
+      if (playerRef.current && isReady && isPlaying) {
+        playerRef.current.pauseVideo();
+      }
+    }
 
     const wmEntry = wordMapLookup.get(subtitle.sentenceIndex)?.get(cleanWord.toLowerCase());
     const vocabEntry = vocabMap.get(cleanWord.toLowerCase());
@@ -203,12 +212,16 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       phraseExplanation: phraseEntry?.context,
     });
     setAnchorRect(rect);
-  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId]);
+  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);
     setAnchorRect(null);
-  }, []);
+    if (wasPlayingRef.current && playerRef.current && isReady) {
+      playerRef.current.playVideo();
+      wasPlayingRef.current = false;
+    }
+  }, [isReady]);
 
   useEffect(() => {
     if (!videoId) return;
@@ -354,10 +367,10 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
             {t.prefix && <span>{t.prefix}</span>}
             {t.word && (
               <span
-                className={`cursor-pointer rounded-sm transition-all duration-100 ${
+                className={`cursor-pointer rounded transition-all duration-150 ${
                   isOverlay
-                    ? "hover:bg-white/25 active:bg-white/35 hover:text-cyan-200 px-0.5 py-0.5 md:px-1"
-                    : "hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5"
+                    ? "hover:bg-cyan-400/20 active:bg-cyan-400/30 hover:text-cyan-100 px-0.5 py-0.5 md:px-1 hover:shadow-[0_0_8px_rgba(0,200,255,0.15)]"
+                    : "hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5 hover:underline hover:decoration-primary/40 hover:underline-offset-2"
                 }`}
                 onClick={(e) => handleWordClick(t.word, subtitle, e)}
                 data-testid={`word-${t.word.toLowerCase()}-${i}`}
@@ -411,12 +424,12 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       );
     }
     return (
-      <div className="space-y-1 pointer-events-auto">
-        <div className="text-sm md:text-base lg:text-lg font-semibold leading-relaxed text-white" data-testid="text-subtitle-overlay-original">
+      <div className="space-y-1.5 pointer-events-auto">
+        <div className="text-sm md:text-base lg:text-lg font-semibold leading-relaxed text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" data-testid="text-subtitle-overlay-original">
           {renderClickableWords(item.originalText, item, true)}
         </div>
         {translation && (
-          <div className="text-xs md:text-sm lg:text-base leading-relaxed text-cyan-200/90" data-testid="text-subtitle-overlay-translation">
+          <div className="text-xs md:text-sm lg:text-base leading-relaxed text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" data-testid="text-subtitle-overlay-translation">
             {renderTranslationText(translation, true)}
           </div>
         )}
@@ -441,8 +454,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
             {activeSubtitle && (
-              <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 right-2 md:right-3 z-10" data-testid="subtitle-overlay">
-                <div className="mx-auto max-w-[95%] md:max-w-[80%] px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 shadow-lg">
+              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-3 md:px-6" data-testid="subtitle-overlay">
+                <div className="max-w-[92%] md:max-w-[75%] lg:max-w-[65%] px-4 md:px-6 py-2.5 md:py-3 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]">
                   {renderOverlayText(activeSubtitle)}
                 </div>
               </div>

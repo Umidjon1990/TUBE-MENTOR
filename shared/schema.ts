@@ -133,6 +133,29 @@ export const coinTransactions = pgTable("coin_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const savedWords = pgTable("saved_words", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  word: text("word").notNull(),
+  normalized: text("normalized").notNull(),
+  translationUz: text("translation_uz"),
+  translationAr: text("translation_ar"),
+  contextualMeaning: text("contextual_meaning"),
+  partOfSpeech: text("part_of_speech"),
+  pronunciation: text("pronunciation"),
+  sourceSentence: text("source_sentence"),
+  subtitleTime: real("subtitle_time"),
+  phraseText: text("phrase_text"),
+  phraseTranslationUz: text("phrase_translation_uz"),
+  phraseTranslationAr: text("phrase_translation_ar"),
+  phraseExplanation: text("phrase_explanation"),
+  isLearned: boolean("is_learned").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("saved_word_unique").on(table.userId, table.lessonId, table.normalized, table.subtitleTime),
+]);
+
 export const systemSettings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
@@ -148,6 +171,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   notes: many(notes),
   bookmarks: many(bookmarks),
   coinTransactions: many(coinTransactions),
+  savedWords: many(savedWords),
 }));
 
 export const lessonsRelations = relations(lessons, ({ one, many }) => ({
@@ -160,6 +184,7 @@ export const lessonsRelations = relations(lessons, ({ one, many }) => ({
   flashcards: many(flashcards),
   notes: many(notes),
   bookmarks: many(bookmarks),
+  savedWords: many(savedWords),
 }));
 
 export const lessonTagsRelations = relations(lessonTags, ({ one }) => ({
@@ -189,6 +214,11 @@ export const bookmarksRelations = relations(bookmarks, ({ one }) => ({
 
 export const coinTransactionsRelations = relations(coinTransactions, ({ one }) => ({
   user: one(users, { fields: [coinTransactions.userId], references: [users.id] }),
+}));
+
+export const savedWordsRelations = relations(savedWords, ({ one }) => ({
+  user: one(users, { fields: [savedWords.userId], references: [users.id] }),
+  lesson: one(lessons, { fields: [savedWords.lessonId], references: [lessons.id] }),
 }));
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -280,4 +310,24 @@ export type Bookmark = typeof bookmarks.$inferSelect;
 export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
 export type CoinTransaction = typeof coinTransactions.$inferSelect;
 export type InsertCoinTransaction = z.infer<typeof insertCoinTransactionSchema>;
+export const insertSavedWordSchema = createInsertSchema(savedWords).pick({
+  userId: true,
+  lessonId: true,
+  word: true,
+  normalized: true,
+  translationUz: true,
+  translationAr: true,
+  contextualMeaning: true,
+  partOfSpeech: true,
+  pronunciation: true,
+  sourceSentence: true,
+  subtitleTime: true,
+  phraseText: true,
+  phraseTranslationUz: true,
+  phraseTranslationAr: true,
+  phraseExplanation: true,
+});
+
+export type SavedWord = typeof savedWords.$inferSelect;
+export type InsertSavedWord = z.infer<typeof insertSavedWordSchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;

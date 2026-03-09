@@ -1,0 +1,349 @@
+PROMPT 2 — Word Click Popup + Phrase Logic + “Mening so‘zlarim” Integration
+
+Continue the existing TubeMentor AI project.
+The subtitle overlay and subtitle sync system already exist from the previous step.
+
+Do not rebuild the subtitle system.
+Do not rewrite unrelated modules.
+Only extend the current subtitle player with word interaction and saved word learning flow.
+
+Scope of this task only
+
+Implement only these parts:
+
+clickable subtitle words
+
+word inspector popup on desktop
+
+bottom sheet word inspector on mobile
+
+phrase-aware translation logic structure
+
+“Mening so‘zlarimga qo‘shish” integration
+
+saved words panel/page integration
+
+clean backend/data support for clicked words
+
+Do not redesign the whole project.
+Do not rebuild lesson generation.
+Do not add unrelated features.
+
+Goal
+
+Turn subtitles into an active vocabulary learning system.
+
+When the learner pauses the video and interacts with subtitle text, they should be able to inspect meaning and save useful words or phrases.
+
+This feature must feel premium and educational, not like a simple tooltip.
+
+Interaction rule
+
+Word inspection must work best when:
+
+subtitle is active
+
+user pauses the video
+
+user clicks/taps a word from the active subtitle
+
+If needed, allow interaction only on the active subtitle line to reduce complexity and keep behavior clean.
+
+Build 1: Clickable active subtitle words
+
+Make words inside the active subtitle clickable/tappable.
+
+Requirements:
+
+only active subtitle line needs full interaction
+
+words visually show interactivity on desktop hover
+
+words are easy to tap on mobile
+
+no broken text selection behavior
+
+punctuation should not break interaction badly
+
+if tokenization is needed, do it cleanly
+
+Do this for:
+
+overlay subtitle
+
+under-video active subtitle line
+
+Build 2: Word inspector popup (desktop)
+
+When a user clicks a word on desktop, open a premium floating popup near the selected word.
+
+The popup must show:
+
+selected word
+
+pronunciation if available
+
+O‘zbekcha tarjima
+
+Arabcha tarjima
+
+contextual meaning in the current sentence
+
+whether it is a single word or phrase
+
+part of speech if available
+
+source sentence preview
+
+button: “Mening so‘zlarimga qo‘shish”
+
+button: “Shu gapni tushuntir”
+
+Requirements:
+
+premium styling
+
+no cheap browser tooltip look
+
+easy close behavior
+
+no overflow outside viewport
+
+keyboard/escape close if possible
+
+Build 3: Mobile word inspector bottom sheet
+
+On mobile, do not use a tiny popup.
+
+Instead:
+
+tapping a word opens a bottom sheet
+
+sheet must be easy to open/close
+
+thumb-friendly buttons
+
+safe spacing
+
+readable layout
+
+Show the same data:
+
+word
+
+Uzbek translation
+
+Arabic translation
+
+context meaning
+
+phrase info if any
+
+save action
+
+Build 4: Phrase-aware translation logic structure
+
+Do not assume every clicked token is just a single isolated word.
+
+Design the data model / component logic to support:
+
+single word translation
+
+phrase translation
+
+context translation
+
+If the selected word belongs to a phrase/expression:
+the UI should be able to show:
+
+phrase text
+
+phrase translation in Uzbek
+
+phrase translation in Arabic
+
+short explanation
+
+Even if some of this is mocked for now, structure it cleanly.
+
+Suggested support shape:
+word item:
+
+text
+
+normalized
+
+translationUz
+
+translationAr
+
+contextualMeaning
+
+partOfSpeech
+
+pronunciation
+
+phraseGroupId optional
+
+phrase item:
+
+phrase
+
+translationUz
+
+translationAr
+
+explanation
+
+Build 5: “Mening so‘zlarimga qo‘shish”
+
+Integrate word saving into the existing app.
+
+When a learner chooses “Mening so‘zlarimga qo‘shish”, save the item into the current saved words / flashcards / vocabulary storage flow.
+
+If the app already has flashcards or saved words, extend it cleanly.
+If not, minimally add a proper saved words structure.
+
+Each saved word should store:
+
+word
+
+translationUz
+
+translationAr
+
+source sentence
+
+lessonId
+
+subtitleTime
+
+phrase if applicable
+
+createdAt
+
+Avoid duplication if the same word was already saved for the same lesson and timestamp.
+
+Build 6: Mening so‘zlarim section
+
+Add or improve a section/page called:
+
+Mening so‘zlarim
+
+This section should support:
+
+saved words list
+
+search
+
+filter by lesson
+
+remove word
+
+mark learned
+
+show translations
+
+show source sentence
+
+open related lesson if needed
+
+Use Uzbek UI labels throughout.
+
+This can reuse existing flashcard/saved vocabulary infrastructure if present.
+
+Build 7: Backend/API integration
+
+Extend the backend carefully if needed.
+
+Possible additions:
+
+endpoint to save selected word
+
+endpoint to list my saved words
+
+endpoint to remove saved word
+
+endpoint to mark learned
+
+If backend already supports flashcards or saved vocab, reuse and extend instead of duplicating.
+
+Do not break existing APIs.
+
+Required Uzbek UI labels
+
+Use these labels:
+
+Mening so‘zlarimga qo‘shish
+
+O‘zbekcha tarjima
+
+Arabcha tarjima
+
+Gapdagi ma’nosi
+
+Birikma ma’nosi
+
+Shu gapni tushuntir
+
+Saqlandi
+
+O‘chirish
+
+Yod oldim
+
+Mening so‘zlarim
+
+UI/UX quality requirements
+
+This feature must feel premium and calm:
+
+strong readability
+
+elegant popup
+
+premium bottom sheet
+
+smooth transitions
+
+easy close behavior
+
+good tap targets
+
+no clutter
+
+no overlapping broken UI
+
+Important constraints
+
+do not rewrite the subtitle sync logic
+
+do not rebuild the player
+
+do not break lesson pages
+
+do not break flashcards if they already exist
+
+do not change admin flow
+
+keep the enhancement isolated and clean
+
+Delivery expectation
+
+After this task, the existing project must support:
+
+clickable words on active subtitles
+
+desktop popup with word details
+
+mobile bottom sheet with word details
+
+Uzbek + Arabic meaning display
+
+phrase-aware word info structure
+
+save to “Mening so‘zlarim”
+
+list/manage saved words cleanly
+
+Do not do final polish in this task. Focus on correct interaction and data flow.

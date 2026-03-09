@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
-import SubtitlePlayer, { type SubtitleItem } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type PhraseLookup } from "@/components/subtitle-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -163,6 +163,9 @@ export default function LessonDetailPage() {
           <SubtitlePlayer
             youtubeUrl={lesson.youtubeUrl}
             subtitles={subtitles}
+            lessonId={lesson.id}
+            vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, partOfSpeech: v.partOfSpeech, example: v.example, difficulty: v.difficulty }))}
+            phrases={phrases.map(p => ({ phrase: p.phrase, translation: p.translation, context: p.context }))}
             className="max-w-3xl"
           />
         ) : lesson.thumbnailUrl ? (

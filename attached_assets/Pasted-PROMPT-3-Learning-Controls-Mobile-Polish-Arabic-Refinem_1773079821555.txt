@@ -1,0 +1,279 @@
+PROMPT 3 — Learning Controls + Mobile Polish + Arabic Refinement + Final QA
+
+Continue the existing TubeMentor AI project.
+The subtitle UI and word interaction layers already exist from previous steps.
+
+Do not rebuild them.
+Do not rewrite unrelated systems.
+This step is for refinement, learning controls, mobile polish, Arabic correctness, and QA stabilization.
+
+Scope of this task only
+
+Implement only these parts:
+
+learning-focused player controls
+
+subtitle navigation controls
+
+repeat/replay helpers
+
+mobile interaction polish
+
+Arabic rendering refinement
+
+subtitle layout stabilization
+
+UI polish for the subtitle feature
+
+QA fixes and edge-case hardening
+
+Do not expand scope beyond subtitle learning experience.
+
+Goal
+
+Make the subtitle learning system feel complete, stable, premium, and production-ready.
+
+This task should turn the current subtitle feature into a polished flagship learning experience.
+
+Build 1: Learning-focused player controls
+
+Improve the player controls specifically for language learning.
+
+Required controls:
+
+Play
+
+Pause
+
+Tezlik
+
+Sekinlashtirish
+
+Tezlashtirish
+
+Oldingi subtitle
+
+Keyingi subtitle
+
+Hozirgi subtitle’ni qayta eshitish
+
+Recommended:
+
+5 soniya orqaga
+
+5 soniya oldinga
+
+Hozirgi gapni takrorlash
+
+Hozirgi subtitle’ni loop qilish
+
+These controls must integrate with subtitle timing.
+
+Examples:
+
+“Oldingi subtitle” jumps to previous subtitle start time
+
+“Keyingi subtitle” jumps to next subtitle start time
+
+“Qayta eshitish” replays current subtitle segment
+
+Build 2: Subtitle navigation stabilization
+
+Make subtitle movement and state feel stable.
+
+Requirements:
+
+active subtitle always obvious
+
+overlay subtitle stays visually stable
+
+under-video panel remains stable
+
+transitions are smooth
+
+auto-follow does not feel jittery
+
+fixed mode remains readable
+
+changing subtitle modes does not break layout
+
+If needed, improve scroll logic, timing updates, and active state management.
+
+Build 3: Mobile-first polish
+
+Refine the whole subtitle experience for mobile.
+
+Requirements:
+
+readable subtitle overlay on small screens
+
+proper text wrapping
+
+no cutoff issues
+
+bottom sheet interaction feels smooth
+
+subtitle mode toggles fit small width
+
+controls are thumb-friendly
+
+subtitle panel can collapse if useful
+
+active line remains clear
+
+no accidental tap confusion
+
+Do not simply scale down desktop UI.
+Actively optimize the interaction for phones.
+
+Build 4: Arabic support refinement
+
+Refine Arabic subtitle and translation support.
+
+Requirements:
+
+proper RTL direction
+
+correct alignment for Arabic lines
+
+mixed Uzbek/English/Arabic layouts remain stable
+
+no broken line wrapping
+
+popup/bottom sheet Arabic text readable
+
+subtitle overlay Arabic safe
+
+font stack suitable for Arabic rendering if needed
+
+If there are subtitle modes with Arabic translation, ensure they look intentional and polished.
+
+Build 5: UI polish
+
+Make the subtitle learning module feel premium.
+
+Polish:
+
+hover/tap states for subtitle words
+
+clean active line highlight
+
+elegant transitions
+
+premium controls styling
+
+better spacing
+
+stronger readability
+
+visually consistent subtitles, panel, popup, bottom sheet
+
+subtle glass / glow only where useful
+
+no noisy styling
+
+This should look like a real premium language learning player.
+
+Build 6: Edge cases and QA
+
+Harden the feature.
+
+Handle:
+
+very long subtitles
+
+short subtitles
+
+missing translation
+
+missing Arabic translation
+
+fast playback speeds
+
+pause/play switching
+
+switching subtitle modes while video is running
+
+resizing screen from desktop to mobile
+
+duplicate save word attempts
+
+clicking punctuation
+
+no subtitle data state
+
+Add graceful fallbacks and clean error-safe behavior.
+
+Build 7: Uzbek UI labels
+
+Use polished Uzbek labels such as:
+
+Oldingi subtitle
+
+Keyingi subtitle
+
+Qayta eshitish
+
+Hozirgi gapni takrorlash
+
+Tezlik
+
+Sekinroq
+
+Tezroq
+
+Auto kuzatish
+
+Joyida turish
+
+Mening so‘zlarim
+
+Arabcha tarjima
+
+O‘zbekcha tarjima
+
+Important constraints
+
+do not rebuild the full player
+
+do not change unrelated admin/user flows
+
+do not remove current subtitle features
+
+do not duplicate controls unnecessarily
+
+avoid fragile hacks
+
+keep code clean and maintainable
+
+Final delivery expectation
+
+After this task, the existing project must have a complete subtitle learning upgrade with:
+
+synced subtitle overlay
+
+under-video subtitle panel
+
+original/translation display modes
+
+clickable subtitle words
+
+word popup on desktop
+
+bottom sheet on mobile
+
+save to “Mening so‘zlarim”
+
+learning-specific subtitle navigation controls
+
+replay/repeat helpers
+
+mobile-first polish
+
+Arabic RTL-safe rendering
+
+stable premium UX
+
+clean edge-case handling
+
+The subtitle feature should feel like one of the strongest features of the whole product.

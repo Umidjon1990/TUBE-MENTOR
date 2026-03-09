@@ -77,7 +77,7 @@ shared/
 
 ## Subtitle Player System
 
-- `client/src/components/subtitle-player.tsx` — Self-contained YouTube embed + subtitle system
+- `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + word interaction
 - YouTube IFrame API for embedded video playback
 - Subtitle overlay on video with glassmorphism styling
 - Subtitle panel below video with clickable lines and auto-scroll
@@ -85,8 +85,23 @@ shared/
 - Translation languages: O'zbekcha / Arabcha
 - Panel modes: "Auto kuzatish" (auto-scroll) / "Joyida turish" (fixed)
 - Arabic RTL support with dir="rtl"
-- Mobile-responsive design
+- **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel)
+- **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet
+- Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`
 - Subtitles generated from sentenceAnalysisJson with mock timestamps (8s per sentence)
+
+## Word Inspector & Saved Words System
+
+- `client/src/components/word-inspector.tsx` — Desktop popup / mobile bottom sheet for word details
+- Shows: word, pronunciation, UZ/AR translations, contextual meaning, part of speech, phrase info, source sentence
+- "Mening so'zlarimga qo'shish" button saves word to `saved_words` table
+- Escape key / click-outside / backdrop to close
+- `client/src/pages/user/saved-words.tsx` — Full "Mening so'zlarim" page
+- Features: search, filter by lesson, filter by status (yangi/yod olingan), delete, mark learned
+- Stats cards: total, new, learned counts
+- DB table: `saved_words` with unique constraint on (userId, lessonId, normalized, subtitleTime)
+- API: GET/POST/PATCH/DELETE `/api/user/saved-words`
+- Sidebar nav: "Mening so'zlarim" with BookmarkCheck icon at `/saved-words`
 
 ## Frontend Routes
 

@@ -940,6 +940,72 @@ export async function registerRoutes(
     res.json(results);
   });
 
+  app.get("/api/user/saved-words", requireAuth, async (req, res) => {
+    const userId = (req as any).session.userId;
+    const lessonId = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    if (lessonId) {
+      const words = await storage.getSavedWordsByUserAndLesson(userId, lessonId);
+      return res.json(words);
+    }
+    const words = await storage.getSavedWordsByUser(userId);
+    res.json(words);
+  });
+
+  app.post("/api/user/saved-words", requireAuth, async (req, res) => {
+    const userId = (req as any).session.userId;
+    const { word, normalized, lessonId, translationUz, translationAr, contextualMeaning, partOfSpeech, pronunciation, sourceSentence, subtitleTime, phraseText, phraseTranslationUz, phraseTranslationAr, phraseExplanation } = req.body;
+    if (!word || !lessonId) return res.status(400).json({ message: "So'z va dars kerak" });
+    const norm = (normalized || word).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim();
+    try {
+      const saved = await storage.createSavedWord({
+        userId,
+        lessonId: parseInt(lessonId),
+        word,
+        normalized: norm,
+        translationUz: translationUz || null,
+        translationAr: translationAr || null,
+        contextualMeaning: contextualMeaning || null,
+        partOfSpeech: partOfSpeech || null,
+        pronunciation: pronunciation || null,
+        sourceSentence: sourceSentence || null,
+        subtitleTime: subtitleTime != null ? parseFloat(subtitleTime) : null,
+        phraseText: phraseText || null,
+        phraseTranslationUz: phraseTranslationUz || null,
+        phraseTranslationAr: phraseTranslationAr || null,
+        phraseExplanation: phraseExplanation || null,
+      });
+      res.status(201).json(saved);
+    } catch (err: any) {
+      if (err.code === "23505") {
+        return res.status(409).json({ message: "Bu so'z allaqachon saqlangan" });
+      }
+      throw err;
+    }
+  });
+
+  app.patch("/api/user/saved-words/:id", requireAuth, async (req, res) => {
+    const userId = (req as any).session.userId;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const allWords = await storage.getSavedWordsByUser(userId);
+    const word = allWords.find(w => w.id === id);
+    if (!word) return res.status(404).json({ message: "So'z topilmadi" });
+    const { isLearned } = req.body;
+    const updated = await storage.updateSavedWord(id, { isLearned });
+    res.json(updated);
+  });
+
+  app.delete("/api/user/saved-words/:id", requireAuth, async (req, res) => {
+    const userId = (req as any).session.userId;
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const allWords = await storage.getSavedWordsByUser(userId);
+    const word = allWords.find(w => w.id === id);
+    if (!word) return res.status(404).json({ message: "So'z topilmadi" });
+    await storage.deleteSavedWord(id);
+    res.json({ success: true });
+  });
+
   app.get("/api/lessons/public/:id", async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });

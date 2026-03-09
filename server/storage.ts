@@ -9,6 +9,7 @@ import {
   type Note, type InsertNote, notes,
   type Bookmark, type InsertBookmark, bookmarks,
   type CoinTransaction, type InsertCoinTransaction, coinTransactions,
+  type SavedWord, type InsertSavedWord, savedWords,
   type SystemSetting, systemSettings,
 } from "@shared/schema";
 import { db } from "./db";
@@ -78,6 +79,13 @@ export interface IStorage {
   addXpAndUpdateStreak(userId: string, xpAmount: number): Promise<User>;
   countNotesByUser(userId: string): Promise<number>;
   countBookmarksByUser(userId: string): Promise<number>;
+
+  createSavedWord(data: InsertSavedWord): Promise<SavedWord>;
+  getSavedWordsByUser(userId: string): Promise<SavedWord[]>;
+  getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]>;
+  updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined>;
+  deleteSavedWord(id: number): Promise<void>;
+  countSavedWordsByUser(userId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -405,6 +413,35 @@ export class DatabaseStorage implements IStorage {
   async countBookmarksByUser(userId: string): Promise<number> {
     const result = await db.select({ count: sql<number>`count(*)` }).from(bookmarks).where(eq(bookmarks.userId, userId));
     return Number(result[0].count);
+  }
+
+  async createSavedWord(data: InsertSavedWord): Promise<SavedWord> {
+    const [sw] = await db.insert(savedWords).values(data).returning();
+    return sw;
+  }
+
+  async getSavedWordsByUser(userId: string): Promise<SavedWord[]> {
+    return db.select().from(savedWords).where(eq(savedWords.userId, userId));
+  }
+
+  async getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]> {
+    return db.select().from(savedWords).where(
+      and(eq(savedWords.userId, userId), eq(savedWords.lessonId, lessonId))
+    );
+  }
+
+  async updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined> {
+    const [sw] = await db.update(savedWords).set(data).where(eq(savedWords.id, id)).returning();
+    return sw;
+  }
+
+  async deleteSavedWord(id: number): Promise<void> {
+    await db.delete(savedWords).where(eq(savedWords.id, id));
+  }
+
+  async countSavedWordsByUser(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(savedWords).where(eq(savedWords.userId, userId));
+    return result[0]?.count ?? 0;
   }
 }
 

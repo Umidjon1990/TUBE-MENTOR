@@ -114,12 +114,26 @@ shared/
 
 ## API Routes
 
-- `GET /api/health` - Health check
-- `POST /api/auth/login` - Login (session regeneration on success)
+### Auth
+- `POST /api/auth/login` - Login (session regeneration)
 - `POST /api/auth/logout` - Logout (session destroy)
 - `GET /api/auth/me` - Current user
-- `GET /api/admin/users` - Admin: list all users
-- `GET /api/user/progress` - Auth: user's lesson progress
+
+### Admin — User Management
+- `GET /api/admin/users` - List all users
+- `GET /api/admin/users/:id` - Get user detail
+- `POST /api/admin/users` - Create user (fullName, username, password, role, coins?)
+- `PATCH /api/admin/users/:id` - Update user (fullName, username, role)
+- `PATCH /api/admin/users/:id/status` - Activate/deactivate user (isActive)
+- `PATCH /api/admin/users/:id/password` - Reset password (newPassword)
+
+### Admin — Coin Management
+- `POST /api/admin/users/:id/coins` - Add/remove coins (amount, type: add|remove, description)
+- `GET /api/admin/users/:id/coins` - Get balance + transaction history
+
+### User
+- `GET /api/user/progress` - User lesson progress
+- `GET /api/health` - Health check
 
 ## Authentication
 

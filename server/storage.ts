@@ -12,7 +12,10 @@ import {
   type SystemSetting, systemSettings,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { pool } from "./db";
+import { eq, and, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "@shared/schema";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -61,6 +64,7 @@ export interface IStorage {
 
   createCoinTransaction(tx: InsertCoinTransaction): Promise<CoinTransaction>;
   getCoinTransactionsByUser(userId: string): Promise<CoinTransaction[]>;
+  adjustCoinsAtomically(userId: string, coinChange: number, tx: InsertCoinTransaction): Promise<User>;
 
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(key: string, value: string): Promise<SystemSetting>;
@@ -239,6 +243,34 @@ export class DatabaseStorage implements IStorage {
 
   async getCoinTransactionsByUser(userId: string): Promise<CoinTransaction[]> {
     return db.select().from(coinTransactions).where(eq(coinTransactions.userId, userId));
+  }
+
+  async adjustCoinsAtomically(userId: string, coinChange: number, txData: InsertCoinTransaction): Promise<User> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const txDb = drizzle(client, { schema });
+
+      const [updated] = await txDb
+        .update(users)
+        .set({ coins: sql`${users.coins} + ${coinChange}`, updatedAt: new Date() })
+        .where(and(eq(users.id, userId), sql`${users.coins} + ${coinChange} >= 0`))
+        .returning();
+
+      if (!updated) {
+        await client.query("ROLLBACK");
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+
+      await txDb.insert(coinTransactions).values(txData);
+      await client.query("COMMIT");
+      return updated;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   async getSystemSetting(key: string): Promise<SystemSetting | undefined> {

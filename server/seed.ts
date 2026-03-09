@@ -2,13 +2,7 @@ import { db } from "./db";
 import { users, categories, tags, lessons, lessonTags, lessonProgress, flashcards, notes, bookmarks, coinTransactions, systemSettings } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { log } from "./index";
-import { scryptSync, randomBytes } from "crypto";
-
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
+import { hashPassword } from "./auth";
 
 export async function seedDatabase() {
   const existingAdmin = await db.select().from(users).where(eq(users.username, "admin"));

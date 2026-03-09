@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap, PlayCircle, Brain, BookOpen, Sparkles, ArrowRight, Zap, Users, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 function HeroSection() {
   return (
@@ -41,14 +42,12 @@ function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <Button size="lg" data-testid="button-get-started">
-              <PlayCircle className="w-5 h-5 mr-2" />
-              Boshlash
-            </Button>
-            <Button variant="outline" size="lg" data-testid="button-learn-more">
-              Batafsil ma'lumot
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <Link href="/login">
+              <Button size="lg" data-testid="button-get-started">
+                <PlayCircle className="w-5 h-5 mr-2" />
+                Boshlash
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -153,10 +152,12 @@ function CTASection() {
             Tube Mentor AI bilan o'rganishni yangi darajaga olib chiqing.
             Bepul ro'yxatdan o'ting va birinchi darsingizni yarating.
           </p>
-          <Button size="lg" variant="secondary" data-testid="button-cta-signup">
-            Bepul ro'yxatdan o'tish
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <Link href="/login">
+            <Button size="lg" variant="secondary" data-testid="button-cta-login">
+              Tizimga kirish
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
@@ -228,12 +229,11 @@ export default function Home() {
             <span className="text-sm text-muted-foreground cursor-pointer" data-testid="link-about">Biz haqimizda</span>
           </nav>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" data-testid="button-login">
-              Kirish
-            </Button>
-            <Button size="sm" data-testid="button-signup">
-              Ro'yxatdan o'tish
-            </Button>
+            <Link href="/login">
+              <Button variant="outline" size="sm" data-testid="button-login">
+                Kirish
+              </Button>
+            </Link>
           </div>
         </div>
       </header>

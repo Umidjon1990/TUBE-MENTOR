@@ -223,7 +223,7 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
         ],
       }),
       new TableCell({
-        width: { size: 20, type: WidthType.PERCENTAGE },
+        width: { size: 25, type: WidthType.PERCENTAGE },
         shading: { type: ShadingType.SOLID, color: COLORS.cyan },
         children: [
           new Paragraph({
@@ -243,22 +243,12 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
         ],
       }),
       new TableCell({
-        width: { size: 30, type: WidthType.PERCENTAGE },
+        width: { size: 40, type: WidthType.PERCENTAGE },
         shading: { type: ShadingType.SOLID, color: COLORS.cyan },
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
             children: [new TextRun({ text: "Misol", bold: true, size: 20, color: COLORS.white, font: "Arial" })],
-          }),
-        ],
-      }),
-      new TableCell({
-        width: { size: 15, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.SOLID, color: COLORS.cyan },
-        children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: "Daraja", bold: true, size: 20, color: COLORS.white, font: "Arial" })],
           }),
         ],
       }),
@@ -300,15 +290,6 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
             children: [
               new Paragraph({
                 children: [new TextRun({ text: v.example || "-", size: 18, color: COLORS.gray, font: "Arial" })],
-              }),
-            ],
-          }),
-          new TableCell({
-            shading: idx % 2 === 0 ? { type: ShadingType.SOLID, color: COLORS.lightGray } : undefined,
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: v.difficulty || "-", size: 18, color: COLORS.violet, font: "Arial" })],
               }),
             ],
           }),
@@ -607,6 +588,38 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
     );
   }
 
+  if (summary.summaryShortAr) {
+    paragraphs.push(
+      new Paragraph({
+        spacing: { before: 100, after: 60 },
+        children: [
+          new TextRun({
+            text: "Qisqa xulosa (arabcha):",
+            bold: true,
+            size: 22,
+            color: COLORS.emerald,
+            font: "Arial",
+          }),
+        ],
+      })
+    );
+    paragraphs.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { after: 200 },
+        children: [
+          new TextRun({
+            text: summary.summaryShortAr,
+            size: 22,
+            color: COLORS.emerald,
+            font: "Arial",
+            rightToLeft: true,
+          }),
+        ],
+      })
+    );
+  }
+
   if (summary.summaryDetailed) {
     paragraphs.push(
       new Paragraph({
@@ -631,6 +644,38 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
             size: 20,
             color: COLORS.gray,
             font: "Arial",
+          }),
+        ],
+      })
+    );
+  }
+
+  if (summary.summaryDetailedAr) {
+    paragraphs.push(
+      new Paragraph({
+        spacing: { before: 100, after: 60 },
+        children: [
+          new TextRun({
+            text: "Batafsil xulosa (arabcha):",
+            bold: true,
+            size: 22,
+            color: COLORS.emerald,
+            font: "Arial",
+          }),
+        ],
+      })
+    );
+    paragraphs.push(
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { after: 200 },
+        children: [
+          new TextRun({
+            text: summary.summaryDetailedAr,
+            size: 22,
+            color: COLORS.emerald,
+            font: "Arial",
+            rightToLeft: true,
           }),
         ],
       })

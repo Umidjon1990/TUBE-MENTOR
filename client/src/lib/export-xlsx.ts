@@ -80,12 +80,11 @@ function addVocabularySheet(
     { key: "word", width: 22 },
     { key: "translation", width: 24 },
     { key: "partOfSpeech", width: 14 },
-    { key: "example", width: 34 },
-    { key: "difficulty", width: 12 },
+    { key: "example", width: 40 },
   ];
 
   const titleRow = sheet.addRow([`${title} — Lug'at ro'yxati`]);
-  sheet.mergeCells(titleRow.number, 1, titleRow.number, 6);
+  sheet.mergeCells(titleRow.number, 1, titleRow.number, 5);
   const titleCell = titleRow.getCell(1);
   titleCell.font = { bold: true, size: 14, color: { argb: COLORS.titleFont } };
   titleCell.fill = {
@@ -97,14 +96,14 @@ function addVocabularySheet(
   titleRow.height = 30;
 
   const brandRow = sheet.addRow([BRAND]);
-  sheet.mergeCells(brandRow.number, 1, brandRow.number, 6);
+  sheet.mergeCells(brandRow.number, 1, brandRow.number, 5);
   const brandCell = brandRow.getCell(1);
   brandCell.font = { italic: true, size: 10, color: { argb: "FF6B7280" } };
   brandCell.alignment = { horizontal: "center" };
 
   sheet.addRow([]);
 
-  const headers = ["#", "Arab so'z", "O'zbek tarjima", "So'z turi", "Misol", "Daraja"];
+  const headers = ["#", "Arab so'z", "O'zbek tarjima", "So'z turi", "Misol"];
   const headerRow = sheet.addRow(headers);
   headerRow.height = 24;
   headerRow.eachCell((cell) => applyHeaderStyle(cell));
@@ -116,7 +115,6 @@ function addVocabularySheet(
       entry.translation,
       entry.partOfSpeech || "",
       entry.example || "",
-      entry.difficulty || "",
     ]);
     const isAlt = idx % 2 === 1;
     row.eachCell((cell, colNumber) => {
@@ -127,7 +125,7 @@ function addVocabularySheet(
 
   sheet.addRow([]);
   const footerRow = sheet.addRow([`Jami: ${vocab.length} ta so'z`]);
-  sheet.mergeCells(footerRow.number, 1, footerRow.number, 6);
+  sheet.mergeCells(footerRow.number, 1, footerRow.number, 5);
   const footerCell = footerRow.getCell(1);
   footerCell.font = { italic: true, size: 10, color: { argb: "FF6B7280" } };
   footerCell.alignment = { horizontal: "right" };

@@ -27,14 +27,14 @@ import {
 } from "./export-transform";
 
 Font.register({
-  family: "NotoArabic",
+  family: "Amiri",
   fonts: [
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Regular.ttf",
       fontWeight: 400,
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Bold.ttf",
       fontWeight: 700,
     },
   ],
@@ -44,11 +44,11 @@ Font.register({
   family: "NotoSans",
   fonts: [
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans-Regular.ttf",
       fontWeight: 400,
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans-Bold.ttf",
       fontWeight: 700,
     },
   ],
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     color: colors.arabText,
     textAlign: "right" as const,
     marginBottom: 4,
-    fontFamily: "NotoArabic",
+    fontFamily: "Amiri",
     fontWeight: 700 as const,
     lineHeight: 1.8,
   },
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   wordMapAr: {
     fontSize: 10,
     color: colors.wordByWord,
-    fontFamily: "NotoArabic",
+    fontFamily: "Amiri",
     fontWeight: 700 as const,
     textAlign: "right" as const,
   },
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   phraseText: {
     fontSize: 12,
     color: colors.phrases,
-    fontFamily: "NotoArabic",
+    fontFamily: "Amiri",
     fontWeight: 700 as const,
     textAlign: "right" as const,
     marginBottom: 2,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   flashcardFront: {
     fontSize: 13,
-    fontFamily: "NotoArabic",
+    fontFamily: "Amiri",
     fontWeight: 700 as const,
     color: colors.flashcard,
     textAlign: "right" as const,
@@ -435,25 +435,13 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
           style={[
             styles.tableCell,
             {
-              width: "25%",
+              width: "30%",
               fontFamily: "Helvetica-Bold",
               color: colors.vocab,
             },
           ]}
         >
           Misol
-        </Text>
-        <Text
-          style={[
-            styles.tableCell,
-            {
-              width: "10%",
-              fontFamily: "Helvetica-Bold",
-              color: colors.vocab,
-            },
-          ]}
-        >
-          Daraja
         </Text>
       </View>
       {vocab.map((v, i) => (
@@ -468,7 +456,7 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
               {
                 width: "25%",
                 textAlign: "right" as const,
-                fontFamily: "NotoArabic",
+                fontFamily: "Amiri",
                 fontWeight: 700 as const,
                 color: colors.arabText,
                 lineHeight: 1.6,
@@ -486,14 +474,9 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
             {v.partOfSpeech || "—"}
           </Text>
           <Text
-            style={[styles.tableCell, { width: "25%", color: colors.gray }]}
+            style={[styles.tableCell, { width: "30%", color: colors.gray }]}
           >
             {v.example || "—"}
-          </Text>
-          <Text
-            style={[styles.tableCell, { width: "10%", color: colors.vocabAlt }]}
-          >
-            {v.difficulty || "—"}
           </Text>
         </View>
       ))}
@@ -627,10 +610,22 @@ function SummarySection({ summary }: { summary: SummaryData }) {
           <Text style={styles.summaryText}>{summary.summaryShort}</Text>
         </View>
       ) : null}
+      {summary.summaryShortAr ? (
+        <View style={styles.summaryBlock} wrap={false}>
+          <Text style={styles.summaryLabel}>Qisqa xulosa (arabcha)</Text>
+          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "Amiri", lineHeight: 1.8 }]}>{summary.summaryShortAr}</Text>
+        </View>
+      ) : null}
       {summary.summaryDetailed ? (
         <View style={styles.summaryBlock} wrap={false}>
           <Text style={styles.summaryLabel}>Batafsil xulosa</Text>
           <Text style={styles.summaryText}>{summary.summaryDetailed}</Text>
+        </View>
+      ) : null}
+      {summary.summaryDetailedAr ? (
+        <View style={styles.summaryBlock} wrap={false}>
+          <Text style={styles.summaryLabel}>Batafsil xulosa (arabcha)</Text>
+          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "Amiri", lineHeight: 1.8 }]}>{summary.summaryDetailedAr}</Text>
         </View>
       ) : null}
     </View>

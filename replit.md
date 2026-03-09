@@ -91,7 +91,8 @@ shared/
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
 - **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
-- Subtitles generated from sentenceAnalysisJson with mock timestamps (8s per sentence)
+- **Timestamped subtitle support**: When manual transcript has `M:SS text` format, real timestamps are parsed and stored in `subtitlesJson` column; subtitles sync with actual YouTube video timing
+- Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson when no timed data available
 
 ## Word Inspector & Saved Words System
 

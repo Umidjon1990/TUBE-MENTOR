@@ -143,7 +143,27 @@ export default function LessonDetailPage() {
   const quizzes: QuizItem[] = lesson.quizzesJson as QuizItem[] || [];
   const presetFlashcards: FlashcardData[] = lesson.flashcardsJson as FlashcardData[] || [];
 
+  const timedSubs = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+
   const subtitles: SubtitleItem[] = useMemo(() => {
+    if (timedSubs && timedSubs.length > 0) {
+      return timedSubs.map((ts, idx) => {
+        const matchedSentence = sentences.find(s =>
+          s.sentence === ts.text ||
+          ts.text.includes(s.sentence) ||
+          s.sentence.includes(ts.text)
+        );
+        return {
+          id: idx,
+          startTime: ts.startTime,
+          endTime: ts.endTime,
+          originalText: ts.text,
+          translationUz: matchedSentence?.translation || "",
+          translationAr: matchedSentence?.translationAr || "",
+        };
+      });
+    }
+
     if (!sentences.length) return [];
     const avgDuration = 8;
     return sentences.map((s, idx) => ({
@@ -154,7 +174,7 @@ export default function LessonDetailPage() {
       translationUz: s.translation,
       translationAr: s.translationAr || "",
     }));
-  }, [sentences]);
+  }, [sentences, timedSubs]);
 
   const sentenceWordMaps: SentenceWordMap[] = useMemo(() => {
     return sentences

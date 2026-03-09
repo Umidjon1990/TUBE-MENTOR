@@ -56,6 +56,7 @@ export const lessons = pgTable("lessons", {
   phrasesJson: json("phrases_json"),
   quizzesJson: json("quizzes_json"),
   flashcardsJson: json("flashcards_json"),
+  subtitlesJson: json("subtitles_json"),
   sentenceAnalysisJson: json("sentence_analysis_json"),
   aiMetaJson: json("ai_meta_json"),
   moderationNote: text("moderation_note"),

@@ -560,6 +560,7 @@ export async function registerRoutes(
       await storage.updateLesson(id, {
         transcript: result.text,
         transcriptSource: result.source,
+        subtitlesJson: null,
       });
 
       return res.json({ success: true, transcript: result });
@@ -572,11 +573,16 @@ export async function registerRoutes(
 
       const result = processManualTranscript(manualText);
 
-      await storage.updateLesson(id, {
+      const updateData: any = {
         transcript: result.text,
         manualTranscript: manualText,
         transcriptSource: "manual",
-      });
+        subtitlesJson: result.timedSubtitles && result.timedSubtitles.length > 0
+          ? result.timedSubtitles
+          : null,
+      };
+
+      await storage.updateLesson(id, updateData);
 
       return res.json({ success: true, transcript: result });
     }
@@ -587,6 +593,7 @@ export async function registerRoutes(
       await storage.updateLesson(id, {
         transcript: result.text,
         transcriptSource: "demo",
+        subtitlesJson: null,
       });
 
       return res.json({ success: true, transcript: result });
@@ -607,10 +614,17 @@ export async function registerRoutes(
       return res.status(400).json({ message: "Bu dars allaqachon generatsiya qilingan" });
     }
 
-    const sentences = lesson.transcript
-      .split(/(?<=[.!?。？！])\s+|\n+/)
+    let sentences = lesson.transcript
+      .split(/(?<=[.!?。？！؟!])\s+|\n+/)
       .map((s: string) => s.trim())
       .filter((s: string) => s.length > 0);
+
+    if (sentences.length <= 1 && lesson.transcript.length > 50) {
+      sentences = lesson.transcript
+        .split(/\n+/)
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0);
+    }
 
     const content = await generateLessonContent(lesson.transcript, sentences, lesson.level);
 

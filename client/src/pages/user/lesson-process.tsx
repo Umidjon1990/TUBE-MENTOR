@@ -331,6 +331,22 @@ function NoTranscriptState({
   );
 }
 
+function detectTimestampedFormat(text: string): boolean {
+  const lines = text.trim().split(/\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 3) return false;
+  let tsCount = 0;
+  for (const line of lines) {
+    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(line)) tsCount++;
+  }
+  return tsCount / lines.length >= 0.5;
+}
+
+function countTimestampedLines(text: string): number {
+  return text.trim().split(/\n/)
+    .filter(l => /^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(l.trim()))
+    .length;
+}
+
 function ManualInputState({
   text,
   onTextChange,
@@ -345,9 +361,10 @@ function ManualInputState({
   isPending: boolean;
 }) {
   const charCount = text.trim().length;
-  const sentenceCount = text.trim()
-    .split(/(?<=[.!?])\s+|\n+/)
-    .filter(s => s.trim().length > 0).length;
+  const isTimestamped = charCount > 20 && detectTimestampedFormat(text);
+  const lineCount = isTimestamped
+    ? countTimestampedLines(text)
+    : text.trim().split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 0).length;
 
   return (
     <Card className="glass border-violet-500/20" data-testid="card-manual-input">
@@ -363,17 +380,32 @@ function ManualInputState({
         </div>
 
         <Textarea
-          placeholder="Video skriptini bu yerga joylashtiring...&#10;&#10;Har bir gapni alohida satr yoki nuqta bilan ajrating."
+          placeholder={"Video skriptini bu yerga joylashtiring...\n\nVaqtli format ham qo'llab-quvvatlanadi:\n0:01 Birinchi gap matni\n0:06 Ikkinchi gap matni\n\nYoki oddiy matn — har bir gapni alohida satr bilan ajrating."}
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
           className="min-h-[200px] bg-muted/30 border-border/50 text-sm"
+          dir={text && /[\u0600-\u06FF]/.test(text) ? "rtl" : "ltr"}
+          style={text && /[\u0600-\u06FF]/.test(text) ? { fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" } : {}}
           data-testid="textarea-manual-transcript"
         />
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
           <span>{charCount} belgi</span>
-          <span>~{sentenceCount} gap</span>
+          {isTimestamped ? (
+            <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] gap-1" data-testid="badge-timestamped">
+              <CheckCircle2 className="w-3 h-3" />
+              Vaqtli format aniqlandi — {lineCount} qator
+            </Badge>
+          ) : (
+            <span>~{lineCount} gap</span>
+          )}
         </div>
+
+        {isTimestamped && (
+          <p className="text-xs text-green-400/80">
+            Vaqt belgilari aniqlandi. Subtitle video bilan sinxronlanadi.
+          </p>
+        )}
 
         {charCount > 0 && charCount < 20 && (
           <p className="text-xs text-orange-400">Kamida 20 ta belgi kerak (hozir: {charCount})</p>

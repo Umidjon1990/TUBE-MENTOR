@@ -2,6 +2,13 @@ export interface TranscriptResult {
   text: string;
   source: "auto" | "manual" | "demo";
   sentences: string[];
+  timedSubtitles?: TimedSubtitle[];
+}
+
+export interface TimedSubtitle {
+  startTime: number;
+  endTime: number;
+  text: string;
 }
 
 export function splitIntoSentences(text: string): string[] {
@@ -17,6 +24,90 @@ export function cleanTranscript(raw: string): string {
     .replace(/\[.*?\]/g, "")
     .replace(/\(.*?\)/g, "")
     .replace(/\d{1,2}:\d{2}(:\d{2})?\s*/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[^\S\n]{2,}/g, " ")
+    .trim();
+}
+
+function parseTimestamp(ts: string): number {
+  const parts = ts.split(":").map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return 0;
+}
+
+export function isTimestampedFormat(text: string): boolean {
+  const lines = text.trim().split(/\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 3) return false;
+  let tsCount = 0;
+  for (const line of lines) {
+    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(line)) tsCount++;
+  }
+  return tsCount / lines.length >= 0.5;
+}
+
+export function parseTimestampedTranscript(raw: string): TimedSubtitle[] {
+  const lines = raw.trim().split(/\n/).filter(l => l.trim().length > 0);
+  const segments: { startTime: number; text: string }[] = [];
+
+  for (const line of lines) {
+    const match = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)/);
+    if (match) {
+      const time = parseTimestamp(match[1]);
+      const text = match[2].trim();
+      if (text.length > 0) {
+        segments.push({ startTime: time, text });
+      }
+    } else {
+      const trimmed = line.trim();
+      if (trimmed.length > 0 && segments.length > 0) {
+        segments[segments.length - 1].text += " " + trimmed;
+      }
+    }
+  }
+
+  if (segments.length === 0) return [];
+
+  segments.sort((a, b) => a.startTime - b.startTime);
+
+  const result: TimedSubtitle[] = [];
+  for (let i = 0; i < segments.length; i++) {
+    const nextTime = i < segments.length - 1 ? segments[i + 1].startTime : segments[i].startTime + 5;
+    const endTime = Math.max(nextTime, segments[i].startTime + 0.5);
+    result.push({
+      startTime: segments[i].startTime,
+      endTime,
+      text: segments[i].text,
+    });
+  }
+
+  return result;
+}
+
+function mergeShortSubtitles(subs: TimedSubtitle[], minLength: number = 15): TimedSubtitle[] {
+  if (subs.length <= 1) return subs;
+  const merged: TimedSubtitle[] = [];
+  let current = { ...subs[0] };
+
+  for (let i = 1; i < subs.length; i++) {
+    const gap = subs[i].startTime - current.endTime;
+    if (current.text.length < minLength && gap <= 2) {
+      current.text += " " + subs[i].text;
+      current.endTime = subs[i].endTime;
+    } else {
+      merged.push(current);
+      current = { ...subs[i] };
+    }
+  }
+  merged.push(current);
+  return merged;
+}
+
+export function cleanTimestampedText(raw: string): string {
+  return raw
+    .replace(/\[.*?\]/g, "")
+    .replace(/\(.*?\)/g, "")
+    .replace(/^\s*\d{1,2}:\d{2}(?::\d{2})?\s*/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/[^\S\n]{2,}/g, " ")
     .trim();
@@ -93,6 +184,20 @@ export function getDemoTranscript(): TranscriptResult {
 }
 
 export function processManualTranscript(raw: string): TranscriptResult {
+  if (isTimestampedFormat(raw)) {
+    const timedSubs = parseTimestampedTranscript(raw);
+    const merged = mergeShortSubtitles(timedSubs, 10);
+    const cleanedText = cleanTimestampedText(raw);
+    const sentences = merged.map(s => s.text);
+
+    return {
+      text: cleanedText,
+      source: "manual",
+      sentences,
+      timedSubtitles: merged,
+    };
+  }
+
   const cleaned = cleanTranscript(raw);
   return {
     text: cleaned,

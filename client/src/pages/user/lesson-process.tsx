@@ -14,7 +14,27 @@ import {
   ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { jsonrepair } from "jsonrepair";
 import type { Lesson } from "@shared/schema";
+
+function repairChatGptJson(raw: string): string {
+  let text = raw.trim().replace(/\r\n/g, "\n");
+  const lines = text.split("\n");
+  const fixed: string[] = [];
+  for (const line of lines) {
+    const m = line.match(/^(\s*"[^"]+"\s*:\s*)"(.*)"(,?\s*)$/);
+    if (m) {
+      const inner = m[2];
+      if (inner.includes('"')) {
+        const escaped = inner.replace(/\\"/g, "\x00").replace(/"/g, '\\"').replace(/\x00/g, '\\"');
+        fixed.push(m[1] + '"' + escaped + '"' + m[3]);
+        continue;
+      }
+    }
+    fixed.push(line);
+  }
+  return fixed.join("\n");
+}
 
 type ProcessStep = "loading" | "extracting" | "no-transcript" | "manual-input" | "transcript-ready" | "generating" | "json-import" | "done" | "error";
 
@@ -97,7 +117,9 @@ export default function LessonProcessPage() {
     mutationFn: async () => {
       let parsed;
       try {
-        parsed = JSON.parse(jsonImportText.trim());
+        const step1 = repairChatGptJson(jsonImportText);
+        const repaired = jsonrepair(step1);
+        parsed = JSON.parse(repaired);
       } catch {
         throw new Error("JSON formati noto'g'ri. ChatGPT javobini to'liq ko'chiring.");
       }
@@ -692,7 +714,9 @@ function JsonImportState({
   let jsonError = "";
   if (jsonText.trim()) {
     try {
-      const parsed = JSON.parse(jsonText.trim());
+      const step1 = repairChatGptJson(jsonText);
+      const repaired = jsonrepair(step1);
+      const parsed = JSON.parse(repaired);
       const missing: string[] = [];
       if (!parsed.summaryShort) missing.push("summaryShort");
       if (!parsed.summaryDetailed) missing.push("summaryDetailed");

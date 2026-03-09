@@ -1,0 +1,2664 @@
+{
+"summaryShort": "Bu videoda avval Juha va Homa juda katta tarvuz haqida kulgili suhbat quradi. Keyin esa tomoshabinlar uchun meva va sabzavotlar mavzusida, ayniqsa apelsin haqidagi ta’limiy savol beriladi.",
+"summaryDetailed": "Videoning boshida qahramonlar uzoq vaqtdan beri tarvuz yemaganini aytib, hozirgi zamondagi tarvuzlarning juda katta bo‘lib ketganiga hayron bo‘lishadi. Ular buni gormonlar, ilm-fan va texnologiya bilan bog‘lashadi. Juha tarvuzni ertaga nonushtaga qoldirmoqchi bo‘lib, uni karavot ostiga qo‘yadi. Keyin kulgili tarzda tarvuz kattalashib ketayotgandek tasavvur qilinadi va uyni buzib yuborishi mumkinligi aytiladi. Tarvuz kesilgach, uning ta’mi yo‘qligi va hatto achchiq ekani aytiladi. Keyingi qismda boshlovchi tomoshabinlarga murojaat qilib, yangi meva va sabzavotlar haqida gapiradi. So‘ng C vitaminiga boy, qishda shamollash va grippga qarshi foydali bo‘lgan meva haqida savol beradi. Variantlar sifatida apelsin, olxo‘ri va baqlajon beriladi hamda to‘g‘ri javobni yuborish so‘raladi.",
+"summaryShortAr": "في هذا الفيديو يتحدث جحا وهوما أولًا بشكل مضحك عن بطيخة ضخمة. ثم ينتقل المقطع إلى جزء تعليمي فيه سؤال عن الفواكه، وخاصة البرتقال.",
+"summaryDetailedAr": "في بداية الفيديو يتحدث جحا وهوما عن البطيخ ويستغربان كِبَر حجمه في هذا الزمان. ويربطان ذلك بالهرمونات والعلم والتكنولوجيا. ثم يقرر جحا أن يحتفظ بالبطيخة لليوم التالي ويضعها تحت السرير. بعد ذلك يتخيلان بشكل كوميدي أن البطيخة تكبر جدًا وقد تحطم المنزل. وعندما يقطعانها يكتشفان أن طعمها غير جيد بل ومُر. ثم يخاطب المتحدث الأصدقاء والمشاهدين ويتحدث عن الخضروات والفواكه الطازجة. وبعد ذلك يطرح سؤالًا عن فاكهة غنية بفيتامين سي ومفيدة ضد البرد والإنفلونزا. وأخيرًا يطلب من المشاهدين إرسال الإجابة الصحيحة للفوز بالجوائز.",
+"vocabulary": [
+{
+"word": "بطيخ",
+"translation": "tarvuz",
+"translationAr": "بطيخ",
+"partOfSpeech": "ism",
+"example": "يا سلام يا هما منذ فتره لم اكل بطيخا",
+"difficulty": "easy"
+},
+{
+"word": "اشتاق",
+"translation": "sog‘inmoq",
+"translationAr": "يشتاق",
+"partOfSpeech": "fe'l",
+"example": "وانا ايضا اشتاق للقشر الاخضر اللذيذ لكن",
+"difficulty": "medium"
+},
+{
+"word": "الهرمونات",
+"translation": "gormonlar",
+"translationAr": "الهرمونات",
+"partOfSpeech": "ism",
+"example": "الهرمونات هرمونات نعم فبالعلم",
+"difficulty": "medium"
+},
+{
+"word": "التكنولوجيا",
+"translation": "texnologiya",
+"translationAr": "التكنولوجيا",
+"partOfSpeech": "ism",
+"example": "والتكنولوجيا تصبح الخضروات والفاكهه",
+"difficulty": "medium"
+},
+{
+"word": "امان",
+"translation": "xavfsizlik, omonlik",
+"translationAr": "أمان",
+"partOfSpeech": "ism",
+"example": "امان",
+"difficulty": "easy"
+},
+{
+"word": "المشرق",
+"translation": "yorug‘, ijobiy",
+"translationAr": "مشرق",
+"partOfSpeech": "sifat",
+"example": "المشرق من البطيخه لقد اصبح لدينا بطيخه",
+"difficulty": "hard"
+},
+{
+"word": "الطازجه",
+"translation": "yangi, fresh",
+"translationAr": "طازجة",
+"partOfSpeech": "sifat",
+"example": "الطازجه انا احب الفاكهه اللذيذه كالتفاح",
+"difficulty": "easy"
+},
+{
+"word": "الوقايه",
+"translation": "oldini olish, himoya",
+"translationAr": "وقاية",
+"partOfSpeech": "ism",
+"example": "كثيره ينصح باكلها في الشتاء للوقايه ضد",
+"difficulty": "medium"
+},
+{
+"word": "الانفلونزا",
+"translation": "gripp",
+"translationAr": "الإنفلونزا",
+"partOfSpeech": "ism",
+"example": "البرد والانفلونزا",
+"difficulty": "medium"
+},
+{
+"word": "الجوائز",
+"translation": "sovrinlar",
+"translationAr": "الجوائز",
+"partOfSpeech": "ism",
+"example": "الجوائز ي لا لاي لا لا لا لاا لاي لاي",
+"difficulty": "easy"
+}
+],
+"phrases": [
+{
+"phrase": "ما اجملها من فاكهه",
+"translation": "Qanday ajoyib meva ekan",
+"translationAr": "ما أجملها من فاكهة",
+"context": "Biror narsaning go‘zalligini yoki yoqimliligini hayrat bilan ta’kidlashda ishlatiladi."
+},
+{
+"phrase": "معك حق",
+"translation": "Sen haqsan",
+"translationAr": "معك حق",
+"context": "Suhbatdosh fikriga qo‘shilish uchun ishlatiladi."
+},
+{
+"phrase": "لا استطيع الصبر",
+"translation": "Sabr qila olmayman",
+"translationAr": "لا أستطيع الصبر",
+"context": "Kishi juda kutayotgan yoki nimanidir juda xohlayotgan holatda ishlatiladi."
+},
+{
+"phrase": "انظر الى الجانب المشرق",
+"translation": "Ijobiy tomoniga qara",
+"translationAr": "انظر إلى الجانب المشرق",
+"context": "Qiyin vaziyatda ham yaxshi tomonni ko‘rsatishda ishlatiladi."
+},
+{
+"phrase": "ليس لها طعم بالمره",
+"translation": "Buning umuman ta’mi yo‘q",
+"translationAr": "ليس لها طعم بالمرة",
+"context": "Taom yoki mevaning juda mazasiz ekanini aytishda ishlatiladi."
+},
+{
+"phrase": "في كل بقاع الارض",
+"translation": "Yer yuzining barcha burchaklarida",
+"translationAr": "في كل بقاع الأرض",
+"context": "Keng auditoriyaga murojaat qilishda ishlatiladi."
+},
+{
+"phrase": "نسبه عاليه من فيتامين سي",
+"translation": "C vitaminining yuqori miqdori",
+"translationAr": "نسبة عالية من فيتامين سي",
+"context": "Oziq-ovqatning foydasini ta’riflashda ishlatiladi."
+},
+{
+"phrase": "البريد الالكتروني الظاهر على الشاشه",
+"translation": "ekranda ko‘rinib turgan elektron pochta",
+"translationAr": "البريد الإلكتروني الظاهر على الشاشة",
+"context": "Bog‘lanish manzili yoki yuborish joyini ko‘rsatishda ishlatiladi."
+}
+],
+"quizzes": [
+{
+"question": "Qahramonlar uzoq vaqtdan beri nima yemaganini aytishadi?",
+"options": ["apelsin", "tarvuz", "olma", "olxo‘ri"],
+"correctIndex": 1,
+"explanation": "Birinchi qatorda ular anchadan beri tarvuz yemaganini aytadi.",
+"type": "multiple_choice"
+},
+{
+"question": "Hozirgi zamon tarvuzlari nega kattalashgani aytiladi?",
+"options": ["faqat yomg‘ir sabab", "gormonlar va texnologiya sabab", "faqat quyosh sabab", "suv kamligi sabab"],
+"correctIndex": 1,
+"explanation": "Matnda gormonlar, ilm-fan va texnologiya bunga sabab bo‘lgani aytiladi.",
+"type": "multiple_choice"
+},
+{
+"question": "Juha tarvuzni qayerga qo‘yadi?",
+"options": ["deraza yoniga", "stol ustiga", "karavot ostiga", "eshik oldiga"],
+"correctIndex": 2,
+"explanation": "U tarvuzni xavfsiz bo‘lishi uchun karavot ostiga qo‘yishini aytadi.",
+"type": "multiple_choice"
+},
+{
+"question": "Tarvuz haqida ijobiy tomoni sifatida nima aytiladi?",
+"options": ["u juda arzon", "u bir yilga yetadi", "u kichkina", "u sovuq emas"],
+"correctIndex": 1,
+"explanation": "Qahramonlar tarvuz bizga bir yilga yetadi deb aytadi.",
+"type": "multiple_choice"
+},
+{
+"question": "Tarvuzning ta’mi qanday deb tasvirlanadi?",
+"options": ["juda shirin", "nordon", "umuman ta’msiz va achchiq", "sho‘r"],
+"correctIndex": 2,
+"explanation": "Matnda avval ta’mi yo‘qligi, keyin esa achchiq ekani aytiladi.",
+"type": "multiple_choice"
+},
+{
+"question": "Boshlovchi qaysi mahsulotlar haqida gapiradi?",
+"options": ["faqat ichimliklar", "faqat go‘shtli taomlar", "sabzavotlar va mevalar", "faqat shirinliklar"],
+"correctIndex": 2,
+"explanation": "U yangi sabzavot va mevalarni yeyishni yoqtirasizmi deb so‘raydi.",
+"type": "multiple_choice"
+},
+{
+"question": "Savolda tasvirlangan meva qaysi vitamin bilan boy ekan?",
+"options": ["vitamin A", "vitamin B", "vitamin C", "vitamin D"],
+"correctIndex": 2,
+"explanation": "Matnda u C vitaminiga boy ekani aniq aytilgan.",
+"type": "multiple_choice"
+},
+{
+"question": "Variantlar ichida to‘g‘ri javob bo‘lishi kerak bo‘lgan meva qaysi?",
+"options": ["baqlajon", "apelsin", "gamburger", "tarvuz"],
+"correctIndex": 1,
+"explanation": "C vitaminiga boy va shamollashga foydali meva sifatida apelsin to‘g‘ri javob hisoblanadi.",
+"type": "multiple_choice"
+},
+{
+"question": "To‘g‘ri javob qayerga yuborilishi so‘raladi?",
+"options": ["telefon raqamiga", "elektron pochtaga", "do‘konga", "daftarga"],
+"correctIndex": 1,
+"explanation": "Boshlovchi javobni ekranda ko‘rinib turgan elektron pochtaga yuborishni aytadi.",
+"type": "multiple_choice"
+}
+],
+"flashcards": [
+{
+"front": "بطيخ",
+"back": "Tarvuz. Yozda ko‘p iste’mol qilinadigan yirik meva.",
+"backAr": "بطيخ",
+"type": "vocabulary"
+},
+{
+"front": "اشتاق",
+"back": "Sog‘inmoq. Biror narsani yoki kishini xohlab qolish ma’nosini beradi.",
+"backAr": "يشتاق",
+"type": "vocabulary"
+},
+{
+"front": "الهرمونات",
+"back": "Gormonlar. Matnda meva va sabzavotlarning juda kattalashishiga sabab sifatida aytilgan.",
+"backAr": "الهرمونات",
+"type": "vocabulary"
+},
+{
+"front": "لا استطيع الصبر",
+"back": "Sabr qila olmayman. Juda kutayotgan paytda ishlatiladi.",
+"backAr": "لا أستطيع الصبر",
+"type": "vocabulary"
+},
+{
+"front": "امان",
+"back": "Xavfsizlik, omonlik. Biror narsaning xavfsiz joyda ekanini bildiradi.",
+"backAr": "أمان",
+"type": "vocabulary"
+},
+{
+"front": "الطازجه",
+"back": "Yangi, fresh. Asosan meva va sabzavotlarga nisbatan ishlatiladi.",
+"backAr": "طازجة",
+"type": "vocabulary"
+},
+{
+"front": "الوقايه",
+"back": "Oldini olish, himoya. Kasallikdan saqlanish ma’nosini bildiradi.",
+"backAr": "وقاية",
+"type": "vocabulary"
+},
+{
+"front": "الجوائز",
+"back": "Sovrinlar. Tanlov yoki musobaqada beriladigan mukofotlar.",
+"backAr": "الجوائز",
+"type": "vocabulary"
+},
+{
+"front": "انظر الى الجانب المشرق",
+"back": "Ijobiy tomoniga qara. Muammoli holatda ham yaxshi tarafni ko‘rsatish uchun ishlatiladi.",
+"backAr": "انظر إلى الجانب المشرق",
+"type": "vocabulary"
+},
+{
+"front": "ليس لها طعم بالمره",
+"back": "Buning umuman ta’mi yo‘q. Biror narsaning juda mazasiz ekanini aytadi.",
+"backAr": "ليس لها طعم بالمرة",
+"type": "vocabulary"
+}
+],
+"sentenceAnalysis": [
+{
+"sentence": "يا سلام يا هما منذ فتره لم اكل بطيخا",
+"translation": "Voy, Homa, anchadan beri tarvuz yemadim.",
+"translationAr": "يا سلام يا هوما، منذ فترة لم آكل بطيخًا.",
+"grammarNotes": "Bu gapda hayrat undovi va vaqt ifodasi bor. "لم" fe’lni o‘tgan zamon inkoriga aylantirgan.",
+"keyWords": ["سلام", "منذ", "لم", "اكل", "بطيخا"],
+"wordMap": [
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey, voy",
+"translationAr": "يا",
+"contextualMeaning": "murojaat yoki undov uchun ishlatilgan"
+},
+{
+"word": "سلام",
+"normalized": "سلام",
+"translationUz": "salom, voy",
+"translationAr": "سلام",
+"contextualMeaning": "hayratni ifodalovchi undov tarkibi"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat yuklamasi"
+},
+{
+"word": "هما",
+"normalized": "هما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "shaxs nomi"
+},
+{
+"word": "منذ",
+"normalized": "منذ",
+"translationUz": "beri",
+"translationAr": "منذ",
+"contextualMeaning": "vaqt boshlangan nuqtani bildiradi"
+},
+{
+"word": "فتره",
+"normalized": "فتره",
+"translationUz": "muddat, vaqt",
+"translationAr": "فترة",
+"contextualMeaning": "anchadan beri degan ma’noda kelgan"
+},
+{
+"word": "لم",
+"normalized": "لم",
+"translationUz": "…madi",
+"translationAr": "لم",
+"contextualMeaning": "o‘tgan zamon inkori"
+},
+{
+"word": "اكل",
+"normalized": "اكل",
+"translationUz": "yedim, yemoq",
+"translationAr": "آكل",
+"contextualMeaning": "ovqat yeyish harakati"
+},
+{
+"word": "بطيخا",
+"normalized": "بطيخا",
+"translationUz": "tarvuz",
+"translationAr": "بطيخًا",
+"contextualMeaning": "yeyilgan meva"
+}
+]
+},
+{
+"sentence": "وانا ايضا اشتاق للقشر الاخضر اللذيذ لكن",
+"translation": "Men ham mazali yashil po‘stini sog‘indim, lekin...",
+"translationAr": "وأنا أيضًا أشتاق إلى القشر الأخضر اللذيذ، لكن...",
+"grammarNotes": "Bu gap oldingi gapga bog‘langan. "اشتاق" fe’li sog‘inish ma’nosini beradi, "لكن" esa keyingi qarama-qarshi fikrga kirish qiladi.",
+"keyWords": ["انا", "ايضا", "اشتاق", "القشر", "الاخضر", "اللذيذ", "لكن"],
+"wordMap": [
+{
+"word": "وانا",
+"normalized": "وانا",
+"translationUz": "va men",
+"translationAr": "وأنا",
+"contextualMeaning": "oldingi gapga qo‘shilgan fikr"
+},
+{
+"word": "ايضا",
+"normalized": "ايضا",
+"translationUz": "ham",
+"translationAr": "أيضًا",
+"contextualMeaning": "qo‘shimcha ma’no beradi"
+},
+{
+"word": "اشتاق",
+"normalized": "اشتاق",
+"translationUz": "sog‘inaman",
+"translationAr": "أشتاق",
+"contextualMeaning": "biror narsani xohlash va sog‘inish"
+},
+{
+"word": "للقشر",
+"normalized": "للقشر",
+"translationUz": "po‘stiga",
+"translationAr": "للقشر",
+"contextualMeaning": "tarvuzning qobig‘iga ishora"
+},
+{
+"word": "الاخضر",
+"normalized": "الاخضر",
+"translationUz": "yashil",
+"translationAr": "الأخضر",
+"contextualMeaning": "po‘stning rangini bildiradi"
+},
+{
+"word": "اللذيذ",
+"normalized": "اللذيذ",
+"translationUz": "mazali",
+"translationAr": "اللذيذ",
+"contextualMeaning": "yoqimli sifat"
+},
+{
+"word": "لكن",
+"normalized": "لكن",
+"translationUz": "lekin",
+"translationAr": "لكن",
+"contextualMeaning": "qarama-qarshi fikr boshlanishi"
+}
+]
+},
+{
+"sentence": "بطيخ هذا الزمان مختلف انظر الى هذه",
+"translation": "Bu zamonning tarvuzlari boshqacha, mana bunga qara.",
+"translationAr": "بطيخ هذا الزمان مختلف، انظر إلى هذه.",
+"grammarNotes": "Gapda avval tasvir, keyin buyruq bor. "انظر" buyruq fe’li hisoblanadi.",
+"keyWords": ["بطيخ", "الزمان", "مختلف", "انظر", "هذه"],
+"wordMap": [
+{
+"word": "بطيخ",
+"normalized": "بطيخ",
+"translationUz": "tarvuz",
+"translationAr": "بطيخ",
+"contextualMeaning": "gap mavzusi"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "ko‘rsatish olmoshi"
+},
+{
+"word": "الزمان",
+"normalized": "الزمان",
+"translationUz": "zamon",
+"translationAr": "الزمان",
+"contextualMeaning": "hozirgi davr"
+},
+{
+"word": "مختلف",
+"normalized": "مختلف",
+"translationUz": "boshqacha",
+"translationAr": "مختلف",
+"contextualMeaning": "oldingi zamondan farqli"
+},
+{
+"word": "انظر",
+"normalized": "انظر",
+"translationUz": "qaragin",
+"translationAr": "انظر",
+"contextualMeaning": "buyruq shakli"
+},
+{
+"word": "الى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "إلى",
+"contextualMeaning": "yo‘nalishni bildiradi"
+},
+{
+"word": "هذه",
+"normalized": "هذه",
+"translationUz": "bu, mana bu",
+"translationAr": "هذه",
+"contextualMeaning": "yaqin narsaga ishora"
+}
+]
+},
+{
+"sentence": "البطيخه السمينه ما اجملها من فاكهه معك",
+"translation": "Mana bu semiz tarvuz, qanday ajoyib meva! Sen bilan...",
+"translationAr": "البطيخة السمينة، ما أجملها من فاكهة، معك...",
+"grammarNotes": "Bu qator oldingi qatordagi gapning davomidir. "ما اجملها" undovli maqtov shakli.",
+"keyWords": ["البطيخه", "السمينه", "اجملها", "فاكهه", "معك"],
+"wordMap": [
+{
+"word": "البطيخه",
+"normalized": "البطيخه",
+"translationUz": "tarvuz",
+"translationAr": "البطيخة",
+"contextualMeaning": "aniq meva"
+},
+{
+"word": "السمينه",
+"normalized": "السمينه",
+"translationUz": "semiz, yirik",
+"translationAr": "السمينة",
+"contextualMeaning": "katta hajmni bildiradi"
+},
+{
+"word": "ما",
+"normalized": "ما",
+"translationUz": "qanday",
+"translationAr": "ما",
+"contextualMeaning": "undovli maqtov boshi"
+},
+{
+"word": "اجملها",
+"normalized": "اجملها",
+"translationUz": "qanday go‘zal u",
+"translationAr": "أجملها",
+"contextualMeaning": "go‘zallikni kuchli ta’kidlash"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "qanday",
+"translationAr": "من",
+"contextualMeaning": "undov konstruksiyasi tarkibi"
+},
+{
+"word": "فاكهه",
+"normalized": "فاكهه",
+"translationUz": "meva",
+"translationAr": "فاكهة",
+"contextualMeaning": "tarvuzning turi"
+},
+{
+"word": "معك",
+"normalized": "معك",
+"translationUz": "sen bilan",
+"translationAr": "معك",
+"contextualMeaning": "keyingi tasdiq iborasining boshi"
+}
+]
+},
+{
+"sentence": "حق انها اكبر من بطيق زماننا عشره او عين",
+"translation": "To‘g‘ri, u bizning zamonimizdagi tarvuzdan o‘n yoki yigirma...",
+"translationAr": "حق، إنها أكبر من بطيخ زماننا عشرة أو عشرين...",
+"grammarNotes": "Bu qatorda taqqoslash bor. "اكبر من" kattalikni solishtirish uchun ishlatilgan.",
+"keyWords": ["حق", "انها", "اكبر", "زماننا", "عشره", "عين"],
+"wordMap": [
+{
+"word": "حق",
+"normalized": "حق",
+"translationUz": "haq, to‘g‘ri",
+"translationAr": "حق",
+"contextualMeaning": "tasdiq ma’nosida kelgan"
+},
+{
+"word": "انها",
+"normalized": "انها",
+"translationUz": "u albatta",
+"translationAr": "إنها",
+"contextualMeaning": "ta’kidli olmosh"
+},
+{
+"word": "اكبر",
+"normalized": "اكبر",
+"translationUz": "kattaroq",
+"translationAr": "أكبر",
+"contextualMeaning": "taqqoslash darajasi"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "من",
+"contextualMeaning": "taqqoslash predlogi"
+},
+{
+"word": "بطيق",
+"normalized": "بطيق",
+"translationUz": "tarvuz",
+"translationAr": "بطيخ",
+"contextualMeaning": "tarvuz so‘zining xato yozilgan shakli"
+},
+{
+"word": "زماننا",
+"normalized": "زماننا",
+"translationUz": "bizning zamonimiz",
+"translationAr": "زماننا",
+"contextualMeaning": "oldingi davr"
+},
+{
+"word": "عشره",
+"normalized": "عشره",
+"translationUz": "o‘n",
+"translationAr": "عشرة",
+"contextualMeaning": "miqdor"
+},
+{
+"word": "او",
+"normalized": "او",
+"translationUz": "yoki",
+"translationAr": "أو",
+"contextualMeaning": "tanlov bog‘lovchisi"
+},
+{
+"word": "عين",
+"normalized": "عين",
+"translationUz": "yigirma",
+"translationAr": "عشرين",
+"contextualMeaning": "ikkinchi miqdor ma’nosida"
+}
+]
+},
+{
+"sentence": "مره وكيف هذا يا جحا انا سالت الفكهاني",
+"translation": "marta. Bu qanday bo‘ldi, ey Juha? Men meva sotuvchisidan so‘radim.",
+"translationAr": "مرة، وكيف هذا يا جحا؟ أنا سألت الفكهاني.",
+"grammarNotes": "Bu qator oldingi taqqoslashni tugatadi va yangi savol boshlaydi. "سالت" o‘tgan zamon fe’li.",
+"keyWords": ["مره", "كيف", "جحا", "سالت", "الفكهاني"],
+"wordMap": [
+{
+"word": "مره",
+"normalized": "مره",
+"translationUz": "marta",
+"translationAr": "مرة",
+"contextualMeaning": "taqqoslashning davomiy birligi"
+},
+{
+"word": "وكيف",
+"normalized": "وكيف",
+"translationUz": "va qanday",
+"translationAr": "وكيف",
+"contextualMeaning": "hayratli savol"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "holatga ishora"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "جحا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "جحا",
+"contextualMeaning": "shaxs nomi"
+},
+{
+"word": "انا",
+"normalized": "انا",
+"translationUz": "men",
+"translationAr": "أنا",
+"contextualMeaning": "gapiruvchi shaxs"
+},
+{
+"word": "سالت",
+"normalized": "سالت",
+"translationUz": "so‘radim",
+"translationAr": "سألت",
+"contextualMeaning": "savol berish harakati"
+},
+{
+"word": "الفكهاني",
+"normalized": "الفكهاني",
+"translationUz": "meva sotuvchisi",
+"translationAr": "الفكهاني",
+"contextualMeaning": "sotuvchi kasbi"
+}
+]
+},
+{
+"sentence": "نفس السؤال فقال لي",
+"translation": "Xuddi shu savolni berdim, u menga dedi.",
+"translationAr": "نفس السؤال فقال لي.",
+"grammarNotes": ""نفس" aynanlikni bildiradi. "فقال" esa keyingi javobni bog‘laydi.",
+"keyWords": ["نفس", "السؤال", "فقال", "لي"],
+"wordMap": [
+{
+"word": "نفس",
+"normalized": "نفس",
+"translationUz": "xuddi shu",
+"translationAr": "نفس",
+"contextualMeaning": "aynan o‘sha narsa"
+},
+{
+"word": "السؤال",
+"normalized": "السؤال",
+"translationUz": "savol",
+"translationAr": "السؤال",
+"contextualMeaning": "so‘ralgan narsa"
+},
+{
+"word": "فقال",
+"normalized": "فقال",
+"translationUz": "shunda dedi",
+"translationAr": "فقال",
+"contextualMeaning": "natijaviy javob"
+},
+{
+"word": "لي",
+"normalized": "لي",
+"translationUz": "menga",
+"translationAr": "لي",
+"contextualMeaning": "javob yo‘naltirilgan shaxs"
+}
+]
+},
+{
+"sentence": "الهرمونات هرمونات نعم فبالعلم",
+"translation": "Gormonlar, gormonlar, ha, ilm bilan...",
+"translationAr": "الهرمونات، هرمونات، نعم، فبالعلم...",
+"grammarNotes": "So‘z takrori ta’kid vazifasini bajaradi. "فبالعلم" sabab yoki vositani boshlab beradi.",
+"keyWords": ["الهرمونات", "نعم", "بالعلم"],
+"wordMap": [
+{
+"word": "الهرمونات",
+"normalized": "الهرمونات",
+"translationUz": "gormonlar",
+"translationAr": "الهرمونات",
+"contextualMeaning": "katta bo‘lish sabablaridan biri"
+},
+{
+"word": "هرمونات",
+"normalized": "هرمونات",
+"translationUz": "gormonlar",
+"translationAr": "هرمونات",
+"contextualMeaning": "ta’kid uchun takrorlangan"
+},
+{
+"word": "نعم",
+"normalized": "نعم",
+"translationUz": "ha",
+"translationAr": "نعم",
+"contextualMeaning": "tasdiq"
+},
+{
+"word": "فبالعلم",
+"normalized": "فبالعلم",
+"translationUz": "demak ilm bilan",
+"translationAr": "فبالعلم",
+"contextualMeaning": "vositani bildiradi"
+}
+]
+},
+{
+"sentence": "والتكنولوجيا تصبح الخضروات والفاكهه",
+"translation": "va texnologiya bilan sabzavotlar va mevalar...",
+"translationAr": "والتكنولوجيا تصبح الخضروات والفاكهة...",
+"grammarNotes": ""تصبح" holat o‘zgarishini bildiradi. Gap keyingi qatorda tugallanadi.",
+"keyWords": ["التكنولوجيا", "تصبح", "الخضروات", "الفاكهه"],
+"wordMap": [
+{
+"word": "والتكنولوجيا",
+"normalized": "والتكنولوجيا",
+"translationUz": "va texnologiya",
+"translationAr": "والتكنولوجيا",
+"contextualMeaning": "ikkinchi sabab"
+},
+{
+"word": "تصبح",
+"normalized": "تصبح",
+"translationUz": "bo‘lib qoladi",
+"translationAr": "تصبح",
+"contextualMeaning": "holat o‘zgarishi"
+},
+{
+"word": "الخضروات",
+"normalized": "الخضروات",
+"translationUz": "sabzavotlar",
+"translationAr": "الخضروات",
+"contextualMeaning": "o‘simlik mahsulotlari guruhi"
+},
+{
+"word": "والفاكهه",
+"normalized": "والفاكهه",
+"translationUz": "va mevalar",
+"translationAr": "والفاكهة",
+"contextualMeaning": "ikkinchi oziq guruhi"
+}
+]
+},
+{
+"sentence": "كبيره",
+"translation": "katta bo‘lib qoladi.",
+"translationAr": "كبيرة.",
+"grammarNotes": "Bu oldingi gapning xabari bo‘lib, sifat vazifasida kelgan.",
+"keyWords": ["كبيره"],
+"wordMap": [
+{
+"word": "كبيره",
+"normalized": "كبيره",
+"translationUz": "katta",
+"translationAr": "كبيرة",
+"contextualMeaning": "hajman yirik"
+}
+]
+},
+{
+"sentence": "وسمينه هيا يا جحا قطعها انا لا استطيع",
+"translation": "Va semiz ham. Qani, Juha, uni kes, men qila olmayman...",
+"translationAr": "وسمينة. هيا يا جحا، قطعها، أنا لا أستطيع...",
+"grammarNotes": ""هيا" undov-buyruq, "قطعها" buyruq fe’li. Gap keyingi qatorda davom etadi.",
+"keyWords": ["سمينه", "هيا", "قطعها", "استطيع"],
+"wordMap": [
+{
+"word": "وسمينه",
+"normalized": "وسمينه",
+"translationUz": "va semiz",
+"translationAr": "وسمينة",
+"contextualMeaning": "oldingi tasvirga qo‘shimcha sifat"
+},
+{
+"word": "هيا",
+"normalized": "هيا",
+"translationUz": "qani",
+"translationAr": "هيا",
+"contextualMeaning": "tezlashtiruvchi undov"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "جحا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "جحا",
+"contextualMeaning": "murojaat qilingan shaxs"
+},
+{
+"word": "قطعها",
+"normalized": "قطعها",
+"translationUz": "uni kes",
+"translationAr": "قطعها",
+"contextualMeaning": "tarvuzni kesish buyrug‘i"
+},
+{
+"word": "انا",
+"normalized": "انا",
+"translationUz": "men",
+"translationAr": "أنا",
+"contextualMeaning": "gapiruvchi shaxs"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "emas, yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "inkor"
+},
+{
+"word": "استطيع",
+"normalized": "استطيع",
+"translationUz": "qila olaman",
+"translationAr": "أستطيع",
+"contextualMeaning": "imkon yoki qobiliyatni bildiradi"
+}
+]
+},
+{
+"sentence": "الصبر لا لا دع هذه البطيخه لنفطر بها غدا",
+"translation": "sabr. Yo‘q, yo‘q, bu tarvuzni qo‘y, ertaga shu bilan nonushta qilamiz.",
+"translationAr": "الصبر. لا لا، دع هذه البطيخة لنفطر بها غدًا.",
+"grammarNotes": ""الصبر" oldingi gapning to‘ldiruvchisi. "دع" buyruq fe’li, "لنفطر" esa birgalikdagi taklif ma’nosini beradi.",
+"keyWords": ["الصبر", "دع", "البطيخه", "لنفطر", "غدا"],
+"wordMap": [
+{
+"word": "الصبر",
+"normalized": "الصبر",
+"translationUz": "sabr",
+"translationAr": "الصبر",
+"contextualMeaning": "kutishga chidash"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "rad etish"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "ta’kidli rad"
+},
+{
+"word": "دع",
+"normalized": "دع",
+"translationUz": "qo‘y, tegma",
+"translationAr": "دع",
+"contextualMeaning": "saqlab qo‘yishni buyuradi"
+},
+{
+"word": "هذه",
+"normalized": "هذه",
+"translationUz": "bu",
+"translationAr": "هذه",
+"contextualMeaning": "yaqin narsaga ishora"
+},
+{
+"word": "البطيخه",
+"normalized": "البطيخه",
+"translationUz": "tarvuz",
+"translationAr": "البطيخة",
+"contextualMeaning": "saqlab qo‘yilayotgan meva"
+},
+{
+"word": "لنفطر",
+"normalized": "لنفطر",
+"translationUz": "nonushta qilaylik",
+"translationAr": "لنفطر",
+"contextualMeaning": "birgalikdagi harakat taklifi"
+},
+{
+"word": "بها",
+"normalized": "بها",
+"translationUz": "u bilan",
+"translationAr": "بها",
+"contextualMeaning": "tarvuz bilan"
+},
+{
+"word": "غدا",
+"normalized": "غدا",
+"translationUz": "ertaga",
+"translationAr": "غدًا",
+"contextualMeaning": "kelasi kun"
+}
+]
+},
+{
+"sentence": "حسنا ولكنني ساكله في الحلم ولذلك ساضعها",
+"translation": "Xo‘p, lekin men uni tushimda yeyman, shuning uchun uni qo‘yaman...",
+"translationAr": "حسنًا، ولكنني سآكله في الحلم ولذلك سأضعها...",
+"grammarNotes": ""ساكله" va "ساضعها" kelasi zamon ma’nosini beradi. Gap keyingi qatorda davom etadi.",
+"keyWords": ["حسنا", "ولكنني", "ساكله", "الحلم", "ولذلك", "ساضعها"],
+"wordMap": [
+{
+"word": "حسنا",
+"normalized": "حسنا",
+"translationUz": "xo‘p, mayli",
+"translationAr": "حسنًا",
+"contextualMeaning": "rozilik bildiradi"
+},
+{
+"word": "ولكنني",
+"normalized": "ولكنني",
+"translationUz": "lekin men",
+"translationAr": "ولكنني",
+"contextualMeaning": "qarama-qarshi fikr"
+},
+{
+"word": "ساكله",
+"normalized": "ساكله",
+"translationUz": "uni yeyman",
+"translationAr": "سآكله",
+"contextualMeaning": "kelasi zamon fe’li"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "في",
+"contextualMeaning": "holat joyi"
+},
+{
+"word": "الحلم",
+"normalized": "الحلم",
+"translationUz": "tush",
+"translationAr": "الحلم",
+"contextualMeaning": "uyqudagi tasavvur"
+},
+{
+"word": "ولذلك",
+"normalized": "ولذلك",
+"translationUz": "shuning uchun",
+"translationAr": "ولذلك",
+"contextualMeaning": "sabab-natija bog‘lanishi"
+},
+{
+"word": "ساضعها",
+"normalized": "ساضعها",
+"translationUz": "uni qo‘yaman",
+"translationAr": "سأضعها",
+"contextualMeaning": "bir joyga joylashtirish"
+}
+]
+},
+{
+"sentence": "تحت السرير لتكون في",
+"translation": "karavot ostiga, bo‘lishi uchun...",
+"translationAr": "تحت السرير لتكون في...",
+"grammarNotes": ""لتكون" maqsad ma’nosini beradi. Gap keyingi qatorda tugallanadi.",
+"keyWords": ["تحت", "السرير", "لتكون"],
+"wordMap": [
+{
+"word": "تحت",
+"normalized": "تحت",
+"translationUz": "ostiga",
+"translationAr": "تحت",
+"contextualMeaning": "past joyni bildiradi"
+},
+{
+"word": "السرير",
+"normalized": "السرير",
+"translationUz": "karavot",
+"translationAr": "السرير",
+"contextualMeaning": "mebel nomi"
+},
+{
+"word": "لتكون",
+"normalized": "لتكون",
+"translationUz": "bo‘lishi uchun",
+"translationAr": "لتكون",
+"contextualMeaning": "maqsadni bildiradi"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "في",
+"contextualMeaning": "keyingi holatga bog‘laydi"
+}
+]
+},
+{
+"sentence": "امان",
+"translation": "xavfsizlikda.",
+"translationAr": "أمان.",
+"grammarNotes": "Bu oldingi gapning yakuni bo‘lib, maqsadni bildiruvchi ism vazifasida kelgan.",
+"keyWords": ["امان"],
+"wordMap": [
+{
+"word": "امان",
+"normalized": "امان",
+"translationUz": "xavfsizlik, omonlik",
+"translationAr": "أمان",
+"contextualMeaning": "xavfsiz holat"
+}
+]
+},
+{
+"sentence": "لا لا لا انا لا احلم جحا اصحى يا جحا",
+"translation": "Yo‘q, yo‘q, yo‘q, men tush ko‘rmayapman. Juha, uyg‘on, ey Juha!",
+"translationAr": "لا لا لا، أنا لا أحلم. جحا، اصحَ يا جحا.",
+"grammarNotes": "Takrorlangan "لا" qo‘rquv va inkorni kuchaytiradi. "اصحى" buyruq fe’li.",
+"keyWords": ["لا", "احلم", "اصحى", "جحا"],
+"wordMap": [
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "inkor va vahima"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "takroriy inkor"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لا",
+"contextualMeaning": "kuchli his-hayajon"
+},
+{
+"word": "انا",
+"normalized": "انا",
+"translationUz": "men",
+"translationAr": "أنا",
+"contextualMeaning": "gapiruvchi shaxs"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "emas",
+"translationAr": "لا",
+"contextualMeaning": "fe’l inkori"
+},
+{
+"word": "احلم",
+"normalized": "احلم",
+"translationUz": "tush ko‘ryapman",
+"translationAr": "أحلم",
+"contextualMeaning": "uyqudagi tasavvur"
+},
+{
+"word": "جحا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "جحا",
+"contextualMeaning": "murojaat qilingan kishi"
+},
+{
+"word": "اصحى",
+"normalized": "اصحى",
+"translationUz": "uyg‘on",
+"translationAr": "اصحَ",
+"contextualMeaning": "buyruq"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "جحا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "جحا",
+"contextualMeaning": "takroriy murojaat"
+}
+]
+},
+{
+"sentence": "ماذا ماذا ماذا هناك ما هذا من جاء بالكره",
+"translation": "Nima, nima, nima bo‘lyapti u yerda? Bu nima? Sharni kim olib keldi?",
+"translationAr": "ماذا ماذا ماذا هناك؟ ما هذا؟ من جاء بالكرة؟",
+"grammarNotes": "Bu qatorda ketma-ket savollar va hayrat ifodalari bor. Takror mazmunni kuchaytiradi.",
+"keyWords": ["ماذا", "هناك", "ما", "من", "بالكره"],
+"wordMap": [
+{
+"word": "ماذا",
+"normalized": "ماذا",
+"translationUz": "nima",
+"translationAr": "ماذا",
+"contextualMeaning": "savol olmoshi"
+},
+{
+"word": "ماذا",
+"normalized": "ماذا",
+"translationUz": "nima",
+"translationAr": "ماذا",
+"contextualMeaning": "takroriy savol"
+},
+{
+"word": "ماذا",
+"normalized": "ماذا",
+"translationUz": "nima",
+"translationAr": "ماذا",
+"contextualMeaning": "uchinchi takror"
+},
+{
+"word": "هناك",
+"normalized": "هناك",
+"translationUz": "u yerda",
+"translationAr": "هناك",
+"contextualMeaning": "holat joyi"
+},
+{
+"word": "ما",
+"normalized": "ما",
+"translationUz": "nima",
+"translationAr": "ما",
+"contextualMeaning": "savol"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "ko‘rsatish"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "kim",
+"translationAr": "من",
+"contextualMeaning": "shaxsga oid savol"
+},
+{
+"word": "جاء",
+"normalized": "جاء",
+"translationUz": "keldi, olib keldi",
+"translationAr": "جاء",
+"contextualMeaning": "harakat sodir bo‘ldi"
+},
+{
+"word": "بالكره",
+"normalized": "بالكره",
+"translationUz": "shar bilan, koptok bilan",
+"translationAr": "بالكرة",
+"contextualMeaning": "yer shari/globusning birinchi qismi"
+}
+]
+},
+{
+"sentence": "الارضيه تحتي انها البطيخه ما بها تكبر",
+"translation": "Yer sharini tagimga qo‘yibdimi? Bu tarvuz ekan! Unga nima bo‘ldi, kattalashyaptimi?",
+"translationAr": "الأرضية تحتي، إنها البطيخة، ما بها تكبر؟",
+"grammarNotes": "Bu qatorda hayrat va savol birga kelgan. "انها" ta’kidli aniqlashni bildiradi.",
+"keyWords": ["الارضيه", "تحتي", "انها", "البطيخه", "بها", "تكبر"],
+"wordMap": [
+{
+"word": "الارضيه",
+"normalized": "الارضيه",
+"translationUz": "yerga oid, yer shari",
+"translationAr": "الأرضية",
+"contextualMeaning": "globus iborasining ikkinchi qismi"
+},
+{
+"word": "تحتي",
+"normalized": "تحتي",
+"translationUz": "tagimda, tagimga",
+"translationAr": "تحتي",
+"contextualMeaning": "gapiruvchining osti"
+},
+{
+"word": "انها",
+"normalized": "انها",
+"translationUz": "u-ku",
+"translationAr": "إنها",
+"contextualMeaning": "aniq tanib olish"
+},
+{
+"word": "البطيخه",
+"normalized": "البطيخه",
+"translationUz": "tarvuz",
+"translationAr": "البطيخة",
+"contextualMeaning": "aslida nima ekanini bildiradi"
+},
+{
+"word": "ما",
+"normalized": "ما",
+"translationUz": "nima",
+"translationAr": "ما",
+"contextualMeaning": "holat haqida savol"
+},
+{
+"word": "بها",
+"normalized": "بها",
+"translationUz": "unga",
+"translationAr": "بها",
+"contextualMeaning": "tarvuzning holati"
+},
+{
+"word": "تكبر",
+"normalized": "تكبر",
+"translationUz": "kattalashyapti",
+"translationAr": "تكبر",
+"contextualMeaning": "hajm o‘sishini bildiradi"
+}
+]
+},
+{
+"sentence": "وهي نائمه البطيخه ستحطم",
+"translation": "U uxlab yotgan holida kattalashyapti, tarvuz vayron qiladi...",
+"translationAr": "وهي نائمة، البطيخة ستحطم...",
+"grammarNotes": ""وهي نائمه" holatni bildiradi. "ستحطم" kelasi zamon fe’li.",
+"keyWords": ["وهي", "نائمه", "البطيخه", "ستحطم"],
+"wordMap": [
+{
+"word": "وهي",
+"normalized": "وهي",
+"translationUz": "u esa, u holida",
+"translationAr": "وهي",
+"contextualMeaning": "holatni bildiruvchi bog‘lanma"
+},
+{
+"word": "نائمه",
+"normalized": "نائمه",
+"translationUz": "uxlayotgan",
+"translationAr": "نائمة",
+"contextualMeaning": "g‘alati holatni tasvirlaydi"
+},
+{
+"word": "البطيخه",
+"normalized": "البطيخه",
+"translationUz": "tarvuz",
+"translationAr": "البطيخة",
+"contextualMeaning": "mavzu"
+},
+{
+"word": "ستحطم",
+"normalized": "ستحطم",
+"translationUz": "vayron qiladi",
+"translationAr": "ستحطم",
+"contextualMeaning": "yaqin xavf"
+}
+]
+},
+{
+"sentence": "المنزل انتظر يا هوما انظر الى الجانب",
+"translation": "uyni! To‘xta, ey Homa, tomonga qara...",
+"translationAr": "المنزل! انتظر يا هوما، انظر إلى الجانب...",
+"grammarNotes": ""انتظر" va "انظر" buyruq fe’llari. "المنزل" oldingi qatordagi to‘ldiruvchi.",
+"keyWords": ["المنزل", "انتظر", "هوما", "انظر", "الجانب"],
+"wordMap": [
+{
+"word": "المنزل",
+"normalized": "المنزل",
+"translationUz": "uy",
+"translationAr": "المنزل",
+"contextualMeaning": "zarar ko‘rishi mumkin bo‘lgan joy"
+},
+{
+"word": "انتظر",
+"normalized": "انتظر",
+"translationUz": "to‘xta",
+"translationAr": "انتظر",
+"contextualMeaning": "shoshmaslikka chaqiriq"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "هوما",
+"normalized": "هوما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "shaxs nomi"
+},
+{
+"word": "انظر",
+"normalized": "انظر",
+"translationUz": "qaragin",
+"translationAr": "انظر",
+"contextualMeaning": "e’tibor qaratish"
+},
+{
+"word": "الى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "إلى",
+"contextualMeaning": "yo‘nalish"
+},
+{
+"word": "الجانب",
+"normalized": "الجانب",
+"translationUz": "tomon",
+"translationAr": "الجانب",
+"contextualMeaning": "masalaning tarafi"
+}
+]
+},
+{
+"sentence": "المشرق من البطيخه لقد اصبح لدينا بطيخه",
+"translation": "tarvuzning ijobiy tomoniga. Endi bizda tarvuz paydo bo‘ldi...",
+"translationAr": "المشرق من البطيخة، لقد أصبح لدينا بطيخة...",
+"grammarNotes": ""لقد اصبح" holat o‘zgarishini ta’kidlaydi. Qator oldingi gapning davomidir.",
+"keyWords": ["المشرق", "البطيخه", "لقد", "اصبح", "لدينا"],
+"wordMap": [
+{
+"word": "المشرق",
+"normalized": "المشرق",
+"translationUz": "yorug‘, ijobiy",
+"translationAr": "المشرق",
+"contextualMeaning": "yaxshi tomon"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "ning",
+"translationAr": "من",
+"contextualMeaning": "nisbat bog‘lovchisi"
+},
+{
+"word": "البطيخه",
+"normalized": "البطيخه",
+"translationUz": "tarvuz",
+"translationAr": "البطيخة",
+"contextualMeaning": "muammo markazidagi meva"
+},
+{
+"word": "لقد",
+"normalized": "لقد",
+"translationUz": "darhaqiqat",
+"translationAr": "لقد",
+"contextualMeaning": "ta’kid"
+},
+{
+"word": "اصبح",
+"normalized": "اصبح",
+"translationUz": "bo‘lib qoldi",
+"translationAr": "أصبح",
+"contextualMeaning": "holat o‘zgardi"
+},
+{
+"word": "لدينا",
+"normalized": "لدينا",
+"translationUz": "bizda",
+"translationAr": "لدينا",
+"contextualMeaning": "egalik ma’nosi"
+},
+{
+"word": "بطيخه",
+"normalized": "بطيخه",
+"translationUz": "tarvuz",
+"translationAr": "بطيخة",
+"contextualMeaning": "mavjud meva"
+}
+]
+},
+{
+"sentence": "تكفينا سنه هات",
+"translation": "u bizga bir yilga yetadi. Ber...",
+"translationAr": "تكفينا سنة. هات...",
+"grammarNotes": ""تكفينا" yetarlilikni bildiradi. "هات" buyruq fe’li.",
+"keyWords": ["تكفينا", "سنه", "هات"],
+"wordMap": [
+{
+"word": "تكفينا",
+"normalized": "تكفينا",
+"translationUz": "bizga yetadi",
+"translationAr": "تكفينا",
+"contextualMeaning": "miqdor yetarliligini bildiradi"
+},
+{
+"word": "سنه",
+"normalized": "سنه",
+"translationUz": "bir yil",
+"translationAr": "سنة",
+"contextualMeaning": "davomiylik"
+},
+{
+"word": "هات",
+"normalized": "هات",
+"translationUz": "ber",
+"translationAr": "هات",
+"contextualMeaning": "biror narsani uzatishni buyuradi"
+}
+]
+},
+{
+"sentence": "السكين ليس لها طعم بالمره",
+"translation": "pichoqni. Buning umuman ta’mi yo‘q.",
+"translationAr": "السكين. ليس لها طعم بالمرة.",
+"grammarNotes": ""ليس" nominal gap inkori. "بالمره" kuchaytiruvchi ravish bo‘lib, "umuman" degan ma’noni beradi.",
+"keyWords": ["السكين", "ليس", "لها", "طعم", "بالمره"],
+"wordMap": [
+{
+"word": "السكين",
+"normalized": "السكين",
+"translationUz": "pichoq",
+"translationAr": "السكين",
+"contextualMeaning": "kesish asbobi"
+},
+{
+"word": "ليس",
+"normalized": "ليس",
+"translationUz": "emas, yo‘q",
+"translationAr": "ليس",
+"contextualMeaning": "ta’m yo‘qligini bildiradi"
+},
+{
+"word": "لها",
+"normalized": "لها",
+"translationUz": "uning",
+"translationAr": "لها",
+"contextualMeaning": "tarvuzga tegishli"
+},
+{
+"word": "طعم",
+"normalized": "طعم",
+"translationUz": "ta’m",
+"translationAr": "طعم",
+"contextualMeaning": "mazasi"
+},
+{
+"word": "بالمره",
+"normalized": "بالمره",
+"translationUz": "umuman",
+"translationAr": "بالمرة",
+"contextualMeaning": "kuchli darajada inkor"
+}
+]
+},
+{
+"sentence": "يا هذا البطيخ",
+"translation": "Voy, bu tarvuz...",
+"translationAr": "يا، هذا البطيخ...",
+"grammarNotes": "Bu hayrat ifodasi. Keyingi qatorda fikr tugallanadi.",
+"keyWords": ["يا", "هذا", "البطيخ"],
+"wordMap": [
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "voy, ey",
+"translationAr": "يا",
+"contextualMeaning": "hayrat undovi"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "ko‘rsatilayotgan meva"
+},
+{
+"word": "البطيخ",
+"normalized": "البطيخ",
+"translationUz": "tarvuz",
+"translationAr": "البطيخ",
+"contextualMeaning": "baholanayotgan meva"
+}
+]
+},
+{
+"sentence": "مر يبدو انها ستنفجر يا جحا تنفجر اهرب يا",
+"translation": "achchiq. Ko‘rinishidan, u portlaydi, ey Juha! Portlaydi! Qoch, ey...",
+"translationAr": "مر، يبدو أنها ستنفجر يا جحا! تنفجر! اهرب يا...",
+"grammarNotes": ""مر" sifat, "يبدو" taxmin, "ستنفجر" esa kelasi zamondagi xavfni bildiradi. Bir necha undovli buyruqlar bor.",
+"keyWords": ["مر", "يبدو", "انها", "ستنفجر", "جحا", "تنفجر", "اهرب"],
+"wordMap": [
+{
+"word": "مر",
+"normalized": "مر",
+"translationUz": "achchiq",
+"translationAr": "مر",
+"contextualMeaning": "yomon ta’m"
+},
+{
+"word": "يبدو",
+"normalized": "يبدو",
+"translationUz": "ko‘rinishidan",
+"translationAr": "يبدو",
+"contextualMeaning": "taxmin ifodasi"
+},
+{
+"word": "انها",
+"normalized": "انها",
+"translationUz": "u",
+"translationAr": "إنها",
+"contextualMeaning": "tarvuzga ishora"
+},
+{
+"word": "ستنفجر",
+"normalized": "ستنفجر",
+"translationUz": "portlaydi",
+"translationAr": "ستنفجر",
+"contextualMeaning": "yaqin xavf"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "جحا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "جحا",
+"contextualMeaning": "ogohlantirilayotgan shaxs"
+},
+{
+"word": "تنفجر",
+"normalized": "تنفجر",
+"translationUz": "portlaydi",
+"translationAr": "تنفجر",
+"contextualMeaning": "takroriy vahima ifodasi"
+},
+{
+"word": "اهرب",
+"normalized": "اهرب",
+"translationUz": "qoch",
+"translationAr": "اهرب",
+"contextualMeaning": "buyruq"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "keyingi murojaat boshlanishi"
+}
+]
+},
+{
+"sentence": "هوما اجري يا",
+"translation": "Homa, yugur, ey...",
+"translationAr": "هوما، اجري يا...",
+"grammarNotes": ""اجري" buyruq fe’li. Bu qator keyingisi bilan birga to‘liq murojaatni hosil qiladi.",
+"keyWords": ["هوما", "اجري", "يا"],
+"wordMap": [
+{
+"word": "هوما",
+"normalized": "هوما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "murojaat qilinayotgan shaxs"
+},
+{
+"word": "اجري",
+"normalized": "اجري",
+"translationUz": "yugur",
+"translationAr": "اجري",
+"contextualMeaning": "tez qochishni bildiruvchi buyruq"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "takroriy murojaat boshlanishi"
+}
+]
+},
+{
+"sentence": "هوما",
+"translation": "Homa!",
+"translationAr": "هوما!",
+"grammarNotes": "Bu yakka murojaat bo‘lib, hayajon va ogohlantirish ma’nosini beradi.",
+"keyWords": ["هوما"],
+"wordMap": [
+{
+"word": "هوما",
+"normalized": "هوما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "baland ovozdagi murojaat"
+}
+]
+},
+{
+"sentence": "السلام عليكم يا اصدقائي واحبائي في كل",
+"translation": "Assalomu alaykum, ey do‘stlarim va azizlarim, barcha...",
+"translationAr": "السلام عليكم يا أصدقائي وأحبائي في كل...",
+"grammarNotes": "Bu salomlashuv va samimiy murojaatning boshlanishi. Gap keyingi qatorda davom etadi.",
+"keyWords": ["السلام", "عليكم", "اصدقائي", "احبائي", "كل"],
+"wordMap": [
+{
+"word": "السلام",
+"normalized": "السلام",
+"translationUz": "tinchlik",
+"translationAr": "السلام",
+"contextualMeaning": "salomlashuv iborasining qismi"
+},
+{
+"word": "عليكم",
+"normalized": "عليكم",
+"translationUz": "sizlarga",
+"translationAr": "عليكم",
+"contextualMeaning": "salom yo‘naltirilgan kishilar"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "اصدقائي",
+"normalized": "اصدقائي",
+"translationUz": "do‘stlarim",
+"translationAr": "أصدقائي",
+"contextualMeaning": "yaqin murojaat"
+},
+{
+"word": "واحبائي",
+"normalized": "واحبائي",
+"translationUz": "va azizlarim",
+"translationAr": "وأحبائي",
+"contextualMeaning": "mehrli murojaat"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "في",
+"contextualMeaning": "joy holi"
+},
+{
+"word": "كل",
+"normalized": "كل",
+"translationUz": "barcha",
+"translationAr": "كل",
+"contextualMeaning": "umumlashtirish"
+}
+]
+},
+{
+"sentence": "بقاع الارض في هذا الزمان",
+"translation": "yer yuzining barcha burchaklarida, mana shu zamonda.",
+"translationAr": "بقاع الأرض في هذا الزمان.",
+"grammarNotes": "Bu oldingi murojaatning davomidir. Joy va zamon ifodalari ishlatilgan.",
+"keyWords": ["بقاع", "الارض", "الزمان"],
+"wordMap": [
+{
+"word": "بقاع",
+"normalized": "بقاع",
+"translationUz": "burchaklar, hududlar",
+"translationAr": "بقاع",
+"contextualMeaning": "turli joylar"
+},
+{
+"word": "الارض",
+"normalized": "الارض",
+"translationUz": "yer",
+"translationAr": "الأرض",
+"contextualMeaning": "butun dunyo"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "في",
+"contextualMeaning": "zamon yoki joy"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "ko‘rsatish"
+},
+{
+"word": "الزمان",
+"normalized": "الزمان",
+"translationUz": "zamon",
+"translationAr": "الزمان",
+"contextualMeaning": "davr"
+}
+]
+},
+{
+"sentence": "الجميل",
+"translation": "go‘zal.",
+"translationAr": "الجميل.",
+"grammarNotes": "Bu oldingi "الزمان" so‘zining sifati bo‘lib kelgan.",
+"keyWords": ["الجميل"],
+"wordMap": [
+{
+"word": "الجميل",
+"normalized": "الجميل",
+"translationUz": "go‘zal",
+"translationAr": "الجميل",
+"contextualMeaning": "ijobiy sifat"
+}
+]
+},
+{
+"sentence": "اهلا هل تحبون تناول الخضروات والفاكهه",
+"translation": "Salom, sizlar sabzavotlar va mevalarni yeyishni yoqtirasizlarmi?",
+"translationAr": "أهلًا، هل تحبون تناول الخضروات والفاكهة؟",
+"grammarNotes": ""هل" so‘roq yuklamasi. "تحبون" 2-shaxs ko‘plik fe’li.",
+"keyWords": ["اهلا", "هل", "تحبون", "تناول", "الخضروات", "الفاكهه"],
+"wordMap": [
+{
+"word": "اهلا",
+"normalized": "اهلا",
+"translationUz": "salom, xush kelibsiz",
+"translationAr": "أهلًا",
+"contextualMeaning": "kirish undovi"
+},
+{
+"word": "هل",
+"normalized": "هل",
+"translationUz": "mi",
+"translationAr": "هل",
+"contextualMeaning": "savol yuklamasi"
+},
+{
+"word": "تحبون",
+"normalized": "تحبون",
+"translationUz": "sizlar yaxshi ko‘rasizlar",
+"translationAr": "تحبون",
+"contextualMeaning": "ko‘plikdagi fe’l"
+},
+{
+"word": "تناول",
+"normalized": "تناول",
+"translationUz": "iste’mol qilish",
+"translationAr": "تناول",
+"contextualMeaning": "yeyish jarayoni"
+},
+{
+"word": "الخضروات",
+"normalized": "الخضروات",
+"translationUz": "sabzavotlar",
+"translationAr": "الخضروات",
+"contextualMeaning": "oziq-ovqat guruhi"
+},
+{
+"word": "والفاكهه",
+"normalized": "والفاكهه",
+"translationUz": "va mevalar",
+"translationAr": "والفاكهة",
+"contextualMeaning": "ikkinchi oziq-ovqat guruhi"
+}
+]
+},
+{
+"sentence": "الطازجه انا احب الفاكهه اللذيذه كالتفاح",
+"translation": "yangi. Men mazali mevalarni, masalan olmani yaxshi ko‘raman.",
+"translationAr": "الطازجة. أنا أحب الفاكهة اللذيذة كالتفاح.",
+"grammarNotes": ""الطازجه" oldingi so‘zlarning sifati. "كالتفاح" misol keltirish uchun ishlatilgan.",
+"keyWords": ["الطازجه", "احب", "الفاكهه", "اللذيذه", "كالتفاح"],
+"wordMap": [
+{
+"word": "الطازجه",
+"normalized": "الطازجه",
+"translationUz": "yangi",
+"translationAr": "الطازجة",
+"contextualMeaning": "sifat"
+},
+{
+"word": "انا",
+"normalized": "انا",
+"translationUz": "men",
+"translationAr": "أنا",
+"contextualMeaning": "gapiruvchi shaxs"
+},
+{
+"word": "احب",
+"normalized": "احب",
+"translationUz": "yaxshi ko‘raman",
+"translationAr": "أحب",
+"contextualMeaning": "yoqtirish"
+},
+{
+"word": "الفاكهه",
+"normalized": "الفاكهه",
+"translationUz": "mevalar",
+"translationAr": "الفاكهة",
+"contextualMeaning": "yoqtiriladigan narsa"
+},
+{
+"word": "اللذيذه",
+"normalized": "اللذيذه",
+"translationUz": "mazali",
+"translationAr": "اللذيذة",
+"contextualMeaning": "sifat"
+},
+{
+"word": "كالتفاح",
+"normalized": "كالتفاح",
+"translationUz": "olmadek, masalan olma",
+"translationAr": "كالتفاح",
+"contextualMeaning": "misol sifatida keltirilgan"
+}
+]
+},
+{
+"sentence": "والهمبرجر",
+"translation": "va gamburger.",
+"translationAr": "والهمبرجر.",
+"grammarNotes": "Bu oldingi misollarga kulgili tarzda qo‘shilgan yagona ot birikmasi.",
+"keyWords": ["الهمبرجر"],
+"wordMap": [
+{
+"word": "والهمبرجر",
+"normalized": "والهمبرجر",
+"translationUz": "va gamburger",
+"translationAr": "والهمبرجر",
+"contextualMeaning": "kulgili qo‘shimcha misol"
+}
+]
+},
+{
+"sentence": "سؤالنا اليوم عن فاكهه من احسن الفواكه",
+"translation": "Bugungi savolimiz eng yaxshi mevalardan biri bo‘lgan meva haqida.",
+"translationAr": "سؤالنا اليوم عن فاكهة من أحسن الفواكه.",
+"grammarNotes": ""سؤالنا اليوم" ega-kesim birikmasi. "من احسن الفواكه" ustunlik ma’nosini beradi.",
+"keyWords": ["سؤالنا", "اليوم", "فاكهه", "احسن", "الفواكه"],
+"wordMap": [
+{
+"word": "سؤالنا",
+"normalized": "سؤالنا",
+"translationUz": "savolimiz",
+"translationAr": "سؤالنا",
+"contextualMeaning": "darsdagi savol"
+},
+{
+"word": "اليوم",
+"normalized": "اليوم",
+"translationUz": "bugun",
+"translationAr": "اليوم",
+"contextualMeaning": "hozirgi kun"
+},
+{
+"word": "عن",
+"normalized": "عن",
+"translationUz": "haqida",
+"translationAr": "عن",
+"contextualMeaning": "mavzu ko‘rsatkichi"
+},
+{
+"word": "فاكهه",
+"normalized": "فاكهه",
+"translationUz": "meva",
+"translationAr": "فاكهة",
+"contextualMeaning": "savol obyekti"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "orasidan",
+"translationAr": "من",
+"contextualMeaning": "guruh ichidan ajratadi"
+},
+{
+"word": "احسن",
+"normalized": "احسن",
+"translationUz": "eng yaxshi",
+"translationAr": "أحسن",
+"contextualMeaning": "ustunlik"
+},
+{
+"word": "الفواكه",
+"normalized": "الفواكه",
+"translationUz": "mevalar",
+"translationAr": "الفواكه",
+"contextualMeaning": "umumiy guruh"
+}
+]
+},
+{
+"sentence": "واجملها طيبه المذاق وتحتوي على نسبه",
+"translation": "va eng chiroylisi, mazasi yoqimli, hamda miqdorga ega...",
+"translationAr": "وأجملها طيبة المذاق وتحتوي على نسبة...",
+"grammarNotes": "Bu tavsiflovchi qator. Bir nechta sifat va fe’l ketma-ket kelgan.",
+"keyWords": ["واجملها", "طيبه", "المذاق", "تحتوي", "نسبه"],
+"wordMap": [
+{
+"word": "واجملها",
+"normalized": "واجملها",
+"translationUz": "va eng chiroylisi",
+"translationAr": "وأجملها",
+"contextualMeaning": "ustunlikni davom ettiradi"
+},
+{
+"word": "طيبه",
+"normalized": "طيبه",
+"translationUz": "yoqimli, yaxshi",
+"translationAr": "طيبة",
+"contextualMeaning": "ta’mga nisbatan sifat"
+},
+{
+"word": "المذاق",
+"normalized": "المذاق",
+"translationUz": "ta’m",
+"translationAr": "المذاق",
+"contextualMeaning": "lazzat"
+},
+{
+"word": "وتحتوي",
+"normalized": "وتحتوي",
+"translationUz": "va o‘z ichiga oladi",
+"translationAr": "وتحتوي",
+"contextualMeaning": "tarkibga ega bo‘lish"
+},
+{
+"word": "على",
+"normalized": "على",
+"translationUz": "ga",
+"translationAr": "على",
+"contextualMeaning": "fe’lni bog‘laydi"
+},
+{
+"word": "نسبه",
+"normalized": "نسبه",
+"translationUz": "miqdor, foiz",
+"translationAr": "نسبة",
+"contextualMeaning": "daraja"
+}
+]
+},
+{
+"sentence": "عاليه من فيتامين سي ولها فوائد طبيه",
+"translation": "yuqori C vitaminiga ega va unda tibbiy foydalar bor.",
+"translationAr": "عالية من فيتامين سي ولها فوائد طبية.",
+"grammarNotes": ""عاليه" sifat, "لها" egalik ma’nosini beradi. Tavsif davom etmoqda.",
+"keyWords": ["عاليه", "فيتامين", "سي", "فوائد", "طبيه"],
+"wordMap": [
+{
+"word": "عاليه",
+"normalized": "عاليه",
+"translationUz": "yuqori",
+"translationAr": "عالية",
+"contextualMeaning": "katta daraja"
+},
+{
+"word": "من",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "من",
+"contextualMeaning": "nima tarkibiga ega ekanini ko‘rsatadi"
+},
+{
+"word": "فيتامين",
+"normalized": "فيتامين",
+"translationUz": "vitamin",
+"translationAr": "فيتامين",
+"contextualMeaning": "oziq modda"
+},
+{
+"word": "سي",
+"normalized": "سي",
+"translationUz": "C",
+"translationAr": "سي",
+"contextualMeaning": "vitamin turi"
+},
+{
+"word": "ولها",
+"normalized": "ولها",
+"translationUz": "va unda bor",
+"translationAr": "ولها",
+"contextualMeaning": "mevaga xoslik"
+},
+{
+"word": "فوائد",
+"normalized": "فوائد",
+"translationUz": "foydalar",
+"translationAr": "فوائد",
+"contextualMeaning": "ijobiy ta’sirlar"
+},
+{
+"word": "طبيه",
+"normalized": "طبيه",
+"translationUz": "tibbiy",
+"translationAr": "طبية",
+"contextualMeaning": "sog‘liq bilan bog‘liq"
+}
+]
+},
+{
+"sentence": "كثيره ينصح باكلها في الشتاء للوقايه ضد",
+"translation": "juda ko‘p. Uni qishda qarshi himoya uchun yeyish tavsiya qilinadi...",
+"translationAr": "كثيرة، يُنصح بأكلها في الشتاء للوقاية ضد...",
+"grammarNotes": ""ينصح باكلها" tavsiya ma’nosini bildiradi. "للوقايه" maqsadni ko‘rsatadi.",
+"keyWords": ["كثيره", "ينصح", "باكلها", "الشتاء", "الوقايه", "ضد"],
+"wordMap": [
+{
+"word": "كثيره",
+"normalized": "كثيره",
+"translationUz": "ko‘p",
+"translationAr": "كثيرة",
+"contextualMeaning": "foydalarning ko‘pligi"
+},
+{
+"word": "ينصح",
+"normalized": "ينصح",
+"translationUz": "tavsiya qilinadi",
+"translationAr": "ينصح",
+"contextualMeaning": "maslahat berish"
+},
+{
+"word": "باكلها",
+"normalized": "باكلها",
+"translationUz": "uni yeyish",
+"translationAr": "بأكلها",
+"contextualMeaning": "iste’mol qilish harakati"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "في",
+"contextualMeaning": "vaqt holi"
+},
+{
+"word": "الشتاء",
+"normalized": "الشتاء",
+"translationUz": "qishda",
+"translationAr": "الشتاء",
+"contextualMeaning": "fasl"
+},
+{
+"word": "للوقايه",
+"normalized": "للوقايه",
+"translationUz": "saqlanish uchun",
+"translationAr": "للوقاية",
+"contextualMeaning": "maqsad"
+},
+{
+"word": "ضد",
+"normalized": "ضد",
+"translationUz": "qarshi",
+"translationAr": "ضد",
+"contextualMeaning": "kasallikka qarshi"
+}
+]
+},
+{
+"sentence": "البرد والانفلونزا",
+"translation": "shamollash va grippga.",
+"translationAr": "البرد والإنفلونزا.",
+"grammarNotes": "Bu oldingi qatorning davomiy to‘ldiruvchisi bo‘lib, kasalliklarni sanaydi.",
+"keyWords": ["البرد", "الانفلونزا"],
+"wordMap": [
+{
+"word": "البرد",
+"normalized": "البرد",
+"translationUz": "shamollash, sovuq",
+"translationAr": "البرد",
+"contextualMeaning": "kasallik holati"
+},
+{
+"word": "والانفلونزا",
+"normalized": "والانفلونزا",
+"translationUz": "va gripp",
+"translationAr": "والإنفلونزا",
+"contextualMeaning": "ikkinchi kasallik"
+}
+]
+},
+{
+"sentence": "هل هي",
+"translation": "Bu shumi?",
+"translationAr": "هل هي؟",
+"grammarNotes": "Bu qisqa savol. Keyingi qatorlarda variantlar beriladi.",
+"keyWords": ["هل", "هي"],
+"wordMap": [
+{
+"word": "هل",
+"normalized": "هل",
+"translationUz": "mi",
+"translationAr": "هل",
+"contextualMeaning": "savol yuklamasi"
+},
+{
+"word": "هي",
+"normalized": "هي",
+"translationUz": "u",
+"translationAr": "هي",
+"contextualMeaning": "noma’lum meva"
+}
+]
+},
+{
+"sentence": "البرتقال",
+"translation": "Apelsin?",
+"translationAr": "البرتقال؟",
+"grammarNotes": "Bu savoldagi birinchi variant bo‘lib, yakka ot shaklida kelgan.",
+"keyWords": ["البرتقال"],
+"wordMap": [
+{
+"word": "البرتقال",
+"normalized": "البرتقال",
+"translationUz": "apelsin",
+"translationAr": "البرتقال",
+"contextualMeaning": "birinchi javob varianti"
+}
+]
+},
+{
+"sentence": "البرقوق",
+"translation": "Olxo‘ri?",
+"translationAr": "البرقوق؟",
+"grammarNotes": "Bu savoldagi ikkinchi variant.",
+"keyWords": ["البرقوق"],
+"wordMap": [
+{
+"word": "البرقوق",
+"normalized": "البرقوق",
+"translationUz": "olxo‘ri",
+"translationAr": "البرقوق",
+"contextualMeaning": "ikkinchi javob varianti"
+}
+]
+},
+{
+"sentence": "الباذنجان هيا اجب يا",
+"translation": "Baqlajon? Qani, javob ber, ey...",
+"translationAr": "الباذنجان؟ هيا أجب يا...",
+"grammarNotes": "Bu uchinchi variant va undan keyin buyruq keladi. "اجب" buyruq fe’li.",
+"keyWords": ["الباذنجان", "هيا", "اجب", "يا"],
+"wordMap": [
+{
+"word": "الباذنجان",
+"normalized": "الباذنجان",
+"translationUz": "baqlajon",
+"translationAr": "الباذنجان",
+"contextualMeaning": "uchinchi javob varianti"
+},
+{
+"word": "هيا",
+"normalized": "هيا",
+"translationUz": "qani",
+"translationAr": "هيا",
+"contextualMeaning": "rag‘batlantirish"
+},
+{
+"word": "اجب",
+"normalized": "اجب",
+"translationUz": "javob ber",
+"translationAr": "أجب",
+"contextualMeaning": "buyruq"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaatning boshlanishi"
+}
+]
+},
+{
+"sentence": "هوما هل",
+"translation": "Homa, bu...mi?",
+"translationAr": "هوما، هل...؟",
+"grammarNotes": "Bu Homa ga qaratilgan savolning davomidir. "هل" savol yuklamasi.",
+"keyWords": ["هوما", "هل"],
+"wordMap": [
+{
+"word": "هوما",
+"normalized": "هوما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "murojaat qilingan shaxs"
+},
+{
+"word": "هل",
+"normalized": "هل",
+"translationUz": "mi",
+"translationAr": "هل",
+"contextualMeaning": "savol yuklamasi"
+}
+]
+},
+{
+"sentence": "هي",
+"translation": "u?",
+"translationAr": "هي؟",
+"grammarNotes": "Bu juda qisqa savol bo‘lib, oldingi va keyingi variantlar bilan birga tushuniladi.",
+"keyWords": ["هي"],
+"wordMap": [
+{
+"word": "هي",
+"normalized": "هي",
+"translationUz": "u",
+"translationAr": "هي",
+"contextualMeaning": "noma’lum meva"
+}
+]
+},
+{
+"sentence": "البرتقال",
+"translation": "Apelsin?",
+"translationAr": "البرتقال؟",
+"grammarNotes": "Bu takroriy birinchi variant.",
+"keyWords": ["البرتقال"],
+"wordMap": [
+{
+"word": "البرتقال",
+"normalized": "البرتقال",
+"translationUz": "apelsin",
+"translationAr": "البرتقال",
+"contextualMeaning": "takror berilgan variant"
+}
+]
+},
+{
+"sentence": "البرقوق",
+"translation": "Olxo‘ri?",
+"translationAr": "البرقوق؟",
+"grammarNotes": "Bu takroriy ikkinchi variant.",
+"keyWords": ["البرقوق"],
+"wordMap": [
+{
+"word": "البرقوق",
+"normalized": "البرقوق",
+"translationUz": "olxo‘ri",
+"translationAr": "البرقوق",
+"contextualMeaning": "takror berilgan variant"
+}
+]
+},
+{
+"sentence": "الباذنجان يبدو انني اصبت بالبرد في هذا",
+"translation": "Baqlajonmi? Ko‘rinishidan, men mana shu...da shamollab qolganman.",
+"translationAr": "الباذنجان؟ يبدو أنني أُصبت بالبرد في هذا...",
+"grammarNotes": "Bu qator savoldan hazilga o‘tadi. "يبدو انني" taxmin va xulosani bildiradi.",
+"keyWords": ["الباذنجان", "يبدو", "انني", "اصبت", "بالبرد", "هذا"],
+"wordMap": [
+{
+"word": "الباذنجان",
+"normalized": "الباذنجان",
+"translationUz": "baqlajon",
+"translationAr": "الباذنجان",
+"contextualMeaning": "uchinchi variant"
+},
+{
+"word": "يبدو",
+"normalized": "يبدو",
+"translationUz": "ko‘rinishidan",
+"translationAr": "يبدو",
+"contextualMeaning": "taxmin"
+},
+{
+"word": "انني",
+"normalized": "انني",
+"translationUz": "men ... ekanman",
+"translationAr": "أنني",
+"contextualMeaning": "ta’kidli shaxs olmoshi"
+},
+{
+"word": "اصبت",
+"normalized": "اصبت",
+"translationUz": "duchor bo‘ldim, kasallandim",
+"translationAr": "أصبت",
+"contextualMeaning": "kasallik orttirish"
+},
+{
+"word": "بالبرد",
+"normalized": "بالبرد",
+"translationUz": "shamollashga",
+"translationAr": "بالبرد",
+"contextualMeaning": "kasallik nomi"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "في",
+"contextualMeaning": "vaqt holi"
+},
+{
+"word": "هذا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "هذا",
+"contextualMeaning": "ko‘rsatish olmoshi"
+}
+]
+},
+{
+"sentence": "الشتاء البارد ولكننا في فصل الصيف يا هما",
+"translation": "sovuq qishda. Lekin biz yoz faslidamiz-ku, ey Homa.",
+"translationAr": "الشتاء البارد، ولكننا في فصل الصيف يا هوما.",
+"grammarNotes": ""ولكننا" qarama-qarshi ma’no beradi. Fasllar o‘rtasidagi zidlik hazilni yuzaga keltiradi.",
+"keyWords": ["الشتاء", "البارد", "ولكننا", "فصل", "الصيف", "هما"],
+"wordMap": [
+{
+"word": "الشتاء",
+"normalized": "الشتاء",
+"translationUz": "qish",
+"translationAr": "الشتاء",
+"contextualMeaning": "fasl"
+},
+{
+"word": "البارد",
+"normalized": "البارد",
+"translationUz": "sovuq",
+"translationAr": "البارد",
+"contextualMeaning": "qishning sifati"
+},
+{
+"word": "ولكننا",
+"normalized": "ولكننا",
+"translationUz": "lekin biz",
+"translationAr": "ولكننا",
+"contextualMeaning": "qarama-qarshi holat"
+},
+{
+"word": "في",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "في",
+"contextualMeaning": "joy/holat"
+},
+{
+"word": "فصل",
+"normalized": "فصل",
+"translationUz": "fasl",
+"translationAr": "فصل",
+"contextualMeaning": "yil davri"
+},
+{
+"word": "الصيف",
+"normalized": "الصيف",
+"translationUz": "yoz",
+"translationAr": "الصيف",
+"contextualMeaning": "hozirgi fasl"
+},
+{
+"word": "يا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "يا",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "هما",
+"normalized": "هما",
+"translationUz": "Homa",
+"translationAr": "هوما",
+"contextualMeaning": "suhbatdoshi"
+}
+]
+},
+{
+"sentence": "ها اذا لابد انني اصبت بضربه",
+"translation": "Ha, demak men albatta urishga duchor bo‘lganman...",
+"translationAr": "ها، إذًا لا بد أنني أُصبت بضربة...",
+"grammarNotes": ""لابد" kuchli ishonch yoki xulosa ma’nosini beradi. Gap keyingi qatorda yakunlanadi.",
+"keyWords": ["ها", "اذا", "لابد", "انني", "اصبت", "بضربه"],
+"wordMap": [
+{
+"word": "ها",
+"normalized": "ها",
+"translationUz": "ha, ana",
+"translationAr": "ها",
+"contextualMeaning": "birdan anglash undovi"
+},
+{
+"word": "اذا",
+"normalized": "اذا",
+"translationUz": "demak",
+"translationAr": "إذًا",
+"contextualMeaning": "xulosa bog‘lovchisi"
+},
+{
+"word": "لابد",
+"normalized": "لابد",
+"translationUz": "albatta, shubhasiz",
+"translationAr": "لا بد",
+"contextualMeaning": "kuchli ehtimol"
+},
+{
+"word": "انني",
+"normalized": "انني",
+"translationUz": "men ... ekanman",
+"translationAr": "أنني",
+"contextualMeaning": "ta’kidli shaxs"
+},
+{
+"word": "اصبت",
+"normalized": "اصبت",
+"translationUz": "duchor bo‘ldim",
+"translationAr": "أصبت",
+"contextualMeaning": "kasallikka uchrash"
+},
+{
+"word": "بضربه",
+"normalized": "بضربه",
+"translationUz": "zarbaga, urishga",
+"translationAr": "بضربة",
+"contextualMeaning": "quyosh urishi iborasining qismi"
+}
+]
+},
+{
+"sentence": "شمس اذا عرفتم الحل اصدقائي ارسلوا",
+"translation": "quyosh. Agar yechimni bilsangiz, do‘stlarim, yuboringlar.",
+"translationAr": "شمس. إذا عرفتم الحل يا أصدقائي، أرسلوا.",
+"grammarNotes": ""اذا عرفتم" shart ifodasi. "ارسلوا" ko‘plikdagi buyruq fe’li.",
+"keyWords": ["شمس", "اذا", "عرفتم", "الحل", "اصدقائي", "ارسلوا"],
+"wordMap": [
+{
+"word": "شمس",
+"normalized": "شمس",
+"translationUz": "quyosh",
+"translationAr": "شمس",
+"contextualMeaning": "quyosh urishi iborasini yakunlaydi"
+},
+{
+"word": "اذا",
+"normalized": "اذا",
+"translationUz": "agar",
+"translationAr": "إذا",
+"contextualMeaning": "shart bog‘lovchisi"
+},
+{
+"word": "عرفتم",
+"normalized": "عرفتم",
+"translationUz": "bildingiz",
+"translationAr": "عرفتم",
+"contextualMeaning": "2-shaxs ko‘plikdagi bilish"
+},
+{
+"word": "الحل",
+"normalized": "الحل",
+"translationUz": "yechim, javob",
+"translationAr": "الحل",
+"contextualMeaning": "savolning javobi"
+},
+{
+"word": "اصدقائي",
+"normalized": "اصدقائي",
+"translationUz": "do‘stlarim",
+"translationAr": "أصدقائي",
+"contextualMeaning": "murojaat"
+},
+{
+"word": "ارسلوا",
+"normalized": "ارسلوا",
+"translationUz": "yuboringlar",
+"translationAr": "أرسلوا",
+"contextualMeaning": "buyruq"
+}
+]
+},
+{
+"sentence": "الاجابه الصحيحه الى البريد الالكتروني",
+"translation": "to‘g‘ri javobni elektron pochtaga.",
+"translationAr": "الإجابة الصحيحة إلى البريد الإلكتروني.",
+"grammarNotes": "Bu buyruqning to‘ldiruvchisi bo‘lib, qayerga yuborish kerakligini ko‘rsatadi.",
+"keyWords": ["الاجابه", "الصحيحه", "البريد", "الالكتروني"],
+"wordMap": [
+{
+"word": "الاجابه",
+"normalized": "الاجابه",
+"translationUz": "javob",
+"translationAr": "الإجابة",
+"contextualMeaning": "yuboriladigan ma’lumot"
+},
+{
+"word": "الصحيحه",
+"normalized": "الصحيحه",
+"translationUz": "to‘g‘ri",
+"translationAr": "الصحيحة",
+"contextualMeaning": "javobning sifati"
+},
+{
+"word": "الى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "إلى",
+"contextualMeaning": "yo‘nalish"
+},
+{
+"word": "البريد",
+"normalized": "البريد",
+"translationUz": "pochta",
+"translationAr": "البريد",
+"contextualMeaning": "xat yuborish vositasi"
+},
+{
+"word": "الالكتروني",
+"normalized": "الالكتروني",
+"translationUz": "elektron",
+"translationAr": "الإلكتروني",
+"contextualMeaning": "pochta turi"
+}
+]
+},
+{
+"sentence": "الظاهر على الشاشه لتربحوا",
+"translation": "ekranda ko‘rinib turgan manzilga, yutib olishingiz uchun.",
+"translationAr": "الظاهر على الشاشة لتربحوا.",
+"grammarNotes": ""الظاهر على الشاشه" aniqlovchi birikma. "لتربحوا" maqsadni bildiradi.",
+"keyWords": ["الظاهر", "الشاشه", "لتربحوا"],
+"wordMap": [
+{
+"word": "الظاهر",
+"normalized": "الظاهر",
+"translationUz": "ko‘rinib turgan",
+"translationAr": "الظاهر",
+"contextualMeaning": "namoyon bo‘layotgan"
+},
+{
+"word": "على",
+"normalized": "على",
+"translationUz": "ustida",
+"translationAr": "على",
+"contextualMeaning": "joylashuv"
+},
+{
+"word": "الشاشه",
+"normalized": "الشاشه",
+"translationUz": "ekran",
+"translationAr": "الشاشة",
+"contextualMeaning": "ko‘rsatish vositasi"
+},
+{
+"word": "لتربحوا",
+"normalized": "لتربحوا",
+"translationUz": "yutib olishingiz uchun",
+"translationAr": "لتربحوا",
+"contextualMeaning": "maqsad ifodasi"
+}
+]
+},
+{
+"sentence": "الجوائز ي لا لاي لا لا لا لاا لاي لاي",
+"translation": "sovrinlarni. Keyingi qism esa qo‘shiqsimon yoki tovushli takrordan iborat.",
+"translationAr": "الجوائز، ثم ترديد صوتي: ي لا لاي لا لا لا لاا لاي لاي.",
+"grammarNotes": ""الجوائز" ma’noli so‘z, undan keyingi birliklar esa to‘liq lug‘aviy ma’noga ega bo‘lmagan tovush takrorlaridir.",
+"keyWords": ["الجوائز", "لاي", "لا"],
+"wordMap": [
+{
+"word": "الجوائز",
+"normalized": "الجوائز",
+"translationUz": "sovrinlar",
+"translationAr": "الجوائز",
+"contextualMeaning": "mukofotlar"
+},
+{
+"word": "ي",
+"normalized": "ي",
+"translationUz": "tovush",
+"translationAr": "صوت",
+"contextualMeaning": "ma’nosiz fonetik bo‘g‘in"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "la",
+"translationAr": "لا",
+"contextualMeaning": "qo‘shiqsimon tovush"
+},
+{
+"word": "لاي",
+"normalized": "لاي",
+"translationUz": "lay",
+"translationAr": "لاي",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "la",
+"translationAr": "لا",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "la",
+"translationAr": "لا",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "لا",
+"normalized": "لا",
+"translationUz": "la",
+"translationAr": "لا",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "لاا",
+"normalized": "لاا",
+"translationUz": "laa",
+"translationAr": "لاا",
+"contextualMeaning": "cho‘zilgan tovush"
+},
+{
+"word": "لاي",
+"normalized": "لاي",
+"translationUz": "lay",
+"translationAr": "لاي",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "لاي",
+"normalized": "لاي",
+"translationUz": "lay",
+"translationAr": "لاي",
+"contextualMeaning": "fonetik takror"
+}
+]
+},
+{
+"sentence": "لاي ‏m",
+"translation": "Bu ham ma’noli gap emas, balki tovush takrori va yakuniy belgi.",
+"translationAr": "لاي m، وهذا أيضًا ترديد صوتي مع رمز أخير.",
+"grammarNotes": "Bu qatorda to‘liq grammatik gap yo‘q. Tovush takrori va texnik yoki tasodifiy belgi mavjud.",
+"keyWords": ["لاي", "m"],
+"wordMap": [
+{
+"word": "لاي",
+"normalized": "لاي",
+"translationUz": "lay",
+"translationAr": "لاي",
+"contextualMeaning": "fonetik takror"
+},
+{
+"word": "‏m",
+"normalized": "m",
+"translationUz": "m",
+"translationAr": "م",
+"contextualMeaning": "yakuniy belgi yoki tovush"
+}
+]
+}
+]
+}

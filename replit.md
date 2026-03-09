@@ -156,6 +156,8 @@ shared/
   - Endpoint: `POST /api/user/lessons/:id/import-content` accepts `{ content: { ... } }` with full lesson JSON
   - Frontend: `lesson-process.tsx` JsonImportState with template viewer, copy button, JSON validator
   - Provider metadata: `provider: "manual-import"`, `model: "chatgpt-manual"`
+  - **JSON auto-repair**: `repairChatGptJson()` fixes unescaped quotes inside string values (common ChatGPT issue), then `jsonrepair` library handles remaining syntax issues
+  - **Timed subtitle sync**: `buildChatGptPrompt()` includes numbered timed lines list when manual transcript has timestamps, instructs ChatGPT to use exact text in `sentence` field
 - **AI timeout**: 120s timeout on OpenAI calls; timeout errors propagated to user (not silently falling back to mock)
 - Mock fallback produces proper Uzbek placeholder text (not English snippets)
 - `mockUzTranslation()` with dictionary + generic Uzbek terms for unknown words

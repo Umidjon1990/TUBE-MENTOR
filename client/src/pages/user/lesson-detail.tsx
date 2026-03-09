@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -96,14 +96,20 @@ export default function LessonDetailPage() {
   const [, params] = useRoute("/lessons/:id");
   const lessonId = params?.id;
   const { toast } = useToast();
+  const [location] = useLocation();
 
-  const initialSeekTime = useMemo(() => {
+  const [seekTime, setSeekTime] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const t = urlParams.get("t");
-    if (!t) return undefined;
-    const val = parseInt(t, 10);
-    return Number.isFinite(val) && val >= 0 ? val : undefined;
-  }, []);
+    if (t) {
+      const val = parseInt(t, 10);
+      if (Number.isFinite(val) && val >= 0) {
+        setSeekTime(val);
+      }
+    }
+  }, [location]);
 
   const { data: lesson, isLoading } = useQuery<Lesson>({
     queryKey: ["/api/user/lessons", lessonId],
@@ -321,7 +327,7 @@ export default function LessonDetailPage() {
             phrases={phrases.map(p => ({ phrase: p.phrase, translation: p.translation, translationAr: p.translationAr, context: p.context }))}
             sentenceWordMaps={sentenceWordMaps}
             className="max-w-3xl"
-            initialSeekTime={initialSeekTime}
+            initialSeekTime={seekTime}
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">

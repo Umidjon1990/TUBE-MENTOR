@@ -211,9 +211,7 @@ export default function SmartDictionaryPage() {
                           variant="ghost"
                           size="sm"
                           className="shrink-0 h-8 gap-1 text-primary opacity-60 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                            window.location.href = `/lessons/${item.lessonId}?t=${Math.floor(item.startTime)}`;
-                          }}
+                          onClick={() => navigate(`/lessons/${item.lessonId}?t=${Math.floor(item.startTime)}`)}
                           data-testid={`button-dict-goto-${key}-${idx}`}
                         >
                           <Play className="w-3.5 h-3.5" />

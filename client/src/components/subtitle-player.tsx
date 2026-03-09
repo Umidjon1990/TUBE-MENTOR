@@ -272,6 +272,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   }, [videoId]);
 
   useEffect(() => {
+    if (initialSeekTime && initialSeekTime > 0 && isReady && playerRef.current) {
+      playerRef.current.seekTo(initialSeekTime, true);
+      playerRef.current.playVideo();
+    }
+  }, [initialSeekTime, isReady]);
+
+  useEffect(() => {
     if (isPlaying && playerRef.current) {
       timerRef.current = setInterval(() => {
         try {

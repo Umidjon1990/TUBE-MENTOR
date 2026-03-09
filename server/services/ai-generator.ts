@@ -217,15 +217,16 @@ Muhim qoidalar:
 - quizzes: 8-10 ta savol (har xil turdagi: multiple_choice va fill_blank)
 - flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
-- wordMap: har bir gapdagi 3-5 ta ENG MUHIM so'zning tarjimasi (faqat keyWords dagi so'zlar + 1-2 ta qo'shimcha muhim so'z)
+- wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
 
-  const sentencesList = sentences.slice(0, 50).map((s, i) => `${i + 1}. ${s}`).join("\n");
+  const maxSentences = 30;
+  const sentencesList = sentences.slice(0, maxSentences).map((s, i) => `${i + 1}. ${s}`).join("\n");
 
   const userPrompt = `Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat.
 
-MUHIM: sentenceAnalysis maydonida quyidagi BARCHA ${Math.min(sentences.length, 50)} ta gapni tahlil qil. Birontasini ham tashlab ketma!
+MUHIM: sentenceAnalysis maydonida quyidagi BARCHA ${Math.min(sentences.length, maxSentences)} ta gapni tahlil qil. Birontasini ham tashlab ketma!
 
 GAPLAR RO'YXATI:
 ${sentencesList}

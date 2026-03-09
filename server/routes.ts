@@ -1084,6 +1084,86 @@ export async function registerRoutes(
     res.json(results);
   });
 
+  app.get("/api/user/dictionary/search", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const q = (req.query.q as string || "").trim().toLowerCase();
+    if (!q || q.length < 2) return res.json([]);
+
+    try {
+      const userLessons = await storage.getLessonsByUser(userId);
+      const results: any[] = [];
+      const seen = new Set<string>();
+
+      for (const lesson of userLessons) {
+        const sentences: any[] = lesson.sentenceAnalysisJson as any[] || [];
+        const subtitles: any[] = lesson.subtitlesJson as any[] || [];
+        const vocab: any[] = lesson.vocabularyJson as any[] || [];
+
+        for (let si = 0; si < sentences.length; si++) {
+          const s = sentences[si];
+          const wm: any[] = s.wordMap || [];
+          for (const w of wm) {
+            const word = (w.word || "").toLowerCase();
+            const norm = (w.normalized || "").toLowerCase();
+            const tuz = (w.translationUz || "").toLowerCase();
+            const tar = (w.translationAr || "").toLowerCase();
+            if (word.includes(q) || norm.includes(q) || tuz.includes(q) || tar.includes(q)) {
+              const key = `${norm || word}__${lesson.id}__${si}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              const sub = subtitles.find((st: any) => st.sentenceIndex === si) || subtitles[si];
+              results.push({
+                word: w.word,
+                normalized: w.normalized,
+                translationUz: w.translationUz,
+                translationAr: w.translationAr,
+                contextualMeaning: w.contextualMeaning,
+                sentence: s.sentence,
+                sentenceTranslation: s.translation,
+                lessonId: lesson.id,
+                lessonTitle: lesson.title,
+                sentenceIndex: si,
+                startTime: sub?.startTime || 0,
+              });
+            }
+          }
+        }
+
+        for (const v of vocab) {
+          const word = (v.word || "").toLowerCase();
+          const tuz = (v.translation || "").toLowerCase();
+          const tar = (v.translationAr || "").toLowerCase();
+          if (word.includes(q) || tuz.includes(q) || tar.includes(q)) {
+            const key = `vocab__${word}__${lesson.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            results.push({
+              word: v.word,
+              normalized: v.word,
+              translationUz: v.translation,
+              translationAr: v.translationAr,
+              contextualMeaning: v.partOfSpeech || "",
+              sentence: v.example || "",
+              sentenceTranslation: "",
+              lessonId: lesson.id,
+              lessonTitle: lesson.title,
+              sentenceIndex: -1,
+              startTime: 0,
+              isVocab: true,
+            });
+          }
+        }
+
+        if (results.length >= 50) break;
+      }
+
+      res.json(results.slice(0, 50));
+    } catch (err) {
+      console.error("Dictionary search error:", err);
+      res.status(500).json({ message: "Qidiruvda xatolik" });
+    }
+  });
+
   app.get("/api/user/saved-words", requireAuth, async (req, res) => {
     const userId = (req as any).session.userId;
     const lessonId = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;

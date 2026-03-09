@@ -97,6 +97,14 @@ export default function LessonDetailPage() {
   const lessonId = params?.id;
   const { toast } = useToast();
 
+  const initialSeekTime = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const t = urlParams.get("t");
+    if (!t) return undefined;
+    const val = parseInt(t, 10);
+    return Number.isFinite(val) && val >= 0 ? val : undefined;
+  }, []);
+
   const { data: lesson, isLoading } = useQuery<Lesson>({
     queryKey: ["/api/user/lessons", lessonId],
     enabled: !!lessonId,
@@ -313,6 +321,7 @@ export default function LessonDetailPage() {
             phrases={phrases.map(p => ({ phrase: p.phrase, translation: p.translation, translationAr: p.translationAr, context: p.context }))}
             sentenceWordMaps={sentenceWordMaps}
             className="max-w-3xl"
+            initialSeekTime={initialSeekTime}
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">

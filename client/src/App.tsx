@@ -13,6 +13,7 @@ import LessonDetailPage from "@/pages/user/lesson-detail";
 import MyLessonsPage from "@/pages/user/my-lessons";
 import FlashcardsPage from "@/pages/user/flashcards";
 import SavedWordsPage from "@/pages/user/saved-words";
+import SmartDictionaryPage from "@/pages/user/smart-dictionary";
 import NotesPage from "@/pages/user/notes";
 import AnalyticsPage from "@/pages/user/analytics";
 import ProfilePage from "@/pages/user/profile";
@@ -68,6 +69,11 @@ function Router() {
       <Route path="/saved-words">
         <ProtectedRoute allowedRoles={["student", "teacher"]}>
           <SavedWordsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/dictionary">
+        <ProtectedRoute allowedRoles={["student", "teacher"]}>
+          <SmartDictionaryPage />
         </ProtectedRoute>
       </Route>
       <Route path="/notes">

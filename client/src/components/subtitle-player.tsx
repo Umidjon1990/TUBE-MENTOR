@@ -103,9 +103,10 @@ interface SubtitlePlayerProps {
   phrases?: PhraseLookup[];
   sentenceWordMaps?: SentenceWordMap[];
   className?: string;
+  initialSeekTime?: number;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "" }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -252,7 +253,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         videoId,
         playerVars: { autoplay: 0, modestbranding: 1, rel: 0, cc_load_policy: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
-          onReady: () => setIsReady(true),
+          onReady: () => {
+            setIsReady(true);
+            if (initialSeekTime && initialSeekTime > 0) {
+              playerRef.current?.seekTo(initialSeekTime, true);
+              playerRef.current?.playVideo();
+            }
+          },
           onStateChange: (event: any) => setIsPlaying(event.data === window.YT.PlayerState.PLAYING),
         },
       });

@@ -122,9 +122,11 @@ shared/
 - `/dashboard` - Dashboard with gamification widgets (XP progress, streak, badges)
 - `/lessons/create` - Create lesson
 - `/lessons/:id/process` - Lesson processing (transcript + AI generation)
-- `/lessons/:id` - Lesson detail with 6 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar)
+- `/lessons/:id` - Lesson detail with 6 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar). Supports `?t=<seconds>` deep-link to auto-seek video
 - `/lessons` - My lessons
+- `/dictionary` - Smart Lug'at: cross-lesson word search (Arabic/Uzbek), grouped results with video deep-links
 - `/flashcards` - Flashcards
+- `/saved-words` - Mening so'zlarim
 - `/notes` - Notes
 - `/analytics` - Full analytics dashboard with charts (weekly study, stats)
 - `/profile` - Profile with XP, level, streak, badges

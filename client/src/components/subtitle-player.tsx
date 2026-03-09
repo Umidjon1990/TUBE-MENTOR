@@ -358,7 +358,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         dir={textIsArabic ? "rtl" : "ltr"}
         className="block break-words"
         style={{
-          textAlign: textIsArabic ? "right" : isOverlay ? "center" : "left",
+          textAlign: isOverlay ? "center" : textIsArabic ? "right" : "left",
           fontFamily: textIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
           lineHeight: textIsArabic ? "1.8" : "1.6",
         }}
@@ -393,7 +393,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         dir={textIsArabic ? "rtl" : "ltr"}
         className="block break-words"
         style={{
-          textAlign: textIsArabic ? "right" : isOverlayCtx ? "center" : "left",
+          textAlign: isOverlayCtx ? "center" : textIsArabic ? "right" : "left",
           fontFamily: textIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
           lineHeight: textIsArabic ? "1.8" : "1.5",
         }}

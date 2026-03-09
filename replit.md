@@ -77,6 +77,8 @@ shared/
 ### Public
 - `/` - Landing page (PublicLayout)
 - `/login` - Login page
+- `/library` - Public lesson library (search, filter by category/level, featured)
+- `/library/:id` - Public lesson detail (read-only view of published lessons)
 
 ### User (student/teacher) — UserLayout with sidebar
 - `/dashboard` - Dashboard
@@ -93,7 +95,7 @@ shared/
 - `/admin` - Admin dashboard
 - `/admin/users` - User management
 - `/admin/lessons` - Lessons management
-- `/admin/moderation` - Content moderation
+- `/admin/moderation` - Content moderation (approve/reject/publish/unpublish, metadata, tags, featured)
 - `/admin/coins` - Coin management
 - `/admin/categories` - Categories management
 - `/admin/settings` - System settings

@@ -22,12 +22,16 @@ import AdminModerationPage from "@/pages/admin/moderation";
 import AdminCoinsPage from "@/pages/admin/coins";
 import AdminCategoriesPage from "@/pages/admin/categories";
 import AdminSettingsPage from "@/pages/admin/settings";
+import PublicLibraryPage from "@/pages/public-library";
+import PublicLessonPage from "@/pages/public-lesson";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/library" component={PublicLibraryPage} />
+      <Route path="/library/:id" component={PublicLessonPage} />
       <Route path="/login" component={LoginPage} />
 
       <Route path="/dashboard">

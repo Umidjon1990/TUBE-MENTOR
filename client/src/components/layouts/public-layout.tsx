@@ -17,6 +17,7 @@ function PublicNavbar() {
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">
+          <Link href="/library" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-library">Kutubxona</Link>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
           <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-pricing">Narxlar</a>
           <a href="#cta" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-about">Biz haqimizda</a>

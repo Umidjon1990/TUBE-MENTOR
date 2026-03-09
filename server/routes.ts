@@ -277,6 +277,150 @@ export async function registerRoutes(
     });
   });
 
+  // ─── Admin — Lesson Management ───
+  async function resolveTagNames(lessonId: number) {
+    const lessonTagRows = await storage.getTagsByLesson(lessonId);
+    const allTags = await storage.getAllTags();
+    return lessonTagRows.map(lt => allTags.find(t => t.id === lt.tagId)).filter(Boolean);
+  }
+
+  app.get("/api/admin/lessons", requireAdmin, async (_req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const allTags = await storage.getAllTags();
+    const lessonsWithCreator = await Promise.all(
+      allLessons.map(async (lesson) => {
+        const creator = lesson.createdBy ? await storage.getUser(lesson.createdBy) : null;
+        const lessonTagRows = await storage.getTagsByLesson(lesson.id);
+        const tags = lessonTagRows.map(lt => allTags.find(t => t.id === lt.tagId)).filter(Boolean);
+        return {
+          ...lesson,
+          creatorName: creator?.fullName || "Noma'lum",
+          creatorUsername: creator?.username || "",
+          tags,
+        };
+      })
+    );
+    res.json(lessonsWithCreator.sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    ));
+  });
+
+  app.get("/api/admin/lessons/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const creator = lesson.createdBy ? await storage.getUser(lesson.createdBy) : null;
+    const tags = await resolveTagNames(id);
+    const categories = await storage.getAllCategories();
+    const allTags = await storage.getAllTags();
+    res.json({
+      ...lesson,
+      creatorName: creator?.fullName || "Noma'lum",
+      creatorUsername: creator?.username || "",
+      tags,
+      allCategories: categories,
+      allTags,
+    });
+  });
+
+  app.patch("/api/admin/lessons/:id/approve", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const updated = await storage.updateLesson(id, {
+      status: "approved",
+      approvedBy: req.session.userId,
+      approvedAt: new Date(),
+      moderationNote: req.body.moderationNote || lesson.moderationNote,
+    });
+    res.json(updated);
+  });
+
+  app.patch("/api/admin/lessons/:id/reject", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const { moderationNote } = req.body;
+    if (!moderationNote) return res.status(400).json({ message: "Rad etish sababi majburiy" });
+    const updated = await storage.updateLesson(id, {
+      status: "rejected",
+      moderationNote,
+    });
+    res.json(updated);
+  });
+
+  app.patch("/api/admin/lessons/:id/publish", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.status !== "approved") return res.status(400).json({ message: "Faqat tasdiqlangan darslar e'lon qilinishi mumkin" });
+    const updated = await storage.updateLesson(id, {
+      status: "published",
+      publishedBy: req.session.userId,
+      publishedAt: new Date(),
+    });
+    res.json(updated);
+  });
+
+  app.patch("/api/admin/lessons/:id/unpublish", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.status !== "published") return res.status(400).json({ message: "Faqat e'lon qilingan darslar o'chirilishi mumkin" });
+    const updated = await storage.updateLesson(id, {
+      status: "approved",
+      publishedAt: null,
+      publishedBy: null,
+    });
+    res.json(updated);
+  });
+
+  app.patch("/api/admin/lessons/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const { moderationNote, isFeatured, categoryId } = req.body;
+    const updateData: Record<string, unknown> = {};
+    if (moderationNote !== undefined) updateData.moderationNote = moderationNote;
+    if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    const updated = await storage.updateLesson(id, updateData);
+    res.json(updated);
+  });
+
+  app.put("/api/admin/lessons/:id/tags", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const { tagIds } = req.body;
+    if (!Array.isArray(tagIds)) return res.status(400).json({ message: "tagIds massiv bo'lishi kerak" });
+    const currentTags = await storage.getTagsByLesson(id);
+    for (const t of currentTags) {
+      if (!tagIds.includes(t.tagId)) await storage.deleteLessonTag(id, t.tagId);
+    }
+    for (const tid of tagIds) {
+      if (!currentTags.find(t => t.tagId === tid)) await storage.createLessonTag(id, tid);
+    }
+    const updatedTags = await resolveTagNames(id);
+    res.json(updatedTags);
+  });
+
+  app.delete("/api/admin/lessons/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    await storage.deleteLesson(id);
+    res.json({ success: true });
+  });
+
   app.get("/api/user/progress", requireAuth, async (req, res) => {
     const progress = await storage.getProgressByUser(req.session.userId!);
     res.json(progress);
@@ -645,13 +789,52 @@ export async function registerRoutes(
     res.json(allTags);
   });
 
-  app.get("/api/lessons/public", async (_req, res) => {
+  app.get("/api/lessons/public", async (req, res) => {
     const allLessons = await storage.getAllLessons();
-    const publicLessons = allLessons
-      .filter(l => l.status === "published")
-      .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime())
-      .slice(0, 10);
-    res.json(publicLessons);
+    let publicLessons = allLessons.filter(l => l.status === "published");
+
+    const { search, category, level, featured } = req.query;
+    if (search && typeof search === "string") {
+      const q = search.toLowerCase();
+      publicLessons = publicLessons.filter(l =>
+        l.title.toLowerCase().includes(q) ||
+        (l.summaryShort && l.summaryShort.toLowerCase().includes(q))
+      );
+    }
+    if (category && typeof category === "string") {
+      const catId = parseInt(category);
+      if (!isNaN(catId)) publicLessons = publicLessons.filter(l => l.categoryId === catId);
+    }
+    if (level && typeof level === "string") {
+      publicLessons = publicLessons.filter(l => l.level === level);
+    }
+    if (featured === "true") {
+      publicLessons = publicLessons.filter(l => l.isFeatured);
+    }
+
+    publicLessons.sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+      return new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime();
+    });
+
+    const categories = await storage.getAllCategories();
+    res.json({ lessons: publicLessons, categories });
+  });
+
+  app.get("/api/lessons/public/:id", async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson || lesson.status !== "published") return res.status(404).json({ message: "Dars topilmadi" });
+    const creator = lesson.createdBy ? await storage.getUser(lesson.createdBy) : null;
+    const tags = await resolveTagNames(id);
+    const category = lesson.categoryId ? await storage.getAllCategories().then(cats => cats.find(c => c.id === lesson.categoryId)) : null;
+    res.json({
+      ...lesson,
+      creatorName: creator?.fullName || "Noma'lum",
+      tags,
+      categoryName: category?.name || null,
+    });
   });
 
   return httpServer;

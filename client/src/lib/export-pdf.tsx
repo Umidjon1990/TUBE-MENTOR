@@ -366,32 +366,32 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
       </Text>
       {blocks.map((block) => (
         <View key={block.index} style={styles.sentenceBlock} wrap={false}>
-          {block.sentence ? (
+          {block.sentence && block.wordMap && block.wordMap.length > 0 ? (
+            <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 4, justifyContent: "flex-end" as const, marginBottom: 3 }}>
+              {[...block.wordMap].reverse().map((w, wi) => {
+                const origIdx = block.wordMap!.length - 1 - wi;
+                const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
+                return (
+                  <Text key={wi} style={{ fontSize: 13, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
+                );
+              })}
+              <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica" }}>  {block.index}.</Text>
+            </View>
+          ) : block.sentence ? (
             <Text style={styles.arabicText}>{block.sentence}  {block.index}.</Text>
+          ) : null}
+          {block.wordMap && block.wordMap.length > 0 ? (
+            <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, marginBottom: 3 }}>
+              {block.wordMap.map((w, wi) => {
+                const clr = WORD_COLORS[wi % WORD_COLORS.length];
+                return (
+                  <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const }}>{w.translation}{wi < block.wordMap!.length - 1 ? ", " : ""}</Text>
+                );
+              })}
+            </View>
           ) : null}
           {block.translation ? (
             <Text style={styles.uzText}>{block.index}. {block.translation}</Text>
-          ) : null}
-          {block.wordMap && block.wordMap.length > 0 ? (
-            <View style={{ marginTop: 4 }}>
-              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 4, justifyContent: "flex-end" as const }}>
-                {[...block.wordMap].reverse().map((w, wi) => {
-                  const origIdx = block.wordMap!.length - 1 - wi;
-                  const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
-                  return (
-                    <Text key={wi} style={{ fontSize: 12, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
-                  );
-                })}
-              </View>
-              <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, marginTop: 3 }}>
-                {block.wordMap.map((w, wi) => {
-                  const clr = WORD_COLORS[wi % WORD_COLORS.length];
-                  return (
-                    <Text key={wi} style={{ fontSize: 9, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const }}>{w.translation}{wi < block.wordMap!.length - 1 ? ", " : ""}</Text>
-                  );
-                })}
-              </View>
-            </View>
           ) : null}
         </View>
       ))}

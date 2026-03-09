@@ -111,13 +111,68 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   paragraphs.push(sectionHeading("Matn va Tarjima", COLORS.emerald));
 
+  const wordColors = [
+    "DC2626", "2563EB", "059669", "D97706", "7C3AED",
+    "DB2777", "0891B2", "4F46E5", "B45309", "0D9488",
+  ];
+
   for (const block of blocks) {
-    if (block.sentence) {
+    if (block.sentence && block.wordMap && block.wordMap.length > 0) {
+      const arParts: TextRun[] = [];
+      block.wordMap.forEach((w, idx) => {
+        const clr = wordColors[idx % wordColors.length];
+        arParts.push(
+          new TextRun({
+            text: w.word,
+            bold: true,
+            size: 24,
+            color: clr,
+            font: "Arial",
+            rightToLeft: true,
+          })
+        );
+        if (idx < block.wordMap!.length - 1) {
+          arParts.push(new TextRun({ text: "  ", size: 24, font: "Arial" }));
+        }
+      });
+      arParts.push(new TextRun({ text: `  ${block.index}.`, bold: true, size: 18, color: COLORS.gray, font: "Arial" }));
       paragraphs.push(
         new Paragraph({
           alignment: AlignmentType.RIGHT,
           bidirectional: true,
-          spacing: { before: 200, after: 80 },
+          spacing: { before: 250, after: 40 },
+          children: arParts,
+        })
+      );
+
+      const uzParts: TextRun[] = [];
+      block.wordMap.forEach((w, idx) => {
+        const clr = wordColors[idx % wordColors.length];
+        uzParts.push(
+          new TextRun({
+            text: w.translation,
+            bold: true,
+            size: 20,
+            color: clr,
+            font: "Arial",
+          })
+        );
+        if (idx < block.wordMap!.length - 1) {
+          uzParts.push(new TextRun({ text: ", ", size: 20, color: COLORS.gray, font: "Arial" }));
+        }
+      });
+      paragraphs.push(
+        new Paragraph({
+          spacing: { after: 40 },
+          children: uzParts,
+        })
+      );
+    } else if (block.sentence) {
+      paragraphs.push(
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          bidirectional: true,
+          spacing: { before: 250, after: 40 },
           children: [
             new TextRun({
               text: block.sentence,
@@ -129,7 +184,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
             new TextRun({
               text: `  ${block.index}.`,
               bold: true,
-              size: 20,
+              size: 18,
               color: COLORS.gray,
               font: "Arial",
             }),
@@ -141,7 +196,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
     if (block.translation) {
       paragraphs.push(
         new Paragraph({
-          spacing: { after: 80 },
+          spacing: { after: 120 },
           children: [
             new TextRun({
               text: `${block.index}. `,
@@ -157,57 +212,6 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
               font: "Arial",
             }),
           ],
-        })
-      );
-    }
-
-    if (block.wordMap && block.wordMap.length > 0) {
-      const wordColors = [
-        "DC2626", "2563EB", "059669", "D97706", "7C3AED",
-        "DB2777", "0891B2", "4F46E5", "B45309", "0D9488",
-      ];
-      const arParts: TextRun[] = [];
-      const uzParts: TextRun[] = [];
-      block.wordMap.forEach((w, idx) => {
-        const clr = wordColors[idx % wordColors.length];
-        arParts.push(
-          new TextRun({
-            text: w.word,
-            bold: true,
-            size: 22,
-            color: clr,
-            font: "Arial",
-            rightToLeft: true,
-          })
-        );
-        if (idx < block.wordMap!.length - 1) {
-          arParts.push(new TextRun({ text: "  ", size: 22, font: "Arial" }));
-        }
-        uzParts.push(
-          new TextRun({
-            text: w.translation,
-            bold: true,
-            size: 20,
-            color: clr,
-            font: "Arial",
-          })
-        );
-        if (idx < block.wordMap!.length - 1) {
-          uzParts.push(new TextRun({ text: ", ", size: 20, color: "6B7280", font: "Arial" }));
-        }
-      });
-      paragraphs.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          spacing: { before: 60, after: 0 },
-          children: arParts,
-        })
-      );
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: 150 },
-          children: uzParts,
         })
       );
     }

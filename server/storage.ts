@@ -66,6 +66,11 @@ export interface IStorage {
   getCoinTransactionsByUser(userId: string): Promise<CoinTransaction[]>;
   adjustCoinsAtomically(userId: string, coinChange: number, tx: InsertCoinTransaction): Promise<User>;
 
+  getLessonsByUser(userId: string): Promise<Lesson[]>;
+  countLessonsByUser(userId: string): Promise<number>;
+  countFlashcardsByUser(userId: string): Promise<number>;
+  createLessonWithCoinDeduction(userId: string, coinCost: number, lessonData: Partial<Lesson>, tagIds: number[], txDescription: string): Promise<{ lesson: Lesson; newBalance: number }>;
+
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(key: string, value: string): Promise<SystemSetting>;
 }
@@ -265,6 +270,66 @@ export class DatabaseStorage implements IStorage {
       await txDb.insert(coinTransactions).values(txData);
       await client.query("COMMIT");
       return updated;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async getLessonsByUser(userId: string): Promise<Lesson[]> {
+    return db.select().from(lessons).where(eq(lessons.createdBy, userId));
+  }
+
+  async countLessonsByUser(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(lessons).where(eq(lessons.createdBy, userId));
+    return result[0]?.count ?? 0;
+  }
+
+  async countFlashcardsByUser(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(flashcards).where(eq(flashcards.userId, userId));
+    return result[0]?.count ?? 0;
+  }
+
+  async createLessonWithCoinDeduction(
+    userId: string,
+    coinCost: number,
+    lessonData: Partial<Lesson>,
+    tagIds: number[],
+    txDescription: string
+  ): Promise<{ lesson: Lesson; newBalance: number }> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const txDb = drizzle(client, { schema });
+
+      const [updatedUser] = await txDb
+        .update(users)
+        .set({ coins: sql`${users.coins} - ${coinCost}`, updatedAt: new Date() })
+        .where(and(eq(users.id, userId), sql`${users.coins} >= ${coinCost}`))
+        .returning();
+
+      if (!updatedUser) {
+        await client.query("ROLLBACK");
+        throw new Error("INSUFFICIENT_BALANCE");
+      }
+
+      await txDb.insert(coinTransactions).values({
+        userId,
+        amount: -coinCost,
+        type: "lesson_creation",
+        description: txDescription,
+      });
+
+      const [lesson] = await txDb.insert(lessons).values(lessonData as any).returning();
+
+      if (tagIds.length > 0) {
+        await txDb.insert(lessonTags).values(tagIds.map(tagId => ({ lessonId: lesson.id, tagId })));
+      }
+
+      await client.query("COMMIT");
+      return { lesson, newBalance: updatedUser.coins };
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;

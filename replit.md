@@ -131,8 +131,14 @@ shared/
 - `POST /api/admin/users/:id/coins` - Add/remove coins (amount, type: add|remove, description)
 - `GET /api/admin/users/:id/coins` - Get balance + transaction history
 
-### User
+### User — Dashboard & Lessons
+- `GET /api/user/dashboard` - Aggregated dashboard (coins, counts, recent lessons, recent transactions)
+- `GET /api/user/lessons` - User's own lessons
+- `POST /api/user/lessons` - Create lesson (youtubeUrl, title?, categoryId?, tagIds?, level) — costs 10 coins
 - `GET /api/user/progress` - User lesson progress
+- `GET /api/categories` - List all categories
+- `GET /api/tags` - List all tags
+- `GET /api/lessons/public` - Public published lessons (up to 10)
 - `GET /api/health` - Health check
 
 ## Authentication

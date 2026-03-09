@@ -280,5 +280,118 @@ export async function registerRoutes(
     res.json(progress);
   });
 
+  app.get("/api/user/dashboard", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const [user, lessonCount, flashcardCount, userLessons, progress, coinTxs] = await Promise.all([
+      storage.getUser(userId),
+      storage.countLessonsByUser(userId),
+      storage.countFlashcardsByUser(userId),
+      storage.getLessonsByUser(userId),
+      storage.getProgressByUser(userId),
+      storage.getCoinTransactionsByUser(userId),
+    ]);
+
+    const pendingCount = userLessons.filter(l => l.status === "pending").length;
+    const totalStudyTime = progress.reduce((sum, p) => sum + (p.studyTimeSeconds ?? 0), 0);
+    const learnedWords = progress.reduce((sum, p) => sum + (p.learnedWords ?? 0), 0);
+
+    const recentLessons = userLessons
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+
+    const recentTransactions = coinTxs
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+
+    res.json({
+      coins: user?.coins ?? 0,
+      lessonCount,
+      flashcardCount,
+      pendingCount,
+      totalStudyTime,
+      learnedWords,
+      recentLessons,
+      recentTransactions,
+    });
+  });
+
+  app.get("/api/user/lessons", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const userLessons = await storage.getLessonsByUser(userId);
+    res.json(userLessons);
+  });
+
+  const createLessonSchema = z.object({
+    youtubeUrl: z.string().min(1, "YouTube havolasi kiritilishi shart").refine((url) => {
+      const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+      return pattern.test(url);
+    }, "Noto'g'ri YouTube havolasi"),
+    title: z.string().optional(),
+    categoryId: z.number().int().positive().optional(),
+    tagIds: z.array(z.number().int().positive()).optional(),
+    level: z.enum(["beginner", "intermediate", "advanced"]),
+  });
+
+  const LESSON_COST = 10;
+
+  app.post("/api/user/lessons", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const parsed = createLessonSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.errors[0].message });
+    }
+
+    const { youtubeUrl, title, categoryId, tagIds, level } = parsed.data;
+
+    const videoIdMatch = youtubeUrl.match(/(?:v=|embed\/|shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    const videoId = videoIdMatch?.[1] ?? "";
+    const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
+    const lessonTitle = title || `YouTube dars — ${videoId}`;
+
+    try {
+      const result = await storage.createLessonWithCoinDeduction(
+        userId,
+        LESSON_COST,
+        {
+          title: lessonTitle,
+          youtubeUrl,
+          thumbnailUrl,
+          level,
+          status: "pending",
+          categoryId: categoryId ?? null,
+          createdBy: userId,
+        },
+        tagIds ?? [],
+        `Dars yaratish: ${lessonTitle}`
+      );
+
+      res.status(201).json(result);
+    } catch (err: any) {
+      if (err.message === "INSUFFICIENT_BALANCE") {
+        return res.status(400).json({ message: `Bu amal uchun coin yetarli emas. Dars narxi: ${LESSON_COST} coin` });
+      }
+      throw err;
+    }
+  });
+
+  app.get("/api/categories", requireAuth, async (_req, res) => {
+    const cats = await storage.getAllCategories();
+    res.json(cats);
+  });
+
+  app.get("/api/tags", requireAuth, async (_req, res) => {
+    const allTags = await storage.getAllTags();
+    res.json(allTags);
+  });
+
+  app.get("/api/lessons/public", async (_req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const publicLessons = allLessons
+      .filter(l => l.status === "published")
+      .sort((a, b) => new Date(b.publishedAt ?? b.createdAt).getTime() - new Date(a.publishedAt ?? a.createdAt).getTime())
+      .slice(0, 10);
+    res.json(publicLessons);
+  });
+
   return httpServer;
 }

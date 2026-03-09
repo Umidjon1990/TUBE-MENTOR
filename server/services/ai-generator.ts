@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }),
 });
 
 export interface GeneratedLessonContent {
@@ -221,7 +221,7 @@ TRANSKRIPT:
 ${trimmedTranscript}`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -296,7 +296,7 @@ ${trimmedTranscript}`;
     sentenceAnalysisJson,
     aiMetaJson: {
       provider: "openai",
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       generatedAt: new Date().toISOString(),
       transcriptLength: transcript.length,
       sentenceCount: sentences.length,

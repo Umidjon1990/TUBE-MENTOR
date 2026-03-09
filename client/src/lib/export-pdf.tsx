@@ -26,6 +26,34 @@ import {
   prepareSummary,
 } from "./export-transform";
 
+Font.register({
+  family: "NotoArabic",
+  fonts: [
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      fontWeight: 400,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      fontWeight: 700,
+    },
+  ],
+});
+
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+      fontWeight: 400,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+      fontWeight: 700,
+    },
+  ],
+});
+
 const colors = {
   arabText: "#059669",
   arabBg: "#ecfdf5",
@@ -118,12 +146,15 @@ const styles = StyleSheet.create({
     color: colors.arabText,
     textAlign: "right" as const,
     marginBottom: 4,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoArabic",
+    fontWeight: 700 as const,
+    lineHeight: 1.8,
   },
   uzText: {
     fontSize: 10,
     color: colors.uzTranslation,
     marginBottom: 4,
+    fontFamily: "NotoSans",
   },
   wordMapRow: {
     flexDirection: "row" as const,
@@ -140,14 +171,16 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   wordMapAr: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.wordByWord,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoArabic",
+    fontWeight: 700 as const,
     textAlign: "right" as const,
   },
   wordMapUz: {
     fontSize: 8,
     color: colors.gray,
+    fontFamily: "NotoSans",
   },
   tableHeader: {
     flexDirection: "row" as const,
@@ -180,9 +213,11 @@ const styles = StyleSheet.create({
   phraseText: {
     fontSize: 12,
     color: colors.phrases,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoArabic",
+    fontWeight: 700 as const,
     textAlign: "right" as const,
     marginBottom: 2,
+    lineHeight: 1.6,
   },
   phraseTranslation: {
     fontSize: 10,
@@ -239,18 +274,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   flashcardFront: {
-    fontSize: 12,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 13,
+    fontFamily: "NotoArabic",
+    fontWeight: 700 as const,
     color: colors.flashcard,
     textAlign: "right" as const,
     marginBottom: 6,
     paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    lineHeight: 1.6,
   },
   flashcardBack: {
     fontSize: 10,
     color: colors.dark,
+    fontFamily: "NotoSans",
   },
   summaryBlock: {
     padding: 12,
@@ -430,8 +468,10 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
               {
                 width: "25%",
                 textAlign: "right" as const,
-                fontFamily: "Helvetica-Bold",
+                fontFamily: "NotoArabic",
+                fontWeight: 700 as const,
                 color: colors.arabText,
+                lineHeight: 1.6,
               },
             ]}
           >

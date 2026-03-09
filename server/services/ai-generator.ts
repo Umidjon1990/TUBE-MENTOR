@@ -103,8 +103,14 @@ export async function generateLessonContent(
 ): Promise<GeneratedLessonContent> {
   try {
     return await generateWithOpenAI(transcript, sentences, level);
-  } catch (error) {
-    console.error("OpenAI generation failed, falling back to mock:", error);
+  } catch (error: any) {
+    const msg = error?.message || String(error);
+    const isTimeout = msg.includes("timeout") || msg.includes("ETIMEDOUT") || msg.includes("abort");
+    console.error(`[AI] OpenAI xatolik (${isTimeout ? "timeout" : "boshqa"}):`, msg);
+    if (isTimeout) {
+      throw new Error("AI so'rovi vaqt chegarasidan oshdi (timeout). Qaytadan urinib ko'ring.");
+    }
+    console.log("[AI] Mock fallback ishlatilmoqda...");
     return generateMockContent(transcript, sentences, level);
   }
 }
@@ -211,7 +217,7 @@ Muhim qoidalar:
 - quizzes: 8-10 ta savol (har xil turdagi: multiple_choice va fill_blank)
 - flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
-- wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
+- wordMap: har bir gapdagi 3-5 ta ENG MUHIM so'zning tarjimasi (faqat keyWords dagi so'zlar + 1-2 ta qo'shimcha muhim so'z)
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
 
@@ -227,6 +233,9 @@ ${sentencesList}
 TRANSKRIPT:
 ${trimmedTranscript}`;
 
+  const startTime = Date.now();
+  console.log(`[AI] OpenAI so'rov boshlandi: ${sentences.length} ta gap, ${trimmedTranscript.length} belgi...`);
+
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
@@ -236,7 +245,9 @@ ${trimmedTranscript}`;
     temperature: 0.7,
     max_tokens: 16384,
     response_format: { type: "json_object" },
-  });
+  }, { timeout: 120000 });
+
+  console.log(`[AI] OpenAI javob keldi: ${((Date.now() - startTime) / 1000).toFixed(1)}s`);
 
   const content = response.choices[0]?.message?.content;
   if (!content) {

@@ -628,23 +628,31 @@ export async function registerRoutes(
         .filter((s: string) => s.length > 0);
     }
 
-    const content = await generateLessonContent(lesson.transcript, sentences, lesson.level);
+    console.log(`[generate] Dars #${id}: AI kontent yaratish boshlandi (${sentences.length} ta gap)...`);
+    const genStart = Date.now();
+    try {
+      const content = await generateLessonContent(lesson.transcript, sentences, lesson.level);
+      console.log(`[generate] Dars #${id}: AI kontent tayyor (${((Date.now() - genStart) / 1000).toFixed(1)}s, provider: ${content.aiMetaJson.provider})`);
 
-    const updated = await storage.updateLesson(id, {
-      summaryShort: content.summaryShort,
-      summaryDetailed: content.summaryDetailed,
-      summaryShortAr: content.summaryShortAr,
-      summaryDetailedAr: content.summaryDetailedAr,
-      vocabularyJson: content.vocabularyJson,
-      phrasesJson: content.phrasesJson,
-      quizzesJson: content.quizzesJson,
-      flashcardsJson: content.flashcardsJson,
-      sentenceAnalysisJson: content.sentenceAnalysisJson,
-      aiMetaJson: content.aiMetaJson,
-      status: "approved",
-    });
+      const updated = await storage.updateLesson(id, {
+        summaryShort: content.summaryShort,
+        summaryDetailed: content.summaryDetailed,
+        summaryShortAr: content.summaryShortAr,
+        summaryDetailedAr: content.summaryDetailedAr,
+        vocabularyJson: content.vocabularyJson,
+        phrasesJson: content.phrasesJson,
+        quizzesJson: content.quizzesJson,
+        flashcardsJson: content.flashcardsJson,
+        sentenceAnalysisJson: content.sentenceAnalysisJson,
+        aiMetaJson: content.aiMetaJson,
+        status: "approved",
+      });
 
-    res.json(updated);
+      res.json(updated);
+    } catch (err: any) {
+      console.error(`[generate] Dars #${id}: xatolik (${((Date.now() - genStart) / 1000).toFixed(1)}s):`, err?.message || err);
+      res.status(500).json({ message: "AI kontent yaratishda xatolik yuz berdi. Qaytadan urinib ko'ring." });
+    }
   });
 
   // ─── Flashcards ───

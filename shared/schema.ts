@@ -1,22 +1,278 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, integer, serial, json, real, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  displayName: text("display_name"),
+  passwordHash: text("password_hash").notNull(),
   role: text("role").default("student").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  coins: integer("coins").default(0).notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+});
+
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+});
+
+export const lessons = pgTable("lessons", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  youtubeUrl: text("youtube_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  transcript: text("transcript"),
+  transcriptSource: text("transcript_source"),
+  manualTranscript: text("manual_transcript"),
+  language: text("language").default("uz").notNull(),
+  level: text("level").default("beginner").notNull(),
+  status: text("status").default("draft").notNull(),
+  categoryId: integer("category_id").references(() => categories.id),
+  summaryShort: text("summary_short"),
+  summaryDetailed: text("summary_detailed"),
+  vocabularyJson: json("vocabulary_json"),
+  phrasesJson: json("phrases_json"),
+  quizzesJson: json("quizzes_json"),
+  flashcardsJson: json("flashcards_json"),
+  sentenceAnalysisJson: json("sentence_analysis_json"),
+  aiMetaJson: json("ai_meta_json"),
+  moderationNote: text("moderation_note"),
+  isFeatured: boolean("is_featured").default(false).notNull(),
+  createdBy: varchar("created_by").references(() => users.id),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  publishedBy: varchar("published_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+  publishedAt: timestamp("published_at"),
+});
+
+export const lessonTags = pgTable("lesson_tags", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+}, (table) => [
+  uniqueIndex("lesson_tag_unique").on(table.lessonId, table.tagId),
+]);
+
+export const lessonProgress = pgTable("lesson_progress", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  accuracy: real("accuracy").default(0),
+  completedQuizzes: integer("completed_quizzes").default(0),
+  learnedWords: integer("learned_words").default(0),
+  studyTimeSeconds: integer("study_time_seconds").default(0),
+  completionPercent: real("completion_percent").default(0),
+  lastStudiedAt: timestamp("last_studied_at"),
+}, (table) => [
+  uniqueIndex("user_lesson_progress_unique").on(table.userId, table.lessonId),
+]);
+
+export const flashcards = pgTable("flashcards", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  frontText: text("front_text").notNull(),
+  backText: text("back_text").notNull(),
+  type: text("type").default("vocabulary").notNull(),
+  confidenceLevel: integer("confidence_level").default(0).notNull(),
+  nextReviewAt: timestamp("next_review_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const notes = pgTable("notes", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  sentenceIndex: integer("sentence_index"),
+  timestamp: integer("timestamp"),
+  content: text("content").notNull(),
+  isPinned: boolean("is_pinned").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const bookmarks = pgTable("bookmarks", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  type: text("type").default("lesson").notNull(),
+  sentenceIndex: integer("sentence_index"),
+  timestamp: integer("timestamp"),
+  label: text("label"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const coinTransactions = pgTable("coin_transactions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(),
+  type: text("type").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  createdLessons: many(lessons, { relationName: "createdBy" }),
+  approvedLessons: many(lessons, { relationName: "approvedBy" }),
+  publishedLessons: many(lessons, { relationName: "publishedBy" }),
+  lessonProgress: many(lessonProgress),
+  flashcards: many(flashcards),
+  notes: many(notes),
+  bookmarks: many(bookmarks),
+  coinTransactions: many(coinTransactions),
+}));
+
+export const lessonsRelations = relations(lessons, ({ one, many }) => ({
+  category: one(categories, { fields: [lessons.categoryId], references: [categories.id] }),
+  creator: one(users, { fields: [lessons.createdBy], references: [users.id], relationName: "createdBy" }),
+  approver: one(users, { fields: [lessons.approvedBy], references: [users.id], relationName: "approvedBy" }),
+  publisher: one(users, { fields: [lessons.publishedBy], references: [users.id], relationName: "publishedBy" }),
+  lessonTags: many(lessonTags),
+  progress: many(lessonProgress),
+  flashcards: many(flashcards),
+  notes: many(notes),
+  bookmarks: many(bookmarks),
+}));
+
+export const lessonTagsRelations = relations(lessonTags, ({ one }) => ({
+  lesson: one(lessons, { fields: [lessonTags.lessonId], references: [lessons.id] }),
+  tag: one(tags, { fields: [lessonTags.tagId], references: [tags.id] }),
+}));
+
+export const lessonProgressRelations = relations(lessonProgress, ({ one }) => ({
+  user: one(users, { fields: [lessonProgress.userId], references: [users.id] }),
+  lesson: one(lessons, { fields: [lessonProgress.lessonId], references: [lessons.id] }),
+}));
+
+export const flashcardsRelations = relations(flashcards, ({ one }) => ({
+  user: one(users, { fields: [flashcards.userId], references: [users.id] }),
+  lesson: one(lessons, { fields: [flashcards.lessonId], references: [lessons.id] }),
+}));
+
+export const notesRelations = relations(notes, ({ one }) => ({
+  user: one(users, { fields: [notes.userId], references: [users.id] }),
+  lesson: one(lessons, { fields: [notes.lessonId], references: [lessons.id] }),
+}));
+
+export const bookmarksRelations = relations(bookmarks, ({ one }) => ({
+  user: one(users, { fields: [bookmarks.userId], references: [users.id] }),
+  lesson: one(lessons, { fields: [bookmarks.lessonId], references: [lessons.id] }),
+}));
+
+export const coinTransactionsRelations = relations(coinTransactions, ({ one }) => ({
+  user: one(users, { fields: [coinTransactions.userId], references: [users.id] }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
+  fullName: true,
   username: true,
-  password: true,
-  displayName: true,
+  passwordHash: true,
+  role: true,
+});
+
+export const insertLessonSchema = createInsertSchema(lessons).pick({
+  title: true,
+  description: true,
+  youtubeUrl: true,
+  thumbnailUrl: true,
+  language: true,
+  level: true,
+  categoryId: true,
+});
+
+export const insertCategorySchema = createInsertSchema(categories).pick({
+  name: true,
+  slug: true,
+  description: true,
+});
+
+export const insertTagSchema = createInsertSchema(tags).pick({
+  name: true,
+  slug: true,
+});
+
+export const insertFlashcardSchema = createInsertSchema(flashcards).pick({
+  userId: true,
+  lessonId: true,
+  frontText: true,
+  backText: true,
+  type: true,
+});
+
+export const insertNoteSchema = createInsertSchema(notes).pick({
+  userId: true,
+  lessonId: true,
+  sentenceIndex: true,
+  timestamp: true,
+  content: true,
+});
+
+export const insertBookmarkSchema = createInsertSchema(bookmarks).pick({
+  userId: true,
+  lessonId: true,
+  type: true,
+  sentenceIndex: true,
+  timestamp: true,
+  label: true,
+});
+
+export const insertCoinTransactionSchema = createInsertSchema(coinTransactions).pick({
+  userId: true,
+  amount: true,
+  type: true,
+  description: true,
+});
+
+export const insertLessonProgressSchema = createInsertSchema(lessonProgress).pick({
+  userId: true,
+  lessonId: true,
+  accuracy: true,
+  completedQuizzes: true,
+  learnedWords: true,
+  studyTimeSeconds: true,
+  completionPercent: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertLesson = z.infer<typeof insertLessonSchema>;
+export type Lesson = typeof lessons.$inferSelect;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type LessonTag = typeof lessonTags.$inferSelect;
+export type LessonProgress = typeof lessonProgress.$inferSelect;
+export type InsertLessonProgress = z.infer<typeof insertLessonProgressSchema>;
+export type Flashcard = typeof flashcards.$inferSelect;
+export type InsertFlashcard = z.infer<typeof insertFlashcardSchema>;
+export type Note = typeof notes.$inferSelect;
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
+export type CoinTransaction = typeof coinTransactions.$inferSelect;
+export type InsertCoinTransaction = z.infer<typeof insertCoinTransactionSchema>;
+export type SystemSetting = typeof systemSettings.$inferSelect;

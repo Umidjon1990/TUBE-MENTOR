@@ -47,6 +47,11 @@ export async function seedDatabase() {
     role: "student",
     isActive: true,
     coins: 75,
+    xp: 180,
+    level: 2,
+    streakDays: 5,
+    lastStudyDate: new Date().toISOString().split("T")[0],
+    badges: ["first_lesson", "quiz_master"],
   }).returning();
 
   const categoryData = [
@@ -311,6 +316,15 @@ export async function seedDatabase() {
     { key: "coins_per_lesson_created", value: "150" },
     { key: "max_daily_lessons", value: "10" },
     { key: "maintenance_mode", value: "false" },
+    { key: "lesson_creation_cost", value: "10" },
+    { key: "regenerate_cost", value: "5" },
+    { key: "export_cost", value: "3" },
+    { key: "max_transcript_length", value: "5000" },
+    { key: "featured_lesson_count", value: "6" },
+    { key: "default_difficulty", value: "beginner" },
+    { key: "xp_per_lesson_complete", value: "50" },
+    { key: "xp_per_quiz", value: "25" },
+    { key: "xp_per_flashcard_review", value: "5" },
   ];
 
   await db.insert(systemSettings).values(settingsData);

@@ -478,8 +478,6 @@ export async function registerRoutes(
     level: z.enum(["beginner", "intermediate", "advanced"]),
   });
 
-  const LESSON_COST = 10;
-
   app.post("/api/user/lessons", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
     const parsed = createLessonSchema.safeParse(req.body);
@@ -488,6 +486,9 @@ export async function registerRoutes(
     }
 
     const { youtubeUrl, title, categoryId, tagIds, level } = parsed.data;
+
+    const costSetting = await storage.getSystemSetting("lesson_creation_cost");
+    const LESSON_COST = costSetting?.value ? parseInt(costSetting.value) : 10;
 
     const videoIdMatch = youtubeUrl.match(/(?:v=|embed\/|shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     const videoId = videoIdMatch?.[1] ?? "";
@@ -511,6 +512,11 @@ export async function registerRoutes(
         `Dars yaratish: ${lessonTitle}`
       );
 
+      const user = await storage.getUser(userId);
+      if (user && !(user.badges as string[] || []).includes("first_lesson")) {
+        const newBadges = [...(user.badges as string[] || []), "first_lesson"];
+        await storage.updateUser(userId, { badges: newBadges });
+      }
       res.status(201).json(result);
     } catch (err: any) {
       if (err.message === "INSUFFICIENT_BALANCE") {
@@ -766,6 +772,10 @@ export async function registerRoutes(
       lastStudiedAt: new Date(),
     };
     const existing = await storage.getLessonProgress(req.session.userId!, lessonId);
+    let xpToAward = 5;
+    if (completedQuizzes && completedQuizzes > 0) xpToAward += 25;
+    if (learnedWords && learnedWords > 0) xpToAward += learnedWords * 2;
+    try { await storage.addXpAndUpdateStreak(req.session.userId!, xpToAward); } catch {}
     if (existing) {
       const updated = await storage.updateLessonProgress(existing.id, progressData);
       res.json(updated);
@@ -819,6 +829,115 @@ export async function registerRoutes(
 
     const categories = await storage.getAllCategories();
     res.json({ lessons: publicLessons, categories });
+  });
+
+  // ─── User Analytics ───
+  app.get("/api/user/analytics", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const [user, progress, flashcardCount, noteCount, bookmarkCount, lessons] = await Promise.all([
+      storage.getUser(userId),
+      storage.getProgressByUser(userId),
+      storage.countFlashcardsByUser(userId),
+      storage.countNotesByUser(userId),
+      storage.countBookmarksByUser(userId),
+      storage.getLessonsByUser(userId),
+    ]);
+    const totalLessons = lessons.length;
+    const totalStudyTime = progress.reduce((s, p) => s + (p.studyTimeSeconds ?? 0), 0);
+    const learnedWords = progress.reduce((s, p) => s + (p.learnedWords ?? 0), 0);
+    const totalQuizzes = progress.reduce((s, p) => s + (p.completedQuizzes ?? 0), 0);
+    const avgAccuracy = progress.length > 0
+      ? progress.reduce((s, p) => s + (p.accuracy ?? 0), 0) / progress.length
+      : 0;
+    const weeklyStudy: number[] = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date(now);
+      day.setDate(day.getDate() - i);
+      const dayStr = day.toISOString().split("T")[0];
+      const dayProgress = progress.filter(p => {
+        if (!p.lastStudiedAt) return false;
+        return new Date(p.lastStudiedAt).toISOString().split("T")[0] === dayStr;
+      });
+      weeklyStudy.push(dayProgress.reduce((s, p) => s + (p.studyTimeSeconds ?? 0), 0));
+    }
+    res.json({
+      totalLessons,
+      quizAccuracy: Math.round(avgAccuracy * 10) / 10,
+      totalQuizzes,
+      vocabularyLearned: learnedWords,
+      totalStudyTime,
+      streakDays: user?.streakDays ?? 0,
+      flashcardCount,
+      noteCount,
+      bookmarkCount,
+      xp: user?.xp ?? 0,
+      level: user?.level ?? 1,
+      badges: user?.badges ?? [],
+      weeklyStudy,
+    });
+  });
+
+  // ─── Admin Analytics ───
+  app.get("/api/admin/analytics", requireAdmin, async (_req, res) => {
+    const [allUsers, allLessons, allSettings] = await Promise.all([
+      storage.getAllUsers(),
+      storage.getAllLessons(),
+      storage.getAllSystemSettings(),
+    ]);
+    const totalUsers = allUsers.length;
+    const activeUsers = allUsers.filter(u => u.isActive).length;
+    const totalLessons = allLessons.length;
+    const pendingLessons = allLessons.filter(l => l.status === "pending").length;
+    const publishedLessons = allLessons.filter(l => l.status === "published").length;
+    const rejectedLessons = allLessons.filter(l => l.status === "rejected").length;
+    const approvedLessons = allLessons.filter(l => l.status === "approved").length;
+    const draftLessons = allLessons.filter(l => l.status === "draft").length;
+    const totalCoinsCirculation = allUsers.reduce((s, u) => s + u.coins, 0);
+    const topUsers = allUsers
+      .filter(u => u.role !== "admin")
+      .sort((a, b) => b.xp - a.xp)
+      .slice(0, 10)
+      .map(u => ({ id: u.id, fullName: u.fullName, username: u.username, role: u.role, xp: u.xp, level: u.level, coins: u.coins, streakDays: u.streakDays }));
+    const roleDistribution = {
+      admin: allUsers.filter(u => u.role === "admin").length,
+      teacher: allUsers.filter(u => u.role === "teacher").length,
+      student: allUsers.filter(u => u.role === "student").length,
+    };
+    res.json({
+      totalUsers,
+      activeUsers,
+      totalLessons,
+      pendingLessons,
+      publishedLessons,
+      rejectedLessons,
+      approvedLessons,
+      draftLessons,
+      totalCoinsCirculation,
+      topUsers,
+      roleDistribution,
+    });
+  });
+
+  // ─── Admin Settings ───
+  app.get("/api/admin/settings", requireAdmin, async (_req, res) => {
+    const settings = await storage.getAllSystemSettings();
+    const settingsMap: Record<string, string> = {};
+    settings.forEach(s => { if (s.key && s.value !== null) settingsMap[s.key] = s.value!; });
+    res.json(settingsMap);
+  });
+
+  app.put("/api/admin/settings", requireAdmin, async (req, res) => {
+    const updates = req.body;
+    if (!updates || typeof updates !== "object") return res.status(400).json({ message: "Noto'g'ri ma'lumot" });
+    const results: Record<string, string> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === "string") {
+        await storage.setSystemSetting(key, value);
+        results[key] = value;
+      }
+    }
+    res.json(results);
   });
 
   app.get("/api/lessons/public/:id", async (req, res) => {

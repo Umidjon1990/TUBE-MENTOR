@@ -74,6 +74,10 @@ export interface IStorage {
 
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(key: string, value: string): Promise<SystemSetting>;
+  getAllSystemSettings(): Promise<SystemSetting[]>;
+  addXpAndUpdateStreak(userId: string, xpAmount: number): Promise<User>;
+  countNotesByUser(userId: string): Promise<number>;
+  countBookmarksByUser(userId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -356,6 +360,51 @@ export class DatabaseStorage implements IStorage {
     }
     const [s] = await db.insert(systemSettings).values({ key, value }).returning();
     return s;
+  }
+
+  async getAllSystemSettings(): Promise<SystemSetting[]> {
+    return db.select().from(systemSettings);
+  }
+
+  async addXpAndUpdateStreak(userId: string, xpAmount: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    const today = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    let newStreak = user.streakDays;
+    if (user.lastStudyDate === yesterday) {
+      newStreak = user.streakDays + 1;
+    } else if (user.lastStudyDate !== today) {
+      newStreak = 1;
+    }
+    const newXp = user.xp + xpAmount;
+    const newLevel = Math.floor(newXp / 100) + 1;
+    const newBadges = [...(user.badges || [])];
+    if (newStreak >= 7 && !newBadges.includes("streak_7")) newBadges.push("streak_7");
+    if (newStreak >= 30 && !newBadges.includes("streak_30")) newBadges.push("streak_30");
+    if (newXp >= 500 && !newBadges.includes("xp_500")) newBadges.push("xp_500");
+    if (newXp >= 1000 && !newBadges.includes("xp_1000")) newBadges.push("xp_1000");
+    if (newLevel >= 5 && !newBadges.includes("level_5")) newBadges.push("level_5");
+    if (newLevel >= 10 && !newBadges.includes("level_10")) newBadges.push("level_10");
+    const [updated] = await db.update(users).set({
+      xp: newXp,
+      level: newLevel,
+      streakDays: newStreak,
+      lastStudyDate: today,
+      badges: newBadges,
+      updatedAt: new Date(),
+    }).where(eq(users.id, userId)).returning();
+    return updated;
+  }
+
+  async countNotesByUser(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(notes).where(eq(notes.userId, userId));
+    return Number(result[0].count);
+  }
+
+  async countBookmarksByUser(userId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(bookmarks).where(eq(bookmarks.userId, userId));
+    return Number(result[0].count);
   }
 }
 

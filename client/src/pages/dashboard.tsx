@@ -4,10 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import {
   BookOpen, Coins, BarChart3, Clock, TrendingUp,
   PlayCircle, PlusCircle, Layers, Hourglass, Globe,
-  ArrowRight, ArrowUpRight, ArrowDownRight, AlertCircle
+  ArrowRight, ArrowUpRight, ArrowDownRight, AlertCircle,
+  Flame, Star, Trophy, Zap, Shield, Target, Award
 } from "lucide-react";
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
@@ -32,6 +34,17 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
   draft: { label: "Qoralama", variant: "secondary" },
 };
 
+const badgeLabels: Record<string, { label: string; icon: typeof Star; color: string }> = {
+  first_lesson: { label: "Birinchi dars", icon: BookOpen, color: "text-cyan-400" },
+  quiz_master: { label: "Test ustasi", icon: Target, color: "text-amber-400" },
+  streak_7: { label: "7 kunlik streak", icon: Flame, color: "text-orange-400" },
+  streak_30: { label: "30 kunlik streak", icon: Flame, color: "text-red-500" },
+  xp_500: { label: "500 XP", icon: Zap, color: "text-violet-400" },
+  xp_1000: { label: "1000 XP", icon: Zap, color: "text-violet-500" },
+  level_5: { label: "5-daraja", icon: Shield, color: "text-emerald-400" },
+  level_10: { label: "10-daraja", icon: Trophy, color: "text-amber-500" },
+};
+
 function formatStudyTime(seconds: number): string {
   if (seconds < 60) return `${seconds} son`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)} daq`;
@@ -54,9 +67,17 @@ export default function DashboardPage() {
     { label: "Mening darslarim", value: String(data?.lessonCount ?? 0), icon: BookOpen, color: "text-primary", bg: "from-primary/10 to-cyan-500/10" },
     { label: "Saqlangan kartochkalar", value: String(data?.flashcardCount ?? 0), icon: Layers, color: "text-emerald-500", bg: "from-emerald-500/10 to-green-500/10" },
     { label: "O'rganilgan so'zlar", value: String(data?.learnedWords ?? 0), icon: TrendingUp, color: "text-violet-500", bg: "from-violet-500/10 to-purple-500/10" },
-    { label: "Pending darslar", value: String(data?.pendingCount ?? 0), icon: Hourglass, color: "text-orange-400", bg: "from-orange-400/10 to-amber-500/10" },
+    { label: "Kutilmoqda", value: String(data?.pendingCount ?? 0), icon: Hourglass, color: "text-orange-400", bg: "from-orange-400/10 to-amber-500/10" },
     { label: "O'qish vaqti", value: formatStudyTime(data?.totalStudyTime ?? 0), icon: Clock, color: "text-sky-400", bg: "from-sky-400/10 to-blue-500/10" },
   ];
+
+  const xp = user?.xp ?? 0;
+  const level = user?.level ?? 1;
+  const streakDays = user?.streakDays ?? 0;
+  const badges = (user?.badges as string[]) ?? [];
+  const xpForNext = level * 100;
+  const xpInLevel = xp - (level - 1) * 100;
+  const xpProgress = Math.min(100, (xpInLevel / 100) * 100);
 
   if (error) {
     return (
@@ -73,6 +94,111 @@ export default function DashboardPage() {
 
   return (
     <UserLayout title={`Xush kelibsiz, ${user?.fullName}!`} subtitle="Boshqaruv paneli">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="glass border-border/50 sm:col-span-2 lg:col-span-2" data-testid="card-xp-progress">
+          <CardContent className="p-5">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{xp} XP</p>
+                      <p className="text-[10px] text-muted-foreground">Daraja {level}</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-400" data-testid="badge-level">
+                    LVL {level}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>{xpInLevel} / 100 XP</span>
+                    <span>Keyingi daraja: {level + 1}</span>
+                  </div>
+                  <Progress value={xpProgress} className="h-2" data-testid="progress-xp" />
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-border/50" data-testid="card-streak">
+          <CardContent className="p-5">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <Skeleton className="h-7 w-12" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
+                    <Flame className={`w-5 h-5 ${streakDays > 0 ? "text-orange-400" : "text-muted-foreground/40"}`} />
+                  </div>
+                </div>
+                <p className="text-2xl font-bold">{streakDays}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Kunlik streak</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="glass border-border/50" data-testid="card-badges">
+          <CardContent className="p-5">
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <Skeleton className="h-7 w-12" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center">
+                    <Award className="w-5 h-5 text-amber-400" />
+                  </div>
+                </div>
+                <p className="text-2xl font-bold">{badges.length}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Yutuqlar</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {badges.length > 0 && (
+        <Card className="glass border-border/50 mb-6" data-testid="card-badges-list">
+          <CardContent className="p-5">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-400" /> Yutuqlar
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {badges.map((badge) => {
+                const info = badgeLabels[badge] || { label: badge, icon: Star, color: "text-muted-foreground" };
+                const Icon = info.icon;
+                return (
+                  <div
+                    key={badge}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30"
+                    data-testid={`badge-${badge}`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${info.color}`} />
+                    <span className="text-xs font-medium">{info.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {stats.map((stat, i) => (
           <Card key={i} className="glass border-border/50" data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s/g, "-")}`}>
@@ -162,7 +288,7 @@ export default function DashboardPage() {
           <Card className="glass border-border/50" data-testid="card-public-recommendations">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold">Public darslar tavsiyasi</h2>
+                <h2 className="text-base font-semibold">Tavsiya etilgan darslar</h2>
                 <Globe className="w-4 h-4 text-muted-foreground/40" />
               </div>
               <PublicLessonsWidget />
@@ -228,6 +354,11 @@ export default function DashboardPage() {
                     <Layers className="w-4 h-4 text-emerald-500" /> Kartochkalar
                   </Button>
                 </Link>
+                <Link href="/analytics">
+                  <Button variant="outline" className="w-full justify-start gap-2 text-sm" data-testid="button-quick-analytics">
+                    <BarChart3 className="w-4 h-4 text-violet-500" /> Tahlil
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -238,9 +369,11 @@ export default function DashboardPage() {
 }
 
 function PublicLessonsWidget() {
-  const { data: publicLessons, isLoading } = useQuery<Lesson[]>({
+  const { data, isLoading } = useQuery<{ lessons: Lesson[] }>({
     queryKey: ["/api/lessons/public"],
   });
+
+  const publicLessons = data?.lessons ?? [];
 
   if (isLoading) {
     return (
@@ -250,7 +383,7 @@ function PublicLessonsWidget() {
     );
   }
 
-  if (!publicLessons || publicLessons.length === 0) {
+  if (publicLessons.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Globe className="w-8 h-8 text-muted-foreground/30 mb-2" />
@@ -262,23 +395,24 @@ function PublicLessonsWidget() {
   return (
     <div className="space-y-2">
       {publicLessons.slice(0, 4).map((lesson) => (
-        <div
-          key={lesson.id}
-          className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors"
-          data-testid={`public-lesson-${lesson.id}`}
-        >
-          {lesson.thumbnailUrl ? (
-            <img src={lesson.thumbnailUrl} alt="" className="w-14 h-9 rounded object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-14 h-9 rounded bg-muted/50 flex items-center justify-center flex-shrink-0">
-              <PlayCircle className="w-4 h-4 text-muted-foreground/50" />
+        <Link key={lesson.id} href={`/library/${lesson.id}`}>
+          <div
+            className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors cursor-pointer"
+            data-testid={`public-lesson-${lesson.id}`}
+          >
+            {lesson.thumbnailUrl ? (
+              <img src={lesson.thumbnailUrl} alt="" className="w-14 h-9 rounded object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-14 h-9 rounded bg-muted/50 flex items-center justify-center flex-shrink-0">
+                <PlayCircle className="w-4 h-4 text-muted-foreground/50" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{lesson.title}</p>
+              <p className="text-[10px] text-muted-foreground">{lesson.level}</p>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{lesson.title}</p>
-            <p className="text-[10px] text-muted-foreground">{lesson.level}</p>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

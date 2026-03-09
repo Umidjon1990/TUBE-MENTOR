@@ -4,7 +4,7 @@ AI-powered EdTech platform that transforms YouTube videos into interactive lesso
 
 ## Architecture
 
-- **Frontend**: React + TypeScript + Tailwind CSS + shadcn/ui (client/)
+- **Frontend**: React + TypeScript + Tailwind CSS + shadcn/ui + recharts (client/)
 - **Backend**: Node.js + Express with session-based auth (server/)
 - **Database**: PostgreSQL with Drizzle ORM
 - **Auth**: Session-based with scrypt password hashing (server/auth.ts)
@@ -28,7 +28,7 @@ client/
     components/
       layouts/
         public-layout.tsx      # Public navbar + footer wrapper
-        user-layout.tsx        # User sidebar + topbar + profile menu
+        user-layout.tsx        # User sidebar + topbar + profile menu (streak/level/coins indicators)
         admin-layout.tsx       # Admin sidebar + topbar + admin badge
       protected-route.tsx      # Auth guard with role checks
       ui/                      # shadcn/ui components
@@ -38,23 +38,26 @@ client/
     pages/
       home.tsx                 # Public landing page
       login.tsx                # Login page
-      dashboard.tsx            # User dashboard (student/teacher)
+      dashboard.tsx            # User dashboard with gamification widgets (XP, streak, badges)
       not-found.tsx            # 404 page
+      public-library.tsx       # Public lesson library with search/filter
+      public-lesson.tsx        # Public lesson detail (read-only)
       user/
         create-lesson.tsx      # Create lesson form with YouTube URL, coin cost
         my-lessons.tsx         # My lessons grid with search/filter/sort
         lesson-process.tsx     # Multi-step transcript extraction + AI generation
-        flashcards.tsx         # Flashcards placeholder
-        notes.tsx              # Notes placeholder
-        analytics.tsx          # Analytics placeholder
-        profile.tsx            # User profile
+        lesson-detail.tsx      # Interactive lesson with 6 tabs
+        flashcards.tsx         # Flashcards management
+        notes.tsx              # Notes management
+        analytics.tsx          # Full analytics dashboard with charts
+        profile.tsx            # User profile with gamification stats
       admin/
         users.tsx              # Admin user management
-        lessons.tsx            # Admin lessons management placeholder
-        moderation.tsx         # Moderation placeholder
-        coins.tsx              # Coin management placeholder
-        categories.tsx         # Categories management placeholder
-        settings.tsx           # System settings placeholder
+        lessons.tsx            # Admin lessons management
+        moderation.tsx         # Content moderation workflow
+        coins.tsx              # Coin management
+        categories.tsx         # Categories management
+        settings.tsx           # System settings management
     lib/
       queryClient.ts           # TanStack Query setup
       utils.ts                 # Utility functions
@@ -69,7 +72,7 @@ server/
     transcript.ts              # YouTube caption extraction, manual/demo modes
     ai-generator.ts            # Pluggable AI content generation (mock → OpenAI)
 shared/
-  schema.ts                    # Drizzle schemas + Zod types
+  schema.ts                    # 11 Drizzle models + relations + Zod types
 ```
 
 ## Frontend Routes
@@ -81,44 +84,24 @@ shared/
 - `/library/:id` - Public lesson detail (read-only view of published lessons)
 
 ### User (student/teacher) — UserLayout with sidebar
-- `/dashboard` - Dashboard
+- `/dashboard` - Dashboard with gamification widgets (XP progress, streak, badges)
 - `/lessons/create` - Create lesson
 - `/lessons/:id/process` - Lesson processing (transcript + AI generation)
 - `/lessons/:id` - Lesson detail with 6 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar)
 - `/lessons` - My lessons
 - `/flashcards` - Flashcards
 - `/notes` - Notes
-- `/analytics` - Analytics
-- `/profile` - Profile
+- `/analytics` - Full analytics dashboard with charts (weekly study, stats)
+- `/profile` - Profile with XP, level, streak, badges
 
 ### Admin — AdminLayout with sidebar
-- `/admin` - Admin dashboard
+- `/admin` - Admin analytics dashboard with charts (lesson status pie, user roles bar, top users)
 - `/admin/users` - User management
 - `/admin/lessons` - Lessons management
 - `/admin/moderation` - Content moderation (approve/reject/publish/unpublish, metadata, tags, featured)
 - `/admin/coins` - Coin management
 - `/admin/categories` - Categories management
-- `/admin/settings` - System settings
-
-## Navigation Items (Uzbek)
-
-### User Sidebar
-1. Boshqaruv paneli → /dashboard
-2. Dars yaratish → /lessons/create
-3. Mening darslarim → /lessons
-4. Kartochkalar → /flashcards
-5. Eslatmalar → /notes
-6. Tahlil → /analytics
-7. Profil → /profile
-
-### Admin Sidebar
-1. Admin paneli → /admin
-2. Foydalanuvchilar → /admin/users
-3. Darslar → /admin/lessons
-4. Moderatsiya → /admin/moderation
-5. Coin boshqaruvi → /admin/coins
-6. Kategoriyalar → /admin/categories
-7. Sozlamalar → /admin/settings
+- `/admin/settings` - System settings management (costs, limits, defaults)
 
 ## API Routes
 
@@ -130,47 +113,60 @@ shared/
 ### Admin — User Management
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/users/:id` - Get user detail
-- `POST /api/admin/users` - Create user (fullName, username, password, role, coins?)
-- `PATCH /api/admin/users/:id` - Update user (fullName, username, role)
-- `PATCH /api/admin/users/:id/status` - Activate/deactivate user (isActive)
-- `PATCH /api/admin/users/:id/password` - Reset password (newPassword)
+- `POST /api/admin/users` - Create user
+- `PATCH /api/admin/users/:id` - Update user
+- `PATCH /api/admin/users/:id/status` - Activate/deactivate user
+- `PATCH /api/admin/users/:id/password` - Reset password
+- `POST /api/admin/users/:id/coins` - Add/remove coins
+- `GET /api/admin/users/:id/coins` - Get balance + transactions
 
-### Admin — Coin Management
-- `POST /api/admin/users/:id/coins` - Add/remove coins (amount, type: add|remove, description)
-- `GET /api/admin/users/:id/coins` - Get balance + transaction history
+### Admin — Lesson Management
+- `GET /api/admin/lessons` - List all lessons with tags and creator info
+- `GET /api/admin/lessons/:id` - Get lesson detail with all categories/tags
+- `PATCH /api/admin/lessons/:id/approve` - Approve lesson
+- `PATCH /api/admin/lessons/:id/reject` - Reject lesson
+- `PATCH /api/admin/lessons/:id/publish` - Publish lesson
+- `PATCH /api/admin/lessons/:id/unpublish` - Unpublish lesson
+- `PATCH /api/admin/lessons/:id` - Update metadata (moderationNote, isFeatured, categoryId)
+- `PUT /api/admin/lessons/:id/tags` - Set tags
+- `DELETE /api/admin/lessons/:id` - Delete lesson
+
+### Admin — Analytics & Settings
+- `GET /api/admin/analytics` - Full platform analytics
+- `GET /api/admin/settings` - All system settings
+- `PUT /api/admin/settings` - Update settings (bulk)
+
+### User — Analytics
+- `GET /api/user/analytics` - User analytics (lessons, accuracy, XP, streak, charts)
 
 ### User — Dashboard & Lessons
-- `GET /api/user/dashboard` - Aggregated dashboard (coins, counts, recent lessons, recent transactions)
+- `GET /api/user/dashboard` - Aggregated dashboard data
 - `GET /api/user/lessons` - User's own lessons
-- `GET /api/user/lessons/:id` - Single lesson detail (ownership checked)
-- `POST /api/user/lessons` - Create lesson (youtubeUrl, title?, categoryId?, tagIds?, level) — costs 10 coins
-- `POST /api/user/lessons/:id/transcript` - Extract/submit transcript (mode: auto|manual|demo)
-- `POST /api/user/lessons/:id/generate` - Trigger AI lesson generation from transcript
-- `GET /api/user/lessons/:id/flashcards` - Lesson flashcards
-- `POST /api/user/lessons/:id/flashcards` - Create flashcard
-- `PATCH /api/user/flashcards/:id` - Update flashcard
-- `DELETE /api/user/flashcards/:id` - Delete flashcard
-- `GET /api/user/lessons/:id/notes` - Lesson notes
-- `POST /api/user/lessons/:id/notes` - Create note
-- `PATCH /api/user/notes/:id` - Update note
-- `DELETE /api/user/notes/:id` - Delete note
-- `GET /api/user/lessons/:id/bookmarks` - Lesson bookmarks
-- `POST /api/user/lessons/:id/bookmarks` - Create bookmark
-- `DELETE /api/user/bookmarks/:id` - Delete bookmark
-- `GET /api/user/lessons/:id/progress` - Get lesson progress
-- `POST /api/user/lessons/:id/progress` - Create/update lesson progress
-- `GET /api/user/progress` - User lesson progress
-- `GET /api/categories` - List all categories
-- `GET /api/tags` - List all tags
-- `GET /api/lessons/public` - Public published lessons (up to 10)
-- `GET /api/health` - Health check
+- `GET /api/user/lessons/:id` - Single lesson detail
+- `POST /api/user/lessons` - Create lesson (costs 10 coins)
+- `POST /api/user/lessons/:id/transcript` - Extract/submit transcript
+- `POST /api/user/lessons/:id/generate` - Trigger AI lesson generation
+- `GET/POST/PATCH/DELETE` - Flashcards, notes, bookmarks, progress CRUD
 
-## AI Generation Pipeline
+### Public
+- `GET /api/lessons/public` - Published lessons with search/filter
+- `GET /api/lessons/public/:id` - Public lesson detail
 
-- **Transcript extraction**: auto (YouTube captions), manual (user input), demo (built-in sample)
-- **AI generator**: Mock provider generates vocabulary, phrases, quizzes, flashcards, sentence analysis
-- **Architecture**: `server/services/ai-generator.ts` — pluggable, ready for OpenAI replacement
-- **Services**: `server/services/transcript.ts` — transcript extraction/cleaning/splitting
+## Gamification System
+
+- **XP**: Awarded on study progress updates (5 base + 25 per quiz + 2 per word learned)
+- **Levels**: 100 XP per level (level = floor(xp/100) + 1)
+- **Streaks**: Daily study tracking, resets if a day is missed
+- **Badges**: Automatically awarded: first_lesson, quiz_master, streak_7, streak_30, xp_500, xp_1000, level_5, level_10
+- **Display**: Header indicators (streak/level/coins), dashboard widgets, profile page
+
+## System Settings
+
+Managed via admin settings page, stored in `system_settings` table:
+- lesson_creation_cost, regenerate_cost, export_cost
+- max_transcript_length, featured_lesson_count, default_difficulty
+- xp_per_lesson_complete, xp_per_quiz, xp_per_flashcard_review
+- site_name, coins_per_registration, maintenance_mode, etc.
 
 ## Authentication
 
@@ -178,7 +174,7 @@ shared/
 - Passwords hashed with scrypt (server/auth.ts)
 - Session regeneration on login (fixation prevention)
 - Cookie: httpOnly, sameSite=lax, secure in production
-- Middleware: requireAuth, requireAdmin, requireRole (all re-check DB state)
+- Middleware: requireAuth, requireAdmin, requireRole
 
 ## Roles
 
@@ -191,7 +187,7 @@ shared/
 - admin / admin123
 - aziza_k / aziza123 (teacher)
 - bobur_a / bobur123 (student)
-- dilnoza_s / dilnoza123 (student)
+- dilorom_y / dilorom123 (student)
 
 ## Environment Variables
 
@@ -201,4 +197,8 @@ shared/
 
 ## Seed Data
 
-Auto-seeds on first startup: 4 users, 5 categories, 10 tags, 5 lessons, flashcards, notes, bookmarks, coin transactions, 8 system settings.
+Auto-seeds on first startup: 4+ users, 5 categories, 10 tags, 5 lessons with content, flashcards, notes, bookmarks, coin transactions, 17+ system settings.
+
+## Database Schema
+
+11 tables: users, categories, tags, lessons, lesson_tags, lesson_progress, flashcards, notes, bookmarks, coin_transactions, system_settings. User table includes gamification fields: xp, level, streakDays, lastStudyDate, badges.

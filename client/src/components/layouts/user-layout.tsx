@@ -22,6 +22,8 @@ import {
   X,
   Coins,
   ChevronRight,
+  Flame,
+  Zap,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -130,8 +132,16 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+              <Flame className={`w-3.5 h-3.5 ${(user?.streakDays ?? 0) > 0 ? "text-orange-400" : "text-muted-foreground/40"}`} />
+              <span className="text-xs font-semibold" data-testid="text-user-streak">{user?.streakDays ?? 0}</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+              <Zap className="w-3.5 h-3.5 text-violet-400" />
+              <span className="text-xs font-semibold" data-testid="text-user-level">LV{user?.level ?? 1}</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border/50">
               <Coins className="w-3.5 h-3.5 text-amber-500" />
               <span className="text-xs font-semibold" data-testid="text-user-coins">{user?.coins ?? 0}</span>
             </div>

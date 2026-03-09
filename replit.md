@@ -70,7 +70,7 @@ server/
   seed.ts                      # Seed script
   services/
     transcript.ts              # YouTube caption extraction, manual/demo modes
-    ai-generator.ts            # Pluggable AI content generation (mock → OpenAI)
+    ai-generator.ts            # AI content generation (OpenAI GPT-4o with mock fallback)
 shared/
   schema.ts                    # 11 Drizzle models + relations + Zod types
 ```
@@ -194,6 +194,15 @@ Managed via admin settings page, stored in `system_settings` table:
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Session encryption secret
 - `PORT` - Server port (default: 5000)
+- `AI_INTEGRATIONS_OPENAI_API_KEY` - OpenAI API key (via Replit AI Integrations)
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` - OpenAI base URL (via Replit AI Integrations)
+
+## AI Integration
+
+- Uses Replit AI Integrations for OpenAI access (no personal API key needed)
+- Model: GPT-4o for lesson content generation
+- Charges billed to Replit credits
+- Falls back to mock generator if OpenAI fails
 
 ## Seed Data
 

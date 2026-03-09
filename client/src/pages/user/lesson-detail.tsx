@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute, Link, useLocation } from "wouter";
+import { useRoute, Link, useSearch } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -96,20 +96,22 @@ export default function LessonDetailPage() {
   const [, params] = useRoute("/lessons/:id");
   const lessonId = params?.id;
   const { toast } = useToast();
-  const [location] = useLocation();
+  const searchString = useSearch();
 
   const [seekTime, setSeekTime] = useState<number | undefined>(undefined);
+  const [seekNonce, setSeekNonce] = useState(0);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(searchString);
     const t = urlParams.get("t");
     if (t) {
       const val = parseInt(t, 10);
       if (Number.isFinite(val) && val >= 0) {
         setSeekTime(val);
+        setSeekNonce(n => n + 1);
       }
     }
-  }, [location]);
+  }, [searchString]);
 
   const { data: lesson, isLoading } = useQuery<Lesson>({
     queryKey: ["/api/user/lessons", lessonId],
@@ -328,6 +330,7 @@ export default function LessonDetailPage() {
             sentenceWordMaps={sentenceWordMaps}
             className="max-w-3xl"
             initialSeekTime={seekTime}
+            seekNonce={seekNonce}
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">

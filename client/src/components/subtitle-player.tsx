@@ -104,9 +104,10 @@ interface SubtitlePlayerProps {
   sentenceWordMaps?: SentenceWordMap[];
   className?: string;
   initialSeekTime?: number;
+  seekNonce?: number;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -272,11 +273,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   }, [videoId]);
 
   useEffect(() => {
-    if (initialSeekTime && initialSeekTime > 0 && isReady && playerRef.current) {
+    if (initialSeekTime != null && initialSeekTime >= 0 && isReady && playerRef.current) {
       playerRef.current.seekTo(initialSeekTime, true);
       playerRef.current.playVideo();
     }
-  }, [initialSeekTime, isReady]);
+  }, [initialSeekTime, seekNonce, isReady]);
 
   useEffect(() => {
     if (isPlaying && playerRef.current) {

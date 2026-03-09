@@ -211,6 +211,7 @@ export default function LessonProcessPage() {
             onBack={() => setStep("transcript-ready")}
             isPending={importMutation.isPending}
             transcript={transcriptPreview}
+            manualTranscript={lesson.manualTranscript || ""}
           />
         )}
         {step === "generating" && <GeneratingState />}
@@ -540,7 +541,33 @@ function TranscriptReadyState({
   );
 }
 
-function buildChatGptPrompt(transcript: string): string {
+function extractTimedLines(manualTranscript: string): { time: string; text: string }[] {
+  const lines = manualTranscript.trim().split(/\n/).filter(l => l.trim());
+  const result: { time: string; text: string }[] = [];
+  const tsRegex = /^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*$/;
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(tsRegex);
+    if (match && i + 1 < lines.length) {
+      result.push({ time: match[1], text: lines[i + 1].trim() });
+      i++;
+    } else {
+      const inlineMatch = lines[i].match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+(.+)/);
+      if (inlineMatch) {
+        result.push({ time: inlineMatch[1], text: inlineMatch[2].trim() });
+      }
+    }
+  }
+  return result;
+}
+
+function buildChatGptPrompt(transcript: string, manualTranscript: string): string {
+  const timedLines = manualTranscript ? extractTimedLines(manualTranscript) : [];
+  const hasTiming = timedLines.length > 0;
+
+  const timedSection = hasTiming
+    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!\n\nVAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i + 1}. [${l.time}] ${l.text}`).join("\n")}\n`
+    : "";
+
   return `Sen professional til o'qituvchisisan. Quyidagi YouTube video transkriptidan o'zbek tilidagi o'quvchilar uchun ta'limiy kontent yarat.
 
 VAZIFA: Quyidagi transkriptni tahlil qilib, FAQAT JSON formatda javob ber. Boshqa hech narsa yozma — faqat { dan boshlab } gacha JSON.
@@ -549,6 +576,7 @@ QOIDALAR:
 - Barcha "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma!
 - wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech birini tashlab ketma!)
+${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi matn bo\'lishi kerak (o\'zgartirma!)' : ""}
 
 JSON STRUKTURASI:
 {
@@ -593,7 +621,7 @@ JSON STRUKTURASI:
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "transkriptdan gap (asl tilida)",
+      "sentence": "transkriptdan gap (asl tilida)${hasTiming ? " — AYNAN vaqtli ro'yxatdagi matn" : ""}",
       "translation": "O'ZBEKCHA tarjima",
       "translationAr": "arabcha tarjima",
       "grammarNotes": "grammatik izoh (o'zbekcha)",
@@ -617,7 +645,7 @@ MIQDOR:
 - quizzes: 8-10 ta savol
 - flashcards: 8-12 ta karta
 - sentenceAnalysis: BARCHA gaplar (birontasini ham tashlab ketma!)
-
+${timedSection}
 TRANSKRIPT:
 ${transcript}`;
 }
@@ -629,6 +657,7 @@ function JsonImportState({
   onBack,
   isPending,
   transcript,
+  manualTranscript,
 }: {
   jsonText: string;
   onJsonChange: (v: string) => void;
@@ -636,11 +665,12 @@ function JsonImportState({
   onBack: () => void;
   isPending: boolean;
   transcript: string;
+  manualTranscript: string;
 }) {
   const [showTemplate, setShowTemplate] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const chatGptPrompt = buildChatGptPrompt(transcript);
+  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript);
 
   function copyTemplate() {
     navigator.clipboard.writeText(chatGptPrompt).then(() => {

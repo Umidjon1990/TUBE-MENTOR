@@ -41,27 +41,40 @@ export function isTimestampedFormat(text: string): boolean {
   if (lines.length < 3) return false;
   let tsCount = 0;
   for (const line of lines) {
-    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(line)) tsCount++;
+    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/.test(line) || /^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(line)) tsCount++;
   }
-  return tsCount / lines.length >= 0.5;
+  return tsCount / lines.length >= 0.3;
 }
 
 export function parseTimestampedTranscript(raw: string): TimedSubtitle[] {
   const lines = raw.trim().split(/\n/).filter(l => l.trim().length > 0);
   const segments: { startTime: number; text: string }[] = [];
+  let pendingTime: number | null = null;
 
   for (const line of lines) {
-    const match = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)/);
-    if (match) {
-      const time = parseTimestamp(match[1]);
-      const text = match[2].trim();
+    const inlineMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)/);
+    const standaloneMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*$/);
+
+    if (inlineMatch) {
+      if (pendingTime !== null && segments.length > 0) {
+      }
+      pendingTime = null;
+      const time = parseTimestamp(inlineMatch[1]);
+      const text = inlineMatch[2].trim();
       if (text.length > 0) {
         segments.push({ startTime: time, text });
       }
+    } else if (standaloneMatch) {
+      pendingTime = parseTimestamp(standaloneMatch[1]);
     } else {
       const trimmed = line.trim();
-      if (trimmed.length > 0 && segments.length > 0) {
-        segments[segments.length - 1].text += " " + trimmed;
+      if (trimmed.length > 0) {
+        if (pendingTime !== null) {
+          segments.push({ startTime: pendingTime, text: trimmed });
+          pendingTime = null;
+        } else if (segments.length > 0) {
+          segments[segments.length - 1].text += " " + trimmed;
+        }
       }
     }
   }

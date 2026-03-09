@@ -92,7 +92,7 @@ shared/
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
 - **Sticky video**: Video + controls stick to top of viewport (`position: sticky`) while subtitle panel and tabs scroll below
 - **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
-- **Timestamped subtitle support**: Both auto (YouTube XML captions with start/dur) and manual (`M:SS text`) transcripts preserve real timing in `subtitlesJson` column
+- **Timestamped subtitle support**: Both auto (YouTube XML captions with start/dur) and manual transcripts preserve real timing in `subtitlesJson` column. Supports two manual formats: inline (`M:SS text`) and standalone (timestamp on separate line from text)
 - **Auto transcript timing**: YouTube XML `<text start="X" dur="Y">` attributes parsed and stored; merged via `mergeShortSubtitles()`
 - **Subtitle↔sentenceAnalysis matching**: Fuzzy matching with word overlap scoring (40%+ threshold) to pair timed subtitles with AI translations
 - Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson only when no timed data available

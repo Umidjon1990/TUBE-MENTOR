@@ -735,7 +735,7 @@ export async function registerRoutes(
         })) : [],
       }));
 
-      const updated = await storage.updateLesson(id, {
+      const updateData: any = {
         summaryShort: content.summaryShort || "",
         summaryDetailed: content.summaryDetailed || "",
         summaryShortAr: content.summaryShortAr || "",
@@ -753,7 +753,17 @@ export async function registerRoutes(
           sentenceCount: sentenceAnalysisJson.length,
         },
         status: "approved",
-      });
+      };
+
+      if (!lesson.subtitlesJson && lesson.manualTranscript) {
+        const manualResult = processManualTranscript(lesson.manualTranscript);
+        if (manualResult.timedSubtitles && manualResult.timedSubtitles.length > 0) {
+          updateData.subtitlesJson = manualResult.timedSubtitles;
+          console.log(`[import] Dars #${id}: subtitlesJson tiklandi (${manualResult.timedSubtitles.length} ta)`);
+        }
+      }
+
+      const updated = await storage.updateLesson(id, updateData);
 
       console.log(`[import] Dars #${id}: Manual JSON import muvaffaqiyatli (${sentenceAnalysisJson.length} gap, ${vocabularyJson.length} so'z)`);
       res.json(updated);

@@ -11,12 +11,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Loader2, Sparkles, FileText, AlertTriangle,
   CheckCircle2, RefreshCcw, Type, BookOpenCheck,
-  ChevronRight, ArrowLeft, Zap, Wand2
+  ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Lesson } from "@shared/schema";
 
-type ProcessStep = "loading" | "extracting" | "no-transcript" | "manual-input" | "transcript-ready" | "generating" | "done" | "error";
+type ProcessStep = "loading" | "extracting" | "no-transcript" | "manual-input" | "transcript-ready" | "generating" | "json-import" | "done" | "error";
 
 export default function LessonProcessPage() {
   const { toast } = useToast();
@@ -26,6 +26,7 @@ export default function LessonProcessPage() {
 
   const [step, setStep] = useState<ProcessStep>("loading");
   const [manualText, setManualText] = useState("");
+  const [jsonImportText, setJsonImportText] = useState("");
   const [transcriptPreview, setTranscriptPreview] = useState("");
   const [transcriptSource, setTranscriptSource] = useState("");
   const [sentenceCount, setSentenceCount] = useState(0);
@@ -89,6 +90,29 @@ export default function LessonProcessPage() {
     onError: (error: Error) => {
       toast({ title: "Xatolik", description: parseError(error), variant: "destructive" });
       setStep("error");
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonImportText.trim());
+      } catch {
+        throw new Error("JSON formati noto'g'ri. ChatGPT javobini to'liq ko'chiring.");
+      }
+      const res = await apiRequest("POST", `/api/user/lessons/${lessonId}/import-content`, { content: parsed });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/dashboard"] });
+      setStep("done");
+      toast({ title: "Import muvaffaqiyatli!", description: "ChatGPT natijasi tizimga yuklandi" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Import xatolik", description: parseError(error), variant: "destructive" });
     },
   });
 
@@ -176,6 +200,17 @@ export default function LessonProcessPage() {
             source={transcriptSource}
             sentenceCount={sentenceCount}
             onGenerate={startGeneration}
+            onJsonImport={() => setStep("json-import")}
+          />
+        )}
+        {step === "json-import" && (
+          <JsonImportState
+            jsonText={jsonImportText}
+            onJsonChange={setJsonImportText}
+            onSubmit={() => importMutation.mutate()}
+            onBack={() => setStep("transcript-ready")}
+            isPending={importMutation.isPending}
+            transcript={transcriptPreview}
           />
         )}
         {step === "generating" && <GeneratingState />}
@@ -203,7 +238,7 @@ function StepIndicator({ step }: { step: ProcessStep }) {
       return "done";
     }
     if (key === "generate") {
-      if (["transcript-ready", "generating"].includes(step)) return "active";
+      if (["transcript-ready", "generating", "json-import"].includes(step)) return "active";
       if (step === "done") return "done";
       return "pending";
     }
@@ -438,11 +473,13 @@ function TranscriptReadyState({
   source,
   sentenceCount,
   onGenerate,
+  onJsonImport,
 }: {
   preview: string;
   source: string;
   sentenceCount: number;
   onGenerate: () => void;
+  onJsonImport: () => void;
 }) {
   const sourceLabels: Record<string, string> = {
     auto: "Avtomatik",
@@ -476,14 +513,261 @@ function TranscriptReadyState({
           <span>{sentenceCount > 0 ? sentenceCount : preview.split(/[.!?]+/).filter(Boolean).length} gap</span>
         </div>
 
+        <div className="space-y-2">
+          <Button
+            className="w-full gap-2"
+            size="lg"
+            onClick={onGenerate}
+            data-testid="button-generate-ai"
+          >
+            <Wand2 className="w-4 h-4" /> AI bilan dars yaratish
+          </Button>
+          <Button
+            className="w-full gap-2"
+            size="lg"
+            variant="outline"
+            onClick={onJsonImport}
+            data-testid="button-json-import"
+          >
+            <ClipboardPaste className="w-4 h-4" /> ChatGPT natijasini import qilish
+          </Button>
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center">
+          Xarajatni tejash uchun ChatGPT da tayyor shablon bilan ishlang
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function buildChatGptPrompt(transcript: string): string {
+  return `Sen professional til o'qituvchisisan. Quyidagi YouTube video transkriptidan o'zbek tilidagi o'quvchilar uchun ta'limiy kontent yarat.
+
+VAZIFA: Quyidagi transkriptni tahlil qilib, FAQAT JSON formatda javob ber. Boshqa hech narsa yozma — faqat { dan boshlab } gacha JSON.
+
+QOIDALAR:
+- Barcha "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
+- sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma!
+- wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech birini tashlab ketma!)
+
+JSON STRUKTURASI:
+{
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "summaryShortAr": "ملخص قصير بالعربية",
+  "summaryDetailedAr": "ملخص تفصيلي بالعربية",
+  "vocabulary": [
+    {
+      "word": "asl tildagi so'z",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "partOfSpeech": "ism/fe'l/sifat/ravish",
+      "example": "transkriptdan misol gap",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "phrases": [
+    {
+      "phrase": "asl tildagi ibora",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "context": "qayerda ishlatiladi (o'zbekcha)"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida tushuntirish",
+      "type": "multiple_choice"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "asl tildagi so'z/ibora",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "backAr": "arabcha tarjima",
+      "type": "vocabulary"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "transkriptdan gap (asl tilida)",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "grammarNotes": "grammatik izoh (o'zbekcha)",
+      "keyWords": ["kalit", "so'zlar"],
+      "wordMap": [
+        {
+          "word": "asl so'z",
+          "normalized": "kichik harfda",
+          "translationUz": "o'zbekcha tarjima",
+          "translationAr": "arabcha tarjima",
+          "contextualMeaning": "gapdagi ma'nosi (o'zbekcha)"
+        }
+      ]
+    }
+  ]
+}
+
+MIQDOR:
+- vocabulary: 8-15 ta so'z
+- phrases: 4-8 ta ibora
+- quizzes: 8-10 ta savol
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA gaplar (birontasini ham tashlab ketma!)
+
+TRANSKRIPT:
+${transcript}`;
+}
+
+function JsonImportState({
+  jsonText,
+  onJsonChange,
+  onSubmit,
+  onBack,
+  isPending,
+  transcript,
+}: {
+  jsonText: string;
+  onJsonChange: (v: string) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+  isPending: boolean;
+  transcript: string;
+}) {
+  const [showTemplate, setShowTemplate] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const chatGptPrompt = buildChatGptPrompt(transcript);
+
+  function copyTemplate() {
+    navigator.clipboard.writeText(chatGptPrompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = chatGptPrompt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  let jsonValid = false;
+  let jsonError = "";
+  if (jsonText.trim()) {
+    try {
+      const parsed = JSON.parse(jsonText.trim());
+      const missing: string[] = [];
+      if (!parsed.summaryShort) missing.push("summaryShort");
+      if (!parsed.summaryDetailed) missing.push("summaryDetailed");
+      if (!Array.isArray(parsed.vocabulary) || parsed.vocabulary.length === 0) missing.push("vocabulary");
+      if (!Array.isArray(parsed.sentenceAnalysis) || parsed.sentenceAnalysis.length === 0) missing.push("sentenceAnalysis");
+      if (missing.length > 0) jsonError = `Topilmadi: ${missing.join(", ")}`;
+      else jsonValid = true;
+    } catch {
+      jsonError = "JSON formati noto'g'ri";
+    }
+  }
+
+  return (
+    <Card className="glass border-violet-500/20" data-testid="card-json-import">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+            <Upload className="w-5 h-5 text-violet-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">ChatGPT natijasini import qilish</h3>
+            <p className="text-xs text-muted-foreground">API xarajatisiz — ChatGPT dan olingan JSON ni bu yerga joylashtiring</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-3 space-y-2">
+          <p className="text-xs font-medium text-violet-400">Qanday ishlaydi:</p>
+          <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+            <li>Quyidagi shablonni nusxalang</li>
+            <li>ChatGPT (chat.openai.com) ga oching va joylashtiring</li>
+            <li>ChatGPT javobidagi JSON ni ko'chiring</li>
+            <li>Pastdagi maydonga joylashtiring</li>
+          </ol>
+        </div>
+
         <Button
-          className="w-full gap-2"
-          size="lg"
-          onClick={onGenerate}
-          data-testid="button-generate-ai"
+          variant="outline"
+          className="w-full gap-2 text-xs"
+          onClick={() => setShowTemplate(!showTemplate)}
+          data-testid="button-toggle-template"
         >
-          <Wand2 className="w-4 h-4" /> AI bilan dars yaratish
+          <FileText className="w-3.5 h-3.5" />
+          {showTemplate ? "Shablonni yashirish" : "ChatGPT shablonini ko'rish"}
         </Button>
+
+        {showTemplate && (
+          <div className="space-y-2">
+            <div className="rounded-lg bg-muted/30 border border-border/50 p-3 max-h-60 overflow-y-auto">
+              <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{chatGptPrompt}</pre>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full gap-1.5 text-xs"
+              onClick={copyTemplate}
+              data-testid="button-copy-template"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              {copied ? "Nusxalandi!" : "Shablonni nusxalash"}
+            </Button>
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">ChatGPT javobini bu yerga joylashtiring:</label>
+          <Textarea
+            placeholder='{"summaryShort": "...", "vocabulary": [...], ...}'
+            value={jsonText}
+            onChange={(e) => onJsonChange(e.target.value)}
+            className="min-h-[160px] bg-muted/30 border-border/50 text-xs font-mono"
+            data-testid="textarea-json-import"
+          />
+        </div>
+
+        {jsonText.trim() && (
+          <div className="flex items-center gap-2">
+            {jsonValid ? (
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
+                <CheckCircle2 className="w-3 h-3" /> JSON to'g'ri
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px] gap-1">
+                <AlertTriangle className="w-3 h-3" /> {jsonError}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onBack} className="gap-1.5" data-testid="button-import-back">
+            <ArrowLeft className="w-4 h-4" /> Orqaga
+          </Button>
+          <Button
+            className="flex-1 gap-1.5"
+            disabled={!jsonValid || isPending}
+            onClick={onSubmit}
+            data-testid="button-submit-import"
+          >
+            {isPending ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Yuklanmoqda...</>
+            ) : (
+              <><Upload className="w-4 h-4" /> Import qilish</>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

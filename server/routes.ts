@@ -664,6 +664,105 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Manual JSON Import (ChatGPT natijasini import qilish) ───
+  app.post("/api/user/lessons/:id/import-content", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    const { content } = req.body;
+    if (!content || typeof content !== "object") {
+      return res.status(400).json({ message: "JSON formatdagi kontent talab qilinadi" });
+    }
+
+    const errors: string[] = [];
+    if (!content.summaryShort) errors.push("summaryShort majburiy");
+    if (!content.summaryDetailed) errors.push("summaryDetailed majburiy");
+    if (!Array.isArray(content.vocabulary) || content.vocabulary.length === 0) errors.push("vocabulary majburiy (kamida 1 ta)");
+    if (!Array.isArray(content.sentenceAnalysis) || content.sentenceAnalysis.length === 0) errors.push("sentenceAnalysis majburiy (kamida 1 ta)");
+
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "JSON strukturasi noto'g'ri: " + errors.join(", ") });
+    }
+
+    try {
+      const vocabularyJson = (content.vocabulary || []).map((v: any) => ({
+        word: v.word || "",
+        translation: v.translation || "",
+        translationAr: v.translationAr || "",
+        partOfSpeech: v.partOfSpeech || "ism",
+        example: v.example || "",
+        difficulty: v.difficulty || "easy",
+      }));
+
+      const phrasesJson = (content.phrases || []).map((p: any) => ({
+        phrase: p.phrase || "",
+        translation: p.translation || "",
+        translationAr: p.translationAr || "",
+        context: p.context || "",
+      }));
+
+      const quizzesJson = (content.quizzes || []).map((q: any) => ({
+        question: q.question || "",
+        options: Array.isArray(q.options) ? q.options : [],
+        correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : 0,
+        explanation: q.explanation || "",
+        type: q.type === "fill_blank" ? "fill_blank" : "multiple_choice",
+      }));
+
+      const flashcardsJson = (content.flashcards || []).map((f: any) => ({
+        front: f.front || "",
+        back: f.back || "",
+        backAr: f.backAr || "",
+        type: (["vocabulary", "phrase", "grammar"].includes(f.type) ? f.type : "vocabulary"),
+      }));
+
+      const sentenceAnalysisJson = (content.sentenceAnalysis || []).map((s: any) => ({
+        sentence: s.sentence || "",
+        translation: s.translation || "",
+        translationAr: s.translationAr || "",
+        grammarNotes: s.grammarNotes || "",
+        keyWords: Array.isArray(s.keyWords) ? s.keyWords : [],
+        wordMap: Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
+          word: w.word || "",
+          normalized: w.normalized || (w.word || "").toLowerCase(),
+          translationUz: w.translationUz || "",
+          translationAr: w.translationAr || "",
+          contextualMeaning: w.contextualMeaning || "",
+        })) : [],
+      }));
+
+      const updated = await storage.updateLesson(id, {
+        summaryShort: content.summaryShort || "",
+        summaryDetailed: content.summaryDetailed || "",
+        summaryShortAr: content.summaryShortAr || "",
+        summaryDetailedAr: content.summaryDetailedAr || "",
+        vocabularyJson,
+        phrasesJson,
+        quizzesJson,
+        flashcardsJson,
+        sentenceAnalysisJson,
+        aiMetaJson: {
+          provider: "manual-import",
+          model: "chatgpt-manual",
+          generatedAt: new Date().toISOString(),
+          transcriptLength: lesson.transcript?.length || 0,
+          sentenceCount: sentenceAnalysisJson.length,
+        },
+        status: "approved",
+      });
+
+      console.log(`[import] Dars #${id}: Manual JSON import muvaffaqiyatli (${sentenceAnalysisJson.length} gap, ${vocabularyJson.length} so'z)`);
+      res.json(updated);
+    } catch (err: any) {
+      console.error(`[import] Dars #${id}: xatolik:`, err?.message || err);
+      res.status(500).json({ message: "Import qilishda xatolik yuz berdi" });
+    }
+  });
+
   // ─── Flashcards ───
   app.get("/api/user/lessons/:id/flashcards", requireAuth, async (req, res) => {
     const lessonId = parseInt(req.params.id as string);

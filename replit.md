@@ -152,6 +152,11 @@ shared/
 - `server/services/ai-generator.ts` with `detectLanguage()` for Arabic/English/mixed transcripts
 - OpenAI GPT-4o-mini (user's own API key prioritized) with explicit O'ZBEK translation requirements (SHART markers)
 - AI prompt sends all sentences as numbered list + instructs "BARCHA gaplarni tahlil qil" for complete analysis
+- **ChatGPT manual import**: Users can bypass API costs by using a built-in ChatGPT prompt template, pasting JSON result into the system
+  - Endpoint: `POST /api/user/lessons/:id/import-content` accepts `{ content: { ... } }` with full lesson JSON
+  - Frontend: `lesson-process.tsx` JsonImportState with template viewer, copy button, JSON validator
+  - Provider metadata: `provider: "manual-import"`, `model: "chatgpt-manual"`
+- **AI timeout**: 120s timeout on OpenAI calls; timeout errors propagated to user (not silently falling back to mock)
 - Mock fallback produces proper Uzbek placeholder text (not English snippets)
 - `mockUzTranslation()` with dictionary + generic Uzbek terms for unknown words
 - Generates:

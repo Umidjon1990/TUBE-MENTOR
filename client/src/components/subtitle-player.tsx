@@ -454,15 +454,17 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         <div className="relative rounded-xl overflow-hidden bg-black shadow-2xl shadow-black/50">
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
-            <div className="absolute inset-x-0 top-0 h-20 z-[5] pointer-events-none bg-gradient-to-b from-black/90 via-black/50 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-28 z-[5] pointer-events-none bg-gradient-to-t from-black via-black/80 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-12 z-[5] pointer-events-none bg-gradient-to-b from-black/70 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-16 z-[5] pointer-events-none bg-gradient-to-t from-black/70 to-transparent" />
             {activeSubtitle && (
-              <div className="absolute bottom-3 md:bottom-4 left-0 right-0 z-10 flex justify-center px-1" data-testid="subtitle-overlay">
+              <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center" data-testid="subtitle-overlay">
                 <div
-                  className="px-5 md:px-6 py-2 md:py-2.5 rounded-xl bg-gradient-to-br from-black/80 to-black/70 backdrop-blur-xl border border-cyan-400/20 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_12px_rgba(0,200,255,0.08)]"
+                  className="w-full px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-t from-black/90 via-black/75 to-transparent"
                   style={{ fontSize: `${subtitleZoom * 100}%` }}
                 >
-                  {renderOverlayText(activeSubtitle)}
+                  <div className="text-center">
+                    {renderOverlayText(activeSubtitle)}
+                  </div>
                 </div>
               </div>
             )}

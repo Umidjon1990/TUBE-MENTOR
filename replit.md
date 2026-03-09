@@ -90,6 +90,7 @@ shared/
 - **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet with safe-area padding
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
+- **Sticky video**: Video + controls stick to top of viewport (`position: sticky`) while subtitle panel and tabs scroll below
 - **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
 - **Timestamped subtitle support**: When manual transcript has `M:SS text` format, real timestamps are parsed and stored in `subtitlesJson` column; subtitles sync with actual YouTube video timing
 - Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson when no timed data available
@@ -144,9 +145,13 @@ shared/
 - **Kartochkalar**: Preset + saved modes, 3D flip cards, Arabic toggle on back side, confidence tracking, list view
 - **Eslatmalar**: Notes CRUD with pinning, bookmarks list with sentence reference
 
-## AI Generator Arabic Enrichment
+## AI Generator — Language-Aware Content Generation
 
-- `server/services/ai-generator.ts` generates:
+- `server/services/ai-generator.ts` with `detectLanguage()` for Arabic/English/mixed transcripts
+- OpenAI GPT-4o prompt explicitly requires O'ZBEK translations (emphasized with SHART markers)
+- Mock fallback produces proper Uzbek placeholder text (not English snippets)
+- `mockUzTranslation()` with dictionary + generic Uzbek terms for unknown words
+- Generates:
   - `translationAr` per vocabulary item, phrase, and sentence
   - `wordMap` array per sentence: word-level UZ+AR translations + contextual meaning
   - `backAr` per flashcard

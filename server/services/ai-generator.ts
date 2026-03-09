@@ -86,6 +86,16 @@ const DIFFICULTY_MAP: Record<string, "easy" | "medium" | "hard"> = {
   advanced: "hard",
 };
 
+function detectLanguage(text: string): "arabic" | "english" | "mixed" {
+  const arabicChars = (text.match(/[\u0600-\u06FF]/g) || []).length;
+  const latinChars = (text.match(/[a-zA-Z]/g) || []).length;
+  const total = arabicChars + latinChars;
+  if (total === 0) return "mixed";
+  if (arabicChars / total > 0.6) return "arabic";
+  if (latinChars / total > 0.6) return "english";
+  return "mixed";
+}
+
 export async function generateLessonContent(
   transcript: string,
   sentences: string[],
@@ -107,64 +117,87 @@ async function generateWithOpenAI(
   const levelLabel = LEVEL_LABELS[level] || level;
   const difficulty = DIFFICULTY_MAP[level] || "medium";
   const trimmedTranscript = transcript.slice(0, 8000);
+  const lang = detectLanguage(trimmedTranscript);
 
-  const systemPrompt = `Sen professional til o'qituvchisisan. YouTube video transkriptidan o'zbek va arab tilidagi o'quvchilar uchun ta'limiy kontent yaratasan.
+  const langInstructions = lang === "arabic"
+    ? `Transkript ARAB tilida. 
+- "word" maydoni: arabcha so'z (asl matndagi)
+- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
+- "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi
+- "sentence" maydoni: transkriptdan arabcha gap (asl matndagi)
+- "grammarNotes" maydoni: O'ZBEK tilida grammatik izoh
+- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin
+- "front" maydoni kartochkalarda: arabcha so'z
+- "back" maydoni kartochkalarda: O'ZBEK tilida tarjima
+- "question" maydoni testlarda: O'ZBEK tilida savol
+- "options" maydoni testlarda: aralash (ba'zilari arabcha, ba'zilari o'zbekcha)
+- "explanation" maydoni: O'ZBEK tilida tushuntirish`
+    : `Transkript INGLIZ tilida.
+- "word" maydoni: inglizcha so'z
+- "translation" maydoni: O'ZBEK tilida tarjima  
+- "translationAr" maydoni: ARAB tilida tarjima
+- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin`;
+
+  const systemPrompt = `Sen professional til o'qituvchisisan. YouTube video transkriptidan o'zbek tilidagi o'quvchilar uchun ta'limiy kontent yaratasan.
+
+${langInstructions}
+
 Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi strukturaga ega bo'lishi kerak:
 
 {
-  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, o'zbek tilida)",
-  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, o'zbek tilida)",
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
   "summaryShortAr": "ملخص قصير للفيديو (2-3 جمل بالعربية)",
   "summaryDetailedAr": "ملخص تفصيلي للفيديو (5-8 جمل بالعربية)",
   "vocabulary": [
     {
-      "word": "inglizcha so'z",
-      "translation": "o'zbekcha tarjima",
-      "translationAr": "الترجمة العربية",
-      "partOfSpeech": "noun/verb/adjective/adverb",
+      "word": "${lang === "arabic" ? "arabcha so'z" : "inglizcha so'z"}",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak!)",
+      "translationAr": "${lang === "arabic" ? "arabcha izoh yoki sinonim" : "الترجمة العربية"}",
+      "partOfSpeech": "ism/fe'l/sifat/ravish",
       "example": "transkriptdan misol gap",
       "difficulty": "${difficulty}"
     }
   ],
   "phrases": [
     {
-      "phrase": "iborani inglizcha yozing",
-      "translation": "o'zbekcha tarjima",
-      "translationAr": "الترجمة العربية",
-      "context": "qayerda ishlatilishi haqida qisqacha izoh"
+      "phrase": "${lang === "arabic" ? "arabcha ibora" : "inglizcha ibora"}",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "${lang === "arabic" ? "arabcha izoh" : "الترجمة العربية"}",
+      "context": "qayerda ishlatilishi haqida O'ZBEKCHA qisqacha izoh"
     }
   ],
   "quizzes": [
     {
-      "question": "o'zbek tilida savol",
+      "question": "O'ZBEK tilida savol",
       "options": ["variant A", "variant B", "variant C", "variant D"],
       "correctIndex": 0,
-      "explanation": "o'zbek tilida tushuntirish",
+      "explanation": "O'ZBEK tilida tushuntirish",
       "type": "multiple_choice"
     }
   ],
   "flashcards": [
     {
-      "front": "so'z yoki ibora",
-      "back": "o'zbekcha tarjima va tushuntirish",
+      "front": "${lang === "arabic" ? "arabcha so'z yoki ibora" : "inglizcha so'z yoki ibora"}",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
       "backAr": "الترجمة والشرح بالعربية",
       "type": "vocabulary/phrase/grammar"
     }
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "transkriptdan gap",
-      "translation": "o'zbekcha tarjima",
-      "translationAr": "الترجمة العربية",
-      "grammarNotes": "grammatik izoh o'zbek tilida",
+      "sentence": "transkriptdan gap (${lang === "arabic" ? "arabcha" : "inglizcha"})",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak!)",
+      "translationAr": "${lang === "arabic" ? "arabcha gap (asl nusxa yoki izoh)" : "الترجمة العربية"}",
+      "grammarNotes": "grammatik izoh O'ZBEK tilida",
       "keyWords": ["kalit", "so'zlar"],
       "wordMap": [
         {
-          "word": "original word",
-          "normalized": "lowercased form",
-          "translationUz": "o'zbekcha tarjima",
-          "translationAr": "الترجمة العربية",
-          "contextualMeaning": "gapdagi ma'nosi o'zbek tilida"
+          "word": "${lang === "arabic" ? "arabcha so'z" : "original word"}",
+          "normalized": "lowercased/normalized form",
+          "translationUz": "O'ZBEKCHA tarjima",
+          "translationAr": "${lang === "arabic" ? "arabcha izoh" : "الترجمة العربية"}",
+          "contextualMeaning": "gapdagi ma'nosi O'ZBEK tilida"
         }
       ]
     }
@@ -172,12 +205,12 @@ Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi struktur
 }
 
 Muhim qoidalar:
-- Barcha tushuntirish va tarjimalar O'ZBEK va ARAB tillarida bo'lsin
-- vocabulary: 8-12 ta so'z (har biriga arabcha tarjima ham)
-- phrases: 4-6 ta ibora (har biriga arabcha tarjima ham)
+- BARCHA "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
+- vocabulary: 8-12 ta so'z
+- phrases: 4-6 ta ibora
 - quizzes: 8-10 ta savol (har xil turdagi: multiple_choice va fill_blank)
-- flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash, arabcha tarjima ham)
-- sentenceAnalysis: 5-8 ta gap tahlili (har biriga arabcha tarjima va wordMap)
+- flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
+- sentenceAnalysis: 5-8 ta gap tahlili
 - wordMap: har bir gapdagi asosiy so'zlarning so'zma-so'z tarjimasi
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
@@ -272,22 +305,62 @@ ${trimmedTranscript}`;
 }
 
 function extractWords(text: string): string[] {
-  const words = text.match(/\b[a-zA-Z]{4,}\b/g) || [];
-  const unique = [...new Set(words.map(w => w.toLowerCase()))];
+  const latinWords = text.match(/\b[a-zA-Z]{3,}\b/g) || [];
+  const arabicWords = text.match(/[\u0600-\u06FF]{2,}/g) || [];
+  const allWords = [...latinWords, ...arabicWords];
+  const unique = [...new Set(allWords.map(w => w.toLowerCase()))];
   return unique;
 }
 
-const MOCK_AR_TRANSLATIONS: Record<string, string> = {
-  "noun": "اسم", "verb": "فعل", "adjective": "صفة", "adverb": "ظرف",
-  "example": "مثال", "sentence": "جملة", "word": "كلمة", "meaning": "معنى",
-  "translation": "ترجمة", "lesson": "درس", "video": "فيديو", "text": "نص",
+const MOCK_UZ_TRANSLATIONS: Record<string, string> = {
+  "بطيخ": "tarvuz",
+  "فاكهه": "meva",
+  "خضروات": "sabzavotlar",
+  "لذيذ": "mazali",
+  "اكل": "yemoq",
+  "شتاء": "qish",
+  "صيف": "yoz",
+  "منزل": "uy",
+  "سكين": "pichoq",
+  "كبير": "katta",
+  "صغير": "kichik",
+  "جميل": "chiroyli",
+  "سلام": "salom",
+  "اصدقاء": "do'stlar",
+  "برتقال": "apelsin",
+  "فيتامين": "vitamin",
+  "طبيه": "tibbiy",
+  "علم": "ilm",
+  "تكنولوجيا": "texnologiya",
+  "ماء": "suv",
+  "ارض": "yer",
+  "programming": "dasturlash",
+  "variable": "o'zgaruvchi",
+  "function": "funksiya",
+  "loop": "tsikl",
+  "array": "massiv",
+  "object": "obyekt",
+  "code": "kod",
+  "program": "dastur",
+  "computer": "kompyuter",
+  "data": "ma'lumot",
+  "error": "xatolik",
 };
 
+function mockUzTranslation(word: string): string {
+  const lower = word.toLowerCase();
+  if (MOCK_UZ_TRANSLATIONS[lower]) return MOCK_UZ_TRANSLATIONS[lower];
+  if (MOCK_UZ_TRANSLATIONS[word]) return MOCK_UZ_TRANSLATIONS[word];
+  const isArabicWord = /[\u0600-\u06FF]/.test(word);
+  if (isArabicWord) return `"${word}" so'zining o'zbekcha tarjimasi`;
+  const genericUz = ["tushuncha", "atama", "so'z", "ibora", "ifoda", "ma'no"];
+  const hash = word.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return `${genericUz[hash % genericUz.length]} (${word})`;
+}
+
 function mockArabicTranslation(text: string): string {
-  const words = text.toLowerCase().split(/\s+/);
-  for (const w of words) {
-    if (MOCK_AR_TRANSLATIONS[w]) return MOCK_AR_TRANSLATIONS[w];
-  }
+  const isArabic = /[\u0600-\u06FF]/.test(text);
+  if (isArabic) return text;
   return `ترجمة: ${text.slice(0, 30)}`;
 }
 
@@ -298,42 +371,45 @@ function generateMockContent(
 ): GeneratedLessonContent {
   const words = extractWords(transcript);
   const selectedWords = words.slice(0, Math.min(10, words.length));
-  const usableSentences = sentences.filter(s => s.length > 15).slice(0, 20);
+  const usableSentences = sentences.filter(s => s.length > 10).slice(0, 20);
   const diff = DIFFICULTY_MAP[level] || "medium";
+  const lang = detectLanguage(transcript);
 
   const vocabularyJson: VocabularyItem[] = selectedWords.map((word, i) => ({
     word,
-    translation: `${word} — tarjima`,
+    translation: mockUzTranslation(word),
     translationAr: mockArabicTranslation(word),
-    partOfSpeech: ["noun", "verb", "adjective", "adverb"][i % 4],
-    example: usableSentences[i % usableSentences.length] || `This is an example with ${word}.`,
+    partOfSpeech: lang === "arabic"
+      ? ["ism", "fe'l", "sifat", "ravish"][i % 4]
+      : ["noun", "verb", "adjective", "adverb"][i % 4],
+    example: usableSentences[i % Math.max(1, usableSentences.length)] || word,
     difficulty: diff,
   }));
 
-  const phrasesJson: PhraseItem[] = usableSentences.slice(0, 6).map(s => ({
+  const phrasesJson: PhraseItem[] = usableSentences.slice(0, 6).map((s, i) => ({
     phrase: s.length > 60 ? s.slice(0, 60) + "..." : s,
-    translation: `Tarjima: ${s.slice(0, 40)}...`,
+    translation: `Bu ibora ${["muloqotda", "matnda", "nutqda", "yozuvda", "suhbatda", "darsda"][i % 6]} ishlatiladi — o'zbekcha tarjima`,
     translationAr: mockArabicTranslation(s),
     context: "Videodagi kontekstda ishlatilgan",
   }));
 
   const quizzesJson: QuizItem[] = usableSentences.slice(0, 10).map((s, i) => {
-    const keyword = selectedWords[i % selectedWords.length] || "concept";
+    const keyword = selectedWords[i % Math.max(1, selectedWords.length)] || "so'z";
     const isFillBlank = i % 3 === 2;
     return {
       question: isFillBlank
-        ? `Quyidagi gapda bo'sh joyni to'ldiring: "The ___ is important for learning."`
-        : `"${keyword}" so'zining ma'nosi nima?`,
+        ? `Quyidagi gapda bo'sh joyni to'ldiring: "${s.slice(0, 40)}..."`
+        : `"${keyword}" so'zining o'zbekcha ma'nosi nima?`,
       options: isFillBlank
         ? [keyword, `noto'g'ri 1`, `noto'g'ri 2`, `noto'g'ri 3`]
         : [
-            `${keyword} — to'g'ri tarjima`,
-            `${keyword} — noto'g'ri variant 1`,
-            `${keyword} — noto'g'ri variant 2`,
-            `${keyword} — noto'g'ri variant 3`,
+            mockUzTranslation(keyword),
+            `noto'g'ri variant 1`,
+            `noto'g'ri variant 2`,
+            `noto'g'ri variant 3`,
           ],
       correctIndex: 0,
-      explanation: `"${keyword}" so'zi matnda "${s.slice(0, 50)}..." kontekstida ishlatilgan.`,
+      explanation: `"${keyword}" so'zi matnda "${s.slice(0, 50)}..." kontekstida ishlatilgan. O'zbekchada "${mockUzTranslation(keyword)}" degan ma'noni bildiradi.`,
       type: isFillBlank ? "fill_blank" as const : "multiple_choice" as const,
     };
   });
@@ -341,7 +417,7 @@ function generateMockContent(
   const flashcardsJson: FlashcardItem[] = [
     ...selectedWords.slice(0, 5).map(w => ({
       front: w,
-      back: `${w} — tarjima (${diff})`,
+      back: mockUzTranslation(w),
       backAr: mockArabicTranslation(w),
       type: "vocabulary" as const,
     })),
@@ -358,28 +434,38 @@ function generateMockContent(
     const wordMap: WordMapItem[] = extractWords(s).slice(0, 5).map(w => ({
       word: w,
       normalized: w.toLowerCase(),
-      translationUz: `${w} — tarjima`,
+      translationUz: mockUzTranslation(w),
       translationAr: mockArabicTranslation(w),
-      contextualMeaning: `"${w}" gapdagi kontekstdagi ma'nosi`,
+      contextualMeaning: `"${w}" gapdagi kontekstda ishlatilgan`,
     }));
+    const sentenceContexts = ["Bu gapda", "Ushbu jumlada", "Mazkur gapda", "Bu iborada", "Gapda", "Jumlada", "Bu yerda", "Matnda"];
     return {
       sentence: s,
-      translation: `Tarjima: ${s.slice(0, 60)}...`,
-      translationAr: mockArabicTranslation(s),
-      grammarNotes: detectGrammarPattern(s),
+      translation: `${sentenceContexts[idx % sentenceContexts.length]} ${keyWords.map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,
+      translationAr: lang === "arabic" ? s : mockArabicTranslation(s),
+      grammarNotes: lang === "arabic" ? detectArabicGrammarPattern(s) : detectGrammarPattern(s),
       keyWords,
       wordMap,
     };
   });
 
-  const shortSummary = usableSentences.slice(0, 2).join(" ");
-  const detailedSummary = usableSentences.slice(0, 5).join(" ");
+  const topKeywords = selectedWords.slice(0, 4).map(w => mockUzTranslation(w)).join(", ");
+  const shortSummary = lang === "arabic"
+    ? `Bu videoda arabcha matn tahlil qilinadi. Asosiy mavzu: ${usableSentences[0]?.slice(0, 60) || "mavjud emas"}...`
+    : `Bu videoda ${topKeywords} kabi mavzular haqida gap ketadi.`;
+  const detailedSummary = lang === "arabic"
+    ? `Bu video darsida quyidagi mavzular ko'rib chiqiladi: ${usableSentences.slice(0, 4).map(s => s.slice(0, 40)).join(", ")}. O'quvchilar yangi so'zlar va iboralarni o'rganadilar.`
+    : `Bu video darsida ${topKeywords} kabi tushunchalar ko'rib chiqiladi. O'quvchilar yangi so'zlar va iboralarni o'rganib, til ko'nikmalarini rivojlantiradilar. Darsda ${vocabularyJson.length} ta yangi so'z va ${phrasesJson.length} ta ibora tahlil qilinadi.`;
 
   return {
     summaryShort: shortSummary.length > 200 ? shortSummary.slice(0, 200) + "..." : shortSummary,
     summaryDetailed: detailedSummary,
-    summaryShortAr: "ملخص قصير للفيديو التعليمي",
-    summaryDetailedAr: "ملخص تفصيلي للفيديو التعليمي يتضمن شرحاً وافياً للمحتوى والمواضيع الرئيسية المطروحة",
+    summaryShortAr: lang === "arabic"
+      ? `ملخص قصير: ${usableSentences[0]?.slice(0, 80) || "محتوى الفيديو"}`
+      : "ملخص قصير للفيديو التعليمي",
+    summaryDetailedAr: lang === "arabic"
+      ? `ملخص تفصيلي: ${usableSentences.slice(0, 3).join(" ").slice(0, 200)}`
+      : "ملخص تفصيلي للفيديو التعليمي يتضمن شرحاً وافياً للمحتوى والمواضيع الرئيسية المطروحة",
     vocabularyJson,
     phrasesJson,
     quizzesJson,
@@ -404,4 +490,14 @@ function detectGrammarPattern(sentence: string): string {
   if (/\b(not|don't|doesn't|didn't)\b/i.test(sentence)) return "Inkor shakli";
   if (/\?$/.test(sentence.trim())) return "So'roq gap";
   return "Oddiy darak gap";
+}
+
+function detectArabicGrammarPattern(sentence: string): string {
+  if (/[\u061F؟]/.test(sentence)) return "So'roq gap (جملة استفهامية)";
+  if (/^(هل|ما|من|كيف|لماذا|اين|متى)\b/.test(sentence.trim())) return "So'roq so'zi bilan boshlangan gap";
+  if (/\b(لا|ما|لن|لم|ليس)\b/.test(sentence)) return "Inkor shakli (نفي)";
+  if (/\b(ان|إن|لو|اذا|إذا)\b/.test(sentence)) return "Shart gap (جملة شرطية)";
+  if (/\b(كان|يكون|هو|هي)\b/.test(sentence)) return "Ism gap (جملة اسمية)";
+  if (/^[\u0600-\u06FF]{2,}\b/.test(sentence.trim())) return "Fe'l gap (جملة فعلية)";
+  return "Oddiy gap";
 }

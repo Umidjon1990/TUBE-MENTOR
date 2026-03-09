@@ -273,8 +273,15 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   useEffect(() => {
     if (panelMode !== "auto" || activeIndex < 0 || !panelRef.current || panelCollapsed) return;
-    const el = panelRef.current.querySelector(`[data-subtitle-idx="${activeIndex}"]`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const el = panelRef.current.querySelector(`[data-subtitle-idx="${activeIndex}"]`) as HTMLElement | null;
+    if (el && panelRef.current) {
+      const panel = panelRef.current;
+      const elTop = el.offsetTop - panel.offsetTop;
+      const elHeight = el.offsetHeight;
+      const panelHeight = panel.clientHeight;
+      const scrollTarget = elTop - (panelHeight / 2) + (elHeight / 2);
+      panel.scrollTo({ top: scrollTarget, behavior: "smooth" });
+    }
   }, [activeIndex, panelMode, panelCollapsed]);
 
   const seekTo = useCallback((time: number) => {
@@ -427,21 +434,22 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const hasSubtitles = subtitles.length > 0;
 
   return (
-    <div className={`space-y-2 md:space-y-3 ${className}`}>
-      <div className="relative rounded-xl overflow-hidden bg-black shadow-2xl shadow-black/50">
-        <div className="relative aspect-video">
-          <div ref={playerContainerRef} className="absolute inset-0 z-0" />
-          {activeSubtitle && (
-            <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 right-2 md:right-3 z-10" data-testid="subtitle-overlay">
-              <div className="mx-auto max-w-[95%] md:max-w-[80%] px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 shadow-lg">
-                {renderOverlayText(activeSubtitle)}
+    <div className={`${className}`}>
+      <div className="sticky top-0 z-20 bg-background pb-2 md:pb-3 space-y-2 md:space-y-3">
+        <div className="relative rounded-xl overflow-hidden bg-black shadow-2xl shadow-black/50">
+          <div className="relative aspect-video">
+            <div ref={playerContainerRef} className="absolute inset-0 z-0" />
+            {activeSubtitle && (
+              <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 right-2 md:right-3 z-10" data-testid="subtitle-overlay">
+                <div className="mx-auto max-w-[95%] md:max-w-[80%] px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 shadow-lg">
+                  {renderOverlayText(activeSubtitle)}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {hasSubtitles && (
+        {hasSubtitles && (
         <div className="flex items-center gap-1 md:gap-1.5 rounded-xl glass border border-border/50 p-1 md:p-1.5 overflow-x-auto" data-testid="learning-controls">
           <Button
             variant="ghost" size="icon"
@@ -639,10 +647,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           </Button>
         </div>
       </div>
+      </div>
 
       {hasSubtitles && (
         <div
-          className="rounded-xl glass border border-border/50 overflow-hidden transition-all duration-300"
+          className="rounded-xl glass border border-border/50 overflow-hidden transition-all duration-300 mt-2 md:mt-3"
           data-testid="subtitle-panel"
         >
           <button
@@ -672,7 +681,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               ref={panelRef}
               className="max-h-[200px] md:max-h-[320px] overflow-y-auto scroll-smooth"
             >
-              <div className="p-1.5 md:p-2 space-y-0.5">
+              <div className="p-1.5 md:p-2 divide-y divide-border/20">
                 {subtitles.map((item, idx) => {
                   const isActive = idx === activeIndex;
                   const translation = getTranslation(item);
@@ -683,11 +692,12 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                     <div
                       key={item.id}
                       data-subtitle-idx={idx}
-                      className={`w-full rounded-lg px-2.5 md:px-3 py-1.5 md:py-2 transition-all duration-200 group
+                      className={`w-full rounded-lg px-2.5 md:px-3 py-2 md:py-2.5 transition-all duration-200 group
                         ${isActive
                           ? "bg-primary/10 border border-primary/30 shadow-sm shadow-primary/5 ring-1 ring-primary/20"
                           : "hover:bg-white/5 border border-transparent"
-                        }`}
+                        }
+                        ${idx > 0 && !isActive ? "mt-0.5" : ""}`}
                       data-testid={`button-subtitle-line-${idx}`}
                     >
                       <div className="flex items-start gap-1.5 md:gap-2">
@@ -760,7 +770,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       )}
 
       {!hasSubtitles && (
-        <div className="rounded-xl glass border border-border/50 p-6 text-center" data-testid="no-subtitles">
+        <div className="rounded-xl glass border border-border/50 p-6 text-center mt-2 md:mt-3" data-testid="no-subtitles">
           <Subtitles className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Subtitle ma'lumotlari mavjud emas</p>
         </div>

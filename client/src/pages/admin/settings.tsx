@@ -50,7 +50,7 @@ const settingsConfig: SettingConfig[] = [
   {
     key: "regenerate_cost",
     label: "Qayta generatsiya narxi",
-    description: "AI kontentni qayta generatsiya qilish uchun coin narxi",
+    description: "Kontentni qayta generatsiya qilish uchun coin narxi",
     icon: RefreshCw,
     type: "number",
     min: 0,

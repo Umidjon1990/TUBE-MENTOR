@@ -272,7 +272,7 @@ export default function CreateLessonPage() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span>AI dars yaratish</span>
+                  <span>Dars yaratish</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Coins className="w-3.5 h-3.5 text-amber-500" />

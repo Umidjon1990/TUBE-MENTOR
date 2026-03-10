@@ -331,7 +331,7 @@ function Header({ title, level }: { title: string; level: string }) {
   return (
     <View style={styles.header} fixed>
       <View style={styles.brandBar} />
-      <Text style={styles.brandName}>TUBE MENTOR AI</Text>
+      <Text style={styles.brandName}>TUBE MENTOR</Text>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.level}>Daraja: {level}</Text>
     </View>
@@ -341,7 +341,7 @@ function Header({ title, level }: { title: string; level: string }) {
 function Footer() {
   return (
     <View style={styles.footer} fixed>
-      <Text style={styles.footerText}>Tube Mentor AI | tubementor.ai</Text>
+      <Text style={styles.footerText}>Tube Mentor | tubementor.ai</Text>
       <Text
         style={styles.pageNumber}
         render={({ pageNumber, totalPages }) =>

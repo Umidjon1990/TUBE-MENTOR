@@ -47,7 +47,7 @@ export default function LoginPage() {
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center mb-4 neon-glow">
             <GraduationCap className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight" data-testid="text-login-title">Tube Mentor AI</h1>
+          <h1 className="text-2xl font-bold tracking-tight" data-testid="text-login-title">TUBE MENTOR</h1>
           <p className="text-sm text-muted-foreground mt-1" data-testid="text-login-subtitle">
             Tizimga kirish
           </p>

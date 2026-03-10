@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  GraduationCap,
   PlayCircle,
-  Brain,
   BookOpen,
   Sparkles,
-  ArrowRight,
-  Zap,
-  Users,
-  BarChart3,
+  Subtitles,
+  Languages,
+  AlignLeft,
+  Search,
+  ClipboardCheck,
+  Layers,
 } from "lucide-react";
 import { Link } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
@@ -29,7 +29,7 @@ function HeroSection() {
               className="text-sm font-medium text-primary"
               data-testid="text-badge-ai"
             >
-              ZAMONAVIY TA'LIM LOYIHASI
+              VIDEO ASOSIDA DARSLIKLAR
             </span>
           </div>
 
@@ -48,9 +48,8 @@ function HeroSection() {
             className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed"
             data-testid="text-hero-description"
           >
-            Tube Mentor AI yordamida istalgan YouTube videosini interaktiv
-            darslarga aylantiring. Sun'iy intellekt sizga o'rganishni
-            osonlashtiradi.
+            Istalgan YouTube videosidan professional darsliklar tayyorlang.
+            O'qituvchi yaratadi — o'quvchilar foydalanadi.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
@@ -73,48 +72,50 @@ function HeroSection() {
 
 const features = [
   {
-    icon: Brain,
-    title: "VIDEO TAHLILI",
+    icon: Subtitles,
+    title: "Video subtitle",
     description:
-      "Sun'iy intellekt video mazmunini chuqur tahlil qiladi va asosiy fikrlarni ajratib beradi.",
+      "YouTube videolariga subtitrlar qo'shiladi va real vaqtda ko'rsatiladi.",
     gradient: "from-primary/10 to-cyan-500/10",
     iconColor: "text-primary",
   },
   {
-    icon: BookOpen,
-    title: "Interaktiv darslar",
+    icon: Languages,
+    title: "So'zma-so'z tarjima",
     description:
-      "Videolardan avtomatik ravishda tuzilgan darslar va mashqlar yaratiladi.",
+      "Har bir so'zning tarjimasi va ma'nosi alohida ko'rsatiladi.",
     gradient: "from-accent/10 to-violet-500/10",
     iconColor: "text-accent",
   },
   {
-    icon: Zap,
-    title: "Tezkor natija",
-    description: "Bir necha daqiqada videoni to'liq darsga aylantiring.",
+    icon: AlignLeft,
+    title: "Gapma-gap tarjima",
+    description:
+      "Har bir gap alohida tarjima qilinadi va grammatik tahlili beriladi.",
     gradient: "from-amber-500/10 to-orange-500/10",
     iconColor: "text-amber-500",
   },
   {
-    icon: Users,
-    title: "Hamkorlikda o'rganish",
+    icon: Search,
+    title: "So'zlar tahlili",
     description:
-      "Boshqa o'quvchilar bilan birga o'rganing va tajriba almashing.",
+      "So'zlarning lug'aviy shakli, qo'llanishi va kontekstdagi ma'nosi tahlil qilinadi.",
     gradient: "from-emerald-500/10 to-green-500/10",
     iconColor: "text-emerald-500",
   },
   {
-    icon: BarChart3,
-    title: "Rivojlanish tahlili",
-    description: "O'z bilimlaringiz va rivojlanishingizni kuzatib boring.",
+    icon: ClipboardCheck,
+    title: "Testlar",
+    description:
+      "Dars mavzusi bo'yicha bilimingizni sinash uchun testlar tayyorlanadi.",
     gradient: "from-blue-500/10 to-indigo-500/10",
     iconColor: "text-blue-500",
   },
   {
-    icon: GraduationCap,
-    title: "Sertifikatlar",
+    icon: Layers,
+    title: "Flashcardlar",
     description:
-      "Kurslarni tugatganingizda sertifikat oling va yutuqlaringizni namoyish qiling.",
+      "So'zlarni eslab qolish uchun flashcard kartochkalari yaratiladi.",
     gradient: "from-rose-500/10 to-pink-500/10",
     iconColor: "text-rose-500",
   },
@@ -128,14 +129,13 @@ function FeaturesSection() {
           className="text-3xl md:text-4xl font-bold mb-4"
           data-testid="text-features-title"
         >
-          Nima uchun TUBE MENTOR ?
+          Nima uchun TUBE MENTOR?
         </h2>
         <p
           className="text-muted-foreground text-lg max-w-2xl mx-auto"
           data-testid="text-features-subtitle"
         >
-          Zamonaviy texnologiyalar yordamida o'rganishni yangi bosqichga olib
-          chiqing
+          Video asosida tayyorlangan darsliklarning imkoniyatlari
         </p>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -165,49 +165,11 @@ function FeaturesSection() {
   );
 }
 
-function CTASection() {
-  return (
-    <section id="cta" className="max-w-6xl mx-auto px-6 py-24">
-      <div className="relative rounded-2xl overflow-hidden neon-glow">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-accent/80" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA4KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIvPjwvc3ZnPg==')] opacity-50" />
-        <div className="relative p-12 md:p-16 text-center">
-          <h2
-            className="text-3xl md:text-4xl font-bold text-white mb-4"
-            data-testid="text-cta-title"
-          >
-            Hoziroq boshlang!
-          </h2>
-          <p
-            className="text-white/80 text-lg mb-8 max-w-xl mx-auto"
-            data-testid="text-cta-description"
-          >
-            Tube Mentor AI bilan o'rganishni yangi darajaga olib chiqing. Bepul
-            ro'yxatdan o'ting va birinchi darsingizni yarating.
-          </p>
-          <Link href="/login">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="shadow-lg px-8"
-              data-testid="button-cta-login"
-            >
-              Tizimga kirish
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function Home() {
   return (
     <PublicLayout>
       <HeroSection />
       <FeaturesSection />
-      <CTASection />
     </PublicLayout>
   );
 }

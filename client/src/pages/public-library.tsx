@@ -302,7 +302,7 @@ export default function PublicLibrary() {
                 O'z darsingizni yarating
               </h2>
               <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-                YouTube videolaridan AI yordamida interaktiv darslar yarating
+                YouTube videolaridan interaktiv darslar yarating
               </p>
               <Link href="/login">
                 <Button data-testid="button-cta-create">

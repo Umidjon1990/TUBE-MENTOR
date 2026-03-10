@@ -105,7 +105,7 @@ export default function LessonProcessPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/dashboard"] });
       setStep("done");
-      toast({ title: "Dars tayyor!", description: "AI dars muvaffaqiyatli yaratildi" });
+      toast({ title: "Dars tayyor!", description: "Dars muvaffaqiyatli yaratildi" });
     },
     onError: (error: Error) => {
       toast({ title: "Xatolik", description: parseError(error), variant: "destructive" });
@@ -251,7 +251,7 @@ export default function LessonProcessPage() {
 function StepIndicator({ step }: { step: ProcessStep }) {
   const steps = [
     { key: "transcript", label: "Transkript", icon: FileText },
-    { key: "generate", label: "AI generatsiya", icon: Sparkles },
+    { key: "generate", label: "Generatsiya", icon: Sparkles },
     { key: "result", label: "Natija", icon: CheckCircle2 },
   ];
 
@@ -519,7 +519,7 @@ function TranscriptReadyState({
           </div>
           <div className="flex-1">
             <h3 className="text-base font-semibold">Transkript tayyor</h3>
-            <p className="text-xs text-muted-foreground">AI generatsiya uchun tayyor</p>
+            <p className="text-xs text-muted-foreground">Generatsiya uchun tayyor</p>
           </div>
           <Badge variant="outline" className="text-xs">{sourceLabels[source] || source}</Badge>
         </div>
@@ -543,7 +543,7 @@ function TranscriptReadyState({
             onClick={onGenerate}
             data-testid="button-generate-ai"
           >
-            <Wand2 className="w-4 h-4" /> AI bilan dars yaratish
+            <Wand2 className="w-4 h-4" /> Dars yaratish
           </Button>
           <Button
             className="w-full gap-2"
@@ -851,9 +851,9 @@ function GeneratingState() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-violet-500/10 flex items-center justify-center mb-4 neon-glow">
             <Sparkles className="w-8 h-8 text-primary animate-pulse" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">AI dars yaratmoqda</h3>
+          <h3 className="text-lg font-semibold mb-2">Dars yaratilmoqda</h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-md">
-            Sun'iy intellekt transkriptni tahlil qilib, interaktiv dars tayyorlamoqda
+            Transkript tahlil qilinmoqda va interaktiv dars tayyorlanmoqda
           </p>
           <div className="flex items-center gap-2 text-xs text-primary">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -875,7 +875,7 @@ function DoneState({ lessonId, onViewLesson }: { lessonId: number; onViewLesson:
           </div>
           <h3 className="text-lg font-semibold mb-2">Dars muvaffaqiyatli yaratildi!</h3>
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
-            AI dars tayyor. Endi darsni ko'rishingiz mumkin.
+            Dars tayyor. Endi darsni ko'rishingiz mumkin.
           </p>
           <Button onClick={onViewLesson} className="gap-1.5" data-testid="button-view-lessons">
             <Zap className="w-4 h-4" /> Darslarimga o'tish
@@ -895,7 +895,7 @@ function ErrorState({ onRetry, onBack }: { onRetry: () => void; onBack: () => vo
             <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
           <h3 className="text-lg font-semibold mb-2">Xatolik yuz berdi</h3>
-          <p className="text-sm text-muted-foreground mb-6">AI generatsiyada xatolik. Qayta urinib ko'ring.</p>
+          <p className="text-sm text-muted-foreground mb-6">Generatsiyada xatolik. Qayta urinib ko'ring.</p>
           <div className="flex gap-3">
             <Button variant="outline" onClick={onBack} data-testid="button-error-back">
               <ArrowLeft className="w-4 h-4 mr-1.5" /> Orqaga

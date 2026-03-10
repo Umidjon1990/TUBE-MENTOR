@@ -1,6 +1,6 @@
-# Tube Mentor AI
+# TUBE MENTOR
 
-AI-powered EdTech platform that transforms YouTube videos into interactive lessons. UI language: Uzbek.
+EdTech platform that transforms YouTube videos into interactive Arabic lessons with Uzbek UI. Teachers create lessons, students consume them.
 
 ## Architecture
 
@@ -12,7 +12,7 @@ AI-powered EdTech platform that transforms YouTube videos into interactive lesso
 
 ## Design System
 
-- **Theme**: Dark mode default, futuristic AI lab vibe
+- **Theme**: Dark mode default, futuristic neon vibe
 - **Colors**: Neon cyan primary (190 95% 50%), violet accent (260 80% 62%)
 - **Effects**: Glassmorphism (.glass, .glass-strong), neon glow (.neon-glow), gradient mesh backgrounds
 - **Typography**: Inter/DM Sans fonts

@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import type { VocabEntry, LessonExportData, ExportConfig } from "./export-types";
 import { prepareVocabulary } from "./export-transform";
 
-const BRAND = "Tube Mentor AI";
+const BRAND = "TUBE MENTOR";
 
 const COLORS = {
   headerBg: "FF10B981",

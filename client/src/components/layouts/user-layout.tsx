@@ -52,8 +52,8 @@ function SidebarContent({ currentPath }: { currentPath: string }) {
               <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <span className="text-base font-bold tracking-tight block" data-testid="text-sidebar-brand">Tube Mentor</span>
-              <span className="text-[10px] font-medium text-primary tracking-widest uppercase">AI Platform</span>
+              <span className="text-base font-bold tracking-tight block" data-testid="text-sidebar-brand">TUBE MENTOR</span>
+              <span className="text-[10px] font-medium text-primary tracking-widest uppercase">Video darsliklar</span>
             </div>
           </div>
         </Link>
@@ -85,7 +85,7 @@ function SidebarContent({ currentPath }: { currentPath: string }) {
         <div className="rounded-lg glass p-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>AI tizimi faol</span>
+            <span>Tizim faol</span>
           </div>
         </div>
       </div>

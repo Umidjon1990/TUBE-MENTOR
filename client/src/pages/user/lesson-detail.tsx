@@ -1322,7 +1322,7 @@ function SummaryTab({ lesson, sentences, vocabulary }: {
         <Card className="glass border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Sparkles className="w-4 h-4" /> AI ma'lumotlari
+              <Sparkles className="w-4 h-4" /> Qo'shimcha ma'lumotlar
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -11,14 +11,12 @@ function PublicNavbar() {
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center neon-glow-sm">
               <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight" data-testid="text-brand-name">Tube Mentor </span>
+            <span className="text-lg font-bold tracking-tight" data-testid="text-brand-name">TUBE MENTOR</span>
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">
           <Link href="/library" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-library">Kutubxona</Link>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
-          <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-pricing">Narxlar</a>
-          <a href="#cta" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-about">Biz haqimizda</a>
         </nav>
         <div className="flex items-center gap-3">
           <Link href="/login">
@@ -42,19 +40,18 @@ function PublicFooter() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
                 <GraduationCap className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold tracking-tight">Tube Mentor AI</span>
+              <span className="text-lg font-bold tracking-tight">TUBE MENTOR</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              Sun'iy intellekt yordamida YouTube videolaridan interaktiv darslar yarating va
-              o'rganish jarayonini samaraliroq qiling.
+              YouTube videolaridan professional darsliklar tayyorlang.
+              O'qituvchi yaratadi — o'quvchilar foydalanadi.
             </p>
           </div>
           <div>
             <h4 className="font-semibold mb-3 text-sm">Platforma</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#features" className="hover:text-foreground transition-colors">Xususiyatlar</a></li>
-              <li><a href="#stats" className="hover:text-foreground transition-colors">Narxlar</a></li>
-              <li><a href="#cta" className="hover:text-foreground transition-colors">Yordam</a></li>
+              <li><Link href="/library" className="hover:text-foreground transition-colors">Kutubxona</Link></li>
             </ul>
           </div>
           <div>
@@ -68,7 +65,7 @@ function PublicFooter() {
         </div>
         <div className="border-t border-border/50 mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground" data-testid="text-copyright">
-            &copy; 2026 Tube Mentor AI. Barcha huquqlar himoyalangan.
+            &copy; 2026 TUBE MENTOR. Barcha huquqlar himoyalangan.
           </p>
         </div>
       </div>

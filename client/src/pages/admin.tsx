@@ -410,7 +410,7 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-muted/30">
-                <span className="text-sm">AI tizimi</span>
+                <span className="text-sm">Tizim</span>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span className="text-xs text-emerald-500">Faol</span>

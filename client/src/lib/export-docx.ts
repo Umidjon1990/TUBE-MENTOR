@@ -52,7 +52,7 @@ function brandingHeader(title: string): Paragraph[] {
       spacing: { after: 100 },
       children: [
         new TextRun({
-          text: "TUBE MENTOR AI",
+          text: "TUBE MENTOR",
           bold: true,
           size: 20,
           color: COLORS.brand,
@@ -753,7 +753,7 @@ export async function generateDocx(
       },
       children: [
         new TextRun({
-          text: "Tube Mentor AI bilan tayyorlangan",
+          text: "Tube Mentor bilan tayyorlangan",
           size: 16,
           color: COLORS.gray,
           italics: true,

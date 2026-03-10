@@ -112,7 +112,7 @@ function FeaturesSection() {
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4`}>
                 <feature.icon className={`w-5 h-5 ${feature.iconColor}`} />
               </div>
-              <h3 className="text-base font-semibold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
+              <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors text-[22px] text-center">{feature.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
             </CardContent>
           </Card>

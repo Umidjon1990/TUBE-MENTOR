@@ -950,6 +950,62 @@ export async function registerRoutes(
     res.json(cats);
   });
 
+  app.post("/api/admin/categories", requireAdmin, async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return res.status(400).json({ message: "Kategoriya nomi kiritilishi shart" });
+      }
+      const slug = name.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+      const existing = await storage.getCategoryBySlug(slug);
+      if (existing) {
+        return res.status(400).json({ message: "Bu nomli kategoriya allaqachon mavjud" });
+      }
+      const cat = await storage.createCategory({ name: name.trim(), slug, description: description?.trim() || null });
+      res.json(cat);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.patch("/api/admin/categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+      const { name, description } = req.body;
+      const updateData: any = {};
+      if (name && typeof name === "string" && name.trim()) {
+        updateData.name = name.trim();
+        const newSlug = name.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
+        if (!newSlug) return res.status(400).json({ message: "Kategoriya nomi noto'g'ri" });
+        const existing = await storage.getCategoryBySlug(newSlug);
+        if (existing && existing.id !== id) {
+          return res.status(400).json({ message: "Bu nomli kategoriya allaqachon mavjud" });
+        }
+        updateData.slug = newSlug;
+      }
+      if (description !== undefined) {
+        updateData.description = description?.trim() || null;
+      }
+      const cat = await storage.updateCategory(id, updateData);
+      if (!cat) return res.status(404).json({ message: "Kategoriya topilmadi" });
+      res.json(cat);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.delete("/api/admin/categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+      await storage.deleteCategory(id);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   app.get("/api/tags", requireAuth, async (_req, res) => {
     const allTags = await storage.getAllTags();
     res.json(allTags);

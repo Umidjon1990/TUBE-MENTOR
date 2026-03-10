@@ -1335,6 +1335,230 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get("/api/admin/data/stats", requireAdmin, async (_req, res) => {
+    const allLessons = await storage.getAllLessons();
+    let totalWords = 0, totalSentences = 0, totalQuizzes = 0, totalPhrases = 0, totalFlashcards = 0;
+    const uniqueWordsSet = new Set<string>();
+    for (const lesson of allLessons) {
+      const vocab = (lesson.vocabularyJson as any[]) || [];
+      const sents = (lesson.sentenceAnalysisJson as any[]) || [];
+      const quizArr = (lesson.quizzesJson as any[]) || [];
+      const phrasesArr = (lesson.phrasesJson as any[]) || [];
+      const fcArr = (lesson.flashcardsJson as any[]) || [];
+      totalWords += vocab.length;
+      totalSentences += sents.length;
+      totalQuizzes += quizArr.length;
+      totalPhrases += phrasesArr.length;
+      totalFlashcards += fcArr.length;
+      vocab.forEach((v: any) => uniqueWordsSet.add((v.word || "").toLowerCase()));
+      sents.forEach((s: any) => {
+        if (s.wordMap) s.wordMap.forEach((wm: any) => uniqueWordsSet.add((wm.normalized || wm.word || "").toLowerCase()));
+      });
+    }
+    const allSaved = await storage.getAllSavedWords();
+    res.json({
+      totalLessons: allLessons.length,
+      publishedLessons: allLessons.filter(l => l.status === "published").length,
+      totalWords,
+      uniqueWords: uniqueWordsSet.size,
+      totalSentences,
+      totalQuizzes,
+      totalPhrases,
+      totalFlashcards,
+      totalSavedWords: allSaved.length,
+    });
+  });
+
+  app.get("/api/admin/data/vocabulary", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const result: any[] = [];
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const vocab = (lesson.vocabularyJson as any[]) || [];
+      vocab.forEach((v: any) => {
+        result.push({
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          lessonLevel: lesson.level,
+          word: v.word,
+          translation: v.translation,
+          translationAr: v.translationAr || "",
+          partOfSpeech: v.partOfSpeech || "",
+          example: v.example || "",
+          difficulty: v.difficulty || "",
+        });
+      });
+    }
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/sentences", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const result: any[] = [];
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const sents = (lesson.sentenceAnalysisJson as any[]) || [];
+      sents.forEach((s: any, idx: number) => {
+        result.push({
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          index: idx,
+          sentence: s.sentence,
+          translation: s.translation,
+          translationAr: s.translationAr || "",
+          grammarNotes: s.grammarNotes || "",
+          keyWords: s.keyWords || [],
+          wordMapCount: (s.wordMap || []).length,
+        });
+      });
+    }
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/quizzes", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const result: any[] = [];
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const quizArr = (lesson.quizzesJson as any[]) || [];
+      quizArr.forEach((q: any, idx: number) => {
+        result.push({
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          index: idx,
+          question: q.question,
+          options: q.options || [],
+          correctIndex: q.correctIndex ?? q.answer ?? 0,
+          explanation: q.explanation || "",
+          type: q.type || "multiple_choice",
+        });
+      });
+    }
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/phrases", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const result: any[] = [];
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const phrasesArr = (lesson.phrasesJson as any[]) || [];
+      phrasesArr.forEach((p: any) => {
+        result.push({
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          phrase: p.phrase,
+          translation: p.translation,
+          translationAr: p.translationAr || "",
+          context: p.context || "",
+        });
+      });
+    }
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/flashcards", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const result: any[] = [];
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const fcArr = (lesson.flashcardsJson as any[]) || [];
+      fcArr.forEach((f: any) => {
+        result.push({
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          front: f.front,
+          back: f.back,
+          backAr: f.backAr || "",
+          type: f.type || "",
+        });
+      });
+    }
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/saved-words", requireAdmin, async (req, res) => {
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    if (req.query.lessonId && (lessonFilter === null || isNaN(lessonFilter))) {
+      return res.status(400).json({ message: "Noto'g'ri lessonId parametri" });
+    }
+    const allSaved = await storage.getAllSavedWords();
+    const allUsers = await storage.getAllUsers();
+    const allLessons = await storage.getAllLessons();
+    const userMap = new Map(allUsers.map(u => [u.id, u]));
+    const lessonMap = new Map(allLessons.map(l => [l.id, l]));
+    const filtered = lessonFilter ? allSaved.filter(sw => sw.lessonId === lessonFilter) : allSaved;
+    const result = filtered.map(sw => ({
+      id: sw.id,
+      word: sw.word,
+      normalized: sw.normalized,
+      translationUz: sw.translationUz,
+      translationAr: sw.translationAr,
+      contextualMeaning: sw.contextualMeaning,
+      partOfSpeech: sw.partOfSpeech,
+      sourceSentence: sw.sourceSentence,
+      isLearned: sw.isLearned,
+      userName: userMap.get(sw.userId)?.fullName || "Noma'lum",
+      lessonTitle: lessonMap.get(sw.lessonId)?.title || "Noma'lum",
+      lessonId: sw.lessonId,
+      createdAt: sw.createdAt,
+    }));
+    res.json(result);
+  });
+
+  app.get("/api/admin/data/wordmaps", requireAdmin, async (req, res) => {
+    const allLessons = await storage.getAllLessons();
+    const lessonFilter = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;
+    const wordMapAgg = new Map<string, { word: string; normalized: string; translationUz: string; translationAr: string; contextualMeaning: string; count: number; lessonIds: Set<number>; lessonTitles: Map<number, string> }>();
+    for (const lesson of allLessons) {
+      if (lessonFilter && lesson.id !== lessonFilter) continue;
+      const sents = (lesson.sentenceAnalysisJson as any[]) || [];
+      sents.forEach((s: any) => {
+        if (!s.wordMap) return;
+        s.wordMap.forEach((wm: any) => {
+          const key = (wm.normalized || wm.word || "").toLowerCase();
+          if (!key) return;
+          const existing = wordMapAgg.get(key);
+          if (existing) {
+            existing.count++;
+            existing.lessonIds.add(lesson.id);
+            existing.lessonTitles.set(lesson.id, lesson.title);
+          } else {
+            const titles = new Map<number, string>();
+            titles.set(lesson.id, lesson.title);
+            wordMapAgg.set(key, {
+              word: wm.word,
+              normalized: wm.normalized || wm.word,
+              translationUz: wm.translationUz || "",
+              translationAr: wm.translationAr || "",
+              contextualMeaning: wm.contextualMeaning || "",
+              count: 1,
+              lessonIds: new Set([lesson.id]),
+              lessonTitles: titles,
+            });
+          }
+        });
+      });
+    }
+    const result = Array.from(wordMapAgg.values()).map(v => ({
+      word: v.word,
+      normalized: v.normalized,
+      translationUz: v.translationUz,
+      translationAr: v.translationAr,
+      contextualMeaning: v.contextualMeaning,
+      count: v.count,
+      lessons: Array.from(v.lessonTitles.values()),
+      lessonCount: v.lessonIds.size,
+    }));
+    result.sort((a, b) => b.count - a.count);
+    res.json(result);
+  });
+
   app.get("/api/lessons/public/:id", async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });

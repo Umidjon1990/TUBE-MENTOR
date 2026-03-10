@@ -57,6 +57,7 @@ client/
         moderation.tsx         # Content moderation workflow
         coins.tsx              # Coin management
         categories.tsx         # Categories management
+        data-center.tsx        # Data Center: aggregated vocabulary/sentences/quizzes/phrases/flashcards/saved-words/wordmaps with filtering, sorting, XLSX/CSV export
         settings.tsx           # System settings management
     lib/
       queryClient.ts           # TanStack Query setup

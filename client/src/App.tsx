@@ -24,6 +24,7 @@ import AdminModerationPage from "@/pages/admin/moderation";
 import AdminCoinsPage from "@/pages/admin/coins";
 import AdminCategoriesPage from "@/pages/admin/categories";
 import AdminSettingsPage from "@/pages/admin/settings";
+import AdminDataCenterPage from "@/pages/admin/data-center";
 import PublicLibraryPage from "@/pages/public-library";
 import PublicLessonPage from "@/pages/public-lesson";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -120,6 +121,11 @@ function Router() {
       <Route path="/admin/categories">
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminCategoriesPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/data">
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminDataCenterPage />
         </ProtectedRoute>
       </Route>
       <Route path="/admin/settings">

@@ -85,6 +85,7 @@ export interface IStorage {
   createSavedWord(data: InsertSavedWord): Promise<SavedWord>;
   getSavedWordsByUser(userId: string): Promise<SavedWord[]>;
   getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]>;
+  getAllSavedWords(): Promise<SavedWord[]>;
   updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined>;
   deleteSavedWord(id: number): Promise<void>;
   countSavedWordsByUser(userId: string): Promise<number>;
@@ -434,6 +435,10 @@ export class DatabaseStorage implements IStorage {
 
   async getSavedWordsByUser(userId: string): Promise<SavedWord[]> {
     return db.select().from(savedWords).where(eq(savedWords.userId, userId));
+  }
+
+  async getAllSavedWords(): Promise<SavedWord[]> {
+    return db.select().from(savedWords);
   }
 
   async getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]> {

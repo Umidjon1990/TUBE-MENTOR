@@ -23,6 +23,7 @@ import {
   X,
   ChevronRight,
   UserCircle,
+  Database,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -34,6 +35,7 @@ const adminNavItems = [
   { href: "/admin/moderation", label: "Moderatsiya", icon: ShieldCheck },
   { href: "/admin/coins", label: "Coin boshqaruvi", icon: Coins },
   { href: "/admin/categories", label: "Kategoriyalar", icon: FolderTree },
+  { href: "/admin/data", label: "Ma'lumotlar markazi", icon: Database },
   { href: "/admin/settings", label: "Sozlamalar", icon: Settings },
 ];
 

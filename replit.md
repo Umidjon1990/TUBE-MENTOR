@@ -41,7 +41,7 @@ client/
       dashboard.tsx            # User dashboard with gamification widgets (XP, streak, badges)
       not-found.tsx            # 404 page
       public-library.tsx       # Public lesson library with search/filter
-      public-lesson.tsx        # Public lesson detail (read-only)
+      public-lesson.tsx        # Public lesson detail (full interactive: SubtitlePlayer, Export, Arabic RTL, word maps, quiz, flashcards; no auth-dependent save actions)
       user/
         create-lesson.tsx      # Create lesson form with YouTube URL, coin cost
         my-lessons.tsx         # My lessons grid with search/filter/sort
@@ -77,7 +77,7 @@ shared/
 
 ## Subtitle Player System
 
-- `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + learning controls + word interaction
+- `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + learning controls + word interaction; accepts `readOnly` prop to disable save actions for public view
 - YouTube IFrame API for embedded video playback
 - **Learning controls bar**: Play/Pause, ±5s skip, prev/next subtitle, replay current, loop toggle (Takror), speed control (0.5x–2x via Sekinroq/Tezroq), current time display
 - Subtitle overlay on video with glassmorphism styling

@@ -30,6 +30,7 @@ interface WordInspectorProps {
   anchorRect: DOMRect | null;
   onClose: () => void;
   isMobile: boolean;
+  readOnly?: boolean;
 }
 
 function highlightWord(sentence: string, word: string): JSX.Element {
@@ -49,7 +50,7 @@ function highlightWord(sentence: string, word: string): JSX.Element {
   );
 }
 
-export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile }: WordInspectorProps) {
+export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile, readOnly = false }: WordInspectorProps) {
   const [saved, setSaved] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -267,40 +268,42 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile 
         )}
       </div>
 
-      <div className="flex gap-2 pt-1">
-        <Button
-          size="sm"
-          className="flex-1 h-10 md:h-9 text-xs"
-          disabled={saved || saveMutation.isPending}
-          onClick={() => saveMutation.mutate(wordInfo)}
-          data-testid="button-save-word"
-        >
-          {saved ? (
-            <>
-              <Check className="w-3.5 h-3.5 mr-1.5" />
-              Saqlandi
-            </>
-          ) : saveMutation.isPending ? (
-            "Saqlanmoqda..."
-          ) : (
-            <>
-              <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
-              <span className="truncate">Mening so'zlarimga qo'shish</span>
-            </>
-          )}
-        </Button>
-        <Button
-          size="sm" variant="outline"
-          className="h-10 md:h-9 text-xs shrink-0"
-          onClick={() => {
-            toast({ title: "Shu gapni tushuntir", description: `"${wordInfo.sourceSentence}"` });
-          }}
-          data-testid="button-explain-sentence"
-        >
-          <MessageSquareText className="w-3.5 h-3.5 mr-1" />
-          <span className="hidden sm:inline">Tushuntir</span>
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="flex gap-2 pt-1">
+          <Button
+            size="sm"
+            className="flex-1 h-10 md:h-9 text-xs"
+            disabled={saved || saveMutation.isPending}
+            onClick={() => saveMutation.mutate(wordInfo)}
+            data-testid="button-save-word"
+          >
+            {saved ? (
+              <>
+                <Check className="w-3.5 h-3.5 mr-1.5" />
+                Saqlandi
+              </>
+            ) : saveMutation.isPending ? (
+              "Saqlanmoqda..."
+            ) : (
+              <>
+                <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+                <span className="truncate">Mening so'zlarimga qo'shish</span>
+              </>
+            )}
+          </Button>
+          <Button
+            size="sm" variant="outline"
+            className="h-10 md:h-9 text-xs shrink-0"
+            onClick={() => {
+              toast({ title: "Shu gapni tushuntir", description: `"${wordInfo.sourceSentence}"` });
+            }}
+            data-testid="button-explain-sentence"
+          >
+            <MessageSquareText className="w-3.5 h-3.5 mr-1" />
+            <span className="hidden sm:inline">Tushuntir</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 

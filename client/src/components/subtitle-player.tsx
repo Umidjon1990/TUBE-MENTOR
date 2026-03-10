@@ -105,9 +105,10 @@ interface SubtitlePlayerProps {
   className?: string;
   initialSeekTime?: number;
   seekNonce?: number;
+  readOnly?: boolean;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce, readOnly = false }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -847,6 +848,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           anchorRect={anchorRect}
           onClose={closeInspector}
           isMobile={isMobile}
+          readOnly={readOnly}
         />
       )}
     </div>

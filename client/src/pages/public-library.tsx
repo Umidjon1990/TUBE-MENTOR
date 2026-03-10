@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowRight, Filter } from "lucide-react";
+import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter } from "lucide-react";
 import type { Lesson, Category } from "@shared/schema";
 
 const levelLabels: Record<string, string> = {
@@ -150,6 +150,12 @@ export default function PublicLibrary() {
     <PublicLayout>
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="mb-8">
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="mb-3 gap-1.5 text-muted-foreground hover:text-foreground" data-testid="button-back-home">
+              <ArrowLeft className="w-4 h-4" />
+              Bosh sahifa
+            </Button>
+          </Link>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary" />
@@ -295,24 +301,6 @@ export default function PublicLibrary() {
           </>
         )}
 
-        <section className="mt-16 mb-8">
-          <Card className="glass border-border/50 overflow-visible">
-            <CardContent className="p-8 text-center">
-              <h2 className="text-xl font-bold mb-2" data-testid="text-cta-title">
-                O'z darsingizni yarating
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-                YouTube videolaridan interaktiv darslar yarating
-              </p>
-              <Link href="/login">
-                <Button data-testid="button-cta-create">
-                  Boshlash
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </section>
       </div>
     </PublicLayout>
   );

@@ -53,7 +53,7 @@ function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <Link href="/login">
+            <Link href="/library">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-primary-foreground shadow-lg shadow-primary/25 px-8"

@@ -428,22 +428,25 @@ export async function registerRoutes(
 
   app.get("/api/user/dashboard", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
-    const [user, lessonCount, flashcardCount, userLessons, progress, coinTxs] = await Promise.all([
+    const [user, lessonCount, flashcardCount, userLessons, progress, coinTxs, allCategories] = await Promise.all([
       storage.getUser(userId),
       storage.countLessonsByUser(userId),
       storage.countFlashcardsByUser(userId),
       storage.getLessonsByUser(userId),
       storage.getProgressByUser(userId),
       storage.getCoinTransactionsByUser(userId),
+      storage.getAllCategories(),
     ]);
 
+    const catMap = new Map(allCategories.map(c => [c.id, c.name]));
     const pendingCount = userLessons.filter(l => l.status === "pending").length;
     const totalStudyTime = progress.reduce((sum, p) => sum + (p.studyTimeSeconds ?? 0), 0);
     const learnedWords = progress.reduce((sum, p) => sum + (p.learnedWords ?? 0), 0);
 
     const recentLessons = userLessons
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
+      .slice(0, 5)
+      .map(l => ({ ...l, categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null }));
 
     const recentTransactions = coinTxs
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -463,8 +466,16 @@ export async function registerRoutes(
 
   app.get("/api/user/lessons", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
-    const userLessons = await storage.getLessonsByUser(userId);
-    res.json(userLessons);
+    const [userLessons, allCategories] = await Promise.all([
+      storage.getLessonsByUser(userId),
+      storage.getAllCategories(),
+    ]);
+    const catMap = new Map(allCategories.map(c => [c.id, c.name]));
+    const lessonsWithCategory = userLessons.map(l => ({
+      ...l,
+      categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
+    }));
+    res.json(lessonsWithCategory);
   });
 
   const createLessonSchema = z.object({
@@ -1040,7 +1051,12 @@ export async function registerRoutes(
     });
 
     const categories = await storage.getAllCategories();
-    res.json({ lessons: publicLessons, categories });
+    const catMap = new Map(categories.map(c => [c.id, c.name]));
+    const lessonsWithCategory = publicLessons.map(l => ({
+      ...l,
+      categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
+    }));
+    res.json({ lessons: lessonsWithCategory, categories });
   });
 
   // ─── User Analytics ───

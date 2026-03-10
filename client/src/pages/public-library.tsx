@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter } from "lucide-react";
+import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen } from "lucide-react";
 import type { Lesson, Category } from "@shared/schema";
+
+type LessonWithCategory = Lesson & { categoryName?: string | null };
 
 const levelLabels: Record<string, string> = {
   beginner: "Boshlang'ich",
@@ -23,7 +25,7 @@ const levelColors: Record<string, string> = {
   advanced: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
 };
 
-function LessonCard({ lesson }: { lesson: Lesson }) {
+function LessonCard({ lesson }: { lesson: LessonWithCategory }) {
   return (
     <Link href={`/library/${lesson.id}`}>
       <Card
@@ -70,6 +72,12 @@ function LessonCard({ lesson }: { lesson: Lesson }) {
             </p>
           )}
           <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+            {lesson.categoryName && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0" data-testid={`badge-category-${lesson.id}`}>
+                <FolderOpen className="w-2.5 h-2.5 mr-0.5" />
+                {lesson.categoryName}
+              </Badge>
+            )}
             {lesson.publishedAt && (
               <span className="flex items-center gap-1" data-testid={`text-date-${lesson.id}`}>
                 <Clock className="w-3 h-3" />
@@ -96,7 +104,7 @@ function LessonCardSkeleton() {
   );
 }
 
-function FeaturedSection({ lessons }: { lessons: Lesson[] }) {
+function FeaturedSection({ lessons }: { lessons: LessonWithCategory[] }) {
   const featured = lessons.filter((l) => l.isFeatured);
   if (featured.length === 0) return null;
 
@@ -133,7 +141,7 @@ export default function PublicLibrary() {
   const queryString = queryParams.toString();
   const apiUrl = `/api/lessons/public${queryString ? `?${queryString}` : ""}`;
 
-  const { data, isLoading, isError } = useQuery<{ lessons: Lesson[]; categories: Category[] }>({
+  const { data, isLoading, isError } = useQuery<{ lessons: LessonWithCategory[]; categories: Category[] }>({
     queryKey: ["/api/lessons/public", search, categoryFilter, levelFilter],
     queryFn: async () => {
       const res = await fetch(apiUrl, { credentials: "include" });

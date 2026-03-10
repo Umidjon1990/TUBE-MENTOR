@@ -9,7 +9,7 @@ import {
   BookOpen, Coins, BarChart3, Clock, TrendingUp,
   PlayCircle, PlusCircle, Layers, Hourglass, Globe,
   ArrowRight, ArrowUpRight, ArrowDownRight, AlertCircle,
-  Flame, Star, Trophy, Zap, Shield, Target, Award
+  Flame, Star, Trophy, Zap, Shield, Target, Award, FolderOpen
 } from "lucide-react";
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
@@ -22,7 +22,7 @@ interface DashboardData {
   pendingCount: number;
   totalStudyTime: number;
   learnedWords: number;
-  recentLessons: Lesson[];
+  recentLessons: (Lesson & { categoryName?: string | null })[];
   recentTransactions: CoinTransaction[];
 }
 
@@ -261,7 +261,15 @@ export default function DashboardPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{lesson.title}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(lesson.createdAt)}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">{formatDate(lesson.createdAt)}</p>
+                            {lesson.categoryName && (
+                              <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                                <FolderOpen className="w-2 h-2 mr-0.5" />
+                                {lesson.categoryName}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <Badge variant={st.variant} className="text-[10px] flex-shrink-0">{st.label}</Badge>
                       </div>

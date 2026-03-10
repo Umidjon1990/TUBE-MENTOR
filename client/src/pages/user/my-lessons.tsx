@@ -26,12 +26,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   BookOpen, Search, PlusCircle, PlayCircle,
-  Calendar, ArrowUpDown, Filter, Wand2, Trash2
+  Calendar, ArrowUpDown, Filter, Wand2, Trash2, FolderOpen
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Lesson } from "@shared/schema";
+
+type LessonWithCategory = Lesson & { categoryName?: string | null };
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; color: string }> = {
   pending: { label: "Kutilmoqda", variant: "secondary", color: "text-orange-400" },
@@ -61,7 +63,7 @@ export default function MyLessonsPage() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const { toast } = useToast();
 
-  const { data: lessons, isLoading, error } = useQuery<Lesson[]>({
+  const { data: lessons, isLoading, error } = useQuery<LessonWithCategory[]>({
     queryKey: ["/api/user/lessons"],
   });
 
@@ -271,6 +273,14 @@ export default function MyLessonsPage() {
                     </Link>
                     {lesson.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{lesson.description}</p>
+                    )}
+                    {lesson.categoryName && (
+                      <div className="mb-2">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                          <FolderOpen className="w-2.5 h-2.5 mr-0.5" />
+                          {lesson.categoryName}
+                        </Badge>
+                      </div>
                     )}
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1">

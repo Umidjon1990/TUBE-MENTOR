@@ -42,8 +42,6 @@ function HeroSection() {
             <span className="bg-gradient-to-r from-primary via-cyan-400 to-accent bg-clip-text text-transparent neon-text text-center">
               MUKAMMAL DARSLIK
             </span>
-            <br />
-            <span className="text-foreground">yarating</span>
           </h1>
 
           <p
@@ -209,7 +207,6 @@ export default function Home() {
     <PublicLayout>
       <HeroSection />
       <FeaturesSection />
-      <StatsSection />
       <CTASection />
     </PublicLayout>
   );

@@ -11,14 +11,11 @@ function HeroSection() {
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]" />
-
       <div className="relative max-w-6xl mx-auto px-6 py-24 md:py-36">
         <div className="flex flex-col items-center text-center gap-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 neon-glow-sm">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary" data-testid="text-badge-ai">
-              Sun'iy intellekt bilan ishlaydi
-            </span>
+            <span className="text-sm font-medium text-primary" data-testid="text-badge-ai">ZAMONAVIY TA'LIM LOYIHASI</span>
           </div>
 
           <h1
@@ -27,9 +24,7 @@ function HeroSection() {
           >
             <span className="text-foreground">YouTube videolaridan</span>
             <br />
-            <span className="bg-gradient-to-r from-primary via-cyan-400 to-accent bg-clip-text text-transparent neon-text">
-              aqlli darslar
-            </span>
+            <span className="bg-gradient-to-r from-primary via-cyan-400 to-accent bg-clip-text text-transparent neon-text text-center">MUKAMMAL DARSLIK</span>
             <br />
             <span className="text-foreground">yarating</span>
           </h1>

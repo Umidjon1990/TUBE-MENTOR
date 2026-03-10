@@ -100,14 +100,11 @@ function FeaturesSection() {
   return (
     <section id="features" className="max-w-6xl mx-auto px-6 py-24">
       <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-features-title">
-          Nima uchun Tube Mentor AI?
-        </h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-features-title">Nima uchun TUBE MENTOR ?</h2>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto" data-testid="text-features-subtitle">
           Zamonaviy texnologiyalar yordamida o'rganishni yangi bosqichga olib chiqing
         </p>
       </div>
-
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {features.map((feature, index) => (
           <Card key={index} className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group" data-testid={`card-feature-${index}`}>

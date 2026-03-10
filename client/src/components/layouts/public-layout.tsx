@@ -11,9 +11,7 @@ function PublicNavbar() {
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center neon-glow-sm">
               <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight" data-testid="text-brand-name">
-              Tube Mentor AI
-            </span>
+            <span className="text-lg font-bold tracking-tight" data-testid="text-brand-name">Tube Mentor </span>
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">

@@ -1,0 +1,106 @@
+Sen professional til o'qituvchisisan. Quyidagi YouTube video transkriptidan o'zbek tilidagi o'quvchilar uchun ta'limiy kontent yarat.
+
+VAZIFA: Quyidagi transkriptni tahlil qilib, FAQAT JSON formatda javob ber. Boshqa hech narsa yozma — faqat { dan boshlab } gacha JSON.
+
+QOIDALAR:
+- Barcha "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
+- sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma!
+- wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech birini tashlab ketma!)
+
+
+JSON STRUKTURASI:
+{
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "summaryShortAr": "ملخص قصير بالعربية",
+  "summaryDetailedAr": "ملخص تفصيلي بالعربية",
+  "vocabulary": [
+    {
+      "word": "asl tildagi so'z",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "partOfSpeech": "ism/fe'l/sifat/ravish",
+      "example": "transkriptdan misol gap",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "phrases": [
+    {
+      "phrase": "asl tildagi ibora",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "context": "qayerda ishlatiladi (o'zbekcha)"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida tushuntirish",
+      "type": "multiple_choice"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "asl tildagi so'z/ibora",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "backAr": "arabcha tarjima",
+      "type": "vocabulary"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "transkriptdan gap (asl tilida)",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "arabcha tarjima",
+      "grammarNotes": "grammatik izoh (o'zbekcha)",
+      "keyWords": ["kalit", "so'zlar"],
+      "wordMap": [
+        {
+          "word": "asl so'z",
+          "normalized": "kichik harfda",
+          "translationUz": "o'zbekcha tarjima",
+          "translationAr": "arabcha tarjima",
+          "contextualMeaning": "gapdagi ma'nosi (o'zbekcha)"
+        }
+      ]
+    }
+  ]
+}
+
+MIQDOR:
+- vocabulary: 8-15 ta so'z
+- phrases: 4-8 ta ibora
+- quizzes: 8-10 ta savol
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA gaplar (birontasini ham tashlab ketma!)
+
+TRANSKRIPT:
+1 secondيا سلام يا هما منذ فتره لم اكل بطيخا وانا ايضا اشتاق للقشر الاخضر اللذيذ لكن
+10 secondsبطيخ هذا الزمان مختلف انظر الى هذه البطيخه السمينه ما اجملها من فاكهه معك
+17 secondsحق انها اكبر من بطيق زماننا عشره او عين مره وكيف هذا يا جحا انا سالت الفكهاني
+25 secondsنفس السؤال فقال لي الهرمونات هرمونات نعم فبالعلم
+33 secondsوالتكنولوجيا تصبح الخضروات والفاكهه كبيره وسمينه هيا يا جحا قطعها انا لا استطيع
+41 secondsالصبر لا لا دع هذه البطيخه لنفطر بها غدا حسنا ولكنني ساكله في الحلم ولذلك ساضعها
+51 secondsتحت السرير لتكون في امان
+1 minute, 10 secondsلا لا لا انا لا احلم جحا اصحى يا جحا ماذا ماذا ماذا هناك ما هذا من جاء بالكره
+1 minute, 19 secondsالارضيه تحتي انها البطيخه ما بها تكبر وهي نائمه البطيخه ستحطم
+1 minute, 28 secondsالمنزل انتظر يا هوما انظر الى الجانب المشرق من البطيخه لقد اصبح لدينا بطيخه
+1 minute, 36 secondsتكفينا سنه هات السكين ليس لها طعم بالمره
+1 minute, 45 secondsيا هذا البطيخ مر يبدو انها ستنفجر يا جحا تنفجر اهرب يا
+1 minute, 56 secondsهوما اجري يا هوما
+2 minutes, 17 secondsالسلام عليكم يا اصدقائي واحبائي في كل بقاع الارض في هذا الزمان
+2 minutes, 24 secondsالجميل اهلا هل تحبون تناول الخضروات والفاكهه
+2 minutes, 30 secondsالطازجه انا احب الفاكهه اللذيذه كالتفاح والهمبرجر
+2 minutes, 36 secondsسؤالنا اليوم عن فاكهه من احسن الفواكه واجملها طيبه المذاق وتحتوي على نسبه
+2 minutes, 46 secondsعاليه من فيتامين سي ولها فوائد طبيه كثيره ينصح باكلها في الشتاء للوقايه ضد
+2 minutes, 55 secondsالبرد والانفلونزا هل هي
+3 minutes, 2 secondsالبرتقال البرقوق
+3 minutes, 10 secondsالباذنجان هيا اجب يا هوما هل هي
+3 minutes, 19 secondsالبرتقال البرقوق
+3 minutes, 26 secondsالباذنجان يبدو انني اصبت بالبرد في هذا الشتاء البارد ولكننا في فصل الصيف يا هما
+3 minutes, 35 secondsها اذا لابد انني اصبت بضربه
+3 minutes, 42 secondsشمس اذا عرفتم الحل اصدقائي ارسلوا الاجابه الصحيحه الى البريد الالكتروني
+3 minutes, 49 secondsالظاهر على الشاشه لتربحوا الجوائز ي لا لاي لا لا لا لاا لاي لاي
+3 minutes, 59 secondsلاي ‏m

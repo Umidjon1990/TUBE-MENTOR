@@ -23,6 +23,8 @@ export interface WordInfo {
   phraseTranslationUz?: string;
   phraseTranslationAr?: string;
   phraseExplanation?: string;
+  grammaticalRole?: string;
+  i_rab?: string;
 }
 
 interface WordInspectorProps {
@@ -224,6 +226,38 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
             )}
             {wordInfo.phraseExplanation && (
               <p className="text-xs text-muted-foreground mt-1 break-words">{wordInfo.phraseExplanation}</p>
+            )}
+          </div>
+        )}
+
+        {(wordInfo.grammaticalRole || wordInfo.i_rab) && (
+          <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-2.5 md:p-3">
+            <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Gapdagi o'rni (الإعراب)</p>
+            {wordInfo.grammaticalRole && (
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] text-muted-foreground shrink-0">Vazifasi:</span>
+                <span
+                  className="text-sm font-semibold text-teal-300 break-words"
+                  dir="rtl"
+                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+                  data-testid="text-grammatical-role"
+                >
+                  {wordInfo.grammaticalRole}
+                </span>
+              </div>
+            )}
+            {wordInfo.i_rab && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground shrink-0">I'rob:</span>
+                <span
+                  className="text-xs text-teal-400/80 break-words"
+                  dir="rtl"
+                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+                  data-testid="text-irab"
+                >
+                  {wordInfo.i_rab}
+                </span>
+              </div>
             )}
           </div>
         )}

@@ -55,6 +55,8 @@ export interface WordMapItem {
   translationUz: string;
   translationAr: string;
   contextualMeaning: string;
+  grammaticalRole?: string;
+  i_rab?: string;
 }
 
 export interface SentenceAnalysis {
@@ -64,6 +66,7 @@ export interface SentenceAnalysis {
   grammarNotes: string;
   keyWords: string[];
   wordMap: WordMapItem[];
+  sentenceType?: string;
 }
 
 export interface AiMeta {
@@ -212,13 +215,16 @@ Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi struktur
       "translationAr": "${lang === "arabic" ? "arabcha gap (asl nusxa yoki izoh)" : "الترجمة العربية"}",
       "grammarNotes": "grammatik izoh O'ZBEK tilida",
       "keyWords": ["kalit", "so'zlar"],
+      "sentenceType": "جملة فعلية yoki جملة اسمية",
       "wordMap": [
         {
           "word": "${lang === "arabic" ? "arabcha so'z" : "original word"}",
           "normalized": "lowercased/normalized form",
           "translationUz": "O'ZBEKCHA tarjima",
           "translationAr": "${lang === "arabic" ? "arabcha izoh" : "الترجمة العربية"}",
-          "contextualMeaning": "gapdagi ma'nosi O'ZBEK tilida"
+          "contextualMeaning": "gapdagi ma'nosi O'ZBEK tilida",
+          "grammaticalRole": "الفاعل / المفعول به / المبتدأ / الخبر / الحال / الجار والمجرور / ...",
+          "i_rab": "مرفوع بالضمة / منصوب بالفتحة / مجرور بالكسرة / ..."
         }
       ]
     }
@@ -237,6 +243,10 @@ Muhim qoidalar:
 - flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
 - wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
+- sentenceType: har bir gap uchun "جملة فعلية" (fe'l gap) yoki "جملة اسمية" (ism gap) ko'rsatilsin
+- grammaticalRole: har bir so'zning gapdagi nahviy vazifasi (الفاعل, المفعول به, المبتدأ, الخبر, الحال, النعت, المضاف, المضاف إليه, الجار والمجرور va h.k.)
+- i_rab: har bir so'zning i'rab tahlili — مرفوع/منصوب/مجرور va sababi (masalan: "مرفوع بالضمة لأنه فاعل", "منصوب بالفتحة لأنه مفعول به")
+- Nahviy tahlilda كتاب سيبويه, النحو الوافي لعباس حسن, ألفية ابن مالك asosida to'g'ri i'rab qo'yilsin
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
 
@@ -315,12 +325,15 @@ ${trimmedTranscript}`;
     translationAr: s.translationAr || "",
     grammarNotes: s.grammarNotes || "",
     keyWords: Array.isArray(s.keyWords) ? s.keyWords : [],
+    sentenceType: s.sentenceType || "",
     wordMap: Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
       word: w.word || "",
       normalized: w.normalized || (w.word || "").toLowerCase(),
       translationUz: w.translationUz || "",
       translationAr: w.translationAr || "",
       contextualMeaning: w.contextualMeaning || "",
+      grammaticalRole: w.grammaticalRole || "",
+      i_rab: w.i_rab || "",
     })) : [],
   }));
 
@@ -473,13 +486,18 @@ function generateMockContent(
   const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.map((s, idx) => {
     const sentenceWords = extractWords(s);
     const keyWords = sentenceWords.slice(0, 3);
-    const wordMap: WordMapItem[] = sentenceWords.map(w => ({
+    const mockRoles = ["الفاعل", "المفعول به", "المبتدأ", "الخبر", "الحال", "الجار والمجرور", "النعت", "المضاف إليه"];
+    const mockIrabs = ["مرفوع بالضمة", "منصوب بالفتحة", "مجرور بالكسرة", "مبني على الفتح", "مرفوع بالواو", "منصوب بالياء"];
+    const wordMap: WordMapItem[] = sentenceWords.map((w, wi) => ({
       word: w,
       normalized: w.toLowerCase(),
       translationUz: mockUzTranslation(w),
       translationAr: mockArabicTranslation(w),
       contextualMeaning: `"${w}" gapdagi kontekstda ishlatilgan`,
+      grammaticalRole: mockRoles[wi % mockRoles.length],
+      i_rab: mockIrabs[wi % mockIrabs.length],
     }));
+    const isVerbalSentence = /^[\u0600-\u06FF]{2,}\b/.test(s.trim());
     return {
       sentence: s,
       translation: `${sentenceContexts[idx % sentenceContexts.length]} ${keyWords.map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,
@@ -487,6 +505,7 @@ function generateMockContent(
       grammarNotes: lang === "arabic" ? detectArabicGrammarPattern(s) : detectGrammarPattern(s),
       keyWords,
       wordMap,
+      sentenceType: isVerbalSentence ? "جملة فعلية" : "جملة اسمية",
     };
   });
 

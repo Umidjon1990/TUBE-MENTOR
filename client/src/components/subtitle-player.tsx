@@ -41,6 +41,8 @@ export interface WordMapEntry {
   translationUz: string;
   translationAr: string;
   contextualMeaning: string;
+  grammaticalRole?: string;
+  i_rab?: string;
 }
 
 export interface SentenceWordMap {
@@ -214,6 +216,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       phraseTranslationUz: phraseEntry?.translation,
       phraseTranslationAr: phraseEntry?.translationAr,
       phraseExplanation: phraseEntry?.context,
+      grammaticalRole: wmEntry?.grammaticalRole,
+      i_rab: wmEntry?.i_rab,
     });
     setAnchorRect(rect);
   }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord]);

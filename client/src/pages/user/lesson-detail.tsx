@@ -39,6 +39,8 @@ interface WordMapItem {
   translationUz: string;
   translationAr: string;
   contextualMeaning: string;
+  grammaticalRole?: string;
+  i_rab?: string;
 }
 
 interface SentenceAnalysis {
@@ -48,6 +50,7 @@ interface SentenceAnalysis {
   grammarNotes: string;
   keyWords: string[];
   wordMap?: WordMapItem[];
+  sentenceType?: string;
 }
 
 interface VocabItem {
@@ -223,6 +226,8 @@ export default function LessonDetailPage() {
           translationUz: wm.translationUz,
           translationAr: wm.translationAr,
           contextualMeaning: wm.contextualMeaning,
+          grammaticalRole: wm.grammaticalRole,
+          i_rab: wm.i_rab,
         })),
       }))
       .filter(swm => swm.wordMap.length > 0);
@@ -364,23 +369,26 @@ export default function LessonDetailPage() {
         ) : null}
 
         <Tabs defaultValue="matn" className="w-full">
-          <TabsList className="w-full grid grid-cols-6 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
-            <TabsTrigger value="matn" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
+          <TabsList className="w-full flex flex-wrap gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
+            <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
               <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn
             </TabsTrigger>
-            <TabsTrigger value="lugat" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-lugat">
+            <TabsTrigger value="lugat" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-lugat">
               <Languages className="w-3.5 h-3.5 hidden sm:block" /> Lug'at
             </TabsTrigger>
-            <TabsTrigger value="test" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
+            <TabsTrigger value="test" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
               <Brain className="w-3.5 h-3.5 hidden sm:block" /> Test
             </TabsTrigger>
-            <TabsTrigger value="xulosa" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
+            <TabsTrigger value="nahw" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-nahw">
+              <Sparkles className="w-3.5 h-3.5 hidden sm:block" /> Nahw
+            </TabsTrigger>
+            <TabsTrigger value="xulosa" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
               <FileText className="w-3.5 h-3.5 hidden sm:block" /> Xulosa
             </TabsTrigger>
-            <TabsTrigger value="kartochkalar" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
+            <TabsTrigger value="kartochkalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
               <Layers className="w-3.5 h-3.5 hidden sm:block" /> Kartochkalar
             </TabsTrigger>
-            <TabsTrigger value="eslatmalar" className="text-xs md:text-sm py-2 gap-1" data-testid="tab-eslatmalar">
+            <TabsTrigger value="eslatmalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-eslatmalar">
               <StickyNote className="w-3.5 h-3.5 hidden sm:block" /> Eslatmalar
             </TabsTrigger>
           </TabsList>
@@ -410,6 +418,10 @@ export default function LessonDetailPage() {
               quizzes={quizzes}
               lessonId={parseInt(lessonId!)}
             />
+          </TabsContent>
+
+          <TabsContent value="nahw" className="mt-4">
+            <NahwTab sentences={sentences} />
           </TabsContent>
 
           <TabsContent value="xulosa" className="mt-4">
@@ -1799,6 +1811,150 @@ function NotesTab({
           <p className="text-xs mt-1">Yuqoridagi maydondan yangi eslatma qo'shing</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function NahwTab({ sentences }: { sentences: SentenceAnalysis[] }) {
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  const hasNahwData = sentences.some(s =>
+    s.sentenceType || (s.wordMap || []).some(w => w.grammaticalRole || w.i_rab)
+  );
+
+  if (!hasNahwData) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p className="font-medium">Nahviy tahlil mavjud emas</p>
+        <p className="text-xs mt-1">Bu dars uchun sintaktik tahlil hali yaratilmagan</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3" data-testid="nahw-tab-content">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="w-5 h-5 text-teal-400" />
+        <h3 className="text-lg font-bold">Sintaktik tahlil (نحو)</h3>
+        <Badge variant="outline" className="text-xs ml-auto">{sentences.length} gap</Badge>
+      </div>
+
+      {sentences.map((s, idx) => {
+        const isExpanded = expandedIdx === idx;
+        const wordsWithNahw = (s.wordMap || []).filter(w => w.grammaticalRole || w.i_rab);
+
+        return (
+          <Card key={idx} className="glass border-border/50 overflow-hidden" data-testid={`card-nahw-sentence-${idx}`}>
+            <CardContent className="p-0">
+              <button
+                className="w-full text-left p-3 md:p-4 hover:bg-muted/30 transition-colors"
+                onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                data-testid={`button-toggle-nahw-${idx}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-muted-foreground shrink-0">{idx + 1}</span>
+                      {s.sentenceType && (
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] shrink-0 ${
+                            s.sentenceType.includes("فعلية")
+                              ? "border-violet-500/30 text-violet-400"
+                              : "border-cyan-500/30 text-cyan-400"
+                          }`}
+                        >
+                          {s.sentenceType}
+                        </Badge>
+                      )}
+                    </div>
+                    <p
+                      className="text-sm font-medium break-words"
+                      dir={isArabic(s.sentence) ? "rtl" : "ltr"}
+                      style={arabicStyle(s.sentence)}
+                      data-testid={`text-nahw-sentence-${idx}`}
+                    >
+                      {s.sentence}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{s.translation}</p>
+                  </div>
+                  <div className="shrink-0 mt-1">
+                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </div>
+                </div>
+              </button>
+
+              {isExpanded && wordsWithNahw.length > 0 && (
+                <div className="border-t border-border/30 p-3 md:p-4 bg-muted/10 space-y-2">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                    So'zma-so'z i'rob tahlili
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse" data-testid={`table-nahw-${idx}`}>
+                      <thead>
+                        <tr className="border-b border-border/30">
+                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">So'z</th>
+                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Tarjima</th>
+                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الوظيفة النحوية</th>
+                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الإعراب</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {wordsWithNahw.map((w, wi) => (
+                          <tr key={wi} className="border-b border-border/20 hover:bg-muted/20 transition-colors" data-testid={`row-nahw-word-${idx}-${wi}`}>
+                            <td className="py-1.5 px-2">
+                              <span
+                                className="font-semibold text-foreground"
+                                dir={isArabic(w.word) ? "rtl" : "ltr"}
+                                style={{
+                                  fontFamily: isArabic(w.word) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                                  lineHeight: isArabic(w.word) ? "1.8" : "1.6",
+                                }}
+                              >
+                                {w.word}
+                              </span>
+                            </td>
+                            <td className="py-1.5 px-2 text-muted-foreground">{w.translationUz}</td>
+                            <td className="py-1.5 px-2 text-right">
+                              {w.grammaticalRole && (
+                                <span
+                                  className="text-teal-400 font-medium"
+                                  dir="rtl"
+                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+                                >
+                                  {w.grammaticalRole}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-1.5 px-2 text-right">
+                              {w.i_rab && (
+                                <span
+                                  className="text-amber-400/80"
+                                  dir="rtl"
+                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+                                >
+                                  {w.i_rab}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {s.grammarNotes && (
+                    <div className="mt-2 rounded-md bg-primary/5 border border-primary/10 p-2">
+                      <p className="text-[10px] font-medium text-primary/60 uppercase tracking-wider mb-0.5">Grammatik izoh</p>
+                      <p className="text-xs text-foreground/80">{s.grammarNotes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

@@ -46,7 +46,7 @@ client/
         create-lesson.tsx      # Create lesson form with YouTube URL, coin cost
         my-lessons.tsx         # My lessons grid with search/filter/sort
         lesson-process.tsx     # Multi-step transcript extraction + AI generation
-        lesson-detail.tsx      # Interactive lesson with 6 tabs
+        lesson-detail.tsx      # Interactive lesson with 7 tabs (Matn, Lug'at, Test, Nahw, Xulosa, Kartochkalar, Eslatmalar)
         flashcards.tsx         # Flashcards management
         notes.tsx              # Notes management
         analytics.tsx          # Full analytics dashboard with charts
@@ -92,7 +92,8 @@ shared/
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
 - **Sticky video**: Video + controls stick to top of viewport (`position: sticky`) while subtitle panel and tabs scroll below
-- **WordMap lookup**: Per-sentence word-level translations (UZ+AR) used for precise word inspector data
+- **WordMap lookup**: Per-sentence word-level translations (UZ+AR) + grammaticalRole + i_rab fields for precise word inspector & Nahw tab data
+- **Nahw (نحو) tab**: Syntactic analysis tab showing sentenceType (جملة فعلية/اسمية), per-word grammaticalRole (الوظيفة النحوية), and i_rab (الإعراب) in expandable sentence cards with table view
 - **Timestamped subtitle support**: Both auto (YouTube XML captions with start/dur) and manual transcripts preserve real timing in `subtitlesJson` column. Supports two manual formats: inline (`M:SS text`) and standalone (timestamp on separate line from text)
 - **Auto transcript timing**: YouTube XML `<text start="X" dur="Y">` attributes parsed and stored; merged via `mergeShortSubtitles()`
 - **Subtitle↔sentenceAnalysis matching**: Fuzzy matching with word overlap scoring (40%+ threshold) to pair timed subtitles with AI translations

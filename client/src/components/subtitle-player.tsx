@@ -79,7 +79,7 @@ function isArabic(text: string): boolean {
 
 function tokenizeText(text: string): { prefix: string; word: string; suffix: string }[] {
   const tokens: { prefix: string; word: string; suffix: string }[] = [];
-  const regex = /([^\p{L}\p{N}'']*)([\p{L}\p{N}'']+)([^\p{L}\p{N}'']*)/gu;
+  const regex = /([^\p{L}\p{N}\p{M}'']*)([\p{L}\p{N}\p{M}'']+)([^\p{L}\p{N}\p{M}'']*)/gu;
   let lastIndex = 0;
   let match;
   while ((match = regex.exec(text)) !== null) {

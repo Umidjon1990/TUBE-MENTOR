@@ -36,12 +36,21 @@ function parseTimestamp(ts: string): number {
   return 0;
 }
 
+function stripYouTubeDuration(text: string): string {
+  return text
+    .replace(/^\d+\s+seconds?/i, "")
+    .replace(/^\d+\s+minutes?,\s*\d+\s+seconds?/i, "")
+    .replace(/^\d+\s+minutes?/i, "")
+    .replace(/^\d+\s+hours?,\s*\d+\s+minutes?(?:,\s*\d+\s+seconds?)?/i, "")
+    .trim();
+}
+
 export function isTimestampedFormat(text: string): boolean {
   const lines = text.trim().split(/\n/).filter(l => l.trim().length > 0);
   if (lines.length < 3) return false;
   let tsCount = 0;
   for (const line of lines) {
-    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?\s*$/.test(line) || /^\s*\d{1,2}:\d{2}(?::\d{2})?\s+/.test(line)) tsCount++;
+    if (/^\s*\d{1,2}:\d{2}(?::\d{2})?/.test(line)) tsCount++;
   }
   return tsCount / lines.length >= 0.3;
 }
@@ -52,18 +61,17 @@ export function parseTimestampedTranscript(raw: string): TimedSubtitle[] {
   let pendingTime: number | null = null;
 
   for (const line of lines) {
-    const inlineMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)/);
-    const standaloneMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*$/);
+    const tsMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)(.*)/);
 
-    if (inlineMatch) {
+    if (tsMatch) {
       pendingTime = null;
-      const time = parseTimestamp(inlineMatch[1]);
-      const text = inlineMatch[2].trim();
+      const time = parseTimestamp(tsMatch[1]);
+      let text = stripYouTubeDuration(tsMatch[2].trim());
       if (text.length > 0) {
         segments.push({ startTime: time, text });
+      } else {
+        pendingTime = time;
       }
-    } else if (standaloneMatch) {
-      pendingTime = parseTimestamp(standaloneMatch[1]);
     } else {
       const trimmed = line.trim();
       if (trimmed.length > 0) {
@@ -102,8 +110,8 @@ function mergeSubtitlesIntoSentences(subs: TimedSubtitle[]): TimedSubtitle[] {
   if (subs.length <= 1) return subs;
 
   const GAP_THRESHOLD = 1.5;
-  const MIN_WORDS_FOR_GAP_SPLIT = 5;
-  const MIN_CHARS_PER_SEGMENT = 25;
+  const MIN_WORDS_FOR_GAP_SPLIT = 3;
+  const MIN_CHARS_PER_SEGMENT = 10;
 
   const merged: TimedSubtitle[] = [];
   let currentStart = subs[0].startTime;
@@ -117,8 +125,9 @@ function mergeSubtitlesIntoSentences(subs: TimedSubtitle[]): TimedSubtitle[] {
 
     const isStrongEnd = STRONG_TERMINATORS.test(currentText);
     const isSignificantGap = gap >= GAP_THRESHOLD && wordCount >= MIN_WORDS_FOR_GAP_SPLIT;
+    const isLongSegment = wordCount >= 8;
 
-    if (isStrongEnd || isSignificantGap) {
+    if (isStrongEnd || isSignificantGap || isLongSegment) {
       merged.push({ startTime: currentStart, endTime: currentEnd, text: currentText.trim() });
       currentStart = next.startTime;
       currentEnd = next.endTime;
@@ -152,6 +161,10 @@ export function cleanTimestampedText(raw: string): string {
     .replace(/\[.*?\]/g, "")
     .replace(/\(.*?\)/g, "")
     .replace(/^\s*\d{1,2}:\d{2}(?::\d{2})?\s*/gm, "")
+    .replace(/\d+\s+hours?,\s*\d+\s+minutes?(?:,\s*\d+\s+seconds?)?/gi, "")
+    .replace(/\d+\s+minutes?,\s*\d+\s+seconds?/gi, "")
+    .replace(/\d+\s+minutes?/gi, "")
+    .replace(/\d+\s+seconds?/gi, "")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/[^\S\n]{2,}/g, " ")
     .trim();

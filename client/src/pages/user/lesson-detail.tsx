@@ -41,6 +41,8 @@ interface WordMapItem {
   contextualMeaning: string;
   grammaticalRole?: string;
   i_rab?: string;
+  partOfSpeech?: string;
+  nahwExplanation?: string;
 }
 
 interface SentenceAnalysis {
@@ -369,7 +371,7 @@ export default function LessonDetailPage() {
         ) : null}
 
         <Tabs defaultValue="matn" className="w-full">
-          <TabsList className="w-full flex flex-wrap gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
+          <TabsList className="w-full flex overflow-x-auto gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
             <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
               <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn
             </TabsTrigger>
@@ -1891,13 +1893,15 @@ function NahwTab({ sentences }: { sentences: SentenceAnalysis[] }) {
                     So'zma-so'z i'rob tahlili
                   </p>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs border-collapse" data-testid={`table-nahw-${idx}`}>
+                    <table className="w-full text-xs border-collapse min-w-[600px]" data-testid={`table-nahw-${idx}`}>
                       <thead>
                         <tr className="border-b border-border/30">
                           <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">So'z</th>
                           <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Tarjima</th>
+                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">نوع الكلمة</th>
                           <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الوظيفة النحوية</th>
                           <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الإعراب</th>
+                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">O'zbekcha izoh</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1916,6 +1920,17 @@ function NahwTab({ sentences }: { sentences: SentenceAnalysis[] }) {
                               </span>
                             </td>
                             <td className="py-1.5 px-2 text-muted-foreground">{w.translationUz}</td>
+                            <td className="py-1.5 px-2 text-right">
+                              {w.partOfSpeech && (
+                                <span
+                                  className="text-violet-400 font-medium"
+                                  dir="rtl"
+                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+                                >
+                                  {w.partOfSpeech}
+                                </span>
+                              )}
+                            </td>
                             <td className="py-1.5 px-2 text-right">
                               {w.grammaticalRole && (
                                 <span
@@ -1938,6 +1953,7 @@ function NahwTab({ sentences }: { sentences: SentenceAnalysis[] }) {
                                 </span>
                               )}
                             </td>
+                            <td className="py-1.5 px-2 text-muted-foreground/80">{w.nahwExplanation}</td>
                           </tr>
                         ))}
                       </tbody>

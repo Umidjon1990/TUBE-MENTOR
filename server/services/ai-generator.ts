@@ -57,6 +57,8 @@ export interface WordMapItem {
   contextualMeaning: string;
   grammaticalRole?: string;
   i_rab?: string;
+  partOfSpeech?: string;
+  nahwExplanation?: string;
 }
 
 export interface SentenceAnalysis {
@@ -223,8 +225,10 @@ Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi struktur
           "translationUz": "O'ZBEKCHA tarjima",
           "translationAr": "${lang === "arabic" ? "arabcha izoh" : "الترجمة العربية"}",
           "contextualMeaning": "gapdagi ma'nosi O'ZBEK tilida",
+          "partOfSpeech": "اسم / فعل / حرف / ظرف / ضمير / ...",
           "grammaticalRole": "الفاعل / المفعول به / المبتدأ / الخبر / الحال / الجار والمجرور / ...",
-          "i_rab": "مرفوع بالضمة / منصوب بالفتحة / مجرور بالكسرة / ..."
+          "i_rab": "مرفوع بالضمة / منصوب بالفتحة / مجرور بالكسرة / ...",
+          "nahwExplanation": "O'ZBEKCHA qisqa nahviy tushuntirish (masalan: 'Ega — gap bajaruvchisi, marfu' holda')"
         }
       ]
     }
@@ -244,8 +248,10 @@ Muhim qoidalar:
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
 - wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
 - sentenceType: har bir gap uchun "جملة فعلية" (fe'l gap) yoki "جملة اسمية" (ism gap) ko'rsatilsin
+- partOfSpeech: har bir so'zning turi (اسم, فعل, حرف, ظرف, ضمير va h.k.)
 - grammaticalRole: har bir so'zning gapdagi nahviy vazifasi (الفاعل, المفعول به, المبتدأ, الخبر, الحال, النعت, المضاف, المضاف إليه, الجار والمجرور va h.k.)
 - i_rab: har bir so'zning i'rab tahlili — مرفوع/منصوب/مجرور va sababi (masalan: "مرفوع بالضمة لأنه فاعل", "منصوب بالفتحة لأنه مفعول به")
+- nahwExplanation: har bir so'z uchun O'ZBEK tilida qisqa nahviy tushuntirish
 - Nahviy tahlilda كتاب سيبويه, النحو الوافي لعباس حسن, ألفية ابن مالك asosida to'g'ri i'rab qo'yilsin
 - Daraja: ${levelLabel}
 - correctIndex 0 dan boshlanadi (0-3)`;
@@ -334,6 +340,8 @@ ${trimmedTranscript}`;
       contextualMeaning: w.contextualMeaning || "",
       grammaticalRole: w.grammaticalRole || "",
       i_rab: w.i_rab || "",
+      partOfSpeech: w.partOfSpeech || "",
+      nahwExplanation: w.nahwExplanation || "",
     })) : [],
   }));
 
@@ -488,6 +496,8 @@ function generateMockContent(
     const keyWords = sentenceWords.slice(0, 3);
     const mockRoles = ["الفاعل", "المفعول به", "المبتدأ", "الخبر", "الحال", "الجار والمجرور", "النعت", "المضاف إليه"];
     const mockIrabs = ["مرفوع بالضمة", "منصوب بالفتحة", "مجرور بالكسرة", "مبني على الفتح", "مرفوع بالواو", "منصوب بالياء"];
+    const mockPOS = ["اسم", "فعل", "حرف", "ظرف", "ضمير", "اسم", "فعل", "حرف"];
+    const mockNahwExp = ["Ega — gap bajaruvchisi", "To'ldiruvchi — fe'l ta'sir qilgan so'z", "Mubtada — gap mavzusi", "Xabar — mubtadaga oid xabar", "Hol — fe'l holatini bildiradi", "Jar va majrur — bog'lovchi", "Sifat — ot belgisini bildiradi", "Mudof ilayh — egalik bildiradi"];
     const wordMap: WordMapItem[] = sentenceWords.map((w, wi) => ({
       word: w,
       normalized: w.toLowerCase(),
@@ -496,6 +506,8 @@ function generateMockContent(
       contextualMeaning: `"${w}" gapdagi kontekstda ishlatilgan`,
       grammaticalRole: mockRoles[wi % mockRoles.length],
       i_rab: mockIrabs[wi % mockIrabs.length],
+      partOfSpeech: mockPOS[wi % mockPOS.length],
+      nahwExplanation: mockNahwExp[wi % mockNahwExp.length],
     }));
     const isVerbalSentence = /^[\u0600-\u06FF]{2,}\b/.test(s.trim());
     return {

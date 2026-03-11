@@ -154,8 +154,9 @@ export default function LessonDetailPage() {
     [lesson?.subtitlesJson]);
 
   const subtitles: SubtitleItem[] = useMemo(() => {
-    const stripDiacritics = (t: string) => t.replace(/[\u0610-\u065F\u06D6-\u06ED\u0670]/g, "");
-    const normalizeText = (t: string) => stripDiacritics(t).replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
+    const stripDiacritics = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+    const normalizeAlef = (t: string) => t.replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
+    const normalizeText = (t: string) => normalizeAlef(stripDiacritics(t)).replace(/[\u060C\u061B\u061F\u06D4.,;?!:]/g, "").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
 
     if (timedSubs && timedSubs.length > 0) {
       if (timedSubs.length === sentences.length) {
@@ -170,39 +171,43 @@ export default function LessonDetailPage() {
         }));
       }
 
-      const sentenceNorms = sentences.map(s => normalizeText(s.sentence));
-      const subNorms = timedSubs.map(ts => normalizeText(ts.text));
-      const totalSubLen = subNorms.reduce((a, n) => a + n.length, 0);
-      const totalSentLen = sentenceNorms.reduce((a, n) => a + n.length, 0);
-
-      if (totalSubLen === 0 || totalSentLen === 0) {
-        return timedSubs.map((ts, idx) => ({
-          id: idx, sentenceIndex: idx, startTime: ts.startTime, endTime: ts.endTime,
-          originalText: ts.text, translationUz: "", translationAr: "",
-        }));
-      }
+      const sentNorms = sentences.map(s => normalizeText(s.sentence));
+      const sentWords = sentNorms.map(n => new Set(n.split(" ").filter(w => w.length > 1)));
 
       let sentCursor = 0;
-      let cumSubLen = 0;
       return timedSubs.map((ts, idx) => {
-        cumSubLen += subNorms[idx].length;
-        const targetSentEnd = Math.round((cumSubLen / totalSubLen) * sentences.length);
-        const startSent = sentCursor;
-        const endSent = Math.max(startSent + 1, Math.min(targetSentEnd, sentences.length));
+        const tsNorm = normalizeText(ts.text);
+        const tsWordSet = new Set(tsNorm.split(" ").filter(w => w.length > 1));
 
         const matchedSentences: string[] = [];
         const matchedTranslations: string[] = [];
         const matchedTranslationsAr: string[] = [];
-        for (let si = startSent; si < endSent; si++) {
-          matchedSentences.push(sentences[si].sentence);
-          matchedTranslations.push(sentences[si].translation);
-          if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
+        let firstMatchIdx = -1;
+        let matchedCharLen = 0;
+        const tsLen = tsNorm.length;
+
+        for (let si = sentCursor; si < sentences.length; si++) {
+          const sWords = sentWords[si];
+          let hits = 0;
+          sWords.forEach(w => { if (tsWordSet.has(w)) hits++; });
+          const overlap = hits / Math.max(1, sWords.size);
+
+          if (overlap >= 0.4) {
+            if (firstMatchIdx < 0) firstMatchIdx = si;
+            matchedSentences.push(sentences[si].sentence);
+            matchedTranslations.push(sentences[si].translation);
+            if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
+            matchedCharLen += sentNorms[si].length;
+            sentCursor = si + 1;
+            if (matchedCharLen >= tsLen * 0.8) break;
+          } else if (matchedSentences.length > 0) {
+            break;
+          }
         }
-        sentCursor = endSent;
 
         return {
           id: idx,
-          sentenceIndex: startSent < sentences.length ? startSent : idx,
+          sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : Math.min(sentCursor, sentences.length - 1),
           startTime: ts.startTime,
           endTime: ts.endTime,
           originalText: matchedSentences.length > 0 ? matchedSentences.join(" ") : ts.text,

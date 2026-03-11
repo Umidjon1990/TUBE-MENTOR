@@ -140,7 +140,8 @@ export default function PublicLessonPage() {
     [lesson?.subtitlesJson]);
 
   const subtitles: SubtitleItem[] = useMemo(() => {
-    const normalizeText = (t: string) => t.toLowerCase().replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
+    const stripDiacritics = (t: string) => t.replace(/[\u0610-\u065F\u06D6-\u06ED\u0670]/g, "");
+    const normalizeText = (t: string) => stripDiacritics(t).replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
 
     if (timedSubs && timedSubs.length > 0) {
       if (timedSubs.length === sentences.length) {
@@ -149,44 +150,50 @@ export default function PublicLessonPage() {
           sentenceIndex: idx,
           startTime: ts.startTime,
           endTime: ts.endTime,
-          originalText: ts.text,
+          originalText: sentences[idx]?.sentence || ts.text,
           translationUz: sentences[idx]?.translation || "",
           translationAr: sentences[idx]?.translationAr || "",
         }));
       }
 
-      const usedSentenceIdxs = new Set<number>();
+      const sentenceNorms = sentences.map(s => normalizeText(s.sentence));
+      const subNorms = timedSubs.map(ts => normalizeText(ts.text));
+      const totalSubLen = subNorms.reduce((a, n) => a + n.length, 0);
+      const totalSentLen = sentenceNorms.reduce((a, n) => a + n.length, 0);
+
+      if (totalSubLen === 0 || totalSentLen === 0) {
+        return timedSubs.map((ts, idx) => ({
+          id: idx, sentenceIndex: idx, startTime: ts.startTime, endTime: ts.endTime,
+          originalText: ts.text, translationUz: "", translationAr: "",
+        }));
+      }
+
+      let sentCursor = 0;
+      let cumSubLen = 0;
       return timedSubs.map((ts, idx) => {
-        const tsNorm = normalizeText(ts.text);
-        let bestMatch: typeof sentences[0] | null = null;
-        let bestScore = 0;
-        let bestIdx = -1;
+        cumSubLen += subNorms[idx].length;
+        const targetSentEnd = Math.round((cumSubLen / totalSubLen) * sentences.length);
+        const startSent = sentCursor;
+        const endSent = Math.max(startSent + 1, Math.min(targetSentEnd, sentences.length));
 
-        sentences.forEach((s, sIdx) => {
-          if (usedSentenceIdxs.has(sIdx)) return;
-          const sNorm = normalizeText(s.sentence);
-          if (sNorm === tsNorm) { bestMatch = s; bestScore = 1; bestIdx = sIdx; return; }
-          if (tsNorm.includes(sNorm) || sNorm.includes(tsNorm)) {
-            const score = Math.min(sNorm.length, tsNorm.length) / Math.max(sNorm.length, tsNorm.length);
-            if (score > bestScore) { bestMatch = s; bestScore = score; bestIdx = sIdx; }
-          }
-          const tsWords = tsNorm.split(" ");
-          const sWords = sNorm.split(" ");
-          const commonWords = tsWords.filter(w => sWords.includes(w)).length;
-          const overlap = commonWords / Math.max(tsWords.length, sWords.length);
-          if (overlap > 0.4 && overlap > bestScore) { bestMatch = s; bestScore = overlap; bestIdx = sIdx; }
-        });
-
-        if (bestIdx >= 0) usedSentenceIdxs.add(bestIdx);
+        const matchedSentences: string[] = [];
+        const matchedTranslations: string[] = [];
+        const matchedTranslationsAr: string[] = [];
+        for (let si = startSent; si < endSent; si++) {
+          matchedSentences.push(sentences[si].sentence);
+          matchedTranslations.push(sentences[si].translation);
+          if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
+        }
+        sentCursor = endSent;
 
         return {
           id: idx,
-          sentenceIndex: bestIdx >= 0 ? bestIdx : idx,
+          sentenceIndex: startSent < sentences.length ? startSent : idx,
           startTime: ts.startTime,
           endTime: ts.endTime,
-          originalText: ts.text,
-          translationUz: bestMatch?.translation || "",
-          translationAr: bestMatch?.translationAr || "",
+          originalText: matchedSentences.length > 0 ? matchedSentences.join(" ") : ts.text,
+          translationUz: matchedTranslations.join(" ") || "",
+          translationAr: matchedTranslationsAr.join(" ") || "",
         };
       });
     }

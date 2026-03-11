@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "I8-GuaXnoKQFufxBCV6QZ"
+uri = "file://TUBE_MENTOR_CHATGPT_PROMPT.md"
+type = "text"
+title = "TUBE MENTOR — ChatGPT uchun tayyor PROMPT"

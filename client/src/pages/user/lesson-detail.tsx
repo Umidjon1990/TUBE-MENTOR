@@ -152,6 +152,18 @@ export default function LessonDetailPage() {
     const normalizeText = (t: string) => t.toLowerCase().replace(/[^\w\u0600-\u06FF\s]/g, "").replace(/\s+/g, " ").trim();
 
     if (timedSubs && timedSubs.length > 0) {
+      if (timedSubs.length === sentences.length) {
+        return timedSubs.map((ts, idx) => ({
+          id: idx,
+          sentenceIndex: idx,
+          startTime: ts.startTime,
+          endTime: ts.endTime,
+          originalText: ts.text,
+          translationUz: sentences[idx]?.translation || "",
+          translationAr: sentences[idx]?.translationAr || "",
+        }));
+      }
+
       const usedSentenceIdxs = new Set<number>();
       return timedSubs.map((ts, idx) => {
         const tsNorm = normalizeText(ts.text);
@@ -1003,6 +1015,7 @@ function QuizTab({ quizzes, lessonId }: { quizzes: QuizItem[]; lessonId: number 
   const correctCount = Array.from(showResult.entries()).filter(([idx]) => answers.get(idx) === quizzes[idx].correctIndex).length;
 
   const quizType = q.type || "multiple_choice";
+  const isChoiceBased = quizType === "multiple_choice" || quizType === "sentence_completion" || quizType === "word_translation";
 
   const handleAnswer = (optIndex: number) => {
     if (hasAnswered) return;
@@ -1106,7 +1119,10 @@ function QuizTab({ quizzes, lessonId }: { quizzes: QuizItem[]; lessonId: number 
         </h3>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[10px]">
-            {quizType === "fill_blank" ? "Gapni to'ldirish" : "Ko'p variantli savol"}
+            {quizType === "fill_blank" ? "Gapni to'ldirish" :
+             quizType === "sentence_completion" ? "Bo'shliq to'ldirish" :
+             quizType === "word_translation" ? "So'z tarjimasini toping" :
+             "Ko'p variantli savol"}
           </Badge>
           <Badge variant="secondary">{currentIdx + 1} / {quizzes.length}</Badge>
         </div>
@@ -1120,7 +1136,32 @@ function QuizTab({ quizzes, lessonId }: { quizzes: QuizItem[]; lessonId: number 
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <span className="text-sm font-bold text-primary">{currentIdx + 1}</span>
             </div>
-            <p className="text-base md:text-lg font-medium pt-1 break-words">{q.question}</p>
+            {quizType === "sentence_completion" ? (
+              <div className="flex-1 pt-1">
+                <p className="text-xs text-muted-foreground mb-2">Bo'sh joyga mos so'zni tanlang:</p>
+                <p className="text-base md:text-lg font-medium break-words" dir="rtl" style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "2" }}>
+                  {q.question.split("_____").map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && (
+                        <span className="inline-block mx-1 px-3 py-0.5 border-b-2 border-primary text-primary font-bold rounded-sm bg-primary/10">
+                          ؟
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            ) : quizType === "word_translation" ? (
+              <div className="flex-1 pt-1">
+                <p className="text-xs text-muted-foreground mb-2">Ushbu arabcha so'zning o'zbekcha tarjimasini toping:</p>
+                <p className="text-2xl md:text-3xl font-bold text-primary break-words" dir="rtl" style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "2" }}>
+                  {q.question}
+                </p>
+              </div>
+            ) : (
+              <p className="text-base md:text-lg font-medium pt-1 break-words">{q.question}</p>
+            )}
           </div>
 
           {quizType === "fill_blank" ? (

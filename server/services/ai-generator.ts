@@ -39,7 +39,7 @@ export interface QuizItem {
   options: string[];
   correctIndex: number;
   explanation: string;
-  type?: "multiple_choice" | "fill_blank";
+  type?: "multiple_choice" | "fill_blank" | "sentence_completion" | "word_translation";
 }
 
 export interface FlashcardItem {
@@ -126,22 +126,23 @@ async function generateWithOpenAI(
   const lang = detectLanguage(trimmedTranscript);
 
   const langInstructions = lang === "arabic"
-    ? `Transkript ARAB tilida. 
-- "word" maydoni: arabcha so'z (asl matndagi)
+    ? `Transkript ARAB tilida.
+- "word" maydoni: arabcha so'z (HARAKAT BILAN: masalan كَتَبَ, بَيْتٌ, مَدْرَسَةٌ)
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
-- "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi
-- "sentence" maydoni: transkriptdan arabcha gap (asl matndagi)
+- "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi (HARAKAT BILAN)
+- "sentence" maydoni: transkriptdan arabcha gap (HARAKAT BILAN yozing — fatha, kasra, damma, sukun qo'shing)
 - "grammarNotes" maydoni: O'ZBEK tilida grammatik izoh
 - Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin
-- "front" maydoni kartochkalarda: arabcha so'z
+- "front" maydoni kartochkalarda: arabcha so'z (HARAKAT BILAN)
 - "back" maydoni kartochkalarda: O'ZBEK tilida tarjima
-- "question" maydoni testlarda: O'ZBEK tilida savol
-- "options" maydoni testlarda: aralash (ba'zilari arabcha, ba'zilari o'zbekcha)
-- "explanation" maydoni: O'ZBEK tilida tushuntirish`
+- "question" maydoni testlarda: O'ZBEK tilida savol yoki arabcha gap (HARAKAT BILAN)
+- "options" maydoni testlarda: aralash (ba'zilari arabcha HARAKAT BILAN, ba'zilari o'zbekcha)
+- "explanation" maydoni: O'ZBEK tilida tushuntirish
+- MUHIM: wordMap dagi barcha arabcha so'zlar HARAKAT (tashkeel) bilan yozilishi SHART!`
     : `Transkript INGLIZ tilida.
 - "word" maydoni: inglizcha so'z
 - "translation" maydoni: O'ZBEK tilida tarjima  
-- "translationAr" maydoni: ARAB tilida tarjima
+- "translationAr" maydoni: ARAB tilida tarjima (harakatsiz ham bo'lishi mumkin)
 - Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin`;
 
   const systemPrompt = `Sen professional til o'qituvchisisan. YouTube video transkriptidan o'zbek tilidagi o'quvchilar uchun ta'limiy kontent yaratasan.
@@ -175,11 +176,25 @@ Javobni FAQAT JSON formatda ber, boshqa hech narsa yozma. JSON quyidagi struktur
   ],
   "quizzes": [
     {
-      "question": "O'ZBEK tilida savol",
+      "question": "O'ZBEK tilida savol (multiple_choice uchun)",
       "options": ["variant A", "variant B", "variant C", "variant D"],
       "correctIndex": 0,
       "explanation": "O'ZBEK tilida tushuntirish",
       "type": "multiple_choice"
+    },
+    {
+      "question": "هَذَا _____ جَمِيلٌ — bo'sh joyga mos arabcha so'zni tanlang (gapning O'RTASIDA bo'shliq bo'lsin!)",
+      "options": ["بَيْتٌ", "كِتَابٌ", "وَلَدٌ", "سَيَّارَةٌ"],
+      "correctIndex": 0,
+      "explanation": "Bu uy go'zal — 'بَيْتٌ' uy degan ma'noni anglatadi",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "كَتَبَ",
+      "options": ["o'qidi", "yozdi", "bordi", "keldi"],
+      "correctIndex": 1,
+      "explanation": "كَتَبَ — yozmoq fe'lining o'tgan zamoni (past tense)",
+      "type": "word_translation"
     }
   ],
   "flashcards": [
@@ -214,7 +229,11 @@ Muhim qoidalar:
 - BARCHA "translation" va tushuntirish maydonlari O'ZBEK tilida bo'lishi SHART
 - vocabulary: 8-15 ta so'z
 - phrases: 4-8 ta ibora
-- quizzes: 8-10 ta savol (har xil turdagi: multiple_choice va fill_blank)
+- quizzes: 10-12 ta savol, MAJBURIY turlar:
+  * multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+  * sentence_completion: 3-4 ta (arabcha gap O'RTASIDA _____ bo'shliq, 4 arabcha variant, bo'shliq gapning boshida EMAS o'rtasida bo'lsin)
+  * word_translation: 3-4 ta (arabcha so'z, 4 o'zbekcha variant)
+  * MUHIM: sentence_completion da _____ belgisi gapning o'rtasida kelishi SHART (boshi yoki oxirida emas!)
 - flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
 - sentenceAnalysis: transkriptdagi BARCHA gaplarni tahlil qil, birontasini ham tashlab ketma! Har bir gap uchun tarjima, wordMap va grammarNotes bo'lishi SHART.
 - wordMap: har bir gapdagi BARCHA so'zlarning so'zma-so'z tarjimasi (hech bir so'zni tashlab ketma!)
@@ -278,7 +297,9 @@ ${trimmedTranscript}`;
     options: Array.isArray(q.options) ? q.options : [],
     correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : 0,
     explanation: q.explanation || "",
-    type: q.type === "fill_blank" ? "fill_blank" : "multiple_choice",
+    type: (["multiple_choice", "fill_blank", "sentence_completion", "word_translation"].includes(q.type)
+      ? q.type
+      : "multiple_choice") as "multiple_choice" | "fill_blank" | "sentence_completion" | "word_translation",
   }));
 
   const flashcardsJson: FlashcardItem[] = (parsed.flashcards || []).map((f: any) => ({

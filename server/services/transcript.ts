@@ -14,7 +14,7 @@ export interface TimedSubtitle {
 export function splitIntoSentences(text: string): string[] {
   return text
     .replace(/\r\n/g, "\n")
-    .split(/(?<=[.!?。？！])\s+|\n+/)
+    .split(/(?<=[.!?。？！؟])\s+|\n+/)
     .map(s => s.trim())
     .filter(s => s.length > 0);
 }
@@ -56,8 +56,6 @@ export function parseTimestampedTranscript(raw: string): TimedSubtitle[] {
     const standaloneMatch = line.match(/^\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*$/);
 
     if (inlineMatch) {
-      if (pendingTime !== null && segments.length > 0) {
-      }
       pendingTime = null;
       const time = parseTimestamp(inlineMatch[1]);
       const text = inlineMatch[2].trim();
@@ -97,23 +95,56 @@ export function parseTimestampedTranscript(raw: string): TimedSubtitle[] {
   return result;
 }
 
-function mergeShortSubtitles(subs: TimedSubtitle[], minLength: number = 15): TimedSubtitle[] {
+const SENTENCE_TERMINATORS = /[.!?؟!。？！،,]+\s*$/;
+const STRONG_TERMINATORS = /[.!?؟!。？！]\s*$/;
+
+function mergeSubtitlesIntoSentences(subs: TimedSubtitle[]): TimedSubtitle[] {
   if (subs.length <= 1) return subs;
+
+  const GAP_THRESHOLD = 1.5;
+  const MIN_WORDS_FOR_GAP_SPLIT = 5;
+  const MIN_CHARS_PER_SEGMENT = 25;
+
   const merged: TimedSubtitle[] = [];
-  let current = { ...subs[0] };
+  let currentStart = subs[0].startTime;
+  let currentEnd = subs[0].endTime;
+  let currentText = subs[0].text;
 
   for (let i = 1; i < subs.length; i++) {
-    const gap = subs[i].startTime - current.endTime;
-    if (current.text.length < minLength && gap <= 2) {
-      current.text += " " + subs[i].text;
-      current.endTime = subs[i].endTime;
+    const next = subs[i];
+    const gap = next.startTime - currentEnd;
+    const wordCount = currentText.trim().split(/\s+/).length;
+
+    const isStrongEnd = STRONG_TERMINATORS.test(currentText);
+    const isSignificantGap = gap >= GAP_THRESHOLD && wordCount >= MIN_WORDS_FOR_GAP_SPLIT;
+
+    if (isStrongEnd || isSignificantGap) {
+      merged.push({ startTime: currentStart, endTime: currentEnd, text: currentText.trim() });
+      currentStart = next.startTime;
+      currentEnd = next.endTime;
+      currentText = next.text;
     } else {
-      merged.push(current);
-      current = { ...subs[i] };
+      currentText += " " + next.text;
+      currentEnd = next.endTime;
     }
   }
-  merged.push(current);
-  return merged;
+  merged.push({ startTime: currentStart, endTime: currentEnd, text: currentText.trim() });
+
+  const cleaned: TimedSubtitle[] = [];
+  for (let i = 0; i < merged.length; i++) {
+    const seg = merged[i];
+    if (seg.text.length < MIN_CHARS_PER_SEGMENT && i < merged.length - 1) {
+      merged[i + 1] = {
+        startTime: seg.startTime,
+        endTime: merged[i + 1].endTime,
+        text: seg.text + " " + merged[i + 1].text,
+      };
+    } else {
+      cleaned.push(seg);
+    }
+  }
+
+  return cleaned.length > 0 ? cleaned : merged;
 }
 
 export function cleanTimestampedText(raw: string): string {
@@ -183,7 +214,7 @@ export async function tryExtractTranscript(videoId: string): Promise<TranscriptR
       }
     }
 
-    const mergedSubs = mergeShortSubtitles(timedSegments, 15);
+    const mergedSubs = mergeSubtitlesIntoSentences(timedSegments);
 
     const rawText = mergedSubs.map(s => s.text).join(" ");
     const cleaned = cleanTranscript(rawText);
@@ -192,7 +223,7 @@ export async function tryExtractTranscript(videoId: string): Promise<TranscriptR
     return {
       text: cleaned,
       source: "auto",
-      sentences: splitIntoSentences(cleaned),
+      sentences: mergedSubs.map(s => s.text),
       timedSubtitles: mergedSubs,
     };
   } catch {
@@ -214,7 +245,7 @@ export function getDemoTranscript(): TranscriptResult {
 export function processManualTranscript(raw: string): TranscriptResult {
   if (isTimestampedFormat(raw)) {
     const timedSubs = parseTimestampedTranscript(raw);
-    const merged = mergeShortSubtitles(timedSubs, 10);
+    const merged = mergeSubtitlesIntoSentences(timedSubs);
     const cleanedText = cleanTimestampedText(raw);
     const sentences = merged.map(s => s.text);
 

@@ -639,16 +639,23 @@ export async function registerRoutes(
       return res.status(400).json({ message: "Bu dars allaqachon generatsiya qilingan" });
     }
 
-    let rawSentences = lesson.transcript
-      .split(/(?<=[.!?。？！؟!])\s+|\n+/)
-      .map((s: string) => s.trim())
-      .filter((s: string) => s.length > 0);
+    const storedSubs = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+    let rawSentences: string[];
 
-    if (rawSentences.length <= 1 && lesson.transcript.length > 50) {
+    if (storedSubs && storedSubs.length > 0) {
+      rawSentences = storedSubs.map(s => s.text).filter(t => t.trim().length > 0);
+    } else {
       rawSentences = lesson.transcript
-        .split(/\n+/)
+        .split(/(?<=[.!?。？！؟!])\s+|\n+/)
         .map((s: string) => s.trim())
         .filter((s: string) => s.length > 0);
+
+      if (rawSentences.length <= 1 && lesson.transcript.length > 50) {
+        rawSentences = lesson.transcript
+          .split(/\n+/)
+          .map((s: string) => s.trim())
+          .filter((s: string) => s.length > 0);
+      }
     }
 
     const sentences: string[] = [];

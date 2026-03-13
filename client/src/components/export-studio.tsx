@@ -31,7 +31,6 @@ import {
   Languages,
   TextSelect,
   BookMarked,
-  MessageSquareQuote,
   HelpCircle,
   Layers,
   ScrollText,
@@ -56,7 +55,6 @@ const SECTION_OPTIONS: {
   { key: "uzTranslation", label: "O'zbek tarjimasi", icon: Languages, color: "text-blue-500" },
   { key: "wordByWord", label: "So'zma-so'z tarjima", icon: TextSelect, color: "text-amber-500" },
   { key: "vocabulary", label: "Lug'at", icon: BookMarked, color: "text-cyan-500" },
-  { key: "phrases", label: "Iboralar", icon: MessageSquareQuote, color: "text-violet-500" },
   { key: "quizzes", label: "Test savollari", icon: HelpCircle, color: "text-rose-500" },
   { key: "flashcards", label: "Flashkartalar", icon: Layers, color: "text-orange-500" },
   { key: "summary", label: "Xulosa", icon: ScrollText, color: "text-teal-500" },
@@ -90,7 +88,6 @@ function estimatePages(config: ExportConfig, data: LessonExportData | null): num
   if (config.sections.includes("uzTranslation")) pages += Math.max(1, Math.ceil(data.sentences.length / 10));
   if (config.sections.includes("wordByWord")) pages += Math.max(1, Math.ceil(data.sentences.length / 4));
   if (config.sections.includes("vocabulary")) pages += Math.max(1, Math.ceil(data.vocabulary.length / 15));
-  if (config.sections.includes("phrases")) pages += Math.max(1, Math.ceil(data.phrases.length / 12));
   if (config.sections.includes("quizzes")) {
     const count = config.quizMode === "all" ? data.quizzes.length : Math.min(config.quizCount, data.quizzes.length);
     pages += Math.max(1, Math.ceil(count / 5));
@@ -107,7 +104,6 @@ function buildPreviewSummary(config: ExportConfig, data: LessonExportData | null
   if (config.sections.includes("uzTranslation")) items.push("tarjima");
   if (config.sections.includes("wordByWord")) items.push("so'zma-so'z");
   if (config.sections.includes("vocabulary")) items.push(`${data.vocabulary.length} ta so'z`);
-  if (config.sections.includes("phrases")) items.push(`${data.phrases.length} ta ibora`);
   if (config.sections.includes("quizzes")) {
     const count = config.quizMode === "all" ? data.quizzes.length : Math.min(config.quizCount, data.quizzes.length);
     items.push(`${count} ta test`);

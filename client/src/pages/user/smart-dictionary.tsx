@@ -14,7 +14,6 @@ interface DictResult {
   normalized: string;
   translationUz: string;
   translationAr: string;
-  contextualMeaning: string;
   sentence: string;
   sentenceTranslation: string;
   lessonId: number;
@@ -159,11 +158,6 @@ export default function SmartDictionaryPage() {
                       {items[0].translationAr && items[0].translationAr !== items[0].word && (
                         <p className="text-sm text-muted-foreground" dir="rtl" style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif" }}>
                           {items[0].translationAr}
-                        </p>
-                      )}
-                      {items[0].contextualMeaning && (
-                        <p className="text-xs text-muted-foreground italic">
-                          {items[0].contextualMeaning}
                         </p>
                       )}
                     </div>

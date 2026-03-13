@@ -193,9 +193,6 @@ export default function SavedWordsPage() {
                           <h4 className="text-base font-bold" data-testid={`text-word-${word.id}`}>
                             {word.word}
                           </h4>
-                          {word.partOfSpeech && (
-                            <Badge variant="secondary" className="text-[10px]">{word.partOfSpeech}</Badge>
-                          )}
                           {word.isLearned && (
                             <Badge className="text-[10px] bg-emerald-500/20 text-emerald-500 border-emerald-500/30">
                               <Check className="w-2.5 h-2.5 mr-0.5" />
@@ -214,11 +211,6 @@ export default function SavedWordsPage() {
                           <p className="text-sm text-foreground/90 mt-0.5" dir="rtl" data-testid={`text-translation-ar-${word.id}`}>
                             <span className="text-xs text-muted-foreground ml-1" dir="ltr">AR:</span>
                             {word.translationAr}
-                          </p>
-                        )}
-                        {word.contextualMeaning && (
-                          <p className="text-xs text-muted-foreground mt-1 italic" data-testid={`text-meaning-${word.id}`}>
-                            {word.contextualMeaning}
                           </p>
                         )}
                         {word.sourceSentence && (

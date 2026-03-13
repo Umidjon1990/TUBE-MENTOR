@@ -10,21 +10,12 @@ export interface WordInfo {
   normalized: string;
   translationUz: string;
   translationAr: string;
-  contextualMeaning: string;
-  partOfSpeech: string;
   pronunciation: string;
   sourceSentence: string;
   sourceSentenceUz?: string;
   sourceSentenceAr?: string;
   subtitleTime: number;
   lessonId: number;
-  phraseText?: string;
-  phraseTranslationUz?: string;
-  phraseTranslationAr?: string;
-  phraseExplanation?: string;
-  grammaticalRole?: string;
-  i_rab?: string;
-  nahwExplanation?: string;
 }
 
 interface WordInspectorProps {
@@ -99,15 +90,9 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
         lessonId: info.lessonId,
         translationUz: info.translationUz,
         translationAr: info.translationAr,
-        contextualMeaning: info.contextualMeaning,
-        partOfSpeech: info.partOfSpeech,
         pronunciation: info.pronunciation,
         sourceSentence: info.sourceSentence,
         subtitleTime: info.subtitleTime,
-        phraseText: info.phraseText,
-        phraseTranslationUz: info.phraseTranslationUz,
-        phraseTranslationAr: info.phraseTranslationAr,
-        phraseExplanation: info.phraseExplanation,
       });
     },
     onSuccess: () => {
@@ -198,7 +183,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
         <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5">
           <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-0.5">Tarjimasi</p>
           <p className="text-sm font-semibold text-foreground break-words" data-testid="text-translation-uz">
-            {wordInfo.translationUz || wordInfo.contextualMeaning || "—"}
+            {wordInfo.translationUz || "—"}
           </p>
         </div>
 

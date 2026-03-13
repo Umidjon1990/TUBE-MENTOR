@@ -5,7 +5,6 @@ export type ExportSection =
   | "uzTranslation"
   | "wordByWord"
   | "vocabulary"
-  | "phrases"
   | "quizzes"
   | "flashcards"
   | "summary";
@@ -26,7 +25,6 @@ export interface SentenceBlock {
   sentence: string;
   translation: string;
   translationAr?: string;
-  grammarNotes?: string;
   wordMap?: WordMapEntry[];
 }
 
@@ -34,7 +32,6 @@ export interface WordMapEntry {
   word: string;
   translation: string;
   translationAr?: string;
-  partOfSpeech?: string;
 }
 
 export interface VocabEntry {
@@ -44,13 +41,6 @@ export interface VocabEntry {
   partOfSpeech?: string;
   example?: string;
   difficulty?: string;
-}
-
-export interface PhraseEntry {
-  phrase: string;
-  translation: string;
-  translationAr?: string;
-  context?: string;
 }
 
 export interface QuizEntry {
@@ -80,7 +70,6 @@ export interface LessonExportData {
   level: string;
   sentences: SentenceBlock[];
   vocabulary: VocabEntry[];
-  phrases: PhraseEntry[];
   quizzes: QuizEntry[];
   flashcards: FlashcardEntry[];
   summary: SummaryData;

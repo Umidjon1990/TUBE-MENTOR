@@ -18,7 +18,6 @@ import type {
   LessonExportData,
   SentenceBlock,
   VocabEntry,
-  PhraseEntry,
   QuizEntry,
   FlashcardEntry,
   SummaryData,
@@ -26,7 +25,6 @@ import type {
 import {
   prepareTextBlocks,
   prepareVocabulary,
-  preparePhrases,
   prepareQuizzes,
   prepareFlashcards,
   prepareSummary,
@@ -325,69 +323,6 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
   );
 
   return elements;
-}
-
-function buildPhrasesSection(phrases: PhraseEntry[]): Paragraph[] {
-  if (phrases.length === 0) return [];
-  const paragraphs: Paragraph[] = [];
-  paragraphs.push(sectionHeading("Iboralar", COLORS.violet));
-
-  phrases.forEach((p, idx) => {
-    paragraphs.push(
-      new Paragraph({
-        spacing: { before: 120, after: 40 },
-        children: [
-          new TextRun({
-            text: `${idx + 1}. `,
-            bold: true,
-            size: 20,
-            color: COLORS.gray,
-            font: "Arial",
-          }),
-          new TextRun({
-            text: p.phrase,
-            bold: true,
-            size: 22,
-            color: COLORS.emerald,
-            font: "Arial",
-          }),
-        ],
-      })
-    );
-    paragraphs.push(
-      new Paragraph({
-        spacing: { after: 80 },
-        indent: { left: convertInchesToTwip(0.3) },
-        children: [
-          new TextRun({
-            text: p.translation,
-            size: 20,
-            color: COLORS.blue,
-            font: "Arial",
-          }),
-        ],
-      })
-    );
-    if (p.context) {
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: 120 },
-          indent: { left: convertInchesToTwip(0.3) },
-          children: [
-            new TextRun({
-              text: `Kontekst: ${p.context}`,
-              italics: true,
-              size: 18,
-              color: COLORS.gray,
-              font: "Arial",
-            }),
-          ],
-        })
-      );
-    }
-  });
-
-  return paragraphs;
 }
 
 function buildQuizSection(quizzes: QuizEntry[], withAnswers: boolean): Paragraph[] {
@@ -711,7 +646,6 @@ export async function generateDocx(
 ): Promise<Blob> {
   const textBlocks = prepareTextBlocks(data, config);
   const vocab = prepareVocabulary(data, config);
-  const phrases = preparePhrases(data, config);
   const quizzes = prepareQuizzes(data, config);
   const flashcards = prepareFlashcards(data, config);
   const summary = prepareSummary(data, config);
@@ -726,10 +660,6 @@ export async function generateDocx(
 
   if (vocab.length > 0) {
     children.push(...buildVocabularySection(vocab));
-  }
-
-  if (phrases.length > 0) {
-    children.push(...buildPhrasesSection(phrases));
   }
 
   if (quizzes.length > 0) {

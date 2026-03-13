@@ -3,7 +3,6 @@ import type {
   LessonExportData,
   SentenceBlock,
   VocabEntry,
-  PhraseEntry,
   QuizEntry,
   FlashcardEntry,
   SummaryData,
@@ -35,7 +34,6 @@ export function prepareTextBlocks(
     sentence: (config.sections.includes("arabText") || hasWordByWord) ? s.sentence : "",
     translation: (config.sections.includes("uzTranslation") || hasWordByWord) ? s.translation : "",
     translationAr: s.translationAr,
-    grammarNotes: s.grammarNotes,
     wordMap: hasWordByWord ? s.wordMap : undefined,
   }));
 }
@@ -46,14 +44,6 @@ export function prepareVocabulary(
 ): VocabEntry[] {
   if (!config.sections.includes("vocabulary")) return [];
   return data.vocabulary;
-}
-
-export function preparePhrases(
-  data: LessonExportData,
-  config: ExportConfig
-): PhraseEntry[] {
-  if (!config.sections.includes("phrases")) return [];
-  return data.phrases;
 }
 
 export function prepareQuizzes(
@@ -98,7 +88,6 @@ export function buildExportData(
   lesson: any,
   sentences: any[],
   vocabulary: any[],
-  phrases: any[],
   quizzes: any[],
   flashcards: any[]
 ): LessonExportData {
@@ -110,13 +99,11 @@ export function buildExportData(
       sentence: s.sentence || "",
       translation: s.translation || "",
       translationAr: s.translationAr,
-      grammarNotes: s.grammarNotes,
       wordMap: Array.isArray(s.wordMap)
         ? s.wordMap.map((w: any) => ({
             word: w.word || "",
             translation: w.translationUz || w.translation || "",
             translationAr: w.translationAr,
-            partOfSpeech: w.partOfSpeech,
           }))
         : undefined,
     })),
@@ -127,12 +114,6 @@ export function buildExportData(
       partOfSpeech: v.partOfSpeech,
       example: v.example,
       difficulty: v.difficulty,
-    })),
-    phrases: phrases.map((p) => ({
-      phrase: p.phrase || "",
-      translation: p.translation || "",
-      translationAr: p.translationAr,
-      context: p.context,
     })),
     quizzes: quizzes.map((q) => ({
       question: q.question || "",

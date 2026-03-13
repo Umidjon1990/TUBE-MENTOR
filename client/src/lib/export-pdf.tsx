@@ -12,7 +12,6 @@ import type {
   LessonExportData,
   SentenceBlock,
   VocabEntry,
-  PhraseEntry,
   QuizEntry,
   FlashcardEntry,
   SummaryData,
@@ -20,7 +19,6 @@ import type {
 import {
   prepareTextBlocks,
   prepareVocabulary,
-  preparePhrases,
   prepareQuizzes,
   prepareFlashcards,
   prepareSummary,
@@ -69,8 +67,6 @@ const colors = {
   vocab: "#0891b2",
   vocabBg: "#ecfeff",
   vocabAlt: "#7c3aed",
-  phrases: "#7c3aed",
-  phrasesBg: "#f5f3ff",
   quiz: "#dc2626",
   quizBg: "#fef2f2",
   flashcard: "#0d9488",
@@ -200,33 +196,6 @@ const styles = StyleSheet.create({
   tableCell: {
     fontSize: 9,
     paddingHorizontal: 4,
-  },
-  phraseBlock: {
-    marginBottom: 8,
-    padding: 8,
-    backgroundColor: colors.phrasesBg,
-    borderRadius: 4,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.phrases,
-  },
-  phraseText: {
-    fontSize: 12,
-    color: colors.phrases,
-    fontFamily: "Amiri",
-    fontWeight: 700 as const,
-    textAlign: "right" as const,
-    marginBottom: 2,
-    lineHeight: 1.6,
-  },
-  phraseTranslation: {
-    fontSize: 10,
-    color: colors.dark,
-    marginBottom: 2,
-  },
-  phraseContext: {
-    fontSize: 8,
-    color: colors.gray,
-    fontStyle: "italic" as const,
   },
   quizBlock: {
     marginBottom: 10,
@@ -486,31 +455,6 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
   );
 }
 
-function PhrasesSection({ phrases }: { phrases: PhraseEntry[] }) {
-  if (!phrases.length) return null;
-  return (
-    <View>
-      <Text
-        style={[
-          styles.sectionTitle,
-          { color: colors.phrases, borderBottomColor: colors.phrases },
-        ]}
-      >
-        Iboralar
-      </Text>
-      {phrases.map((p, i) => (
-        <View key={i} style={styles.phraseBlock} wrap={false}>
-          <Text style={styles.phraseText}>{p.phrase}</Text>
-          <Text style={styles.phraseTranslation}>{p.translation}</Text>
-          {p.context ? (
-            <Text style={styles.phraseContext}>{p.context}</Text>
-          ) : null}
-        </View>
-      ))}
-    </View>
-  );
-}
-
 function QuizzesSection({
   quizzes,
   withAnswers,
@@ -643,7 +587,6 @@ function MiniGuidePDF({
 }) {
   const textBlocks = prepareTextBlocks(data, config);
   const vocabulary = prepareVocabulary(data, config);
-  const phrases = preparePhrases(data, config);
   const quizzes = prepareQuizzes(data, config);
   const flashcards = prepareFlashcards(data, config);
   const summary = prepareSummary(data, config);
@@ -654,7 +597,6 @@ function MiniGuidePDF({
         <Header title={data.title} level={data.level} />
         <TextBlocksSection blocks={textBlocks} />
         <VocabularySection vocab={vocabulary} />
-        <PhrasesSection phrases={phrases} />
         <QuizzesSection
           quizzes={quizzes}
           withAnswers={config.quizWithAnswers}

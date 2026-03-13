@@ -24,16 +24,8 @@ export interface VocabLookup {
   word: string;
   translation: string;
   translationAr?: string;
-  partOfSpeech?: string;
   example?: string;
   difficulty?: string;
-}
-
-export interface PhraseLookup {
-  phrase: string;
-  translation: string;
-  translationAr?: string;
-  context?: string;
 }
 
 export interface WordMapEntry {
@@ -41,17 +33,11 @@ export interface WordMapEntry {
   normalized: string;
   translationUz: string;
   translationAr: string;
-  contextualMeaning: string;
-  partOfSpeech?: string;
-  grammaticalRole?: string;
-  i_rab?: string;
-  nahwExplanation?: string;
 }
 
 export interface SentenceWordMap {
   sentenceIndex: number;
   wordMap: WordMapEntry[];
-  grammarNotes?: string;
 }
 
 type DisplayMode = "original" | "both" | "translation";
@@ -106,7 +92,6 @@ interface SubtitlePlayerProps {
   subtitles: SubtitleItem[];
   lessonId?: number;
   vocabulary?: VocabLookup[];
-  phrases?: PhraseLookup[];
   sentenceWordMaps?: SentenceWordMap[];
   className?: string;
   initialSeekTime?: number;
@@ -114,7 +99,7 @@ interface SubtitlePlayerProps {
   readOnly?: boolean;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], phrases = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce, readOnly = false }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce, readOnly = false }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -162,16 +147,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     return m;
   }, [vocabulary]);
 
-  const findPhraseForWord = useCallback((word: string, sentence: string): PhraseLookup | null => {
-    const lower = sentence.toLowerCase();
-    for (const p of phrases) {
-      if (lower.includes(p.phrase.toLowerCase()) && p.phrase.toLowerCase().includes(word.toLowerCase())) {
-        return p;
-      }
-    }
-    return null;
-  }, [phrases]);
-
   const wordMapLookup = useMemo(() => {
     const m = new Map<number, Map<string, WordMapEntry>>();
     for (const swm of sentenceWordMaps) {
@@ -180,16 +155,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         inner.set(wm.normalized, wm);
       }
       m.set(swm.sentenceIndex, inner);
-    }
-    return m;
-  }, [sentenceWordMaps]);
-
-  const grammarNotesLookup = useMemo(() => {
-    const m = new Map<number, string>();
-    for (const swm of sentenceWordMaps) {
-      if (swm.grammarNotes) {
-        m.set(swm.sentenceIndex, swm.grammarNotes);
-      }
     }
     return m;
   }, [sentenceWordMaps]);
@@ -222,51 +187,23 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       if (wmEntry) { matchedSentenceIndex = si; break; }
     }
     const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(cleanWord.toLowerCase());
-    const phraseEntry = findPhraseForWord(cleanWord, subtitle.originalText);
-
-    let sentGrammarNotes = "";
-    if (matchedSentenceIndex >= 0) {
-      sentGrammarNotes = grammarNotesLookup.get(matchedSentenceIndex) || "";
-    } else {
-      for (const si of subtitle.sentenceIndices) {
-        const gn = grammarNotesLookup.get(si);
-        if (gn) { sentGrammarNotes = gn; break; }
-      }
-    }
 
     const transAr = wmEntry?.translationAr || vocabEntry?.translationAr || "";
-    let derivedPartOfSpeech = wmEntry?.partOfSpeech || vocabEntry?.partOfSpeech || "";
-    if (!derivedPartOfSpeech && transAr) {
-      if (/حَرْف|حرف/.test(transAr)) derivedPartOfSpeech = "حَرْفٌ";
-      else if (/ضَمِير|ضمير/.test(transAr)) derivedPartOfSpeech = "ضَمِيرٌ";
-      else if (/أَدَاة|اداة|أداة/.test(transAr)) derivedPartOfSpeech = "أَدَاةٌ";
-      else if (/اِسْم|اسم/.test(transAr)) derivedPartOfSpeech = "اِسْمٌ";
-      else if (/فِعْل|فعل/.test(transAr)) derivedPartOfSpeech = "فِعْلٌ";
-    }
 
     setSelectedWord({
       word: cleanWord,
       normalized: cleanWord.toLowerCase(),
       translationUz: wmEntry?.translationUz || vocabEntry?.translation || "",
       translationAr: transAr,
-      contextualMeaning: wmEntry?.contextualMeaning || vocabEntry?.example || "",
-      partOfSpeech: derivedPartOfSpeech,
       pronunciation: "",
       sourceSentence: subtitle.originalText,
       sourceSentenceUz: subtitle.translationUz || "",
       sourceSentenceAr: subtitle.translationAr || "",
       subtitleTime: subtitle.startTime,
       lessonId: lessonId || 0,
-      phraseText: phraseEntry?.phrase,
-      phraseTranslationUz: phraseEntry?.translation,
-      phraseTranslationAr: phraseEntry?.translationAr,
-      phraseExplanation: phraseEntry?.context,
-      grammaticalRole: wmEntry?.grammaticalRole || "",
-      i_rab: wmEntry?.i_rab || "",
-      nahwExplanation: wmEntry?.nahwExplanation || sentGrammarNotes,
     });
     setAnchorRect(rect);
-  }, [vocabMap, wordMapLookup, grammarNotesLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
+  }, [vocabMap, wordMapLookup, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);

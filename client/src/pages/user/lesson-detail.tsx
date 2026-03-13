@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
-import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type PhraseLookup, type SentenceWordMap } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap } from "@/components/subtitle-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,21 +38,13 @@ interface WordMapItem {
   normalized: string;
   translationUz: string;
   translationAr: string;
-  contextualMeaning: string;
-  grammaticalRole?: string;
-  i_rab?: string;
-  partOfSpeech?: string;
-  nahwExplanation?: string;
 }
 
 interface SentenceAnalysis {
   sentence: string;
   translation: string;
   translationAr?: string;
-  grammarNotes: string;
-  keyWords: string[];
   wordMap?: WordMapItem[];
-  sentenceType?: string;
 }
 
 interface VocabItem {
@@ -62,13 +54,6 @@ interface VocabItem {
   partOfSpeech: string;
   example: string;
   difficulty: string;
-}
-
-interface PhraseItem {
-  phrase: string;
-  translation: string;
-  translationAr?: string;
-  context: string;
 }
 
 interface QuizItem {
@@ -142,8 +127,6 @@ export default function LessonDetailPage() {
     (lesson?.sentenceAnalysisJson as SentenceAnalysis[] || []), [lesson?.sentenceAnalysisJson]);
   const vocabulary: VocabItem[] = useMemo(() =>
     (lesson?.vocabularyJson as VocabItem[] || []), [lesson?.vocabularyJson]);
-  const phrases: PhraseItem[] = useMemo(() =>
-    (lesson?.phrasesJson as PhraseItem[] || []), [lesson?.phrasesJson]);
   const quizzes: QuizItem[] = useMemo(() =>
     (lesson?.quizzesJson as QuizItem[] || []), [lesson?.quizzesJson]);
   const presetFlashcards: FlashcardData[] = useMemo(() =>
@@ -239,17 +222,11 @@ export default function LessonDetailPage() {
     return sentences
       .map((s, idx) => ({
         sentenceIndex: idx,
-        grammarNotes: s.grammarNotes || "",
         wordMap: (s.wordMap || []).map(wm => ({
           word: wm.word,
           normalized: wm.normalized,
           translationUz: wm.translationUz,
           translationAr: wm.translationAr,
-          contextualMeaning: wm.contextualMeaning,
-          partOfSpeech: wm.partOfSpeech,
-          grammaticalRole: wm.grammaticalRole,
-          i_rab: wm.i_rab,
-          nahwExplanation: wm.nahwExplanation,
         })),
       }))
       .filter(swm => swm.wordMap.length > 0);
@@ -260,8 +237,8 @@ export default function LessonDetailPage() {
 
   const exportData = useMemo(() => {
     if (!lesson) return null;
-    return buildExportData(lesson, sentences, vocabulary, phrases, quizzes, presetFlashcards);
-  }, [lesson, sentences, vocabulary, phrases, quizzes, presetFlashcards]);
+    return buildExportData(lesson, sentences, vocabulary, quizzes, presetFlashcards);
+  }, [lesson, sentences, vocabulary, quizzes, presetFlashcards]);
 
   const handleExport = async (config: ExportConfig) => {
     if (!exportData) return;
@@ -364,8 +341,7 @@ export default function LessonDetailPage() {
             youtubeUrl={lesson.youtubeUrl}
             subtitles={subtitles}
             lessonId={lesson.id}
-            vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, partOfSpeech: v.partOfSpeech, example: v.example, difficulty: v.difficulty }))}
-            phrases={phrases.map(p => ({ phrase: p.phrase, translation: p.translation, translationAr: p.translationAr, context: p.context }))}
+            vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
             className="max-w-3xl"
             initialSeekTime={seekTime}
@@ -401,9 +377,6 @@ export default function LessonDetailPage() {
             <TabsTrigger value="test" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
               <Brain className="w-3.5 h-3.5 hidden sm:block" /> Test
             </TabsTrigger>
-            <TabsTrigger value="nahw" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-nahw">
-              <Sparkles className="w-3.5 h-3.5 hidden sm:block" /> Nahw
-            </TabsTrigger>
             <TabsTrigger value="xulosa" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
               <FileText className="w-3.5 h-3.5 hidden sm:block" /> Xulosa
             </TabsTrigger>
@@ -418,7 +391,6 @@ export default function LessonDetailPage() {
           <TabsContent value="matn" className="mt-4">
             <TranscriptTab
               sentences={sentences}
-              phrases={phrases}
               lessonId={parseInt(lessonId!)}
               bookmarks={userBookmarks}
               flashcards={flashcards}
@@ -428,7 +400,6 @@ export default function LessonDetailPage() {
           <TabsContent value="lugat" className="mt-4">
             <VocabularyTab
               vocabulary={vocabulary}
-              phrases={phrases}
               sentences={sentences}
               lessonId={parseInt(lessonId!)}
               flashcards={flashcards}
@@ -440,10 +411,6 @@ export default function LessonDetailPage() {
               quizzes={quizzes}
               lessonId={parseInt(lessonId!)}
             />
-          </TabsContent>
-
-          <TabsContent value="nahw" className="mt-4">
-            <NahwTab sentences={sentences} />
           </TabsContent>
 
           <TabsContent value="xulosa" className="mt-4">
@@ -475,10 +442,9 @@ export default function LessonDetailPage() {
 type TranslationMode = "none" | "uz" | "ar" | "both";
 
 function TranscriptTab({
-  sentences, phrases, lessonId, bookmarks, flashcards
+  sentences, lessonId, bookmarks, flashcards
 }: {
   sentences: SentenceAnalysis[];
-  phrases: PhraseItem[];
   lessonId: number;
   bookmarks: BookmarkType[];
   flashcards: Flashcard[];
@@ -562,40 +528,6 @@ function TranscriptTab({
         ))}
       </div>
 
-      {phrases.length > 0 && (
-        <Card className="glass border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-yellow-400" /> Muhim iboralar
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-3">
-            <div className="flex flex-wrap gap-2">
-              {phrases.map((p, i) => (
-                <Tooltip key={i}>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className="cursor-help hover:bg-primary/10 transition-colors py-1.5"
-                      data-testid={`badge-phrase-${i}`}
-                    >
-                      {p.phrase.length > 40 ? p.phrase.slice(0, 40) + "..." : p.phrase}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs space-y-1">
-                    <p className="font-medium">{p.translation}</p>
-                    {p.translationAr && (
-                      <p className="text-xs" dir="rtl" style={{ fontFamily: "'Noto Naskh Arabic', serif" }}>{p.translationAr}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground">{p.context}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <div className="space-y-2">
         {sentences.map((s, idx) => {
           const isExpanded = expandedIdx === idx;
@@ -634,24 +566,6 @@ function TranscriptTab({
                       <div className="mt-3 space-y-2 animate-in slide-in-from-top-2 duration-200">
                         <Separator />
                         <div className="grid gap-2">
-                          <div className="flex items-start gap-2">
-                            <Lightbulb className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Grammatika</p>
-                              <p className="text-sm">{s.grammarNotes}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <Languages className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground">Kalit so'zlar</p>
-                              <div className="flex flex-wrap gap-1 mt-0.5">
-                                {s.keyWords.map((w, wi) => (
-                                  <Badge key={wi} variant="secondary" className="text-xs">{w}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
                           {s.wordMap && s.wordMap.length > 0 && (
                             <div className="flex items-start gap-2">
                               <Globe className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
@@ -669,9 +583,6 @@ function TranscriptTab({
                                         <p className="text-xs">UZ: {wm.translationUz}</p>
                                         {wm.translationAr && (
                                           <p className="text-xs" dir="rtl" style={{ fontFamily: "'Noto Naskh Arabic', serif" }}>AR: {wm.translationAr}</p>
-                                        )}
-                                        {wm.contextualMeaning && (
-                                          <p className="text-xs text-muted-foreground">{wm.contextualMeaning}</p>
                                         )}
                                       </TooltipContent>
                                     </Tooltip>
@@ -755,17 +666,16 @@ function TranscriptTab({
 }
 
 function VocabularyTab({
-  vocabulary, phrases, sentences, lessonId, flashcards
+  vocabulary, sentences, lessonId, flashcards
 }: {
   vocabulary: VocabItem[];
-  phrases: PhraseItem[];
   sentences: SentenceAnalysis[];
   lessonId: number;
   flashcards: Flashcard[];
 }) {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [activeSection, setActiveSection] = useState<"words" | "phrases" | "wordmap" | "context">("words");
+  const [activeSection, setActiveSection] = useState<"words" | "wordmap" | "context">("words");
 
   const savedWords = useMemo(() => new Set(flashcards.map(f => f.frontText)), [flashcards]);
 
@@ -831,7 +741,6 @@ function VocabularyTab({
       <div className="flex flex-wrap gap-1 md:gap-1.5">
         {([
           ["words", "Yangi so'zlar", vocabulary.length],
-          ["phrases", "Birikmalar", phrases.length],
           ["wordmap", "So'zma-so'z tarjima", allWordMaps.length],
           ["context", "Kontekstdagi ma'nolar", vocabulary.filter(v => v.example).length],
         ] as [typeof activeSection, string, number][]).map(([key, label, count]) => (
@@ -923,31 +832,6 @@ function VocabularyTab({
         </div>
       )}
 
-      {activeSection === "phrases" && (
-        <div className="grid gap-2">
-          {phrases.map((p, idx) => (
-            <Card key={idx} className="glass border-border/50 hover:border-amber-500/20 transition-colors" data-testid={`card-phrase-${idx}`}>
-              <CardContent className="p-3 md:p-4">
-                <div className="space-y-1.5">
-                  <p className="font-bold text-sm">{p.phrase}</p>
-                  <p className="text-sm text-primary/80">{p.translation}</p>
-                  {p.translationAr && (
-                    <p className="text-sm text-violet-400/80" dir="rtl" style={arabicStyle(p.translationAr)}>{p.translationAr}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">{p.context}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {phrases.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Sparkles className="w-12 h-12 mx-auto mb-2 opacity-30" />
-              <p>Birikmalar topilmadi</p>
-            </div>
-          )}
-        </div>
-      )}
-
       {activeSection === "wordmap" && (
         <div className="grid gap-2">
           {filteredWordMaps.map((wm, idx) => (
@@ -959,9 +843,6 @@ function VocabularyTab({
                     <p className="text-xs text-primary/80 mt-0.5">{wm.translationUz}</p>
                     {wm.translationAr && (
                       <p className="text-xs text-violet-400/80 mt-0.5" dir="rtl" style={arabicStyle(wm.translationAr)}>{wm.translationAr}</p>
-                    )}
-                    {wm.contextualMeaning && (
-                      <p className="text-xs text-muted-foreground mt-1">{wm.contextualMeaning}</p>
                     )}
                     <p className="text-[10px] text-muted-foreground/60 mt-1 italic">"{(wm as any).sentence}"</p>
                   </div>
@@ -1837,160 +1718,3 @@ function NotesTab({
   );
 }
 
-function NahwTab({ sentences }: { sentences: SentenceAnalysis[] }) {
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
-
-  const hasNahwData = sentences.some(s =>
-    s.sentenceType || (s.wordMap || []).some(w => w.grammaticalRole || w.i_rab)
-  );
-
-  if (!hasNahwData) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-        <p className="font-medium">Nahviy tahlil mavjud emas</p>
-        <p className="text-xs mt-1">Bu dars uchun sintaktik tahlil hali yaratilmagan</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3" data-testid="nahw-tab-content">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-5 h-5 text-teal-400" />
-        <h3 className="text-lg font-bold">Sintaktik tahlil (نحو)</h3>
-        <Badge variant="outline" className="text-xs ml-auto">{sentences.length} gap</Badge>
-      </div>
-
-      {sentences.map((s, idx) => {
-        const isExpanded = expandedIdx === idx;
-        const wordsWithNahw = (s.wordMap || []).filter(w => w.grammaticalRole || w.i_rab);
-
-        return (
-          <Card key={idx} className="glass border-border/50 overflow-hidden" data-testid={`card-nahw-sentence-${idx}`}>
-            <CardContent className="p-0">
-              <button
-                className="w-full text-left p-3 md:p-4 hover:bg-muted/30 transition-colors"
-                onClick={() => setExpandedIdx(isExpanded ? null : idx)}
-                data-testid={`button-toggle-nahw-${idx}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-muted-foreground shrink-0">{idx + 1}</span>
-                      {s.sentenceType && (
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] shrink-0 ${
-                            s.sentenceType.includes("فعلية")
-                              ? "border-violet-500/30 text-violet-400"
-                              : "border-cyan-500/30 text-cyan-400"
-                          }`}
-                        >
-                          {s.sentenceType}
-                        </Badge>
-                      )}
-                    </div>
-                    <p
-                      className="text-sm font-medium break-words"
-                      dir={isArabic(s.sentence) ? "rtl" : "ltr"}
-                      style={arabicStyle(s.sentence)}
-                      data-testid={`text-nahw-sentence-${idx}`}
-                    >
-                      {s.sentence}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{s.translation}</p>
-                  </div>
-                  <div className="shrink-0 mt-1">
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </div>
-                </div>
-              </button>
-
-              {isExpanded && wordsWithNahw.length > 0 && (
-                <div className="border-t border-border/30 p-3 md:p-4 bg-muted/10 space-y-2">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                    So'zma-so'z i'rob tahlili
-                  </p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs border-collapse min-w-[600px]" data-testid={`table-nahw-${idx}`}>
-                      <thead>
-                        <tr className="border-b border-border/30">
-                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">So'z</th>
-                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Tarjima</th>
-                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">نوع الكلمة</th>
-                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الوظيفة النحوية</th>
-                          <th className="text-right py-1.5 px-2 text-muted-foreground font-medium" dir="rtl">الإعراب</th>
-                          <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">O'zbekcha izoh</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {wordsWithNahw.map((w, wi) => (
-                          <tr key={wi} className="border-b border-border/20 hover:bg-muted/20 transition-colors" data-testid={`row-nahw-word-${idx}-${wi}`}>
-                            <td className="py-1.5 px-2">
-                              <span
-                                className="font-semibold text-foreground"
-                                dir={isArabic(w.word) ? "rtl" : "ltr"}
-                                style={{
-                                  fontFamily: isArabic(w.word) ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
-                                  lineHeight: isArabic(w.word) ? "1.8" : "1.6",
-                                }}
-                              >
-                                {w.word}
-                              </span>
-                            </td>
-                            <td className="py-1.5 px-2 text-muted-foreground">{w.translationUz}</td>
-                            <td className="py-1.5 px-2 text-right">
-                              {w.partOfSpeech && (
-                                <span
-                                  className="text-violet-400 font-medium"
-                                  dir="rtl"
-                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
-                                >
-                                  {w.partOfSpeech}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-1.5 px-2 text-right">
-                              {w.grammaticalRole && (
-                                <span
-                                  className="text-teal-400 font-medium"
-                                  dir="rtl"
-                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
-                                >
-                                  {w.grammaticalRole}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-1.5 px-2 text-right">
-                              {w.i_rab && (
-                                <span
-                                  className="text-amber-400/80"
-                                  dir="rtl"
-                                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
-                                >
-                                  {w.i_rab}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-1.5 px-2 text-muted-foreground/80">{w.nahwExplanation}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {s.grammarNotes && (
-                    <div className="mt-2 rounded-md bg-primary/5 border border-primary/10 p-2">
-                      <p className="text-[10px] font-medium text-primary/60 uppercase tracking-wider mb-0.5">Grammatik izoh</p>
-                      <p className="text-xs text-foreground/80">{s.grammarNotes}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}

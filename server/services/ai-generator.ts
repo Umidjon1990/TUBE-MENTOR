@@ -11,7 +11,7 @@ export interface GeneratedLessonContent {
   summaryShortAr: string;
   summaryDetailedAr: string;
   vocabularyJson: VocabularyItem[];
-  phrasesJson: PhraseItem[];
+  phrasesJson: never[];
   quizzesJson: QuizItem[];
   flashcardsJson: FlashcardItem[];
   sentenceAnalysisJson: SentenceAnalysis[];
@@ -25,13 +25,6 @@ export interface VocabularyItem {
   partOfSpeech: string;
   example: string;
   difficulty: "easy" | "medium" | "hard";
-}
-
-export interface PhraseItem {
-  phrase: string;
-  translation: string;
-  translationAr: string;
-  context: string;
 }
 
 export interface QuizItem {
@@ -54,21 +47,13 @@ export interface WordMapItem {
   normalized: string;
   translationUz: string;
   translationAr: string;
-  contextualMeaning: string;
-  grammaticalRole?: string;
-  i_rab?: string;
-  partOfSpeech?: string;
-  nahwExplanation?: string;
 }
 
 export interface SentenceAnalysis {
   sentence: string;
   translation: string;
   translationAr: string;
-  grammarNotes: string;
-  keyWords: string[];
   wordMap: WordMapItem[];
-  sentenceType?: string;
 }
 
 export interface AiMeta {
@@ -141,12 +126,12 @@ Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART
 - Alif-lam (ال) oldidan ham harakat qo'yilsin: الْكِتَابُ, الْعِلْمُ
 - Tanvin: indefinite ism oxirida ٌ ٍ ً qo'yilsin (كِتَابٌ, كِتَابًا, كِتَابٍ)
 - Shadda: tashdidli harflarda ّ belgisi SHART (مُعَلِّمٌ, شَدَّةٌ)
-- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "phrase", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word"
+- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word"
 
 ### TARJIMA QOIDALARI:
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
 - "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi (HARAKAT BILAN)
-- "grammarNotes", "explanation", "contextualMeaning", "nahwExplanation": O'ZBEK tilida`
+- "explanation": O'ZBEK tilida`
     : `## TIL: INGLIZ TILIDA TRANSKRIPT
 - "word" maydoni: inglizcha so'z
 - "translation" maydoni: O'ZBEK tilida tarjima
@@ -154,13 +139,7 @@ Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART
 - Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin`;
 
   const systemPrompt = `# ROL
-Sen arab tili bo'yicha tajribali professor va nahv (النَّحْو) mutaxassisisisan. Sening vazifang YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratish.
-
-Sen quyidagi manbalarga tayanasan:
-- كِتَابُ سِيبَوَيْهِ (Sibavayh kitobi — nahv asosi)
-- النَّحْوُ الْوَافِي لِعَبَّاسِ حَسَنٍ (Abbas Hasan — to'liq nahv)
-- أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
-- شَرْحُ ابْنِ عَقِيلٍ (Ibn Aqil sharhi)
+Sen arab tili bo'yicha tajribali o'qituvchisan. Sening vazifang YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun dars materiallari yaratish.
 
 ${langInstructions}
 
@@ -181,14 +160,6 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
       "partOfSpeech": "${lang === "arabic" ? "اِسْمٌ/فِعْلٌ/حَرْفٌ/صِفَةٌ/ظَرْفٌ" : "noun/verb/adjective/adverb"}",
       "example": "transkriptdan misol gap (arabcha bo'lsa HARAKAT bilan)",
       "difficulty": "${difficulty}"
-    }
-  ],
-  "phrases": [
-    {
-      "phrase": "${lang === "arabic" ? "عِبَارَةٌ عَرَبِيَّةٌ بِالتَّشْكِيلِ الْكَامِلِ" : "inglizcha ibora"}",
-      "translation": "O'ZBEKCHA tarjima",
-      "translationAr": "${lang === "arabic" ? "شَرْحُ الْعِبَارَةِ بِالتَّشْكِيلِ" : "الترجمة العربية"}",
-      "context": "qayerda ishlatilishi haqida O'ZBEKCHA izoh"
     }
   ],
   "quizzes": [
@@ -227,20 +198,12 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
       "sentence": "${lang === "arabic" ? "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ" : "inglizcha gap"}",
       "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
       "translationAr": "${lang === "arabic" ? "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ" : "الترجمة العربية"}",
-      "grammarNotes": "O'ZBEK tilida grammatik izoh: gap turi, fe'l zamoni, gap tuzilishi haqida",
-      "keyWords": ["kalit", "so'zlar"],
-      "sentenceType": "جُمْلَةٌ فِعْلِيَّةٌ yoki جُمْلَةٌ اِسْمِيَّةٌ",
       "wordMap": [
         {
           "word": "${lang === "arabic" ? "كَلِمَةٌ بِالتَّشْكِيلِ" : "original word"}",
           "normalized": "harakat olib tashlangan shakl (masalan: كتب)",
           "translationUz": "O'ZBEKCHA tarjima",
-          "translationAr": "${lang === "arabic" ? "تَفْسِيرٌ بِالتَّشْكِيلِ" : "الترجمة العربية"}",
-          "contextualMeaning": "shu gapdagi aniq ma'nosi — O'ZBEK tilida",
-          "partOfSpeech": "اِسْمٌ | فِعْلٌ | حَرْفٌ | ظَرْفٌ | ضَمِيرٌ | اِسْمُ إِشَارَةٍ | اِسْمٌ مَوْصُولٌ",
-          "grammaticalRole": "الْفَاعِلُ | الْمَفْعُولُ بِهِ | الْمُبْتَدَأُ | الْخَبَرُ | الْحَالُ | النَّعْتُ | الْمُضَافُ إِلَيْهِ | الْجَارُّ وَالْمَجْرُورُ | الظَّرْفُ | التَّمْيِيزُ",
-          "i_rab": "مَرْفُوعٌ بِالضَّمَّةِ لِأَنَّهُ فَاعِلٌ | مَنْصُوبٌ بِالْفَتْحَةِ لِأَنَّهُ مَفْعُولٌ بِهِ | مَجْرُورٌ بِالْكَسْرَةِ لِأَنَّهُ مُضَافٌ إِلَيْهِ | مَبْنِيٌّ عَلَى الْفَتْحِ",
-          "nahwExplanation": "O'ZBEKCHA: Masalan 'Ega (fail) — gapda ish bajaruvchi, marfu holda, damma bilan' yoki 'To'ldiruvchi (maf'ul bih) — fe'l ta'sir ko'rsatgan so'z, mansub holda, fatha bilan'"
+          "translationAr": "${lang === "arabic" ? "تَفْسِيرٌ بِالتَّشْكِيلِ" : "الترجمة العربية"}"
         }
       ]
     }
@@ -253,41 +216,26 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
 - Arabcha yoziladigan BARCHA maydondagi BARCHA so'zlarda TO'LIQ harakat (تَشْكِيل كَامِل) bo'lishi SHART
 - Har bir harfda tegishli harakat: فَتْحَة, كَسْرَة, ضَمَّة, سُكُون, شَدَّة, تَنْوِين
 - Harakatsiz arabcha so'z QABUL QILINMAYDI — bu qat'iy talab
-- I'rob alamatlari (الْعَلَامَاتُ الْإِعْرَابِيَّةُ) to'g'ri qo'yilsin
 
 ## 2. TARJIMA TILI
-- BARCHA "translation", "explanation", "contextualMeaning", "grammarNotes", "nahwExplanation" maydonlari O'ZBEK tilida bo'lsin
+- BARCHA "translation", "explanation" maydonlari O'ZBEK tilida bo'lsin
 - Arabcha maydonlarda arab tili ishlatilsin (HARAKAT bilan)
 
 ## 3. SON CHEGARALARI
 - vocabulary: 8-15 ta so'z (transkriptdan eng muhim kalit so'zlar)
-- phrases: 4-8 ta ibora (kontekstga mos)
 - quizzes: 10-12 ta savol, MAJBURIY taqsimot:
   * multiple_choice: 4-5 ta — O'zbek tilida savol, 4 variant
   * sentence_completion: 3-4 ta — arabcha gap O'RTASIDA _____ bo'shliq (BOSHIDA yoki OXIRIDA EMAS!), 4 arabcha variant HARAKAT BILAN
   * word_translation: 3-4 ta — arabcha so'z HARAKAT BILAN, 4 o'zbekcha variant
-- flashcards: 8-12 ta karta (vocabulary + phrase + grammar aralash)
+- flashcards: 8-12 ta karta (vocabulary aralash)
 - sentenceAnalysis: BARCHA gaplarni tahlil qil — BIRONTASINI HAM TASHLAB KETMA
 
 ## 4. SENTENCEANALYSIS QOIDALARI
-- Transkriptdagi har bir gap uchun: tarjima, wordMap, grammarNotes bo'lishi SHART
-- wordMap: gapdagi HAR BIR so'zning tahlili — birontasini tashlab ketma
-- sentenceType: "جُمْلَةٌ فِعْلِيَّةٌ" (fe'l bilan boshlangan) yoki "جُمْلَةٌ اِسْمِيَّةٌ" (ism bilan boshlangan)
+- Transkriptdagi har bir gap uchun: tarjima va wordMap bo'lishi SHART
+- wordMap: gapdagi HAR BIR so'zning tarjimasi — birontasini tashlab ketma
+- Har bir so'z uchun faqat: word (asl shakl), normalized (harakat olib tashlangan), translationUz (o'zbekcha), translationAr (arabcha sinonim)
 
-## 5. NAHVIY TAHLIL QOIDALARI (الْإِعْرَابُ)
-Har bir so'z uchun:
-- partOfSpeech: اِسْمٌ (ot), فِعْلٌ (fe'l), حَرْفٌ (harf), ظَرْفٌ (zarf), ضَمِيرٌ (olmosh)
-- grammaticalRole: الْفَاعِلُ, الْمَفْعُولُ بِهِ, الْمُبْتَدَأُ, الْخَبَرُ, الْحَالُ, النَّعْتُ, الْمُضَافُ إِلَيْهِ, الْجَارُّ وَالْمَجْرُورُ, التَّمْيِيزُ
-- i_rab: to'liq i'rob tahlili — holatni ayting + sababini ko'rsating:
-  * مَرْفُوعٌ بِالضَّمَّةِ لِأَنَّهُ فَاعِلٌ (marfu — chunki ega)
-  * مَنْصُوبٌ بِالْفَتْحَةِ لِأَنَّهُ مَفْعُولٌ بِهِ (mansub — chunki to'ldiruvchi)
-  * مَجْرُورٌ بِالْكَسْرَةِ لِأَنَّهُ مُضَافٌ إِلَيْهِ (majrur — chunki mudof ilayh)
-  * مَبْنِيٌّ عَلَى الْفَتْحِ / الضَّمِّ / السُّكُونِ (mabniy — o'zgarmas)
-  * مَرْفُوعٌ بِالْوَاوِ لِأَنَّهُ مِنَ الْأَسْمَاءِ الْخَمْسَةِ (5 maxsus ism)
-  * مَنْصُوبٌ بِالْيَاءِ لِأَنَّهُ مُثَنًّى (juft son)
-- nahwExplanation: O'ZBEK tilida qisqa izoh (masalan: "Ega — gapda ish bajaruvchi, damma bilan ko'tarilgan")
-
-## 6. TEXNIK QOIDALAR
+## 5. TEXNIK QOIDALAR
 - correctIndex: 0 dan boshlanadi (0-3 orasida)
 - Daraja: ${levelLabel}
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
@@ -343,13 +291,6 @@ ${trimmedTranscript}`;
     difficulty: v.difficulty || difficulty,
   }));
 
-  const phrasesJson: PhraseItem[] = (parsed.phrases || []).map((p: any) => ({
-    phrase: p.phrase || "",
-    translation: p.translation || "",
-    translationAr: p.translationAr || "",
-    context: p.context || "",
-  }));
-
   const quizzesJson: QuizItem[] = (parsed.quizzes || []).map((q: any) => ({
     question: q.question || "",
     options: Array.isArray(q.options) ? q.options : [],
@@ -371,19 +312,11 @@ ${trimmedTranscript}`;
     sentence: s.sentence || "",
     translation: s.translation || "",
     translationAr: s.translationAr || "",
-    grammarNotes: s.grammarNotes || "",
-    keyWords: Array.isArray(s.keyWords) ? s.keyWords : [],
-    sentenceType: s.sentenceType || "",
     wordMap: Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
       word: w.word || "",
       normalized: w.normalized || (w.word || "").toLowerCase(),
       translationUz: w.translationUz || "",
       translationAr: w.translationAr || "",
-      contextualMeaning: w.contextualMeaning || "",
-      grammaticalRole: w.grammaticalRole || "",
-      i_rab: w.i_rab || "",
-      partOfSpeech: w.partOfSpeech || "",
-      nahwExplanation: w.nahwExplanation || "",
     })) : [],
   }));
 
@@ -393,7 +326,7 @@ ${trimmedTranscript}`;
     summaryShortAr: parsed.summaryShortAr || "",
     summaryDetailedAr: parsed.summaryDetailedAr || "",
     vocabularyJson,
-    phrasesJson,
+    phrasesJson: [],
     quizzesJson,
     flashcardsJson,
     sentenceAnalysisJson,
@@ -489,13 +422,6 @@ function generateMockContent(
     difficulty: diff,
   }));
 
-  const phrasesJson: PhraseItem[] = usableSentences.slice(0, 6).map((s, i) => ({
-    phrase: s.length > 60 ? s.slice(0, 60) + "..." : s,
-    translation: `Bu ibora ${["muloqotda", "matnda", "nutqda", "yozuvda", "suhbatda", "darsda"][i % 6]} ishlatiladi — o'zbekcha tarjima`,
-    translationAr: mockArabicTranslation(s),
-    context: "Videodagi kontekstda ishlatilgan",
-  }));
-
   const quizzesJson: QuizItem[] = usableSentences.slice(0, 10).map((s, i) => {
     const keyword = selectedWords[i % Math.max(1, selectedWords.length)] || "so'z";
     const isFillBlank = i % 3 === 2;
@@ -517,49 +443,26 @@ function generateMockContent(
     };
   });
 
-  const flashcardsJson: FlashcardItem[] = [
-    ...selectedWords.slice(0, 5).map(w => ({
-      front: w,
-      back: mockUzTranslation(w),
-      backAr: mockArabicTranslation(w),
-      type: "vocabulary" as const,
-    })),
-    ...phrasesJson.slice(0, 3).map(p => ({
-      front: p.phrase,
-      back: p.translation,
-      backAr: p.translationAr,
-      type: "phrase" as const,
-    })),
-  ];
+  const flashcardsJson: FlashcardItem[] = selectedWords.slice(0, 8).map(w => ({
+    front: w,
+    back: mockUzTranslation(w),
+    backAr: mockArabicTranslation(w),
+    type: "vocabulary" as const,
+  }));
 
-  const sentenceContexts = ["Bu gapda", "Ushbu jumlada", "Mazkur gapda", "Bu iborada", "Gapda", "Jumlada", "Bu yerda", "Matnda"];
-  const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.map((s, idx) => {
+  const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.map((s) => {
     const sentenceWords = extractWords(s);
-    const keyWords = sentenceWords.slice(0, 3);
-    const mockRoles = ["الفاعل", "المفعول به", "المبتدأ", "الخبر", "الحال", "الجار والمجرور", "النعت", "المضاف إليه"];
-    const mockIrabs = ["مرفوع بالضمة", "منصوب بالفتحة", "مجرور بالكسرة", "مبني على الفتح", "مرفوع بالواو", "منصوب بالياء"];
-    const mockPOS = ["اسم", "فعل", "حرف", "ظرف", "ضمير", "اسم", "فعل", "حرف"];
-    const mockNahwExp = ["Ega — gap bajaruvchisi", "To'ldiruvchi — fe'l ta'sir qilgan so'z", "Mubtada — gap mavzusi", "Xabar — mubtadaga oid xabar", "Hol — fe'l holatini bildiradi", "Jar va majrur — bog'lovchi", "Sifat — ot belgisini bildiradi", "Mudof ilayh — egalik bildiradi"];
-    const wordMap: WordMapItem[] = sentenceWords.map((w, wi) => ({
+    const wordMap: WordMapItem[] = sentenceWords.map((w) => ({
       word: w,
       normalized: w.toLowerCase(),
       translationUz: mockUzTranslation(w),
       translationAr: mockArabicTranslation(w),
-      contextualMeaning: `"${w}" gapdagi kontekstda ishlatilgan`,
-      grammaticalRole: mockRoles[wi % mockRoles.length],
-      i_rab: mockIrabs[wi % mockIrabs.length],
-      partOfSpeech: mockPOS[wi % mockPOS.length],
-      nahwExplanation: mockNahwExp[wi % mockNahwExp.length],
     }));
-    const isVerbalSentence = /^[\u0600-\u06FF]{2,}\b/.test(s.trim());
     return {
       sentence: s,
-      translation: `${sentenceContexts[idx % sentenceContexts.length]} ${keyWords.map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,
+      translation: `Bu gapda ${sentenceWords.slice(0, 3).map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,
       translationAr: lang === "arabic" ? s : mockArabicTranslation(s),
-      grammarNotes: lang === "arabic" ? detectArabicGrammarPattern(s) : detectGrammarPattern(s),
-      keyWords,
       wordMap,
-      sentenceType: isVerbalSentence ? "جملة فعلية" : "جملة اسمية",
     };
   });
 
@@ -569,7 +472,7 @@ function generateMockContent(
     : `Bu videoda ${topKeywords} kabi mavzular haqida gap ketadi.`;
   const detailedSummary = lang === "arabic"
     ? `Bu video darsida quyidagi mavzular ko'rib chiqiladi: ${usableSentences.slice(0, 4).map(s => s.slice(0, 40)).join(", ")}. O'quvchilar yangi so'zlar va iboralarni o'rganadilar.`
-    : `Bu video darsida ${topKeywords} kabi tushunchalar ko'rib chiqiladi. O'quvchilar yangi so'zlar va iboralarni o'rganib, til ko'nikmalarini rivojlantiradilar. Darsda ${vocabularyJson.length} ta yangi so'z va ${phrasesJson.length} ta ibora tahlil qilinadi.`;
+    : `Bu video darsida ${topKeywords} kabi tushunchalar ko'rib chiqiladi. O'quvchilar yangi so'zlar o'rganib, til ko'nikmalarini rivojlantiradilar. Darsda ${vocabularyJson.length} ta yangi so'z tahlil qilinadi.`;
 
   return {
     summaryShort: shortSummary.length > 200 ? shortSummary.slice(0, 200) + "..." : shortSummary,
@@ -581,7 +484,7 @@ function generateMockContent(
       ? `ملخص تفصيلي: ${usableSentences.slice(0, 3).join(" ").slice(0, 200)}`
       : "ملخص تفصيلي للفيديو التعليمي يتضمن شرحاً وافياً للمحتوى والمواضيع الرئيسية المطروحة",
     vocabularyJson,
-    phrasesJson,
+    phrasesJson: [],
     quizzesJson,
     flashcardsJson,
     sentenceAnalysisJson,
@@ -593,25 +496,4 @@ function generateMockContent(
       sentenceCount: sentences.length,
     },
   };
-}
-
-function detectGrammarPattern(sentence: string): string {
-  if (/\b(is|are|was|were|am)\b/i.test(sentence)) return "To be fe'li ishlatilgan";
-  if (/\b(has|have|had)\b/i.test(sentence)) return "Have/has yordamchi fe'li";
-  if (/\b(will|shall|would|could|might)\b/i.test(sentence)) return "Modal fe'l ishlatilgan";
-  if (/\b(if|when|while|although)\b/i.test(sentence)) return "Shart/bog'lovchi gap";
-  if (/\b(can|must|should)\b/i.test(sentence)) return "Modal fe'l — imkoniyat/majburiyat";
-  if (/\b(not|don't|doesn't|didn't)\b/i.test(sentence)) return "Inkor shakli";
-  if (/\?$/.test(sentence.trim())) return "So'roq gap";
-  return "Oddiy darak gap";
-}
-
-function detectArabicGrammarPattern(sentence: string): string {
-  if (/[\u061F؟]/.test(sentence)) return "So'roq gap (جملة استفهامية)";
-  if (/^(هل|ما|من|كيف|لماذا|اين|متى)\b/.test(sentence.trim())) return "So'roq so'zi bilan boshlangan gap";
-  if (/\b(لا|ما|لن|لم|ليس)\b/.test(sentence)) return "Inkor shakli (نفي)";
-  if (/\b(ان|إن|لو|اذا|إذا)\b/.test(sentence)) return "Shart gap (جملة شرطية)";
-  if (/\b(كان|يكون|هو|هي)\b/.test(sentence)) return "Ism gap (جملة اسمية)";
-  if (/^[\u0600-\u06FF]{2,}\b/.test(sentence.trim())) return "Fe'l gap (جملة فعلية)";
-  return "Oddiy gap";
 }

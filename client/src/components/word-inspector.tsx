@@ -40,7 +40,6 @@ function highlightWord(sentence: string, word: string, color: "cyan" | "amber" =
   const stripped = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
   const escaped = stripped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(${escaped})`, "gi");
-  const parts = sentence.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").split(regex);
 
   const hasDiacritics = word !== stripped;
   if (hasDiacritics) {
@@ -69,6 +68,7 @@ function highlightWord(sentence: string, word: string, color: "cyan" | "amber" =
     }
   }
 
+  const parts = sentence.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").split(regex);
   const cls = color === "amber"
     ? "bg-amber-500/25 text-amber-300 font-bold px-0.5 rounded"
     : "bg-cyan-500/25 text-cyan-300 font-bold px-0.5 rounded";
@@ -154,13 +154,11 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
 
   if (!wordInfo) return null;
 
-  const isArabicText = (t: string) => /[\u0600-\u06FF]/.test(t);
-
   const popupStyle = !isMobile && anchorRect ? (() => {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const popupW = Math.min(360, vw - 24);
-    const popupH = 500;
+    const popupH = 420;
     let left = anchorRect.left + anchorRect.width / 2 - popupW / 2;
     let top = anchorRect.bottom + 8;
     if (left < 12) left = 12;
@@ -202,11 +200,6 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           <p className="text-sm font-semibold text-foreground break-words" data-testid="text-translation-uz">
             {wordInfo.translationUz || wordInfo.contextualMeaning || "—"}
           </p>
-          {wordInfo.translationUz && wordInfo.contextualMeaning && wordInfo.contextualMeaning !== wordInfo.translationUz && (
-            <p className="text-xs text-muted-foreground mt-0.5 break-words" data-testid="text-contextual-meaning">
-              {wordInfo.contextualMeaning}
-            </p>
-          )}
         </div>
 
         <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
@@ -219,36 +212,6 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           >
             {wordInfo.translationAr || "—"}
           </p>
-        </div>
-
-        <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-2.5">
-          <p className="text-[10px] font-medium text-sky-400/70 uppercase tracking-wider mb-0.5">So'z turi</p>
-          <p
-            className="text-sm font-semibold text-foreground break-words"
-            dir="rtl"
-            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-            data-testid="text-part-of-speech"
-          >
-            {wordInfo.partOfSpeech || "—"}
-          </p>
-        </div>
-
-        <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-2.5">
-          <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Gapdagi o'rni</p>
-          <p
-            className="text-sm font-semibold text-teal-300 break-words"
-            dir="rtl"
-            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-            data-testid="text-grammatical-role"
-          >
-            {wordInfo.grammaticalRole || "—"}
-            {wordInfo.i_rab && <span className="text-teal-400/70"> — {wordInfo.i_rab}</span>}
-          </p>
-          {wordInfo.nahwExplanation && (
-            <p className="text-xs text-muted-foreground mt-1 break-words" data-testid="text-nahw-explanation">
-              {wordInfo.nahwExplanation}
-            </p>
-          )}
         </div>
 
         {wordInfo.sourceSentence && (

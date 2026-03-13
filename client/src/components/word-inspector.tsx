@@ -35,15 +35,48 @@ interface WordInspectorProps {
   readOnly?: boolean;
 }
 
-function highlightWord(sentence: string, word: string): JSX.Element {
+function highlightWord(sentence: string, word: string, color: "cyan" | "amber" = "cyan"): JSX.Element {
   if (!word || !sentence) return <>{sentence}</>;
-  const regex = new RegExp(`(\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b)`, "gi");
-  const parts = sentence.split(regex);
+  const stripped = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+  const escaped = stripped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = sentence.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").split(regex);
+
+  const hasDiacritics = word !== stripped;
+  if (hasDiacritics) {
+    const idx = sentence.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase().indexOf(stripped.toLowerCase());
+    if (idx >= 0) {
+      let origStart = -1, origEnd = -1, count = 0;
+      for (let i = 0; i < sentence.length; i++) {
+        if (!/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/.test(sentence[i])) {
+          if (count === idx && origStart < 0) origStart = i;
+          count++;
+          if (count === idx + stripped.length) { origEnd = i + 1; break; }
+        } else if (origStart >= 0 && origEnd < 0) {
+          origEnd = i + 1;
+        }
+      }
+      if (origStart >= 0) {
+        while (origEnd < sentence.length && /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/.test(sentence[origEnd])) origEnd++;
+        const before = sentence.substring(0, origStart);
+        const match = sentence.substring(origStart, origEnd);
+        const after = sentence.substring(origEnd);
+        const cls = color === "amber"
+          ? "bg-amber-500/25 text-amber-300 font-bold px-0.5 rounded"
+          : "bg-cyan-500/25 text-cyan-300 font-bold px-0.5 rounded";
+        return <>{before}<span className={cls}>{match}</span>{after}</>;
+      }
+    }
+  }
+
+  const cls = color === "amber"
+    ? "bg-amber-500/25 text-amber-300 font-bold px-0.5 rounded"
+    : "bg-cyan-500/25 text-cyan-300 font-bold px-0.5 rounded";
   return (
     <>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <span key={i} className="bg-primary/30 text-primary font-semibold px-0.5 rounded">{part}</span>
+          <span key={i} className={cls}>{part}</span>
         ) : (
           <span key={i}>{part}</span>
         )
@@ -224,7 +257,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
               style={{ textAlign: "right", fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
               data-testid="text-source-sentence"
             >
-              {highlightWord(wordInfo.sourceSentence, wordInfo.word)}
+              {highlightWord(wordInfo.sourceSentence, wordInfo.word, "cyan")}
             </p>
           </div>
         )}
@@ -233,7 +266,7 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           <div className="rounded-lg bg-primary/5 border border-primary/10 p-2.5">
             <p className="text-[10px] font-medium text-primary/60 uppercase tracking-wider mb-1.5">O'zbekcha shakli</p>
             <p className="text-sm text-foreground/80 leading-relaxed break-words" data-testid="text-source-sentence-uz">
-              {wordInfo.translationUz ? highlightWord(wordInfo.sourceSentenceUz, wordInfo.translationUz.split(/[,;/]/)[0].trim()) : wordInfo.sourceSentenceUz}
+              {wordInfo.translationUz ? highlightWord(wordInfo.sourceSentenceUz, wordInfo.translationUz.split(/[,;/]/)[0].trim(), "amber") : wordInfo.sourceSentenceUz}
             </p>
           </div>
         )}

@@ -197,79 +197,59 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
       </div>
 
       <div className="space-y-2">
-        {(wordInfo.translationUz || wordInfo.contextualMeaning) && (
-          <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5">
-            <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-0.5">Tarjimasi</p>
-            <p className="text-sm font-semibold text-foreground break-words" data-testid="text-translation-uz">
-              {wordInfo.translationUz || wordInfo.contextualMeaning}
+        <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5">
+          <p className="text-[10px] font-medium text-primary/70 uppercase tracking-wider mb-0.5">Tarjimasi</p>
+          <p className="text-sm font-semibold text-foreground break-words" data-testid="text-translation-uz">
+            {wordInfo.translationUz || wordInfo.contextualMeaning || "—"}
+          </p>
+          {wordInfo.translationUz && wordInfo.contextualMeaning && wordInfo.contextualMeaning !== wordInfo.translationUz && (
+            <p className="text-xs text-muted-foreground mt-0.5 break-words" data-testid="text-contextual-meaning">
+              {wordInfo.contextualMeaning}
             </p>
-            {wordInfo.translationUz && wordInfo.contextualMeaning && wordInfo.contextualMeaning !== wordInfo.translationUz && (
-              <p className="text-xs text-muted-foreground mt-0.5 break-words" data-testid="text-contextual-meaning">
-                {wordInfo.contextualMeaning}
-              </p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
-        {wordInfo.translationAr && (
-          <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
-            <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">Sinonim</p>
-            <p
-              className="text-sm font-semibold text-foreground break-words"
-              dir="rtl"
-              style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-              data-testid="text-synonym-ar"
-            >
-              {wordInfo.translationAr}
+        <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
+          <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">Sinonim</p>
+          <p
+            className="text-sm font-semibold text-foreground break-words"
+            dir="rtl"
+            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+            data-testid="text-synonym-ar"
+          >
+            {wordInfo.translationAr || "—"}
+          </p>
+        </div>
+
+        <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-2.5">
+          <p className="text-[10px] font-medium text-sky-400/70 uppercase tracking-wider mb-0.5">So'z turi</p>
+          <p
+            className="text-sm font-semibold text-foreground break-words"
+            dir="rtl"
+            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+            data-testid="text-part-of-speech"
+          >
+            {wordInfo.partOfSpeech || "—"}
+          </p>
+        </div>
+
+        <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-2.5">
+          <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Gapdagi o'rni</p>
+          <p
+            className="text-sm font-semibold text-teal-300 break-words"
+            dir="rtl"
+            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+            data-testid="text-grammatical-role"
+          >
+            {wordInfo.grammaticalRole || "—"}
+            {wordInfo.i_rab && <span className="text-teal-400/70"> — {wordInfo.i_rab}</span>}
+          </p>
+          {wordInfo.nahwExplanation && (
+            <p className="text-xs text-muted-foreground mt-1 break-words" data-testid="text-nahw-explanation">
+              {wordInfo.nahwExplanation}
             </p>
-          </div>
-        )}
-
-        {wordInfo.partOfSpeech && (
-          <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-2.5">
-            <p className="text-[10px] font-medium text-sky-400/70 uppercase tracking-wider mb-0.5">So'z turi</p>
-            <p
-              className="text-sm font-semibold text-foreground break-words"
-              dir="rtl"
-              style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-              data-testid="text-part-of-speech"
-            >
-              {wordInfo.partOfSpeech}
-            </p>
-          </div>
-        )}
-
-        {(wordInfo.grammaticalRole || wordInfo.i_rab || wordInfo.nahwExplanation) && (
-          <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-2.5">
-            <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Gapdagi o'rni</p>
-            {wordInfo.grammaticalRole && (
-              <p
-                className="text-sm font-semibold text-teal-300 break-words"
-                dir="rtl"
-                style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-                data-testid="text-grammatical-role"
-              >
-                {wordInfo.grammaticalRole}
-                {wordInfo.i_rab && <span className="text-teal-400/70"> — {wordInfo.i_rab}</span>}
-              </p>
-            )}
-            {!wordInfo.grammaticalRole && wordInfo.i_rab && (
-              <p
-                className="text-sm text-teal-400/80 break-words"
-                dir="rtl"
-                style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-                data-testid="text-irab"
-              >
-                {wordInfo.i_rab}
-              </p>
-            )}
-            {wordInfo.nahwExplanation && (
-              <p className="text-xs text-muted-foreground mt-1 break-words" data-testid="text-nahw-explanation">
-                {wordInfo.nahwExplanation}
-              </p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {wordInfo.sourceSentence && (
           <div className="rounded-lg bg-muted/30 border border-border/30 p-2.5">

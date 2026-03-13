@@ -185,6 +185,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   const wasPlayingRef = useRef(false);
 
+  const stripArabicDiacritics = useCallback((t: string) =>
+    t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, ""), []);
+  const normalizeArabic = useCallback((t: string) =>
+    stripArabicDiacritics(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي"), [stripArabicDiacritics]);
+
   const handleWordClick = useCallback((word: string, subtitle: SubtitleItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -198,13 +203,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       }
     }
 
-    const normalizedWord = cleanWord.toLowerCase();
+    const normalizedWord = normalizeArabic(cleanWord).toLowerCase();
     let wmEntry: WordMapEntry | undefined;
     for (const si of subtitle.sentenceIndices) {
       wmEntry = wordMapLookup.get(si)?.get(normalizedWord);
       if (wmEntry) break;
     }
-    const vocabEntry = vocabMap.get(normalizedWord);
+    const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(cleanWord.toLowerCase());
     const phraseEntry = findPhraseForWord(cleanWord, subtitle.originalText);
 
     setSelectedWord({
@@ -229,7 +234,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       nahwExplanation: wmEntry?.nahwExplanation,
     });
     setAnchorRect(rect);
-  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord]);
+  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);

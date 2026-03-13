@@ -163,6 +163,7 @@ export default function LessonDetailPage() {
         return timedSubs.map((ts, idx) => ({
           id: idx,
           sentenceIndex: idx,
+          sentenceIndices: [idx],
           startTime: ts.startTime,
           endTime: ts.endTime,
           originalText: sentences[idx]?.sentence || ts.text,
@@ -182,6 +183,7 @@ export default function LessonDetailPage() {
         const matchedSentences: string[] = [];
         const matchedTranslations: string[] = [];
         const matchedTranslationsAr: string[] = [];
+        const matchedIndices: number[] = [];
         let firstMatchIdx = -1;
         let matchedCharLen = 0;
         const tsLen = tsNorm.length;
@@ -194,6 +196,7 @@ export default function LessonDetailPage() {
 
           if (overlap >= 0.5) {
             if (firstMatchIdx < 0) firstMatchIdx = si;
+            matchedIndices.push(si);
             matchedSentences.push(sentences[si].sentence);
             matchedTranslations.push(sentences[si].translation);
             if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
@@ -208,6 +211,7 @@ export default function LessonDetailPage() {
         return {
           id: idx,
           sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : Math.min(sentCursor, sentences.length - 1),
+          sentenceIndices: matchedIndices.length > 0 ? matchedIndices : [Math.min(sentCursor, sentences.length - 1)],
           startTime: ts.startTime,
           endTime: ts.endTime,
           originalText: matchedSentences.length > 0 ? matchedSentences.join(" ") : ts.text,
@@ -222,6 +226,7 @@ export default function LessonDetailPage() {
     return sentences.map((s, idx) => ({
       id: idx,
       sentenceIndex: idx,
+      sentenceIndices: [idx],
       startTime: idx * avgDuration,
       endTime: (idx + 1) * avgDuration,
       originalText: s.sentence,

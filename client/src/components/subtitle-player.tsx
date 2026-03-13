@@ -12,6 +12,7 @@ import WordInspector, { type WordInfo } from "./word-inspector";
 export interface SubtitleItem {
   id: number;
   sentenceIndex: number;
+  sentenceIndices: number[];
   startTime: number;
   endTime: number;
   originalText: string;
@@ -195,8 +196,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       }
     }
 
-    const wmEntry = wordMapLookup.get(subtitle.sentenceIndex)?.get(cleanWord.toLowerCase());
-    const vocabEntry = vocabMap.get(cleanWord.toLowerCase());
+    const normalizedWord = cleanWord.toLowerCase();
+    let wmEntry: WordMapEntry | undefined;
+    for (const si of subtitle.sentenceIndices) {
+      wmEntry = wordMapLookup.get(si)?.get(normalizedWord);
+      if (wmEntry) break;
+    }
+    const vocabEntry = vocabMap.get(normalizedWord);
     const phraseEntry = findPhraseForWord(cleanWord, subtitle.originalText);
 
     setSelectedWord({

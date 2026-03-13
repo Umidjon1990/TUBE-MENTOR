@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { X, BookmarkPlus, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,6 +24,7 @@ export interface WordInfo {
   phraseExplanation?: string;
   grammaticalRole?: string;
   i_rab?: string;
+  nahwExplanation?: string;
 }
 
 interface WordInspectorProps {
@@ -185,11 +185,6 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           >
             {wordInfo.word}
           </h3>
-          {wordInfo.partOfSpeech && (
-            <Badge variant="secondary" className="mt-1 text-[10px]" data-testid="badge-part-of-speech">
-              {wordInfo.partOfSpeech}
-            </Badge>
-          )}
         </div>
         <Button
           variant="ghost" size="icon"
@@ -216,34 +211,62 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           </div>
         )}
 
-        {(wordInfo.grammaticalRole || wordInfo.i_rab) && (
+        {wordInfo.translationAr && (
+          <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
+            <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">Sinonim</p>
+            <p
+              className="text-sm font-semibold text-foreground break-words"
+              dir="rtl"
+              style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+              data-testid="text-synonym-ar"
+            >
+              {wordInfo.translationAr}
+            </p>
+          </div>
+        )}
+
+        {wordInfo.partOfSpeech && (
+          <div className="rounded-lg bg-sky-500/5 border border-sky-500/20 p-2.5">
+            <p className="text-[10px] font-medium text-sky-400/70 uppercase tracking-wider mb-0.5">So'z turi</p>
+            <p
+              className="text-sm font-semibold text-foreground break-words"
+              dir="rtl"
+              style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+              data-testid="text-part-of-speech"
+            >
+              {wordInfo.partOfSpeech}
+            </p>
+          </div>
+        )}
+
+        {(wordInfo.grammaticalRole || wordInfo.i_rab || wordInfo.nahwExplanation) && (
           <div className="rounded-lg bg-teal-500/5 border border-teal-500/20 p-2.5">
-            <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Grammatik tahlil</p>
+            <p className="text-[10px] font-medium text-teal-400/70 uppercase tracking-wider mb-1">Gapdagi o'rni</p>
             {wordInfo.grammaticalRole && (
-              <div className="mb-1">
-                <span className="text-[10px] text-muted-foreground">Vazifasi: </span>
-                <span
-                  className="text-sm font-semibold text-teal-300 break-words"
-                  dir="rtl"
-                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-                  data-testid="text-grammatical-role"
-                >
-                  {wordInfo.grammaticalRole}
-                </span>
-              </div>
+              <p
+                className="text-sm font-semibold text-teal-300 break-words"
+                dir="rtl"
+                style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+                data-testid="text-grammatical-role"
+              >
+                {wordInfo.grammaticalRole}
+                {wordInfo.i_rab && <span className="text-teal-400/70"> — {wordInfo.i_rab}</span>}
+              </p>
             )}
-            {wordInfo.i_rab && (
-              <div>
-                <span className="text-[10px] text-muted-foreground">I'rob: </span>
-                <span
-                  className="text-xs text-teal-400/80 break-words"
-                  dir="rtl"
-                  style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-                  data-testid="text-irab"
-                >
-                  {wordInfo.i_rab}
-                </span>
-              </div>
+            {!wordInfo.grammaticalRole && wordInfo.i_rab && (
+              <p
+                className="text-sm text-teal-400/80 break-words"
+                dir="rtl"
+                style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+                data-testid="text-irab"
+              >
+                {wordInfo.i_rab}
+              </p>
+            )}
+            {wordInfo.nahwExplanation && (
+              <p className="text-xs text-muted-foreground mt-1 break-words" data-testid="text-nahw-explanation">
+                {wordInfo.nahwExplanation}
+              </p>
             )}
           </div>
         )}

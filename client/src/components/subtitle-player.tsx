@@ -42,8 +42,10 @@ export interface WordMapEntry {
   translationUz: string;
   translationAr: string;
   contextualMeaning: string;
+  partOfSpeech?: string;
   grammaticalRole?: string;
   i_rab?: string;
+  nahwExplanation?: string;
 }
 
 export interface SentenceWordMap {
@@ -211,7 +213,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       translationUz: wmEntry?.translationUz || vocabEntry?.translation || "",
       translationAr: wmEntry?.translationAr || vocabEntry?.translationAr || "",
       contextualMeaning: wmEntry?.contextualMeaning || vocabEntry?.example || "",
-      partOfSpeech: vocabEntry?.partOfSpeech || "",
+      partOfSpeech: wmEntry?.partOfSpeech || vocabEntry?.partOfSpeech || "",
       pronunciation: "",
       sourceSentence: subtitle.originalText,
       sourceSentenceUz: subtitle.translationUz || "",
@@ -224,6 +226,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       phraseExplanation: phraseEntry?.context,
       grammaticalRole: wmEntry?.grammaticalRole,
       i_rab: wmEntry?.i_rab,
+      nahwExplanation: wmEntry?.nahwExplanation,
     });
     setAnchorRect(rect);
   }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord]);

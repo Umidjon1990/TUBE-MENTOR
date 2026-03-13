@@ -192,7 +192,7 @@ export default function LessonDetailPage() {
           sWords.forEach(w => { if (tsWordSet.has(w)) hits++; });
           const overlap = hits / Math.max(1, sWords.size);
 
-          if (overlap >= 0.4) {
+          if (overlap >= 0.5) {
             if (firstMatchIdx < 0) firstMatchIdx = si;
             matchedSentences.push(sentences[si].sentence);
             matchedTranslations.push(sentences[si].translation);

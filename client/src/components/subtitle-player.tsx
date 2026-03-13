@@ -423,13 +423,30 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     );
   }, []);
 
+  const getAdaptiveFontSize = useCallback((text: string, isTranslation?: boolean) => {
+    const len = text.length;
+    if (isTranslation) {
+      if (len > 120) return "clamp(0.55rem, 1.8vw, 0.75rem)";
+      if (len > 80) return "clamp(0.6rem, 2vw, 0.85rem)";
+      if (len > 50) return "clamp(0.65rem, 2.2vw, 0.9rem)";
+      return "clamp(0.7rem, 2.5vw, 1rem)";
+    }
+    if (len > 120) return "clamp(0.65rem, 2vw, 0.85rem)";
+    if (len > 80) return "clamp(0.75rem, 2.5vw, 1rem)";
+    if (len > 50) return "clamp(0.85rem, 3vw, 1.15rem)";
+    if (len > 30) return "clamp(0.9rem, 3.2vw, 1.25rem)";
+    return "clamp(1rem, 3.5vw, 1.4rem)";
+  }, []);
+
   const renderOverlayText = useCallback((item: SubtitleItem) => {
     const translation = getTranslation(item);
+    const originalFontSize = getAdaptiveFontSize(item.originalText);
+    const translationFontSize = translation ? getAdaptiveFontSize(translation, true) : undefined;
 
     if (displayMode === "original") {
       return (
         <div className="pointer-events-auto text-center" data-testid="text-subtitle-overlay-original">
-          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white" dir="auto">
+          <div className="font-medium leading-snug text-white" dir="auto" style={{ fontSize: originalFontSize }}>
             {renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
@@ -438,25 +455,25 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     if (displayMode === "translation") {
       return (
         <div className="text-center" data-testid="text-subtitle-overlay-translation">
-          <div className="text-sm md:text-base lg:text-lg font-medium leading-relaxed text-white" dir="auto">
+          <div className="font-medium leading-snug text-white" dir="auto" style={{ fontSize: translation ? translationFontSize : originalFontSize }}>
             {translation ? renderTranslationText(translation, true) : renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
       );
     }
     return (
-      <div className="space-y-1.5 pointer-events-auto text-center">
-        <div className="text-sm md:text-base lg:text-lg font-semibold leading-relaxed text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" dir="auto" data-testid="text-subtitle-overlay-original">
+      <div className="space-y-1 pointer-events-auto text-center">
+        <div className="font-semibold leading-snug text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" dir="auto" data-testid="text-subtitle-overlay-original" style={{ fontSize: originalFontSize }}>
           {renderClickableWords(item.originalText, item, true)}
         </div>
         {translation && (
-          <div className="text-xs md:text-sm lg:text-base leading-relaxed text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" dir="auto" data-testid="text-subtitle-overlay-translation">
+          <div className="leading-snug text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" dir="auto" data-testid="text-subtitle-overlay-translation" style={{ fontSize: translationFontSize }}>
             {renderTranslationText(translation, true)}
           </div>
         )}
       </div>
     );
-  }, [displayMode, getTranslation, renderClickableWords, renderTranslationText]);
+  }, [displayMode, getTranslation, getAdaptiveFontSize, renderClickableWords, renderTranslationText]);
 
   if (!videoId) {
     return (

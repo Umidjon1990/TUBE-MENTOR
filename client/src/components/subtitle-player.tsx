@@ -51,6 +51,7 @@ export interface WordMapEntry {
 export interface SentenceWordMap {
   sentenceIndex: number;
   wordMap: WordMapEntry[];
+  grammarNotes?: string;
 }
 
 type DisplayMode = "original" | "both" | "translation";
@@ -183,6 +184,16 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     return m;
   }, [sentenceWordMaps]);
 
+  const grammarNotesLookup = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const swm of sentenceWordMaps) {
+      if (swm.grammarNotes) {
+        m.set(swm.sentenceIndex, swm.grammarNotes);
+      }
+    }
+    return m;
+  }, [sentenceWordMaps]);
+
   const wasPlayingRef = useRef(false);
 
   const stripArabicDiacritics = useCallback((t: string) =>
@@ -205,20 +216,41 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
     const normalizedWord = normalizeArabic(cleanWord).toLowerCase();
     let wmEntry: WordMapEntry | undefined;
+    let matchedSentenceIndex = -1;
     for (const si of subtitle.sentenceIndices) {
       wmEntry = wordMapLookup.get(si)?.get(normalizedWord);
-      if (wmEntry) break;
+      if (wmEntry) { matchedSentenceIndex = si; break; }
     }
     const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(cleanWord.toLowerCase());
     const phraseEntry = findPhraseForWord(cleanWord, subtitle.originalText);
+
+    let sentGrammarNotes = "";
+    if (matchedSentenceIndex >= 0) {
+      sentGrammarNotes = grammarNotesLookup.get(matchedSentenceIndex) || "";
+    } else {
+      for (const si of subtitle.sentenceIndices) {
+        const gn = grammarNotesLookup.get(si);
+        if (gn) { sentGrammarNotes = gn; break; }
+      }
+    }
+
+    const transAr = wmEntry?.translationAr || vocabEntry?.translationAr || "";
+    let derivedPartOfSpeech = wmEntry?.partOfSpeech || vocabEntry?.partOfSpeech || "";
+    if (!derivedPartOfSpeech && transAr) {
+      if (/حَرْف|حرف/.test(transAr)) derivedPartOfSpeech = "حَرْفٌ";
+      else if (/ضَمِير|ضمير/.test(transAr)) derivedPartOfSpeech = "ضَمِيرٌ";
+      else if (/أَدَاة|اداة|أداة/.test(transAr)) derivedPartOfSpeech = "أَدَاةٌ";
+      else if (/اِسْم|اسم/.test(transAr)) derivedPartOfSpeech = "اِسْمٌ";
+      else if (/فِعْل|فعل/.test(transAr)) derivedPartOfSpeech = "فِعْلٌ";
+    }
 
     setSelectedWord({
       word: cleanWord,
       normalized: cleanWord.toLowerCase(),
       translationUz: wmEntry?.translationUz || vocabEntry?.translation || "",
-      translationAr: wmEntry?.translationAr || vocabEntry?.translationAr || "",
+      translationAr: transAr,
       contextualMeaning: wmEntry?.contextualMeaning || vocabEntry?.example || "",
-      partOfSpeech: wmEntry?.partOfSpeech || vocabEntry?.partOfSpeech || "",
+      partOfSpeech: derivedPartOfSpeech,
       pronunciation: "",
       sourceSentence: subtitle.originalText,
       sourceSentenceUz: subtitle.translationUz || "",
@@ -229,12 +261,12 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       phraseTranslationUz: phraseEntry?.translation,
       phraseTranslationAr: phraseEntry?.translationAr,
       phraseExplanation: phraseEntry?.context,
-      grammaticalRole: wmEntry?.grammaticalRole,
-      i_rab: wmEntry?.i_rab,
-      nahwExplanation: wmEntry?.nahwExplanation,
+      grammaticalRole: wmEntry?.grammaticalRole || "",
+      i_rab: wmEntry?.i_rab || "",
+      nahwExplanation: wmEntry?.nahwExplanation || sentGrammarNotes,
     });
     setAnchorRect(rect);
-  }, [vocabMap, wordMapLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
+  }, [vocabMap, wordMapLookup, grammarNotesLookup, findPhraseForWord, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);

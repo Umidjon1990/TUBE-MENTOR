@@ -225,14 +225,17 @@ export default function PublicLessonPage() {
     return sentences
       .map((s, idx) => ({
         sentenceIndex: idx,
+        grammarNotes: s.grammarNotes || "",
         wordMap: (s.wordMap || []).map(wm => ({
           word: wm.word,
           normalized: wm.normalized,
           translationUz: wm.translationUz,
           translationAr: wm.translationAr,
           contextualMeaning: wm.contextualMeaning,
+          partOfSpeech: wm.partOfSpeech,
           grammaticalRole: wm.grammaticalRole,
           i_rab: wm.i_rab,
+          nahwExplanation: wm.nahwExplanation,
         })),
       }))
       .filter(swm => swm.wordMap.length > 0);

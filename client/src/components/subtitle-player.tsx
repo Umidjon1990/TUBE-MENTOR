@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Subtitles, Languages, MousePointerClick, Lock,
+  Subtitles, Languages,
   Monitor, Play, Pause, SkipBack, SkipForward,
   Repeat, RotateCcw, ChevronDown, ChevronUp,
   Minus, Plus, ZoomIn, ZoomOut, Type
@@ -121,8 +121,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("both");
-  const [translationLang, setTranslationLang] = useState<TranslationLang>("uz");
-  const [panelMode, setPanelMode] = useState<PanelMode>("auto");
+  const translationLang: TranslationLang = "uz";
+  const panelMode: PanelMode = "auto";
   const [selectedWord, setSelectedWord] = useState<WordInfo | null>(null);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -690,49 +690,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           </Button>
         </div>
 
-        <div className="flex items-center gap-0.5 md:gap-1 rounded-lg glass border border-border/50 p-0.5 md:p-1">
-          <Button
-            variant={translationLang === "uz" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
-            onClick={() => setTranslationLang("uz")}
-            data-testid="button-lang-uz"
-          >
-            O'zbekcha
-          </Button>
-          <Button
-            variant={translationLang === "ar" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
-            onClick={() => setTranslationLang("ar")}
-            data-testid="button-lang-ar"
-          >
-            Arabcha
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-0.5 md:gap-1 rounded-lg glass border border-border/50 p-0.5 md:p-1 ml-auto">
-          <Button
-            variant={panelMode === "auto" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
-            onClick={() => setPanelMode("auto")}
-            data-testid="button-panel-auto"
-          >
-            <MousePointerClick className="w-3 h-3 mr-0.5 md:mr-1 hidden sm:block" />
-            Auto
-          </Button>
-          <Button
-            variant={panelMode === "fixed" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
-            onClick={() => setPanelMode("fixed")}
-            data-testid="button-panel-fixed"
-          >
-            <Lock className="w-3 h-3 mr-0.5 md:mr-1 hidden sm:block" />
-            Joyida
-          </Button>
-        </div>
       </div>
       </div>
 
@@ -773,7 +730,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                   const isActive = idx === activeIndex;
                   const translation = getTranslation(item);
                   const originalIsArabic = isArabic(item.originalText);
-                  const translationIsArabic = translationLang === "ar" || (translation ? isArabic(translation) : false);
+                  const translationIsArabic = translation ? isArabic(translation) : false;
 
                   return (
                     <div

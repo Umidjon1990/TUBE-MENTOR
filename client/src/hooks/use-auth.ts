@@ -11,7 +11,8 @@ export function useAuth() {
   const userQuery = useQuery<SafeUser | null>({
     queryKey: ["/api/auth/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: true,
     retry: false,
   });
 

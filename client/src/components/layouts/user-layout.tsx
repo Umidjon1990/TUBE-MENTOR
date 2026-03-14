@@ -106,8 +106,8 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
     .slice(0, 2) || "U";
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 z-40 border-r border-border/50 bg-sidebar" data-testid="sidebar-user">
+    <div className="h-screen bg-background flex overflow-hidden">
+      <aside className="hidden lg:flex w-64 flex-col flex-shrink-0 border-r border-border/50 bg-sidebar" data-testid="sidebar-user">
         <SidebarContent currentPath={location} />
       </aside>
 
@@ -125,8 +125,8 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
         </div>
       )}
 
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        <header className="sticky top-0 z-30 glass-strong h-14 md:h-16 flex items-center px-3 md:px-6 gap-2 md:gap-4" data-testid="topbar-user">
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <header className="flex-shrink-0 z-30 glass-strong h-14 md:h-16 flex items-center px-3 md:px-6 gap-2 md:gap-4" data-testid="topbar-user">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Menyuni ochish" data-testid="button-open-mobile-menu">
             <Menu className="w-5 h-5" />
           </Button>
@@ -188,7 +188,7 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
           </div>
         </header>
 
-        <main className="flex-1 p-3 md:p-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6">
           {children}
         </main>
       </div>

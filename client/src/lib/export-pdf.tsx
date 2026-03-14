@@ -39,6 +39,20 @@ Font.register({
 });
 
 Font.register({
+  family: "NotoNaskhArabic",
+  fonts: [
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      fontWeight: 400,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
+      fontWeight: 700,
+    },
+  ],
+});
+
+Font.register({
   family: "NotoSans",
   fonts: [
     {
@@ -51,6 +65,84 @@ Font.register({
     },
   ],
 });
+
+const ARABIC_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+function hasArabic(text: string | undefined | null): boolean {
+  if (!text) return false;
+  return ARABIC_REGEX.test(text);
+}
+
+function splitMixedText(text: string): Array<{ text: string; isArabic: boolean }> {
+  const segments: Array<{ text: string; isArabic: boolean }> = [];
+  let current = "";
+  let currentIsArabic = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const charIsArabic = ARABIC_REGEX.test(char);
+    const isNeutral = /[\s\d\p{P}]/u.test(char);
+
+    if (current === "") {
+      currentIsArabic = charIsArabic;
+      current = char;
+    } else if (isNeutral) {
+      current += char;
+    } else if (charIsArabic === currentIsArabic) {
+      current += char;
+    } else {
+      segments.push({ text: current, isArabic: currentIsArabic });
+      current = char;
+      currentIsArabic = charIsArabic;
+    }
+  }
+  if (current) {
+    segments.push({ text: current, isArabic: currentIsArabic });
+  }
+  return segments;
+}
+
+function flattenChildren(children: any): string {
+  if (children == null) return "";
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(flattenChildren).join("");
+  return String(children);
+}
+
+function SmartText({ children, style, ...props }: any) {
+  const text = flattenChildren(children);
+  if (!text) return null;
+
+  if (!hasArabic(text)) {
+    return <Text style={style} {...props}>{text}</Text>;
+  }
+
+  const baseStyle = Array.isArray(style) ? Object.assign({}, ...style) : (style || {});
+
+  const letterChars = text.split("").filter((c: string) => !/[\s\d\p{P}]/u.test(c));
+  const allArabic = letterChars.length > 0 && letterChars.every((c: string) => ARABIC_REGEX.test(c));
+  if (allArabic) {
+    return (
+      <Text style={{ ...baseStyle, fontFamily: "Amiri", lineHeight: baseStyle.lineHeight || 1.8 }} {...props}>
+        {text}
+      </Text>
+    );
+  }
+
+  const segments = splitMixedText(text);
+  return (
+    <Text style={baseStyle} {...props}>
+      {segments.map((seg, i) =>
+        seg.isArabic ? (
+          <Text key={i} style={{ fontFamily: "Amiri", lineHeight: 1.8 }}>{seg.text}</Text>
+        ) : (
+          <Text key={i}>{seg.text}</Text>
+        )
+      )}
+    </Text>
+  );
+}
 
 const WORD_COLORS = [
   "#DC2626", "#2563EB", "#059669", "#D97706", "#7C3AED",
@@ -436,19 +528,19 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
           >
             {v.word}
           </Text>
-          <Text style={[styles.tableCell, { width: "25%" }]}>
+          <SmartText style={[styles.tableCell, { width: "25%" }]}>
             {v.translation}
-          </Text>
-          <Text
+          </SmartText>
+          <SmartText
             style={[styles.tableCell, { width: "15%", color: colors.gray }]}
           >
             {v.partOfSpeech || "—"}
-          </Text>
-          <Text
+          </SmartText>
+          <SmartText
             style={[styles.tableCell, { width: "30%", color: colors.gray }]}
           >
             {v.example || "—"}
-          </Text>
+          </SmartText>
         </View>
       ))}
     </View>
@@ -475,11 +567,11 @@ function QuizzesSection({
       </Text>
       {quizzes.map((q, qi) => (
         <View key={qi} style={styles.quizBlock} wrap={false}>
-          <Text style={styles.quizQuestion}>
+          <SmartText style={styles.quizQuestion}>
             {qi + 1}. {q.question}
-          </Text>
+          </SmartText>
           {q.options.map((opt, oi) => (
-            <Text
+            <SmartText
               key={oi}
               style={
                 withAnswers && oi === q.correctIndex
@@ -489,10 +581,10 @@ function QuizzesSection({
             >
               {String.fromCharCode(65 + oi)}) {opt}
               {withAnswers && oi === q.correctIndex ? " ✓" : ""}
-            </Text>
+            </SmartText>
           ))}
           {withAnswers && q.explanation ? (
-            <Text style={styles.quizExplanation}>{q.explanation}</Text>
+            <SmartText style={styles.quizExplanation}>{q.explanation}</SmartText>
           ) : null}
         </View>
       ))}
@@ -524,13 +616,18 @@ function FlashcardsSection({
             wrap={false}
           >
             <Text style={styles.flashcardFront}>{f.front}</Text>
-            <Text style={styles.flashcardBack}>{f.back}</Text>
+            <SmartText style={styles.flashcardBack}>{f.back}</SmartText>
+            {f.backAr ? (
+              <Text style={{ fontSize: 11, color: colors.arabText, fontFamily: "Amiri", fontWeight: 700 as const, textAlign: "right" as const, lineHeight: 1.6, marginTop: 4 }}>
+                {f.backAr}
+              </Text>
+            ) : null}
             {f.type ? (
-              <Text
+              <SmartText
                 style={{ fontSize: 7, color: colors.gray, marginTop: 4 }}
               >
                 {f.type}
-              </Text>
+              </SmartText>
             ) : null}
           </View>
         ))}
@@ -553,7 +650,7 @@ function SummarySection({ summary }: { summary: SummaryData }) {
       {summary.summaryShort ? (
         <View style={styles.summaryBlock} wrap={false}>
           <Text style={styles.summaryLabel}>Qisqa xulosa</Text>
-          <Text style={styles.summaryText}>{summary.summaryShort}</Text>
+          <SmartText style={styles.summaryText}>{summary.summaryShort}</SmartText>
         </View>
       ) : null}
       {summary.summaryShortAr ? (
@@ -565,7 +662,7 @@ function SummarySection({ summary }: { summary: SummaryData }) {
       {summary.summaryDetailed ? (
         <View style={styles.summaryBlock} wrap={false}>
           <Text style={styles.summaryLabel}>Batafsil xulosa</Text>
-          <Text style={styles.summaryText}>{summary.summaryDetailed}</Text>
+          <SmartText style={styles.summaryText}>{summary.summaryDetailed}</SmartText>
         </View>
       ) : null}
       {summary.summaryDetailedAr ? (

@@ -43,6 +43,54 @@ const COLORS = {
   brand: "0D9488",
 };
 
+const ARABIC_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+const ARABIC_FONT = "Traditional Arabic";
+
+function hasArabic(text: string | undefined | null): boolean {
+  if (!text) return false;
+  return ARABIC_REGEX.test(text);
+}
+
+function smartTextRuns(text: string, baseProps: Record<string, any>): TextRun[] {
+  if (!hasArabic(text)) {
+    return [new TextRun({ text, ...baseProps })];
+  }
+  const runs: TextRun[] = [];
+  let current = "";
+  let currentIsArabic = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const charIsArabic = ARABIC_REGEX.test(char);
+    const isNeutral = /[\s\d\p{P}]/u.test(char);
+
+    if (current === "") {
+      currentIsArabic = charIsArabic;
+      current = char;
+    } else if (isNeutral) {
+      current += char;
+    } else if (charIsArabic === currentIsArabic) {
+      current += char;
+    } else {
+      if (currentIsArabic) {
+        runs.push(new TextRun({ text: current, ...baseProps, font: ARABIC_FONT, rightToLeft: true }));
+      } else {
+        runs.push(new TextRun({ text: current, ...baseProps }));
+      }
+      current = char;
+      currentIsArabic = charIsArabic;
+    }
+  }
+  if (current) {
+    if (currentIsArabic) {
+      runs.push(new TextRun({ text: current, ...baseProps, font: ARABIC_FONT, rightToLeft: true }));
+    } else {
+      runs.push(new TextRun({ text: current, ...baseProps }));
+    }
+  }
+  return runs;
+}
+
 function brandingHeader(title: string): Paragraph[] {
   return [
     new Paragraph({
@@ -129,7 +177,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
               alignment: AlignmentType.CENTER,
               spacing: { after: 0 },
               children: [
-                new TextRun({ text: w.word, bold: true, size: 22, color: clr, font: "Arial", rightToLeft: true }),
+                new TextRun({ text: w.word, bold: true, size: 22, color: clr, font: hasArabic(w.word) ? ARABIC_FONT : "Arial", rightToLeft: true }),
               ],
             }),
             new Paragraph({
@@ -180,7 +228,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
               text: block.sentence,
               size: 26,
               color: COLORS.emerald,
-              font: "Arial",
+              font: hasArabic(block.sentence) ? ARABIC_FONT : "Arial",
               rightToLeft: true,
             }),
             new TextRun({
@@ -282,7 +330,7 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
             children: [
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
-                children: [new TextRun({ text: v.word, size: 20, color: COLORS.emerald, font: "Arial", rightToLeft: true })],
+                children: [new TextRun({ text: v.word, size: 20, color: COLORS.emerald, font: hasArabic(v.word) ? ARABIC_FONT : "Arial", rightToLeft: true })],
               }),
             ],
           }),
@@ -299,7 +347,7 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: v.partOfSpeech || "-", size: 18, color: COLORS.gray, font: "Arial" })],
+                children: smartTextRuns(v.partOfSpeech || "-", { size: 18, color: COLORS.gray, font: "Arial" }),
               }),
             ],
           }),
@@ -307,7 +355,7 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
             shading: idx % 2 === 0 ? { type: ShadingType.SOLID, color: COLORS.lightGray } : undefined,
             children: [
               new Paragraph({
-                children: [new TextRun({ text: v.example || "-", size: 18, color: COLORS.gray, font: "Arial" })],
+                children: smartTextRuns(v.example || "-", { size: 18, color: COLORS.gray, font: "Arial" }),
               }),
             ],
           }),
@@ -336,15 +384,12 @@ function buildQuizSection(quizzes: QuizEntry[], withAnswers: boolean): Paragraph
     paragraphs.push(
       new Paragraph({
         spacing: { before: 200, after: 100 },
-        children: [
-          new TextRun({
-            text: `${idx + 1}. ${q.question}`,
-            bold: true,
-            size: 22,
-            color: COLORS.black,
-            font: "Arial",
-          }),
-        ],
+        children: smartTextRuns(`${idx + 1}. ${q.question}`, {
+          bold: true,
+          size: 22,
+          color: COLORS.black,
+          font: "Arial",
+        }),
       })
     );
 
@@ -356,8 +401,7 @@ function buildQuizSection(quizzes: QuizEntry[], withAnswers: boolean): Paragraph
           spacing: { after: 40 },
           indent: { left: convertInchesToTwip(0.4) },
           children: [
-            new TextRun({
-              text: `${letter}) ${opt}`,
+            ...smartTextRuns(`${letter}) ${opt}`, {
               size: 20,
               bold: isCorrect,
               color: isCorrect ? COLORS.emerald : COLORS.black,
@@ -384,15 +428,12 @@ function buildQuizSection(quizzes: QuizEntry[], withAnswers: boolean): Paragraph
         new Paragraph({
           spacing: { before: 60, after: 120 },
           indent: { left: convertInchesToTwip(0.4) },
-          children: [
-            new TextRun({
-              text: `Izoh: ${q.explanation}`,
-              italics: true,
-              size: 18,
-              color: COLORS.gray,
-              font: "Arial",
-            }),
-          ],
+          children: smartTextRuns(`Izoh: ${q.explanation}`, {
+            italics: true,
+            size: 18,
+            color: COLORS.gray,
+            font: "Arial",
+          }),
         })
       );
     }
@@ -461,7 +502,8 @@ function buildFlashcardsSection(flashcards: FlashcardEntry[]): (Paragraph | Tabl
           },
           children: [
             new Paragraph({
-              alignment: AlignmentType.CENTER,
+              alignment: hasArabic(fc.front) ? AlignmentType.RIGHT : AlignmentType.CENTER,
+              bidirectional: hasArabic(fc.front),
               spacing: { after: 60 },
               children: [
                 new TextRun({
@@ -469,21 +511,35 @@ function buildFlashcardsSection(flashcards: FlashcardEntry[]): (Paragraph | Tabl
                   bold: true,
                   size: 22,
                   color: COLORS.emerald,
-                  font: "Arial",
+                  font: hasArabic(fc.front) ? ARABIC_FONT : "Arial",
+                  rightToLeft: hasArabic(fc.front),
                 }),
               ],
             }),
             new Paragraph({
               alignment: AlignmentType.CENTER,
-              children: [
-                new TextRun({
-                  text: fc.back,
-                  size: 20,
-                  color: COLORS.blue,
-                  font: "Arial",
-                }),
-              ],
+              children: smartTextRuns(fc.back, {
+                size: 20,
+                color: COLORS.blue,
+                font: "Arial",
+              }),
             }),
+            ...(fc.backAr ? [
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                bidirectional: true,
+                spacing: { before: 40 },
+                children: [
+                  new TextRun({
+                    text: fc.backAr,
+                    size: 20,
+                    color: COLORS.emerald,
+                    font: ARABIC_FONT,
+                    rightToLeft: true,
+                  }),
+                ],
+              }),
+            ] : []),
           ],
         })
       );
@@ -531,14 +587,11 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         spacing: { after: 200 },
-        children: [
-          new TextRun({
-            text: summary.summaryShort,
-            size: 20,
-            color: COLORS.gray,
-            font: "Arial",
-          }),
-        ],
+        children: smartTextRuns(summary.summaryShort, {
+          size: 20,
+          color: COLORS.gray,
+          font: "Arial",
+        }),
       })
     );
   }
@@ -561,13 +614,14 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         alignment: AlignmentType.RIGHT,
+        bidirectional: true,
         spacing: { after: 200 },
         children: [
           new TextRun({
             text: summary.summaryShortAr,
             size: 22,
             color: COLORS.emerald,
-            font: "Arial",
+            font: ARABIC_FONT,
             rightToLeft: true,
           }),
         ],
@@ -593,14 +647,11 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         spacing: { after: 200 },
-        children: [
-          new TextRun({
-            text: summary.summaryDetailed,
-            size: 20,
-            color: COLORS.gray,
-            font: "Arial",
-          }),
-        ],
+        children: smartTextRuns(summary.summaryDetailed, {
+          size: 20,
+          color: COLORS.gray,
+          font: "Arial",
+        }),
       })
     );
   }
@@ -623,13 +674,14 @@ function buildSummarySection(summary: SummaryData): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         alignment: AlignmentType.RIGHT,
+        bidirectional: true,
         spacing: { after: 200 },
         children: [
           new TextRun({
             text: summary.summaryDetailedAr,
             size: 22,
             color: COLORS.emerald,
-            font: "Arial",
+            font: ARABIC_FONT,
             rightToLeft: true,
           }),
         ],

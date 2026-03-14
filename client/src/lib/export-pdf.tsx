@@ -38,33 +38,6 @@ Font.register({
   ],
 });
 
-Font.register({
-  family: "NotoNaskhArabic",
-  fonts: [
-    {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
-      fontWeight: 400,
-    },
-    {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf",
-      fontWeight: 700,
-    },
-  ],
-});
-
-Font.register({
-  family: "NotoSans",
-  fonts: [
-    {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
-      fontWeight: 400,
-    },
-    {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
-      fontWeight: 700,
-    },
-  ],
-});
 
 const ARABIC_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
@@ -114,15 +87,9 @@ function SmartText({ children, style, ...props }: any) {
   const text = flattenChildren(children);
   if (!text) return null;
 
-  if (!hasArabic(text)) {
-    return <Text style={style} {...props}>{text}</Text>;
-  }
-
   const baseStyle = Array.isArray(style) ? Object.assign({}, ...style) : (style || {});
 
-  const letterChars = text.split("").filter((c: string) => !/[\s\d\p{P}]/u.test(c));
-  const allArabic = letterChars.length > 0 && letterChars.every((c: string) => ARABIC_REGEX.test(c));
-  if (allArabic) {
+  if (hasArabic(text)) {
     return (
       <Text style={{ ...baseStyle, fontFamily: "Amiri", lineHeight: baseStyle.lineHeight || 1.8 }} {...props}>
         {text}
@@ -130,18 +97,7 @@ function SmartText({ children, style, ...props }: any) {
     );
   }
 
-  const segments = splitMixedText(text);
-  return (
-    <Text style={baseStyle} {...props}>
-      {segments.map((seg, i) =>
-        seg.isArabic ? (
-          <Text key={i} style={{ fontFamily: "Amiri", lineHeight: 1.8 }}>{seg.text}</Text>
-        ) : (
-          <Text key={i}>{seg.text}</Text>
-        )
-      )}
-    </Text>
-  );
+  return <Text style={style} {...props}>{text}</Text>;
 }
 
 const WORD_COLORS = [
@@ -241,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.uzTranslation,
     marginBottom: 4,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
   },
   wordMapRow: {
     flexDirection: "row" as const,
@@ -267,7 +223,7 @@ const styles = StyleSheet.create({
   wordMapUz: {
     fontSize: 8,
     color: colors.uzTranslation,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
   },
   tableHeader: {
     flexDirection: "row" as const,
@@ -348,7 +304,7 @@ const styles = StyleSheet.create({
   flashcardBack: {
     fontSize: 10,
     color: colors.dark,
-    fontFamily: "NotoSans",
+    fontFamily: "Helvetica",
   },
   summaryBlock: {
     padding: 12,
@@ -436,7 +392,7 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
                 return (
                   <View key={wi} style={{ alignItems: "center" as const }}>
                     <Text style={{ fontSize: 13, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
-                    <Text style={{ fontSize: 8, color: clr, fontFamily: "NotoSans", fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</Text>
+                    <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
                   </View>
                 );
               })}
@@ -445,7 +401,7 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
             <Text style={styles.arabicText}>{block.sentence}  {block.index}.</Text>
           ) : null}
           {block.translation ? (
-            <Text style={styles.uzText}>{block.index}. {block.translation}</Text>
+            <SmartText style={styles.uzText}>{`${block.index}. ${block.translation}`}</SmartText>
           ) : null}
         </View>
       ))}
@@ -568,7 +524,7 @@ function QuizzesSection({
       {quizzes.map((q, qi) => (
         <View key={qi} style={styles.quizBlock} wrap={false}>
           <SmartText style={styles.quizQuestion}>
-            {qi + 1}. {q.question}
+            {`${qi + 1}. ${q.question}`}
           </SmartText>
           {q.options.map((opt, oi) => (
             <SmartText
@@ -579,8 +535,7 @@ function QuizzesSection({
                   : styles.quizOption
               }
             >
-              {String.fromCharCode(65 + oi)}) {opt}
-              {withAnswers && oi === q.correctIndex ? " ✓" : ""}
+              {`${String.fromCharCode(65 + oi)}) ${opt}${withAnswers && oi === q.correctIndex ? " ✓" : ""}`}
             </SmartText>
           ))}
           {withAnswers && q.explanation ? (

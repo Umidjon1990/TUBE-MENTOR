@@ -1,0 +1,1499 @@
+{
+"summaryShort": "Videoda Juha va Huma sahroda dam olayotib, arab tilidagi ism al-ishora mavzusini amaliy suhbat orqali takrorlaydilar. Ayniqsa “هَؤُلَاءِ” va “هَذِهِ”ning jam‘ oqil hamda jam‘ g‘ayri oqil bilan qo‘llanishi tushuntiriladi.",
+"summaryDetailed": "Videoning boshida Juha qoidalar va qonunlarni “sindirish” haqidagi hazilomuz gapni davom ettiradi. Keyin ular chodir tikadigan joyga kelishadi va Huma ishlatgan “هذا” ism al-ishorasi maqtaladi. Sahroda dam olish manzarasi tasvirlanib, yulduzlar haqida suhbat boshlanadi. Shu yerda Huma “هؤلاء النجوم” deb xato ishlatadi. Juha esa bu xatoni tuzatib, “النجوم” jam‘ bo‘lsa ham g‘ayri oqil bo‘lgani uchun “هذه النجوم” deyish kerakligini tushuntiradi. Shuningdek, “هَؤُلَاءِ” esa faqat jam‘ oqil uchun ishlatilishi aytiladi. Shu tariqa video nahv qoidasi, xususan ism al-ishoraning to‘g‘ri qo‘llanishini kulgili va esda qolarli usulda o‘rgatadi.",
+"summaryShortAr": "يُرَاجِعُ الْفِيدِيُو دَرْسَ أَسْمَاءِ الْإِشَارَةِ مِنْ خِلَالِ حِوَارٍ طَرِيفٍ بَيْنَ جُحَا وَهُومَا. وَيَتَّضِحُ فِيهِ أَنَّ «هَذِهِ» تُسْتَعْمَلُ مَعَ الْجَمْعِ غَيْرِ الْعَاقِلِ، وَأَنَّ «هَؤُلَاءِ» لِلْجَمْعِ الْعَاقِلِ.",
+"summaryDetailedAr": "يَبْدَأُ الْحِوَارُ بِكَلَامٍ طَرِيفٍ عَنْ كَسْرِ الْقَوَاعِدِ وَالْقَوَانِينِ كَسْرًا مَعْنَوِيًّا. ثُمَّ يَصِلُ جُحَا وَهُومَا إِلَى مَكَانِ التَّخْيِيمِ، وَيُثْنِي جُحَا عَلَى حُسْنِ اسْتِعْمَالِ هُومَا لِاسْمِ الْإِشَارَةِ «هَذَا». وَبَعْدَ ذَلِكَ يَنْتَقِلُ الْحِوَارُ إِلَى التَّأَمُّلِ فِي السَّمَاءِ وَالنُّجُومِ. وَعِنْدَمَا قَالَ هُومَا: «هَؤُلَاءِ النُّجُومُ»، بَيَّنَ جُحَا أَنَّ هَذَا خَطَأٌ نَحْوِيٌّ. فَالنُّجُومُ جَمْعٌ غَيْرُ عَاقِلٍ، وَلِذَلِكَ يُشَارُ إِلَيْهَا بِقَوْلِنَا: «هَذِهِ النُّجُومُ». أَمَّا «هَؤُلَاءِ» فَهِيَ لِلْجَمْعِ الْعَاقِلِ. وَبِهَذَا تَحَوَّلَ الْمَوْقِفُ الْمُسَلِّي إِلَى دَرْسٍ نَحْوِيٍّ مُفِيدٍ.",
+"vocabulary": [
+{
+"word": "مَعْنَوِيٌّ",
+"translation": "ma’naviy, ko‘chma",
+"translationAr": "مَجَازِيٌّ",
+"partOfSpeech": "صِفَةٌ",
+"example": "إِنَّهُ كَسْرٌ مَعْنَوِيٌّ يَا هُومَا.",
+"difficulty": "medium"
+},
+{
+"word": "الْقَوَاعِدُ",
+"translation": "qoidalar",
+"translationAr": "أُصُولٌ وَضَوَابِطُ",
+"partOfSpeech": "اِسْمٌ",
+"example": "مِثْلُ كَسْرِ الْقَوَاعِدِ وَالْقَوَانِينِ.",
+"difficulty": "medium"
+},
+{
+"word": "الْقَوَانِينُ",
+"translation": "qonunlar",
+"translationAr": "أَحْكَامٌ وَتَشْرِيعَاتٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "وَلِمَاذَا يَصْنَعُونَ الْقَوَاعِدَ وَالْقَوَانِينِ مِنَ الزُّجَاجِ؟",
+"difficulty": "medium"
+},
+{
+"word": "الزُّجَاجُ",
+"translation": "shisha, oyna",
+"translationAr": "مَادَّةٌ شَفَّافَةٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "مِنَ الزُّجَاجِ يَا جُحَا.",
+"difficulty": "easy"
+},
+{
+"word": "الِاسْتِرْخَاءُ",
+"translation": "dam olish, bo‘shashish",
+"translationAr": "الرَّاحَةُ وَالسُّكُونُ",
+"partOfSpeech": "اِسْمٌ",
+"example": "مَا أَجْمَلَ الِاسْتِرْخَاءَ يَا هُومَا.",
+"difficulty": "medium"
+},
+{
+"word": "النَّجْمَتَانِ",
+"translation": "ikki yulduz",
+"translationAr": "كَوْكَبَانِ مُضِيئَانِ",
+"partOfSpeech": "اِسْمٌ",
+"example": "اُنْظُرِي، النَّجْمَتَانِ تَلْمَعَانِ.",
+"difficulty": "medium"
+},
+{
+"word": "تَلْمَعَانِ",
+"translation": "ikkalasi yarqiramoqda",
+"translationAr": "تُضِيئَانِ وَتَشْرُقَانِ",
+"partOfSpeech": "فِعْلٌ",
+"example": "النَّجْمَتَانِ تَلْمَعَانِ بِشِدَّةٍ.",
+"difficulty": "medium"
+},
+{
+"word": "خُدْعَةٌ",
+"translation": "hiyla, nayrang",
+"translationAr": "حِيلَةٌ وَمَكْرٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "هَذِهِ خُدْعَةٌ مِنْكَ.",
+"difficulty": "easy"
+},
+{
+"word": "خُطَّةٌ",
+"translation": "reja",
+"translationAr": "تَدْبِيرٌ مُسْبَقٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "لَقَدْ كَشَفْتَ خُطَّتِي.",
+"difficulty": "easy"
+},
+{
+"word": "يُضْرَبُ بِهِ الْمَثَلُ",
+"translation": "mashhur bo‘lmoq, misol qilib keltirilmoq",
+"translationAr": "يُجْعَلُ نَمُوذَجًا",
+"partOfSpeech": "فِعْلٌ",
+"example": "ذَكَاءُ جُحَا يُضْرَبُ بِهِ الْمَثَلُ.",
+"difficulty": "hard"
+},
+{
+"word": "الْجَمْعُ غَيْرُ الْعَاقِلِ",
+"translation": "aqlli bo‘lmagan ko‘plik",
+"translationAr": "جَمْعٌ لِمَا لَا عَقْلَ لَهُ",
+"partOfSpeech": "صِفَةٌ",
+"example": "هَذِهِ تُشِيرُ إِلَى الْجَمْعِ غَيْرِ الْعَاقِلِ.",
+"difficulty": "hard"
+},
+{
+"word": "الْجَمْعُ الْعَاقِلُ",
+"translation": "aqlli ko‘plik",
+"translationAr": "جَمْعٌ لِمَنْ لَهُ عَقْلٌ",
+"partOfSpeech": "صِفَةٌ",
+"example": "هَؤُلَاءِ تُسْتَعْمَلُ مَعَ الْجَمْعِ الْعَاقِلِ.",
+"difficulty": "hard"
+}
+],
+"quizzes": [
+{
+"question": "Videoda “هَؤُلَاءِ النُّجُومُ” iborasi nega xato deb topildi?",
+"options": [
+"Chunki “النُّجُومُ” mufrad so‘z",
+"Chunki “هَؤُلَاءِ” jam‘ g‘ayri oqil uchun emas",
+"Chunki “النُّجُومُ” fe’l hisoblanadi",
+"Chunki “هَؤُلَاءِ” faqat ikkilik uchun ishlatiladi"
+],
+"correctIndex": 1,
+"explanation": "“النُّجُومُ” jam‘ bo‘lsa-da, u g‘ayri oqil jam‘ hisoblanadi. Arab tilida bunday jam‘ uchun “هَذِهِ” ishlatiladi, “هَؤُلَاءِ” emas.",
+"type": "multiple_choice"
+},
+{
+"question": "“هَؤُلَاءِ” qaysi holatda ishlatiladi?",
+"options": [
+"Jam‘ oqil bilan",
+"Jam‘ g‘ayri oqil bilan",
+"Mufrad muannas bilan",
+"Musanno bilan"
+],
+"correctIndex": 0,
+"explanation": "Nahv qoidasiga ko‘ra “هَؤُلَاءِ” aqlli ko‘plik, ya’ni insonlar va aqlga ega mavjudotlar uchun ishlatiladi.",
+"type": "multiple_choice"
+},
+{
+"question": "Videodagi asosiy nahv mavzusi nima edi?",
+"options": [
+"Maf’ul bih",
+"Musanno",
+"Ism al-ishoraning qo‘llanishi",
+"Fe’l zamonlari"
+],
+"correctIndex": 2,
+"explanation": "Suhbat davomida “هَذَا”, “هَذِهِ”, “هَؤُلَاءِ” kabi ism al-ishoralarning qaysi o‘rinda ishlatilishi tushuntirildi.",
+"type": "multiple_choice"
+},
+{
+"question": "Juha Huma haqida nimani maqtadi?",
+"options": [
+"Uning chodirini",
+"Uning ovqatini",
+"Uning ism al-ishorani to‘g‘ri ishlatganini",
+"Uning sukut saqlaganini"
+],
+"correctIndex": 2,
+"explanation": "“هَذَا هُوَ الْمَكَانُ” jumlasida Huma “هَذَا”ni yaxshi ishlatgani uchun Juha uni maqtadi.",
+"type": "multiple_choice"
+},
+{
+"question": "“ذَكَاءُ جُحَا يُضْرَبُ بِهِ الْمَثَلُ” iborasi nimani anglatadi?",
+"options": [
+"Juhaning aqli yo‘q",
+"Juhaning aqli mashhur va misol bo‘ladigan darajada",
+"Juha ko‘p gapiradi",
+"Juha yulduzlarni kuzatadi"
+],
+"correctIndex": 1,
+"explanation": "Bu ibora Juhaning zakovati mashhur, namuna qilib aytiladigan darajada ekanini bildiradi.",
+"type": "multiple_choice"
+},
+{
+"question": "كَانَ يَجِبُ أَنْ تَقُولَ _____ النُّجُومُ — bo‘sh joyga mos so‘zni tanlang",
+"options": [
+"هَؤُلَاءِ",
+"هَذَا",
+"هَذِهِ",
+"هَذَانِ"
+],
+"correctIndex": 2,
+"explanation": "“النُّجُومُ” jam‘ g‘ayri oqil bo‘lgani uchun “هَذِهِ النُّجُومُ” to‘g‘ri bo‘ladi.",
+"type": "sentence_completion"
+},
+{
+"question": "ذَكَاءُ جُحَا _____ بِهِ الْمَثَلُ — bo‘sh joyga mos so‘zni tanlang",
+"options": [
+"يُضْرَبُ",
+"تُضْرَبُ",
+"يَضْرِبُ",
+"اُضْرُبْ"
+],
+"correctIndex": 0,
+"explanation": "To‘g‘ri shakl: “يُضْرَبُ بِهِ الْمَثَلُ”, ya’ni “u bilan misol keltiriladi”.",
+"type": "sentence_completion"
+},
+{
+"question": "اُنْظُرِي يَا جُحَا إِنَّ النَّجْمَتَانِ _____ — bo‘sh joyga mos so‘zni tanlang",
+"options": [
+"تَلْمَعُ",
+"تَلْمَعَانِ",
+"يَلْمَعَانِ",
+"تَلْمَعِينَ"
+],
+"correctIndex": 1,
+"explanation": "“النَّجْمَتَانِ” musanno bo‘lgani uchun fe’l ham mos ravishda “تَلْمَعَانِ” shaklida keladi.",
+"type": "sentence_completion"
+},
+{
+"question": "هَؤُلَاءِ تُسْتَعْمَلُ مَعَ الْجَمْعِ _____ — bo‘sh joyga mos so‘zni tanlang",
+"options": [
+"الْعَاقِلِ",
+"غَيْرِ الْعَاقِلِ",
+"الْمُؤَنَّثِ",
+"الْمُفْرَدِ"
+],
+"correctIndex": 0,
+"explanation": "Nahvga ko‘ra “هَؤُلَاءِ” jam‘ oqil bilan ishlatiladi.",
+"type": "sentence_completion"
+},
+{
+"question": "خُدْعَةٌ",
+"options": [
+"qonun",
+"hiyla",
+"joy",
+"shisha"
+],
+"correctIndex": 1,
+"explanation": "“خُدْعَةٌ” — hiyla, nayrang degani.",
+"type": "word_translation"
+},
+{
+"question": "الِاسْتِرْخَاءُ",
+"options": [
+"dam olish",
+"yugurish",
+"bahslashish",
+"ko‘chish"
+],
+"correctIndex": 0,
+"explanation": "“الِاسْتِرْخَاءُ” dam olish, bo‘shashish ma’nosini bildiradi.",
+"type": "word_translation"
+},
+{
+"question": "الزُّجَاجُ",
+"options": [
+"qum",
+"osmon",
+"shisha",
+"yulduz"
+],
+"correctIndex": 2,
+"explanation": "“الزُّجَاجُ” — shisha, oyna degani.",
+"type": "word_translation"
+}
+],
+"flashcards": [
+{
+"front": "هَذِهِ النُّجُومُ",
+"back": "Bu yulduzlar — jam‘ g‘ayri oqil bilan “هَذِهِ” ishlatiladi",
+"backAr": "تُسْتَعْمَلُ «هَذِهِ» مَعَ الْجَمْعِ غَيْرِ الْعَاقِلِ",
+"type": "grammar"
+},
+{
+"front": "هَؤُلَاءِ",
+"back": "Bular — jam‘ oqil uchun ishlatiladigan ism al-ishora",
+"backAr": "اِسْمُ إِشَارَةٍ لِلْجَمْعِ الْعَاقِلِ",
+"type": "grammar"
+},
+{
+"front": "الْجَمْعُ غَيْرُ الْعَاقِلِ",
+"back": "aqlli bo‘lmagan ko‘plik",
+"backAr": "جَمْعٌ لِمَا لَا عَقْلَ لَهُ",
+"type": "grammar"
+},
+{
+"front": "الْجَمْعُ الْعَاقِلُ",
+"back": "aqlli ko‘plik",
+"backAr": "جَمْعٌ لِمَنْ لَهُ عَقْلٌ",
+"type": "grammar"
+},
+{
+"front": "مَعْنَوِيٌّ",
+"back": "ma’naviy, ko‘chma",
+"backAr": "مَجَازِيٌّ غَيْرُ حَقِيقِيٍّ",
+"type": "vocabulary"
+},
+{
+"front": "الِاسْتِرْخَاءُ",
+"back": "dam olish, bo‘shashish",
+"backAr": "الرَّاحَةُ وَالسُّكُونُ",
+"type": "vocabulary"
+},
+{
+"front": "خُدْعَةٌ",
+"back": "hiyla, nayrang",
+"backAr": "حِيلَةٌ أَوْ مَكْرٌ",
+"type": "vocabulary"
+},
+{
+"front": "النَّجْمَتَانِ تَلْمَعَانِ",
+"back": "Ikki yulduz yarqiramoqda",
+"backAr": "كَوْكَبَانِ يُضِيئَانِ بِشِدَّةٍ",
+"type": "grammar"
+},
+{
+"front": "يُضْرَبُ بِهِ الْمَثَلُ",
+"back": "u bilan misol keltiriladi, mashhur bo‘lgan",
+"backAr": "يُجْعَلُ نَمُوذَجًا وَمَثَلًا",
+"type": "vocabulary"
+},
+{
+"front": "هَذَا هُوَ الْمَكَانُ",
+"back": "Mana shu joyning o‘zi",
+"backAr": "هَذَا هُوَ الْمَوْضِعُ الْمَقْصُودُ",
+"type": "grammar"
+}
+],
+"sentenceAnalysis": [
+{
+"sentence": "انه كسر معنوي يهومه مثل كسر القواعد",
+"translation": "Ey Huma, bu ma’naviy buzishdir, xuddi qoidalarni buzish kabi.",
+"translationAr": "إِنَّهُ كَسْرٌ مَعْنَوِيٌّ يَا هُومَا، مِثْلُ كَسْرِ الْقَوَاعِدِ.",
+"wordMap": [
+{
+"word": "إِنَّهُ",
+"normalized": "انه",
+"translationUz": "albatta bu",
+"translationAr": "هُوَ فِي الْحَقِيقَةِ"
+},
+{
+"word": "كَسْرٌ",
+"normalized": "كسر",
+"translationUz": "buzish, sindirish",
+"translationAr": "تَحْطِيمٌ"
+},
+{
+"word": "مَعْنَوِيٌّ",
+"normalized": "معنوي",
+"translationUz": "ma’naviy, ko‘chma",
+"translationAr": "مَجَازِيٌّ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "هُومَا",
+"normalized": "يهومه",
+"translationUz": "Huma",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "مِثْلُ",
+"normalized": "مثل",
+"translationUz": "kabi",
+"translationAr": "شَبِيهُ"
+},
+{
+"word": "كَسْرِ",
+"normalized": "كسر",
+"translationUz": "buzishning",
+"translationAr": "تَحْطِيمِ"
+},
+{
+"word": "الْقَوَاعِدِ",
+"normalized": "القواعد",
+"translationUz": "qoidalarning",
+"translationAr": "الضَّوَابِطِ"
+}
+]
+},
+{
+"sentence": "والقوانين",
+"translation": "va qonunlar",
+"translationAr": "وَالْقَوَانِينُ.",
+"wordMap": [
+{
+"word": "وَ",
+"normalized": "و",
+"translationUz": "va",
+"translationAr": "حَرْفُ عَطْفٍ"
+},
+{
+"word": "الْقَوَانِينُ",
+"normalized": "القوانين",
+"translationUz": "qonunlar",
+"translationAr": "التَّشْرِيعَاتُ"
+}
+]
+},
+{
+"sentence": "ولماذا يصنعون القواعد والقوانين من",
+"translation": "Va nega ular qoidalar va qonunlarni ...dan yasaydilar?",
+"translationAr": "وَلِمَاذَا يَصْنَعُونَ الْقَوَاعِدَ وَالْقَوَانِينَ مِنْ ...؟",
+"wordMap": [
+{
+"word": "وَلِمَاذَا",
+"normalized": "ولماذا",
+"translationUz": "va nega",
+"translationAr": "وَلِأَيِّ سَبَبٍ"
+},
+{
+"word": "يَصْنَعُونَ",
+"normalized": "يصنعون",
+"translationUz": "yasaydilar",
+"translationAr": "يَجْعَلُونَ"
+},
+{
+"word": "الْقَوَاعِدَ",
+"normalized": "القواعد",
+"translationUz": "qoidalarni",
+"translationAr": "الضَّوَابِطَ"
+},
+{
+"word": "وَالْقَوَانِينَ",
+"normalized": "والقوانين",
+"translationUz": "va qonunlarni",
+"translationAr": "وَالتَّشْرِيعَاتِ"
+},
+{
+"word": "مِنْ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "حَرْفُ جَرٍّ"
+}
+]
+},
+{
+"sentence": "الزجاج يا جوحه",
+"translation": "shishadan, ey Juha",
+"translationAr": "الزُّجَاجِ يَا جُحَا.",
+"wordMap": [
+{
+"word": "الزُّجَاجِ",
+"normalized": "الزجاج",
+"translationUz": "shishadan",
+"translationAr": "الْبَلُّورِ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "جُحَا",
+"normalized": "جوحه",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+}
+]
+},
+{
+"sentence": "هذا هو المكان الذي سنخيم فيه يا هوما",
+"translation": "Ey Huma, mana shu biz chodir tikadigan joy.",
+"translationAr": "هَذَا هُوَ الْمَكَانُ الَّذِي سَنُخَيِّمُ فِيهِ يَا هُومَا.",
+"wordMap": [
+{
+"word": "هَذَا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "هُوَ",
+"normalized": "هو",
+"translationUz": "aynan o‘zi",
+"translationAr": "ضَمِيرُ فَصْلٍ"
+},
+{
+"word": "الْمَكَانُ",
+"normalized": "المكان",
+"translationUz": "joy",
+"translationAr": "الْمَوْضِعُ"
+},
+{
+"word": "الَّذِي",
+"normalized": "الذي",
+"translationUz": "qaysiki",
+"translationAr": "اِسْمُ مَوْصُولٍ"
+},
+{
+"word": "سَنُخَيِّمُ",
+"normalized": "سنخيم",
+"translationUz": "biz chodir tikamiz",
+"translationAr": "سَنُقِيمُ الْخَيْمَةَ"
+},
+{
+"word": "فِيهِ",
+"normalized": "فيه",
+"translationUz": "unda, o‘sha yerda",
+"translationAr": "دَاخِلَهُ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "هُومَا",
+"normalized": "هوما",
+"translationUz": "Huma",
+"translationAr": "اِسْمُ شَخْصٍ"
+}
+]
+},
+{
+"sentence": "جميل",
+"translation": "Chiroyli.",
+"translationAr": "جَمِيلٌ.",
+"wordMap": [
+{
+"word": "جَمِيلٌ",
+"normalized": "جميل",
+"translationUz": "chiroyli",
+"translationAr": "حَسَنٌ"
+}
+]
+},
+{
+"sentence": "تقصد المكان لا بل اقصد استخدامك لاسم",
+"translation": "Joyni nazarda tutyapsanmi? Yo‘q, aksincha men sening ...ni ishlatganingni nazarda tutyapman.",
+"translationAr": "أَتَقْصِدُ الْمَكَانَ؟ لَا، بَلْ أَقْصِدُ اسْتِخْدَامَكَ لِاسْمِ ...",
+"wordMap": [
+{
+"word": "تَقْصِدُ",
+"normalized": "تقصد",
+"translationUz": "nazarda tutasan",
+"translationAr": "تَعْنِي"
+},
+{
+"word": "الْمَكَانَ",
+"normalized": "المكان",
+"translationUz": "joyni",
+"translationAr": "الْمَوْضِعَ"
+},
+{
+"word": "لَا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "كَلَّا"
+},
+{
+"word": "بَلْ",
+"normalized": "بل",
+"translationUz": "aksincha, balki",
+"translationAr": "لَكِنْ"
+},
+{
+"word": "أَقْصِدُ",
+"normalized": "اقصد",
+"translationUz": "nazarda tutaman",
+"translationAr": "أَعْنِي"
+},
+{
+"word": "اسْتِخْدَامَكَ",
+"normalized": "استخدامك",
+"translationUz": "sening ishlatishingni",
+"translationAr": "اسْتِعْمَالَكَ"
+},
+{
+"word": "لِاسْمِ",
+"normalized": "لاسم",
+"translationUz": "ismning",
+"translationAr": "لِلَّفْظِ"
+}
+]
+},
+{
+"sentence": "الاشاره هذا حين قلت هذا هو المكان ها ما",
+"translation": "ko‘rsatish olmoshini, ya’ni “bu”, sen “mana shu joy” deganingda. Xo‘sh, nima...",
+"translationAr": "الْإِشَارَةِ «هَذَا» حِينَ قُلْتَ: هَذَا هُوَ الْمَكَانُ. هَا، مَا ...",
+"wordMap": [
+{
+"word": "الْإِشَارَةِ",
+"normalized": "الاشاره",
+"translationUz": "ko‘rsatishning",
+"translationAr": "الدَّلَالَةِ"
+},
+{
+"word": "هَذَا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "حِينَ",
+"normalized": "حين",
+"translationUz": "qachonki",
+"translationAr": "عِنْدَمَا"
+},
+{
+"word": "قُلْتَ",
+"normalized": "قلت",
+"translationUz": "sen aytding",
+"translationAr": "نَطَقْتَ"
+},
+{
+"word": "هَذَا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "هُوَ",
+"normalized": "هو",
+"translationUz": "o‘zi",
+"translationAr": "ضَمِيرُ فَصْلٍ"
+},
+{
+"word": "الْمَكَانُ",
+"normalized": "المكان",
+"translationUz": "joy",
+"translationAr": "الْمَوْضِعُ"
+},
+{
+"word": "هَا",
+"normalized": "ها",
+"translationUz": "xo‘sh",
+"translationAr": "أَلَا"
+},
+{
+"word": "مَا",
+"normalized": "ما",
+"translationUz": "nima",
+"translationAr": "أَيُّ"
+}
+]
+},
+{
+"sentence": "رايك في المكان يا هوما؟ انه مكان مخيف يا",
+"translation": "Ey Huma, bu joy haqida fikring qanday? Bu qo‘rqinchli joy ekan, ey...",
+"translationAr": "مَا رَأْيُكَ فِي الْمَكَانِ يَا هُومَا؟ إِنَّهُ مَكَانٌ مُخِيفٌ يَا ...",
+"wordMap": [
+{
+"word": "رَأْيُكَ",
+"normalized": "رايك",
+"translationUz": "fikring",
+"translationAr": "نَظَرُكَ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "haqida",
+"translationAr": "بِخُصُوصِ"
+},
+{
+"word": "الْمَكَانِ",
+"normalized": "المكان",
+"translationUz": "joy haqida",
+"translationAr": "الْمَوْضِعِ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "هُومَا",
+"normalized": "هوما",
+"translationUz": "Huma",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "إِنَّهُ",
+"normalized": "انه",
+"translationUz": "albatta u, bu",
+"translationAr": "هُوَ فِي الْحَقِيقَةِ"
+},
+{
+"word": "مَكَانٌ",
+"normalized": "مكان",
+"translationUz": "joy",
+"translationAr": "مَوْضِعٌ"
+},
+{
+"word": "مُخِيفٌ",
+"normalized": "مخيف",
+"translationUz": "qo‘rqinchli",
+"translationAr": "مُرْعِبٌ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+}
+]
+},
+{
+"sentence": "جحا كان بامكاننا التخييم في صاله المنزل",
+"translation": "Ey Juha, biz uy mehmonxonasida chodir tikishimiz ham mumkin edi.",
+"translationAr": "يَا جُحَا، كَانَ بِإِمْكَانِنَا التَّخْيِيمُ فِي صَالَةِ الْمَنْزِلِ.",
+"wordMap": [
+{
+"word": "جُحَا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "كَانَ",
+"normalized": "كان",
+"translationUz": "edi",
+"translationAr": "وَقَعَ"
+},
+{
+"word": "بِإِمْكَانِنَا",
+"normalized": "بامكاننا",
+"translationUz": "imkonimiz bor edi",
+"translationAr": "فِي وُسْعِنَا"
+},
+{
+"word": "التَّخْيِيمُ",
+"normalized": "التخييم",
+"translationUz": "chodir tikish",
+"translationAr": "الْإِقَامَةُ فِي الْخَيْمَةِ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "دَاخِلَ"
+},
+{
+"word": "صَالَةِ",
+"normalized": "صاله",
+"translationUz": "zalda, mehmonxonada",
+"translationAr": "غُرْفَةِ الْجُلُوسِ"
+},
+{
+"word": "الْمَنْزِلِ",
+"normalized": "المنزل",
+"translationUz": "uyning",
+"translationAr": "الْبَيْتِ"
+}
+]
+},
+{
+"sentence": "امام التلفازم",
+"translation": "televizor oldida",
+"translationAr": "أَمَامَ التِّلْفَازِ.",
+"wordMap": [
+{
+"word": "أَمَامَ",
+"normalized": "امام",
+"translationUz": "oldida",
+"translationAr": "قُدَّامَ"
+},
+{
+"word": "التِّلْفَازِ",
+"normalized": "التلفازم",
+"translationUz": "televizor",
+"translationAr": "الشَّاشَةِ"
+}
+]
+},
+{
+"sentence": "يا",
+"translation": "Ey!",
+"translationAr": "يَا.",
+"wordMap": [
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+}
+]
+},
+{
+"sentence": "سلام يا سلام ما اجمل الاسترخاء يا هوما",
+"translation": "Voy, voy! Ey Huma, dam olish naqadar go‘zal!",
+"translationAr": "سَلَامٌ يَا سَلَامُ! مَا أَجْمَلَ الِاسْتِرْخَاءَ يَا هُومَا.",
+"wordMap": [
+{
+"word": "سَلَامٌ",
+"normalized": "سلام",
+"translationUz": "voh, ajoyib",
+"translationAr": "تَعَجُّبٌ وَإِعْجَابٌ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "سَلَامُ",
+"normalized": "سلام",
+"translationUz": "voy, naqadar yaxshi",
+"translationAr": "تَعَجُّبٌ"
+},
+{
+"word": "مَا",
+"normalized": "ما",
+"translationUz": "naqadar",
+"translationAr": "لِلتَّعَجُّبِ"
+},
+{
+"word": "أَجْمَلَ",
+"normalized": "اجمل",
+"translationUz": "qanday go‘zal",
+"translationAr": "أَحْسَنَ"
+},
+{
+"word": "الِاسْتِرْخَاءَ",
+"normalized": "الاسترخاء",
+"translationUz": "dam olishni",
+"translationAr": "الرَّاحَةَ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "هُومَا",
+"normalized": "هوما",
+"translationUz": "Huma",
+"translationAr": "اِسْمُ شَخْصٍ"
+}
+]
+},
+{
+"sentence": "انظري يا جحاان النجمتان تلمعان",
+"translation": "Qara, ey Juha, ikki yulduz yarqiramoqda.",
+"translationAr": "اُنْظُرِي يَا جُحَا، إِنَّ النَّجْمَتَانِ تَلْمَعَانِ.",
+"wordMap": [
+{
+"word": "اُنْظُرِي",
+"normalized": "انظري",
+"translationUz": "qaragin",
+"translationAr": "تَأَمَّلِي"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "جُحَا",
+"normalized": "جحاان",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "إِنَّ",
+"normalized": "ان",
+"translationUz": "albatta",
+"translationAr": "حَرْفُ تَوْكِيدٍ"
+},
+{
+"word": "النَّجْمَتَانِ",
+"normalized": "النجمتان",
+"translationUz": "ikki yulduz",
+"translationAr": "كَوْكَبَانِ"
+},
+{
+"word": "تَلْمَعَانِ",
+"normalized": "تلمعان",
+"translationUz": "yarqiramoqda",
+"translationAr": "تُضِيئَانِ"
+}
+]
+},
+{
+"sentence": "بشده هذه خدعه منك يا هو انت تحاول مراجعه",
+"translation": "Qattiq yarqiramoqda. Bu sening hiylang, ey Huma, sen takrorlashga urinayapsan.",
+"translationAr": "بِشِدَّةٍ. هَذِهِ خُدْعَةٌ مِنْكَ يَا هُومَا، أَنْتَ تُحَاوِلُ مُرَاجَعَةَ ...",
+"wordMap": [
+{
+"word": "بِشِدَّةٍ",
+"normalized": "بشده",
+"translationUz": "qattiq, kuchli ravishda",
+"translationAr": "بِقُوَّةٍ"
+},
+{
+"word": "هَذِهِ",
+"normalized": "هذه",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "خُدْعَةٌ",
+"normalized": "خدعه",
+"translationUz": "hiyla",
+"translationAr": "حِيلَةٌ"
+},
+{
+"word": "مِنْكَ",
+"normalized": "منك",
+"translationUz": "sening tomonidan",
+"translationAr": "صَادِرَةٌ عَنْكَ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "هُو",
+"normalized": "هو",
+"translationUz": "u, bu yerda ismning qisqa shakli",
+"translationAr": "اِسْمٌ مُخْتَصَرٌ"
+},
+{
+"word": "أَنْتَ",
+"normalized": "انت",
+"translationUz": "sen",
+"translationAr": "ضَمِيرُ الْمُخَاطَبِ"
+},
+{
+"word": "تُحَاوِلُ",
+"normalized": "تحاول",
+"translationUz": "urinayapsan",
+"translationAr": "تُرِيدُ"
+},
+{
+"word": "مُرَاجَعَةَ",
+"normalized": "مراجعه",
+"translationUz": "takrorlashni",
+"translationAr": "إِعَادَةَ الدَّرْسِ"
+}
+]
+},
+{
+"sentence": "درس اسماء الاشاره",
+"translation": "ko‘rsatish olmoshlari darsini",
+"translationAr": "دَرْسَ أَسْمَاءِ الْإِشَارَةِ.",
+"wordMap": [
+{
+"word": "دَرْسَ",
+"normalized": "درس",
+"translationUz": "darsni",
+"translationAr": "مَوْضُوعَ التَّعَلُّمِ"
+},
+{
+"word": "أَسْمَاءَ",
+"normalized": "اسماء",
+"translationUz": "ismlarini",
+"translationAr": "أَلْفَاظَ"
+},
+{
+"word": "الْإِشَارَةِ",
+"normalized": "الاشاره",
+"translationUz": "ko‘rsatishning",
+"translationAr": "الدَّلَالَةِ"
+}
+]
+},
+{
+"sentence": "هذا ذكاء منك يا جحا لقد كشفت خطتي",
+"translation": "Bu sendan zakovat, ey Juha. Sen mening rejamni fosh qilding.",
+"translationAr": "هَذَا ذَكَاءٌ مِنْكَ يَا جُحَا، لَقَدْ كَشَفْتَ خُطَّتِي.",
+"wordMap": [
+{
+"word": "هَذَا",
+"normalized": "هذا",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "ذَكَاءٌ",
+"normalized": "ذكاء",
+"translationUz": "zakovat",
+"translationAr": "فِطْنَةٌ"
+},
+{
+"word": "مِنْكَ",
+"normalized": "منك",
+"translationUz": "sening tomonidan",
+"translationAr": "صَادِرٌ عَنْكَ"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "جُحَا",
+"normalized": "جحا",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "لَقَدْ",
+"normalized": "لقد",
+"translationUz": "darhaqiqat",
+"translationAr": "حَقًّا"
+},
+{
+"word": "كَشَفْتَ",
+"normalized": "كشفت",
+"translationUz": "fosh qilding",
+"translationAr": "أَظْهَرْتَ"
+},
+{
+"word": "خُطَّتِي",
+"normalized": "خطتي",
+"translationUz": "rejamni",
+"translationAr": "تَدْبِيرِي"
+}
+]
+},
+{
+"sentence": "بسهوله بالتاكيد فذكاء جحا يضرب به المثل",
+"translation": "Osonlik bilan, albatta. Chunki Juhaning zakovati misol qilib keltiriladi.",
+"translationAr": "بِسُهُولَةٍ، بِالتَّأْكِيدِ، فَذَكَاءُ جُحَا يُضْرَبُ بِهِ الْمَثَلُ.",
+"wordMap": [
+{
+"word": "بِسُهُولَةٍ",
+"normalized": "بسهوله",
+"translationUz": "osonlik bilan",
+"translationAr": "بِيُسْرٍ"
+},
+{
+"word": "بِالتَّأْكِيدِ",
+"normalized": "بالتاكيد",
+"translationUz": "albatta",
+"translationAr": "حَقًّا"
+},
+{
+"word": "فَ",
+"normalized": "ف",
+"translationUz": "chunki, demak",
+"translationAr": "حَرْفُ تَعْلِيلٍ"
+},
+{
+"word": "ذَكَاءُ",
+"normalized": "ذكاء",
+"translationUz": "zakovati",
+"translationAr": "فِطْنَةُ"
+},
+{
+"word": "جُحَا",
+"normalized": "جحا",
+"translationUz": "Juhaning",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "يُضْرَبُ",
+"normalized": "يضرب",
+"translationUz": "keltiriladi",
+"translationAr": "يُجْعَلُ"
+},
+{
+"word": "بِهِ",
+"normalized": "به",
+"translationUz": "u bilan",
+"translationAr": "بِوَاسِطَتِهِ"
+},
+{
+"word": "الْمَثَلُ",
+"normalized": "المثل",
+"translationUz": "masal, misol",
+"translationAr": "النَّمُوذَجُ"
+}
+]
+},
+{
+"sentence": "هؤلاء النجوم بعيده جدا يا جوحا اليس كذلك",
+"translation": "Ey Juha, bu yulduzlar juda uzoq, shunday emasmi?",
+"translationAr": "هَؤُلَاءِ النُّجُومُ بَعِيدَةٌ جِدًّا يَا جُحَا، أَلَيْسَ كَذَلِكَ؟",
+"wordMap": [
+{
+"word": "هَؤُلَاءِ",
+"normalized": "هؤلاء",
+"translationUz": "bular",
+"translationAr": "اِسْمُ إِشَارَةٍ لِلْجَمْعِ"
+},
+{
+"word": "النُّجُومُ",
+"normalized": "النجوم",
+"translationUz": "yulduzlar",
+"translationAr": "الْكَوَاكِبُ"
+},
+{
+"word": "بَعِيدَةٌ",
+"normalized": "بعيده",
+"translationUz": "uzoq",
+"translationAr": "نَائِيَةٌ"
+},
+{
+"word": "جِدًّا",
+"normalized": "جدا",
+"translationUz": "juda",
+"translationAr": "كَثِيرًا"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+},
+{
+"word": "جُوحَا",
+"normalized": "جوحا",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "أَلَيْسَ",
+"normalized": "اليس",
+"translationUz": "emasmi",
+"translationAr": "هَلْ لَيْسَ"
+},
+{
+"word": "كَذَلِكَ",
+"normalized": "كذلك",
+"translationUz": "shunday",
+"translationAr": "عَلَى هَذَا النَّحْوِ"
+}
+]
+},
+{
+"sentence": "انها بعيده فعلا يا",
+"translation": "Haqiqatan ham u uzoq, ey...",
+"translationAr": "إِنَّهَا بَعِيدَةٌ فِعْلًا يَا ...",
+"wordMap": [
+{
+"word": "إِنَّهَا",
+"normalized": "انها",
+"translationUz": "albatta u",
+"translationAr": "هِيَ فِي الْحَقِيقَةِ"
+},
+{
+"word": "بَعِيدَةٌ",
+"normalized": "بعيده",
+"translationUz": "uzoq",
+"translationAr": "نَائِيَةٌ"
+},
+{
+"word": "فِعْلًا",
+"normalized": "فعلا",
+"translationUz": "haqiqatan",
+"translationAr": "حَقًّا"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+}
+]
+},
+{
+"sentence": "هوك اخطات في اسماء الاشاره كيف لقد",
+"translation": "Sen ism al-ishorada xato qilding. Qanday? Darhaqiqat...",
+"translationAr": "هُوكَ، أَخْطَأْتَ فِي أَسْمَاءِ الْإِشَارَةِ. كَيْفَ؟ لَقَدْ ...",
+"wordMap": [
+{
+"word": "هُوكَ",
+"normalized": "هوك",
+"translationUz": "ism yoki murojaat shakli",
+"translationAr": "اِسْمٌ أَوْ نِدَاءٌ"
+},
+{
+"word": "أَخْطَأْتَ",
+"normalized": "اخطات",
+"translationUz": "xato qilding",
+"translationAr": "غَلِطْتَ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "da",
+"translationAr": "فِي"
+},
+{
+"word": "أَسْمَاءِ",
+"normalized": "اسماء",
+"translationUz": "ismlarda",
+"translationAr": "أَلْفَاظِ"
+},
+{
+"word": "الْإِشَارَةِ",
+"normalized": "الاشاره",
+"translationUz": "ko‘rsatishning",
+"translationAr": "الدَّلَالَةِ"
+},
+{
+"word": "كَيْفَ",
+"normalized": "كيف",
+"translationUz": "qanday",
+"translationAr": "بِأَيِّ وَجْهٍ"
+},
+{
+"word": "لَقَدْ",
+"normalized": "لقد",
+"translationUz": "darhaqiqat",
+"translationAr": "حَقًّا"
+}
+]
+},
+{
+"sentence": "استخدمت اسم الاشاره هؤلاء وهو يشير الى",
+"translation": "Sen “هَؤُلَاءِ” ko‘rsatish olmoshini ishlatding, u esa ...ga ishora qiladi.",
+"translationAr": "اِسْتَخْدَمْتَ اسْمَ الْإِشَارَةِ «هَؤُلَاءِ»، وَهُوَ يُشِيرُ إِلَى ...",
+"wordMap": [
+{
+"word": "اِسْتَخْدَمْتَ",
+"normalized": "استخدمت",
+"translationUz": "ishlatding",
+"translationAr": "اسْتَعْمَلْتَ"
+},
+{
+"word": "اسْمَ",
+"normalized": "اسم",
+"translationUz": "ismni",
+"translationAr": "لَفْظَ"
+},
+{
+"word": "الْإِشَارَةِ",
+"normalized": "الاشاره",
+"translationUz": "ko‘rsatishning",
+"translationAr": "الدَّلَالَةِ"
+},
+{
+"word": "هَؤُلَاءِ",
+"normalized": "هؤلاء",
+"translationUz": "bular",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "وَهُوَ",
+"normalized": "وهو",
+"translationUz": "u esa",
+"translationAr": "وَهُوَ فِي الْحُكْمِ"
+},
+{
+"word": "يُشِيرُ",
+"normalized": "يشير",
+"translationUz": "ishora qiladi",
+"translationAr": "يَدُلُّ"
+},
+{
+"word": "إِلَى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "نَحْوَ"
+}
+]
+},
+{
+"sentence": "الجمع والنجوم جمع كان يجب ان تقول هذه",
+"translation": "ko‘plikka, yulduzlar ham ko‘plik. Sen “bu” deb aytishing kerak edi.",
+"translationAr": "الْجَمْعِ، وَالنُّجُومُ جَمْعٌ، وَكَانَ يَجِبُ أَنْ تَقُولَ: هَذِهِ.",
+"wordMap": [
+{
+"word": "الْجَمْعِ",
+"normalized": "الجمع",
+"translationUz": "ko‘plikka",
+"translationAr": "الْكَثِيرِ"
+},
+{
+"word": "وَالنُّجُومُ",
+"normalized": "والنجوم",
+"translationUz": "va yulduzlar",
+"translationAr": "وَالْكَوَاكِبُ"
+},
+{
+"word": "جَمْعٌ",
+"normalized": "جمع",
+"translationUz": "ko‘plik",
+"translationAr": "كَثِيرٌ"
+},
+{
+"word": "كَانَ",
+"normalized": "كان",
+"translationUz": "edi",
+"translationAr": "وَقَعَ"
+},
+{
+"word": "يَجِبُ",
+"normalized": "يجب",
+"translationUz": "kerak edi",
+"translationAr": "يَلْزَمُ"
+},
+{
+"word": "أَنْ",
+"normalized": "ان",
+"translationUz": "...ish",
+"translationAr": "حَرْفُ مَصْدَرٍ"
+},
+{
+"word": "تَقُولَ",
+"normalized": "تقول",
+"translationUz": "aytishing",
+"translationAr": "تَنْطِقَ"
+},
+{
+"word": "هَذِهِ",
+"normalized": "هذه",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+}
+]
+},
+{
+"sentence": "النجوم بدلا من هؤلاء",
+"translation": "“yulduzlar”, “هَؤُلَاءِ” o‘rniga.",
+"translationAr": "النُّجُومُ بَدَلًا مِنْ «هَؤُلَاءِ».",
+"wordMap": [
+{
+"word": "النُّجُومُ",
+"normalized": "النجوم",
+"translationUz": "yulduzlar",
+"translationAr": "الْكَوَاكِبُ"
+},
+{
+"word": "بَدَلًا",
+"normalized": "بدلا",
+"translationUz": "o‘rniga",
+"translationAr": "عِوَضًا"
+},
+{
+"word": "مِنْ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "حَرْفُ جَرٍّ"
+},
+{
+"word": "هَؤُلَاءِ",
+"normalized": "هؤلاء",
+"translationUz": "bular",
+"translationAr": "اِسْمُ إِشَارَةٍ لِلْجَمْعِ"
+}
+]
+},
+{
+"sentence": "النجوم لان هذه تشير الى الجمع غير العاقل",
+"translation": "“yulduzlar”, chunki “هَذِهِ” aqlli bo‘lmagan ko‘plikka ishora qiladi.",
+"translationAr": "النُّجُومُ، لِأَنَّ «هَذِهِ» تُشِيرُ إِلَى الْجَمْعِ غَيْرِ الْعَاقِلِ.",
+"wordMap": [
+{
+"word": "النُّجُومُ",
+"normalized": "النجوم",
+"translationUz": "yulduzlar",
+"translationAr": "الْكَوَاكِبُ"
+},
+{
+"word": "لِأَنَّ",
+"normalized": "لان",
+"translationUz": "chunki",
+"translationAr": "بِسَبَبِ أَنَّ"
+},
+{
+"word": "هَذِهِ",
+"normalized": "هذه",
+"translationUz": "bu",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "تُشِيرُ",
+"normalized": "تشير",
+"translationUz": "ishora qiladi",
+"translationAr": "تَدُلُّ"
+},
+{
+"word": "إِلَى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "نَحْوَ"
+},
+{
+"word": "الْجَمْعِ",
+"normalized": "الجمع",
+"translationUz": "ko‘plikka",
+"translationAr": "الْكَثِيرِ"
+},
+{
+"word": "غَيْرِ",
+"normalized": "غير",
+"translationUz": "bo‘lmagan",
+"translationAr": "دُونَ"
+},
+{
+"word": "الْعَاقِلِ",
+"normalized": "العاقل",
+"translationUz": "aqlli",
+"translationAr": "صَاحِبِ الْعَقْلِ"
+}
+]
+},
+{
+"sentence": "اما هؤلاء تستخدم مع الجمع العاقل حسنا يا",
+"translation": "Ammo “هَؤُلَاءِ” jam‘ oqil bilan ishlatiladi. Xo‘p, ey...",
+"translationAr": "أَمَّا «هَؤُلَاءِ» فَتُسْتَعْمَلُ مَعَ الْجَمْعِ الْعَاقِلِ. حَسَنًا يَا ...",
+"wordMap": [
+{
+"word": "أَمَّا",
+"normalized": "اما",
+"translationUz": "ammo",
+"translationAr": "وَأَمَّا"
+},
+{
+"word": "هَؤُلَاءِ",
+"normalized": "هؤلاء",
+"translationUz": "bular",
+"translationAr": "اِسْمُ إِشَارَةٍ"
+},
+{
+"word": "تُسْتَعْمَلُ",
+"normalized": "تستخدم",
+"translationUz": "ishlatiladi",
+"translationAr": "تُسْتَخْدَمُ"
+},
+{
+"word": "مَعَ",
+"normalized": "مع",
+"translationUz": "bilan",
+"translationAr": "بِصُحْبَةِ"
+},
+{
+"word": "الْجَمْعِ",
+"normalized": "الجمع",
+"translationUz": "ko‘plik",
+"translationAr": "الْكَثِيرِ"
+},
+{
+"word": "الْعَاقِلِ",
+"normalized": "العاقل",
+"translationUz": "aqlli",
+"translationAr": "صَاحِبِ الْعَقْلِ"
+},
+{
+"word": "حَسَنًا",
+"normalized": "حسنا",
+"translationUz": "xo‘p",
+"translationAr": "جَيِّدًا"
+},
+{
+"word": "يَا",
+"normalized": "يا",
+"translationUz": "ey",
+"translationAr": "أَدَاةُ نِدَاءٍ"
+}
+]
+},
+{
+"sentence": "جوحا لن اشير بهؤلاء الى النجوم بعد الان",
+"translation": "Ey Juha, bundan keyin yulduzlarga nisbatan “هَؤُلَاءِ” bilan ishora qilmayman.",
+"translationAr": "جُحَا، لَنْ أُشِيرَ بِـ«هَؤُلَاءِ» إِلَى النُّجُومِ بَعْدَ الْآنِ.",
+"wordMap": [
+{
+"word": "جُوحَا",
+"normalized": "جوحا",
+"translationUz": "Juha",
+"translationAr": "اِسْمُ شَخْصٍ"
+},
+{
+"word": "لَنْ",
+"normalized": "لن",
+"translationUz": "hech qachon ...mayman",
+"translationAr": "حَرْفُ نَفْيٍ لِلْمُسْتَقْبَلِ"
+},
+{
+"word": "أُشِيرَ",
+"normalized": "اشير",
+"translationUz": "ishora qilaman",
+"translationAr": "أَدُلَّ"
+},
+{
+"word": "بِهَؤُلَاءِ",
+"normalized": "بهؤلاء",
+"translationUz": "“bular” bilan",
+"translationAr": "بِاسْمِ الْإِشَارَةِ هَذَا"
+},
+{
+"word": "إِلَى",
+"normalized": "الى",
+"translationUz": "ga",
+"translationAr": "نَحْوَ"
+},
+{
+"word": "النُّجُومِ",
+"normalized": "النجوم",
+"translationUz": "yulduzlarga",
+"translationAr": "الْكَوَاكِبِ"
+},
+{
+"word": "بَعْدَ",
+"normalized": "بعد",
+"translationUz": "keyin",
+"translationAr": "خَلْفَ"
+},
+{
+"word": "الْآنِ",
+"normalized": "الان",
+"translationUz": "hozirdan boshlab",
+"translationAr": "هَذَا الْوَقْتِ"
+}
+]
+}
+]
+}

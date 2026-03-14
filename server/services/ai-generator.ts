@@ -320,17 +320,29 @@ ${trimmedTranscript}`;
     type: (["vocabulary", "phrase", "grammar"].includes(f.type) ? f.type : "vocabulary") as "vocabulary" | "phrase" | "grammar",
   }));
 
-  const sentenceAnalysisJson: SentenceAnalysis[] = (parsed.sentenceAnalysis || []).map((s: any) => ({
-    sentence: s.sentence || "",
-    translation: s.translation || "",
-    translationAr: s.translationAr || "",
-    wordMap: Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
+  const hasDiacritics = (t: string) => /[\u064B-\u065F\u0670]/.test(t);
+
+  const sentenceAnalysisJson: SentenceAnalysis[] = (parsed.sentenceAnalysis || []).map((s: any) => {
+    const rawSentence = s.sentence || "";
+    const wordMapArr = Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
       word: w.word || "",
       normalized: w.normalized || (w.word || "").toLowerCase(),
       translationUz: w.translationUz || "",
       translationAr: w.translationAr || "",
-    })) : [],
-  }));
+    })) : [];
+
+    let sentence = rawSentence;
+    if (!hasDiacritics(rawSentence) && wordMapArr.length > 0 && wordMapArr.some(w => hasDiacritics(w.word))) {
+      sentence = wordMapArr.map(w => w.word).join(" ");
+    }
+
+    return {
+      sentence,
+      translation: s.translation || "",
+      translationAr: s.translationAr || "",
+      wordMap: wordMapArr,
+    };
+  });
 
   return {
     summaryShort: parsed.summaryShort || "",

@@ -115,36 +115,39 @@ async function generateWithOpenAI(
   const trimmedTranscript = transcript.slice(0, 8000);
   const lang = detectLanguage(trimmedTranscript);
 
-  const langInstructions = lang === "arabic"
-    ? `## TIL: ARAB TILIDA TRANSKRIPT
+  const systemPrompt = `# ROL
+Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
 
-### HARAKAT (التَّشْكِيل) QOIDALARI — BUNGA QAT'IY RIOYA QILING:
+Sen quyidagi manbalarga tayanasan:
+- كِتَابُ سِيبَوَيْهِ (Sibavayh kitobi — nahv asosi)
+- النَّحْوُ الْوَافِي لِعَبَّاسِ حَسَنٍ (Abbas Hasan — to'liq nahv)
+- أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
+- شَرْحُ ابْنِ عَقِيلٍ (Ibn Aqil sharhi)
+
+## HARAKAT (التَّشْكِيل) QOIDALARI — QAT'IY RIOYA QILING:
 Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART:
 - Har bir harf ustiga/ostiga tegishli harakat qo'yilsin: فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
 - TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ | NOTO'G'RI: ذهب الولد الى المدرسة
 - TO'G'RI: كِتَابٌ جَمِيلٌ | NOTO'G'RI: كتاب جميل
-- Alif-lam (ال) oldidan ham harakat qo'yilsin: الْكِتَابُ, الْعِلْمُ
+- Alif-lam (ال) oldidan ham harakat: الْكِتَابُ, الْعِلْمُ
 - Tanvin: indefinite ism oxirida ٌ ٍ ً qo'yilsin (كِتَابٌ, كِتَابًا, كِتَابٍ)
-- Shadda: tashdidli harflarda ّ belgisi SHART (مُعَلِّمٌ, شَدَّةٌ)
-- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word"
+- Shadda: tashdidli harflarda ّ SHART (مُعَلِّمٌ, شَدَّةٌ)
+- Harakatsiz arabcha so'z QABUL QILINMAYDI
+- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr"
 
-### TARJIMA QOIDALARI:
+## TARJIMA QOIDALARI:
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
 - "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi (HARAKAT BILAN)
-- "explanation": O'ZBEK tilida`
-    : `## TIL: INGLIZ TILIDA TRANSKRIPT
+- "explanation": O'ZBEK tilida
+${lang === "english" ? `
+## TIL: INGLIZ TILIDA TRANSKRIPT
 - "word" maydoni: inglizcha so'z
 - "translation" maydoni: O'ZBEK tilida tarjima
-- "translationAr" maydoni: ARAB tilida tarjima (harakatsiz ham bo'lishi mumkin)
-- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin`;
-
-  const systemPrompt = `# ROL
-Sen arab tili bo'yicha tajribali o'qituvchisan. Sening vazifang YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun dars materiallari yaratish.
-
-${langInstructions}
+- "translationAr" maydoni: ARAB tilida tarjima (HARAKAT bilan)
+- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin` : ""}
 
 # JAVOB FORMATI
-Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yozma — faqat sof JSON.
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
 
 # JSON STRUKTURASI
 {
@@ -158,7 +161,7 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
       "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
       "translationAr": "${lang === "arabic" ? "عَرَبِيّ: تَفْسِيرٌ أَوْ مُرَادِفٌ بِالتَّشْكِيلِ" : "الترجمة العربية"}",
       "partOfSpeech": "${lang === "arabic" ? "اِسْمٌ/فِعْلٌ/حَرْفٌ/صِفَةٌ/ظَرْفٌ" : "noun/verb/adjective/adverb"}",
-      "example": "transkriptdan misol gap (arabcha bo'lsa HARAKAT bilan)",
+      "example": "transkriptdan misol gap (${lang === "arabic" ? "HARAKAT bilan" : "asl tilida"})",
       "difficulty": "${difficulty}"
     }
   ],
@@ -190,20 +193,20 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
       "front": "${lang === "arabic" ? "كَلِمَةٌ أَوْ عِبَارَةٌ بِالتَّشْكِيلِ" : "inglizcha so'z yoki ibora"}",
       "back": "O'ZBEKCHA tarjima va tushuntirish",
       "backAr": "التَّرْجَمَةُ وَالشَّرْحُ بِالْعَرَبِيَّةِ مَعَ التَّشْكِيلِ",
-      "type": "vocabulary | phrase | grammar"
+      "type": "vocabulary | grammar"
     }
   ],
   "sentenceAnalysis": [
     {
       "sentence": "${lang === "arabic" ? "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ" : "inglizcha gap"}",
       "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
-      "translationAr": "${lang === "arabic" ? "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ" : "الترجمة العربية"}",
+      "translationAr": "${lang === "arabic" ? "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ" : "الترجمة العربية مع التشكيل"}",
       "wordMap": [
         {
           "word": "${lang === "arabic" ? "كَلِمَةٌ بِالتَّشْكِيلِ" : "original word"}",
           "normalized": "harakat olib tashlangan shakl (masalan: كتب)",
           "translationUz": "O'ZBEKCHA tarjima",
-          "translationAr": "${lang === "arabic" ? "تَفْسِيرٌ بِالتَّشْكِيلِ" : "الترجمة العربية"}"
+          "translationAr": "${lang === "arabic" ? "تَفْسِيرٌ أَوْ مُرَادِفٌ بِالتَّشْكِيلِ" : "الترجمة العربية"}"
         }
       ]
     }
@@ -212,31 +215,34 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh yoki markdown yoz
 
 # QOIDALAR
 
-## 1. HARAKAT MAJBURIY QOIDASI (${lang === "arabic" ? "ENG MUHIM" : "arabcha qismlar uchun"})
-- Arabcha yoziladigan BARCHA maydondagi BARCHA so'zlarda TO'LIQ harakat (تَشْكِيل كَامِل) bo'lishi SHART
+## 1. HARAKAT — ENG MUHIM QOIDA
+- BARCHA arabcha so'zlarda TO'LIQ harakat (تَشْكِيل كَامِل) bo'lishi SHART
 - Har bir harfda tegishli harakat: فَتْحَة, كَسْرَة, ضَمَّة, سُكُون, شَدَّة, تَنْوِين
+- I'rob alamatlari to'g'ri qo'yilsin
 - Harakatsiz arabcha so'z QABUL QILINMAYDI — bu qat'iy talab
 
 ## 2. TARJIMA TILI
-- BARCHA "translation", "explanation" maydonlari O'ZBEK tilida bo'lsin
-- Arabcha maydonlarda arab tili ishlatilsin (HARAKAT bilan)
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- Arabcha maydonlar ("translationAr", "backAr", "summaryShortAr", "summaryDetailedAr") — arab tilida HARAKAT bilan
 
-## 3. SON CHEGARALARI
-- vocabulary: 8-15 ta so'z (transkriptdan eng muhim kalit so'zlar)
-- quizzes: 10-12 ta savol, MAJBURIY taqsimot:
-  * multiple_choice: 4-5 ta — O'zbek tilida savol, 4 variant
-  * sentence_completion: 3-4 ta — arabcha gap O'RTASIDA _____ bo'shliq (BOSHIDA yoki OXIRIDA EMAS!), 4 arabcha variant HARAKAT BILAN
-  * word_translation: 3-4 ta — arabcha so'z HARAKAT BILAN, 4 o'zbekcha variant
-- flashcards: 8-12 ta karta (vocabulary aralash)
-- sentenceAnalysis: BARCHA gaplarni tahlil qil — BIRONTASINI HAM TASHLAB KETMA
+## 3. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+- sentence_completion: 3-4 ta (arabcha gap O'RTASIDA _____ bo'shliq, BOSHIDA yoki OXIRIDA EMAS!, 4 arabcha variant HARAKAT BILAN)
+- word_translation: 3-4 ta (arabcha so'z HARAKAT BILAN, 4 o'zbekcha variant)
 
-## 4. SENTENCEANALYSIS QOIDALARI
-- Transkriptdagi har bir gap uchun: tarjima va wordMap bo'lishi SHART
-- wordMap: gapdagi HAR BIR so'zning tarjimasi — birontasini tashlab ketma
-- Har bir so'z uchun faqat: word (asl shakl), normalized (harakat olib tashlangan), translationUz (o'zbekcha), translationAr (arabcha sinonim)
+## 4. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA gaplar — BIRONTASINI HAM TASHLAB KETMA!
 
-## 5. TEXNIK QOIDALAR
-- correctIndex: 0 dan boshlanadi (0-3 orasida)
+## 5. SENTENCEANALYSIS
+- Transkriptdagi har bir gap: tarjima + wordMap SHART
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- Har bir so'z uchun faqat 4 ta maydon: word (asl shakl HARAKAT bilan), normalized (harakat olib tashlangan), translationUz (o'zbekcha), translationAr (arabcha sinonim HARAKAT bilan)
+
+## 6. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
 - Daraja: ${levelLabel}
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
 

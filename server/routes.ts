@@ -506,6 +506,13 @@ export async function registerRoutes(
     const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
     const lessonTitle = title || `YouTube dars — ${videoId}`;
 
+    if (categoryId) {
+      const cat = await storage.getCategoryById(categoryId);
+      if (!cat) {
+        return res.status(400).json({ message: "Tanlangan kategoriya topilmadi" });
+      }
+    }
+
     try {
       const result = await storage.createLessonWithCoinDeduction(
         userId,
@@ -532,6 +539,9 @@ export async function registerRoutes(
     } catch (err: any) {
       if (err.message === "INSUFFICIENT_BALANCE") {
         return res.status(400).json({ message: `Bu amal uchun coin yetarli emas. Dars narxi: ${LESSON_COST} coin` });
+      }
+      if (err.code === "23503") {
+        return res.status(400).json({ message: "Noto'g'ri kategoriya yoki teg. Qaytadan tanlang." });
       }
       throw err;
     }

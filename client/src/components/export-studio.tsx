@@ -218,6 +218,76 @@ export function ExportStudio({ open, onOpenChange, lessonData, onExport, isExpor
               </div>
             </div>
 
+            {hasQuizSection && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold block">Test sozlamalari</Label>
+
+                  <div className="flex items-center gap-6 flex-wrap">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Javoblar</Label>
+                      <RadioGroup
+                        value={quizWithAnswers ? "with" : "without"}
+                        onValueChange={(v) => setQuizWithAnswers(v === "with")}
+                        className="flex items-center gap-4"
+                        data-testid="radio-quiz-answers"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="with" id="quiz-with-answers" />
+                          <Label htmlFor="quiz-with-answers" className="cursor-pointer text-sm">Javobi bilan</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="without" id="quiz-without-answers" />
+                          <Label htmlFor="quiz-without-answers" className="cursor-pointer text-sm">Javobisiz</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Savollar</Label>
+                      <RadioGroup
+                        value={quizMode}
+                        onValueChange={(v) => setQuizMode(v as QuizMode)}
+                        className="flex items-center gap-4"
+                        data-testid="radio-quiz-mode"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="all" id="quiz-all" />
+                          <Label htmlFor="quiz-all" className="cursor-pointer text-sm">Barchasi</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="random" id="quiz-random" />
+                          <Label htmlFor="quiz-random" className="cursor-pointer text-sm">Tasodifiy</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </div>
+
+                  {quizMode === "random" && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Savollar soni</Label>
+                      <Select
+                        value={String(quizCount)}
+                        onValueChange={(v) => setQuizCount(Number(v) as QuizCount)}
+                      >
+                        <SelectTrigger className="w-32" data-testid="select-quiz-count">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {QUIZ_COUNTS.map((c) => (
+                            <SelectItem key={c} value={String(c)}>
+                              {c} ta
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
             <Separator />
 
             <div>
@@ -246,74 +316,6 @@ export function ExportStudio({ open, onOpenChange, lessonData, onExport, isExpor
                 })}
               </div>
             </div>
-
-            {hasQuizSection && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold block">Test sozlamalari</Label>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Savollar</Label>
-                    <RadioGroup
-                      value={quizMode}
-                      onValueChange={(v) => setQuizMode(v as QuizMode)}
-                      className="flex items-center gap-4 flex-wrap"
-                      data-testid="radio-quiz-mode"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="all" id="quiz-all" />
-                        <Label htmlFor="quiz-all" className="cursor-pointer text-sm">Barchasi</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="random" id="quiz-random" />
-                        <Label htmlFor="quiz-random" className="cursor-pointer text-sm">Tasodifiy</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {quizMode === "random" && (
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Savollar soni</Label>
-                      <Select
-                        value={String(quizCount)}
-                        onValueChange={(v) => setQuizCount(Number(v) as QuizCount)}
-                      >
-                        <SelectTrigger className="w-32" data-testid="select-quiz-count">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {QUIZ_COUNTS.map((c) => (
-                            <SelectItem key={c} value={String(c)}>
-                              {c} ta
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Javoblar</Label>
-                    <RadioGroup
-                      value={quizWithAnswers ? "with" : "without"}
-                      onValueChange={(v) => setQuizWithAnswers(v === "with")}
-                      className="flex items-center gap-4 flex-wrap"
-                      data-testid="radio-quiz-answers"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="with" id="quiz-with-answers" />
-                        <Label htmlFor="quiz-with-answers" className="cursor-pointer text-sm">Javobi bilan</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="without" id="quiz-without-answers" />
-                        <Label htmlFor="quiz-without-answers" className="cursor-pointer text-sm">Javobisiz</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-              </>
-            )}
 
             {sections.length > 0 && (
               <>

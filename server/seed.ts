@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { users, categories, tags, lessons, lessonTags, lessonProgress, flashcards, notes, bookmarks, coinTransactions, systemSettings } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { log } from "./index";
+import { log } from "./logger";
 import { hashPassword } from "./auth";
 
 export async function seedDatabase() {

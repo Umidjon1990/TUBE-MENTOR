@@ -4,10 +4,15 @@ import memorystore from "memorystore";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { log } from "./logger";
 
 const app = express();
 const httpServer = createServer(app);
 const MemoryStore = memorystore(session);
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 declare module "http" {
   interface IncomingMessage {
@@ -41,16 +46,7 @@ app.use(
   }),
 );
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
+export { log };
 
 app.use((req, res, next) => {
   const start = Date.now();

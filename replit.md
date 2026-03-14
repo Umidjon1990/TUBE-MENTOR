@@ -264,8 +264,19 @@ Managed via admin settings page, stored in `system_settings` table:
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Session encryption secret
 - `PORT` - Server port (default: 5000)
+- `OPENAI_API_KEY` - OpenAI API key
 - `AI_INTEGRATIONS_OPENAI_API_KEY` - OpenAI API key (via Replit AI Integrations)
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` - OpenAI base URL (via Replit AI Integrations)
+
+## Railway Deployment
+
+- **Build**: `npm run build` (Vite frontend + esbuild server) then `npm run db:push` (schema sync)
+- **Start**: `NODE_ENV=production node dist/index.cjs`
+- **Config**: `railway.json` defines build/deploy commands
+- **Node**: v20 (`.nvmrc`)
+- **Required env vars on Railway**: `DATABASE_URL`, `SESSION_SECRET`, `OPENAI_API_KEY`, `NODE_ENV=production`
+- **Trust proxy**: Enabled in production for Railway's reverse proxy (secure cookies work correctly)
+- **Port**: Railway sets `PORT` automatically; server binds to `0.0.0.0:$PORT`
 
 ## AI Integration
 

@@ -554,21 +554,26 @@ function QuizzesSection({
       </Text>
       {quizzes.map((q, qi) => (
         <View key={qi} style={styles.quizBlock} wrap={false}>
-          <SmartText style={styles.quizQuestion}>
-            {`${qi + 1}. ${q.question}`}
-          </SmartText>
-          {q.options.map((opt, oi) => (
-            <SmartText
-              key={oi}
-              style={
-                withAnswers && oi === q.correctIndex
-                  ? styles.quizOptionCorrect
-                  : styles.quizOption
-              }
-            >
-              {`${String.fromCharCode(65 + oi)}) ${opt}${withAnswers && oi === q.correctIndex ? " ✓" : ""}`}
+          <View style={{ flexDirection: "row" as const, marginBottom: 6 }}>
+            <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: colors.dark }}>{qi + 1}. </Text>
+            <SmartText style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: colors.dark, flex: 1 }}>
+              {q.question}
             </SmartText>
-          ))}
+          </View>
+          {q.options.map((opt, oi) => {
+            const isCorrect = withAnswers && oi === q.correctIndex;
+            const prefix = isCorrect ? `✓ ${String.fromCharCode(65 + oi)})` : `${String.fromCharCode(65 + oi)})`;
+            return (
+              <View key={oi} style={{ flexDirection: "row" as const, marginBottom: 3, paddingLeft: 12 }}>
+                <Text style={{ fontSize: 9, color: isCorrect ? colors.brand : colors.dark, fontFamily: isCorrect ? "Helvetica-Bold" : "Helvetica", width: 28 }}>
+                  {prefix}
+                </Text>
+                <SmartText style={{ fontSize: 9, color: isCorrect ? colors.brand : colors.dark, fontFamily: isCorrect ? "Helvetica-Bold" : "Helvetica", flex: 1 }}>
+                  {opt}
+                </SmartText>
+              </View>
+            );
+          })}
           {withAnswers && q.explanation ? (
             <SmartText style={styles.quizExplanation}>{q.explanation}</SmartText>
           ) : null}

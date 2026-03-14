@@ -578,6 +578,23 @@ export async function registerRoutes(
     res.json(lesson);
   });
 
+  app.patch("/api/user/lessons/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    const updateData: Record<string, any> = {};
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.categoryId !== undefined) updateData.categoryId = req.body.categoryId;
+    if (req.body.level !== undefined) updateData.level = req.body.level;
+
+    const updated = await storage.updateLesson(id, updateData);
+    res.json(updated);
+  });
+
   app.delete("/api/user/lessons/:id", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
@@ -1085,8 +1102,12 @@ export async function registerRoutes(
       );
     }
     if (category && typeof category === "string") {
-      const catId = parseInt(category);
-      if (!isNaN(catId)) publicLessons = publicLessons.filter(l => l.categoryId === catId);
+      if (category === "uncategorized") {
+        publicLessons = publicLessons.filter(l => !l.categoryId);
+      } else {
+        const catId = parseInt(category);
+        if (!isNaN(catId)) publicLessons = publicLessons.filter(l => l.categoryId === catId);
+      }
     }
     if (level && typeof level === "string") {
       publicLessons = publicLessons.filter(l => l.level === level);

@@ -133,18 +133,15 @@ export default function PublicLibrary() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
 
-  const queryParams = new URLSearchParams();
-  if (search) queryParams.set("search", search);
-  if (categoryFilter && categoryFilter !== "all") queryParams.set("category", categoryFilter);
-  if (levelFilter && levelFilter !== "all") queryParams.set("level", levelFilter);
-
-  const queryString = queryParams.toString();
-  const apiUrl = `/api/lessons/public${queryString ? `?${queryString}` : ""}`;
-
   const { data, isLoading, isError } = useQuery<{ lessons: LessonWithCategory[]; categories: Category[] }>({
     queryKey: ["/api/lessons/public", search, categoryFilter, levelFilter],
     queryFn: async () => {
-      const res = await fetch(apiUrl, { credentials: "include" });
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (categoryFilter && categoryFilter !== "all") params.set("category", categoryFilter);
+      if (levelFilter && levelFilter !== "all") params.set("level", levelFilter);
+      const qs = params.toString();
+      const res = await fetch(`/api/lessons/public${qs ? `?${qs}` : ""}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -196,6 +193,7 @@ export default function PublicLibrary() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Barcha kategoriyalar</SelectItem>
+              <SelectItem value="uncategorized">Kategoriyasiz</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={String(cat.id)} data-testid={`option-category-${cat.id}`}>
                   {cat.name}

@@ -1,0 +1,47 @@
+Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+11:50:05 AM [express] POST /api/auth/login 500 in 84ms :: {"message":"Tizimda xatolik yuz berdi"}
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+Internal Server Error: Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+    at async open (node:internal/fs/promises:639:25)
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841)
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+11:50:08 AM [express] POST /api/auth/login 500 in 42ms :: {"message":"Tizimda xatolik yuz berdi"}
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841) {
+Internal Server Error: Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+  errno: -2,
+    at async open (node:internal/fs/promises:639:25)
+  code: 'ENOENT',
+  syscall: 'open',
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+  path: '/app/dist/table.sql'
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/dist/table.sql'
+}
+Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841)
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+11:50:15 AM [express] POST /api/auth/login 500 in 38ms :: {"message":"Tizimda xatolik yuz berdi"}
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841)
+Internal Server Error: Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1242:14)
+    at async n._rawEnsureSessionStoreTable (/app/dist/index.cjs:90:28756)
+    at async n._asyncQuery (/app/dist/index.cjs:90:29841) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/app/dist/table.sql'
+}
+Error: ENOENT: no such file or directory, open '/app/dist/table.sql'
+    at async open (node:internal/fs/promises:639:25)

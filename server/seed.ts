@@ -5,18 +5,19 @@ import { log } from "./logger";
 import { hashPassword } from "./auth";
 
 export async function seedDatabase() {
-  const existingAdmin = await db.select().from(users).where(eq(users.username, "admin"));
-  if (existingAdmin.length > 0) {
+  const existingUsers = await db.select().from(users);
+  if (existingUsers.length > 0) {
     log("Seed data already exists, skipping.", "seed");
     return;
   }
 
   log("Seeding database...", "seed");
 
+  const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
   const [admin] = await db.insert(users).values({
     fullName: "Administrator",
-    username: "admin",
-    passwordHash: hashPassword("admin123"),
+    username: process.env.ADMIN_USERNAME || "admin",
+    passwordHash: hashPassword(adminPassword),
     role: "admin",
     isActive: true,
     coins: 1000,

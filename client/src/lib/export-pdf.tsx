@@ -30,10 +30,22 @@ Font.register({
     {
       src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Regular.ttf",
       fontWeight: 400,
+      fontStyle: "normal",
     },
     {
       src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Bold.ttf",
       fontWeight: 700,
+      fontStyle: "normal",
+    },
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Italic.ttf",
+      fontWeight: 400,
+      fontStyle: "italic",
+    },
+    {
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-BoldItalic.ttf",
+      fontWeight: 700,
+      fontStyle: "italic",
     },
   ],
 });

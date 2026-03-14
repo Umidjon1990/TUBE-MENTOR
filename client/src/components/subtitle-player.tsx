@@ -117,7 +117,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const [isMobile, setIsMobile] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
-  const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(() => window.innerWidth < 768);
   const [subtitleZoom, setSubtitleZoom] = useState(1);
 
   useEffect(() => {
@@ -685,25 +685,25 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
       {hasSubtitles && (
         <div
-          className="rounded-xl glass border border-border/50 overflow-hidden transition-all duration-300 mt-2 md:mt-3"
+          className="rounded-xl glass border border-border/50 overflow-hidden transition-all duration-300 mt-1.5 md:mt-3"
           data-testid="subtitle-panel"
         >
           <button
-            className="w-full flex items-center justify-between px-3 md:px-4 py-2 border-b border-border/30 hover:bg-white/5 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-between px-2.5 md:px-4 py-1.5 md:py-2 border-b border-border/30 hover:bg-white/5 transition-colors cursor-pointer"
             onClick={() => setPanelCollapsed(!panelCollapsed)}
             data-testid="button-toggle-panel"
           >
-            <div className="flex items-center gap-2">
-              <Subtitles className="w-4 h-4 text-primary" />
-              <span className="text-xs md:text-sm font-medium">Subtitle paneli</span>
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Subtitles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
+              <span className="text-[11px] md:text-sm font-medium">Subtitlelar</span>
               {activeIndex >= 0 && (
-                <Badge variant="outline" className="text-[9px] md:text-[10px] border-primary/30 text-primary">
+                <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">
                   {activeIndex + 1}/{subtitles.length}
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-[9px] md:text-[10px]">
+            <div className="flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-[9px] hidden sm:inline-flex">
                 {subtitles.length} qator
               </Badge>
               {panelCollapsed ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
@@ -713,7 +713,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           {!panelCollapsed && (
             <div
               ref={panelRef}
-              className="max-h-[200px] md:max-h-[320px] overflow-y-auto scroll-smooth"
+              className="max-h-[160px] md:max-h-[320px] overflow-y-auto scroll-smooth"
               style={{ fontSize: `${14 * subtitleZoom}px` }}
             >
               <div className="p-1.5 md:p-2 divide-y divide-border/20">

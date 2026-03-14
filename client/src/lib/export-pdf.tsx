@@ -25,25 +25,25 @@ import {
 } from "./export-transform";
 
 Font.register({
-  family: "Amiri",
+  family: "ArabicFont",
   fonts: [
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Regular.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/scheherazadenew/ScheherazadeNew-Regular.ttf",
       fontWeight: 400,
       fontStyle: "normal",
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Bold.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/scheherazadenew/ScheherazadeNew-Bold.ttf",
       fontWeight: 700,
       fontStyle: "normal",
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-Italic.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/scheherazadenew/ScheherazadeNew-Regular.ttf",
       fontWeight: 400,
       fontStyle: "italic",
     },
     {
-      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/amiri/Amiri-BoldItalic.ttf",
+      src: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/scheherazadenew/ScheherazadeNew-Bold.ttf",
       fontWeight: 700,
       fontStyle: "italic",
     },
@@ -99,17 +99,36 @@ function SmartText({ children, style, ...props }: any) {
   const text = flattenChildren(children);
   if (!text) return null;
 
+  if (!hasArabic(text)) {
+    return <Text style={style} {...props}>{text}</Text>;
+  }
+
   const baseStyle = Array.isArray(style) ? Object.assign({}, ...style) : (style || {});
 
-  if (hasArabic(text)) {
+  const letterChars = text.split("").filter((c: string) => !/[\s\d\p{P}]/u.test(c));
+  const arabicCount = letterChars.filter((c: string) => ARABIC_REGEX.test(c)).length;
+  const allArabic = letterChars.length > 0 && arabicCount === letterChars.length;
+
+  if (allArabic) {
     return (
-      <Text style={{ ...baseStyle, fontFamily: "Amiri", lineHeight: baseStyle.lineHeight || 1.8 }} {...props}>
+      <Text style={{ ...baseStyle, fontFamily: "ArabicFont", textAlign: "right" as const, lineHeight: baseStyle.lineHeight || 1.8 }} {...props}>
         {text}
       </Text>
     );
   }
 
-  return <Text style={style} {...props}>{text}</Text>;
+  const segments = splitMixedText(text);
+  return (
+    <Text style={{ ...baseStyle, fontFamily: "Helvetica" }} {...props}>
+      {segments.map((seg, i) =>
+        seg.isArabic ? (
+          <Text key={i} style={{ fontFamily: "ArabicFont" }}>{seg.text}</Text>
+        ) : (
+          <Text key={i}>{seg.text}</Text>
+        )
+      )}
+    </Text>
+  );
 }
 
 const WORD_COLORS = [
@@ -201,7 +220,7 @@ const styles = StyleSheet.create({
     color: colors.arabText,
     textAlign: "right" as const,
     marginBottom: 4,
-    fontFamily: "Amiri",
+    fontFamily: "ArabicFont",
     fontWeight: 700 as const,
     lineHeight: 1.8,
   },
@@ -229,7 +248,7 @@ const styles = StyleSheet.create({
   wordMapAr: {
     fontSize: 11,
     color: colors.arabText,
-    fontFamily: "Amiri",
+    fontFamily: "ArabicFont",
     fontWeight: 700 as const,
   },
   wordMapUz: {
@@ -303,7 +322,7 @@ const styles = StyleSheet.create({
   },
   flashcardFront: {
     fontSize: 13,
-    fontFamily: "Amiri",
+    fontFamily: "ArabicFont",
     fontWeight: 700 as const,
     color: colors.flashcard,
     textAlign: "right" as const,
@@ -403,7 +422,7 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
                 const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
                 return (
                   <View key={wi} style={{ alignItems: "center" as const }}>
-                    <Text style={{ fontSize: 13, color: clr, fontFamily: "Amiri", fontWeight: 700 as const }}>{w.word}</Text>
+                    <Text style={{ fontSize: 13, color: clr, fontFamily: "ArabicFont", fontWeight: 700 as const }}>{w.word}</Text>
                     <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
                   </View>
                 );
@@ -487,7 +506,7 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
               {
                 width: "25%",
                 textAlign: "right" as const,
-                fontFamily: "Amiri",
+                fontFamily: "ArabicFont",
                 fontWeight: 700 as const,
                 color: colors.arabText,
                 lineHeight: 1.6,
@@ -585,7 +604,7 @@ function FlashcardsSection({
             <Text style={styles.flashcardFront}>{f.front}</Text>
             <SmartText style={styles.flashcardBack}>{f.back}</SmartText>
             {f.backAr ? (
-              <Text style={{ fontSize: 11, color: colors.arabText, fontFamily: "Amiri", fontWeight: 700 as const, textAlign: "right" as const, lineHeight: 1.6, marginTop: 4 }}>
+              <Text style={{ fontSize: 11, color: colors.arabText, fontFamily: "ArabicFont", fontWeight: 700 as const, textAlign: "right" as const, lineHeight: 1.6, marginTop: 4 }}>
                 {f.backAr}
               </Text>
             ) : null}
@@ -623,7 +642,7 @@ function SummarySection({ summary }: { summary: SummaryData }) {
       {summary.summaryShortAr ? (
         <View style={styles.summaryBlock} wrap={false}>
           <Text style={styles.summaryLabel}>Qisqa xulosa (arabcha)</Text>
-          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "Amiri", lineHeight: 1.8 }]}>{summary.summaryShortAr}</Text>
+          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "ArabicFont", lineHeight: 1.8 }]}>{summary.summaryShortAr}</Text>
         </View>
       ) : null}
       {summary.summaryDetailed ? (
@@ -635,7 +654,7 @@ function SummarySection({ summary }: { summary: SummaryData }) {
       {summary.summaryDetailedAr ? (
         <View style={styles.summaryBlock} wrap={false}>
           <Text style={styles.summaryLabel}>Batafsil xulosa (arabcha)</Text>
-          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "Amiri", lineHeight: 1.8 }]}>{summary.summaryDetailedAr}</Text>
+          <Text style={[styles.summaryText, { textAlign: "right" as const, fontFamily: "ArabicFont", lineHeight: 1.8 }]}>{summary.summaryDetailedAr}</Text>
         </View>
       ) : null}
     </View>

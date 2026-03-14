@@ -591,7 +591,7 @@ function buildChatGptPrompt(transcript: string, manualTranscript: string): strin
     : "";
 
   return `# ROL
-Sen arab tili bo'yicha tajribali professor va nahv (النَّحْو) mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
+Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
 
 Sen quyidagi manbalarga tayanasan:
 - كِتَابُ سِيبَوَيْهِ (Sibavayh kitobi — nahv asosi)
@@ -608,6 +608,12 @@ Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART
 - Tanvin: indefinite ism oxirida ٌ ٍ ً qo'yilsin (كِتَابٌ, كِتَابًا, كِتَابٍ)
 - Shadda: tashdidli harflarda ّ SHART (مُعَلِّمٌ, شَدَّةٌ)
 - Harakatsiz arabcha so'z QABUL QILINMAYDI
+- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr"
+
+## TARJIMA QOIDALARI:
+- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
+- "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi (HARAKAT BILAN)
+- "explanation": O'ZBEK tilida
 
 # JAVOB FORMATI
 Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
@@ -626,14 +632,6 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
       "partOfSpeech": "اِسْمٌ/فِعْلٌ/حَرْفٌ/صِفَةٌ/ظَرْفٌ",
       "example": "transkriptdan misol gap (HARAKAT bilan)",
       "difficulty": "easy/medium/hard"
-    }
-  ],
-  "phrases": [
-    {
-      "phrase": "عِبَارَةٌ عَرَبِيَّةٌ بِالتَّشْكِيلِ الْكَامِلِ",
-      "translation": "O'ZBEKCHA tarjima",
-      "translationAr": "شَرْحُ الْعِبَارَةِ بِالتَّشْكِيلِ",
-      "context": "qayerda ishlatilishi haqida O'ZBEKCHA izoh"
     }
   ],
   "quizzes": [
@@ -664,7 +662,7 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
       "front": "كَلِمَةٌ أَوْ عِبَارَةٌ بِالتَّشْكِيلِ",
       "back": "O'ZBEKCHA tarjima va tushuntirish",
       "backAr": "التَّرْجَمَةُ وَالشَّرْحُ بِالْعَرَبِيَّةِ مَعَ التَّشْكِيلِ",
-      "type": "vocabulary | phrase | grammar"
+      "type": "vocabulary | grammar"
     }
   ],
   "sentenceAnalysis": [
@@ -672,20 +670,12 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
       "sentence": "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ${hasTiming ? " — AYNAN vaqtli ro'yxatdagi matn" : ""}",
       "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
       "translationAr": "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ",
-      "grammarNotes": "O'ZBEK tilida grammatik izoh: gap turi, fe'l zamoni, gap tuzilishi",
-      "keyWords": ["kalit", "so'zlar"],
-      "sentenceType": "جُمْلَةٌ فِعْلِيَّةٌ yoki جُمْلَةٌ اِسْمِيَّةٌ",
       "wordMap": [
         {
           "word": "كَلِمَةٌ بِالتَّشْكِيلِ",
           "normalized": "harakat olib tashlangan shakl (masalan: كتب)",
           "translationUz": "O'ZBEKCHA tarjima",
-          "translationAr": "تَفْسِيرٌ بِالتَّشْكِيلِ",
-          "contextualMeaning": "shu gapdagi aniq ma'nosi — O'ZBEK tilida",
-          "partOfSpeech": "اِسْمٌ | فِعْلٌ | حَرْفٌ | ظَرْفٌ | ضَمِيرٌ",
-          "grammaticalRole": "الْفَاعِلُ | الْمَفْعُولُ بِهِ | الْمُبْتَدَأُ | الْخَبَرُ | الْحَالُ | النَّعْتُ | الْمُضَافُ إِلَيْهِ",
-          "i_rab": "مَرْفُوعٌ بِالضَّمَّةِ لِأَنَّهُ فَاعِلٌ | مَنْصُوبٌ بِالْفَتْحَةِ | مَجْرُورٌ بِالْكَسْرَةِ | مَبْنِيٌّ",
-          "nahwExplanation": "O'ZBEKCHA: masalan 'Ega — gapda ish bajaruvchi, marfu holda, damma bilan'"
+          "translationAr": "تَفْسِيرٌ أَوْ مُرَادِفٌ بِالتَّشْكِيلِ"
         }
       ]
     }
@@ -696,12 +686,13 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 
 ## 1. HARAKAT — ENG MUHIM QOIDA
 - BARCHA arabcha so'zlarda TO'LIQ harakat (تَشْكِيل كَامِل) bo'lishi SHART
-- Harakatsiz arabcha so'z QABUL QILINMAYDI — bu qat'iy talab
+- Har bir harfda tegishli harakat: فَتْحَة, كَسْرَة, ضَمَّة, سُكُون, شَدَّة, تَنْوِين
 - I'rob alamatlari to'g'ri qo'yilsin
+- Harakatsiz arabcha so'z QABUL QILINMAYDI — bu qat'iy talab
 
 ## 2. TARJIMA TILI
-- BARCHA "translation", "explanation", "contextualMeaning", "grammarNotes", "nahwExplanation" — O'ZBEK tilida
-- Arabcha maydonlar — arab tilida HARAKAT bilan
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- Arabcha maydonlar ("translationAr", "backAr", "summaryShortAr", "summaryDetailedAr") — arab tilida HARAKAT bilan
 
 ## 3. QUIZ TURLARI — MAJBURIY:
 - multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
@@ -710,27 +701,19 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 
 ## 4. SON CHEGARALARI
 - vocabulary: 8-15 ta so'z
-- phrases: 4-8 ta ibora
 - quizzes: 10-12 ta savol (3 tur aralash)
 - flashcards: 8-12 ta karta
 - sentenceAnalysis: BARCHA gaplar — BIRONTASINI HAM TASHLAB KETMA!
 
 ## 5. SENTENCEANALYSIS
-- Transkriptdagi har bir gap: tarjima + wordMap + grammarNotes SHART
+- Transkriptdagi har bir gap: tarjima + wordMap SHART
 - wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
-- sentenceType: "جُمْلَةٌ فِعْلِيَّةٌ" yoki "جُمْلَةٌ اِسْمِيَّةٌ"
+- Har bir so'z uchun faqat 4 ta maydon: word (asl shakl HARAKAT bilan), normalized (harakat olib tashlangan), translationUz (o'zbekcha), translationAr (arabcha sinonim HARAKAT bilan)
 ${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi matn bo\'lishi kerak (o\'zgartirma!)' : ""}
 
-## 6. NAHVIY TAHLIL (الْإِعْرَابُ)
-Har bir so'z uchun:
-- partOfSpeech: اِسْمٌ, فِعْلٌ, حَرْفٌ, ظَرْفٌ, ضَمِيرٌ
-- grammaticalRole: الْفَاعِلُ, الْمَفْعُولُ بِهِ, الْمُبْتَدَأُ, الْخَبَرُ, الْحَالُ, النَّعْتُ, الْمُضَافُ إِلَيْهِ, الْجَارُّ وَالْمَجْرُورُ
-- i_rab: holat + sabab (masalan: "مَرْفُوعٌ بِالضَّمَّةِ لِأَنَّهُ فَاعِلٌ")
-- nahwExplanation: O'ZBEK tilida qisqa izoh
-
-## 7. TEXNIK
+## 6. TEXNIK
 - correctIndex: 0 dan boshlanadi (0-3)
-- JSON VALID bo'lishi SHART
+- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir
 ${timedSection}
 # TRANSKRIPT:
 ${transcript}`;

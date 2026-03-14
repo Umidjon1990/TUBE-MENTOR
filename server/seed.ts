@@ -15,8 +15,8 @@ export async function seedDatabase() {
 
   const [admin] = await db.insert(users).values({
     fullName: "Administrator",
-    username: "admin",
-    passwordHash: hashPassword("admin123"),
+    username: "Umidjon",
+    passwordHash: hashPassword("Hero1990@"),
     role: "admin",
     isActive: true,
     coins: 1000,

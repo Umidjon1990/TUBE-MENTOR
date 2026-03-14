@@ -156,7 +156,7 @@ export default function PublicLibrary() {
 
   return (
     <PublicLayout>
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
         <div className="mb-8">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-3 gap-1.5 text-muted-foreground hover:text-foreground" data-testid="button-back-home">

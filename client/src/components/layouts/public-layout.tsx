@@ -5,7 +5,7 @@ import { Link } from "wouter";
 function PublicNavbar() {
   return (
     <header className="sticky top-0 z-50 glass-strong" data-testid="navbar-public">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between gap-2 md:gap-4">
         <Link href="/">
           <div className="flex items-center gap-2.5 cursor-pointer group">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center neon-glow-sm">
@@ -33,7 +33,7 @@ function PublicNavbar() {
 function PublicFooter() {
   return (
     <footer className="border-t border-border/50">
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-3 md:px-6 py-8 md:py-12">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">

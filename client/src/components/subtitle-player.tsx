@@ -411,28 +411,28 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     const textHasArabic = isArabic(text);
     if (isTranslation) {
       if (textHasArabic) {
-        if (len > 120) return "clamp(0.75rem, 2.2vw, 1rem)";
-        if (len > 80) return "clamp(0.85rem, 2.5vw, 1.1rem)";
-        if (len > 50) return "clamp(0.9rem, 2.8vw, 1.2rem)";
-        return "clamp(1rem, 3vw, 1.3rem)";
+        if (len > 120) return "clamp(12px, 2.2vw, 16px)";
+        if (len > 80) return "clamp(14px, 2.5vw, 18px)";
+        if (len > 50) return "clamp(15px, 2.8vw, 19px)";
+        return "clamp(16px, 3vw, 21px)";
       }
-      if (len > 120) return "clamp(0.55rem, 1.8vw, 0.75rem)";
-      if (len > 80) return "clamp(0.6rem, 2vw, 0.85rem)";
-      if (len > 50) return "clamp(0.65rem, 2.2vw, 0.9rem)";
-      return "clamp(0.7rem, 2.5vw, 1rem)";
+      if (len > 120) return "clamp(9px, 1.8vw, 12px)";
+      if (len > 80) return "clamp(10px, 2vw, 14px)";
+      if (len > 50) return "clamp(11px, 2.2vw, 15px)";
+      return "clamp(11px, 2.5vw, 16px)";
     }
     if (textHasArabic) {
-      if (len > 120) return "clamp(0.85rem, 2.5vw, 1.1rem)";
-      if (len > 80) return "clamp(1rem, 3vw, 1.25rem)";
-      if (len > 50) return "clamp(1.1rem, 3.5vw, 1.4rem)";
-      if (len > 30) return "clamp(1.2rem, 3.8vw, 1.55rem)";
-      return "clamp(1.3rem, 4vw, 1.7rem)";
+      if (len > 120) return "clamp(14px, 2.5vw, 18px)";
+      if (len > 80) return "clamp(16px, 3vw, 20px)";
+      if (len > 50) return "clamp(18px, 3.5vw, 23px)";
+      if (len > 30) return "clamp(19px, 3.8vw, 25px)";
+      return "clamp(21px, 4vw, 27px)";
     }
-    if (len > 120) return "clamp(0.65rem, 2vw, 0.85rem)";
-    if (len > 80) return "clamp(0.75rem, 2.5vw, 1rem)";
-    if (len > 50) return "clamp(0.85rem, 3vw, 1.15rem)";
-    if (len > 30) return "clamp(0.9rem, 3.2vw, 1.25rem)";
-    return "clamp(1rem, 3.5vw, 1.4rem)";
+    if (len > 120) return "clamp(11px, 2vw, 14px)";
+    if (len > 80) return "clamp(12px, 2.5vw, 16px)";
+    if (len > 50) return "clamp(14px, 3vw, 18px)";
+    if (len > 30) return "clamp(15px, 3.2vw, 20px)";
+    return "clamp(16px, 3.5vw, 22px)";
   }, []);
 
   const renderOverlayText = useCallback((item: SubtitleItem) => {
@@ -484,7 +484,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   return (
     <div className={`${className}`}>
-      <div className="sticky top-0 z-20 bg-background pb-2 md:pb-3 space-y-2 md:space-y-3">
+      <div className="sticky top-14 md:top-16 z-20 bg-background pb-1.5 md:pb-3 space-y-1.5 md:space-y-3">
         <div className="relative rounded-xl overflow-hidden bg-black shadow-2xl shadow-black/50">
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
@@ -493,8 +493,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
             {activeSubtitle && (
               <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center" data-testid="subtitle-overlay">
                 <div
-                  className="w-full px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-t from-black/90 via-black/75 to-transparent"
-                  style={{ fontSize: `${subtitleZoom * 100}%` }}
+                  className="w-full px-3 md:px-6 py-2 md:py-3 bg-gradient-to-t from-black/90 via-black/75 to-transparent"
+                  style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center bottom" }}
                 >
                   <div className="text-center">
                     {renderOverlayText(activeSubtitle)}
@@ -506,187 +506,180 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         </div>
 
         {hasSubtitles && (
-        <div className="flex items-center gap-1 md:gap-1.5 rounded-xl glass border border-border/50 p-1 md:p-1.5 overflow-x-auto" data-testid="learning-controls">
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={togglePlayPause}
-            disabled={!isReady}
-            title={isPlaying ? "Pauza" : "Ijro etish"}
-            data-testid="button-play-pause"
-          >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </Button>
-
-          <div className="w-px h-5 bg-border/50 shrink-0 hidden sm:block" />
-
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={() => skipSeconds(-5)}
-            disabled={!isReady}
-            title="5 soniya orqaga"
-            data-testid="button-back-5"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={goToPrevSubtitle}
-            disabled={!isReady || !hasSubtitles}
-            title="Oldingi subtitle"
-            data-testid="button-prev-subtitle"
-          >
-            <SkipBack className="w-3.5 h-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={replayCurrentSubtitle}
-            disabled={!isReady || activeIndex < 0}
-            title="Qayta eshitish"
-            data-testid="button-replay"
-          >
-            <Repeat className="w-3.5 h-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={goToNextSubtitle}
-            disabled={!isReady || !hasSubtitles}
-            title="Keyingi subtitle"
-            data-testid="button-next-subtitle"
-          >
-            <SkipForward className="w-3.5 h-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost" size="icon"
-            className="h-8 w-8 md:h-9 md:w-9 shrink-0"
-            onClick={() => skipSeconds(5)}
-            disabled={!isReady}
-            title="5 soniya oldinga"
-            data-testid="button-forward-5"
-          >
-            <RotateCcw className="w-3.5 h-3.5 scale-x-[-1]" />
-          </Button>
-
-          <div className="w-px h-5 bg-border/50 shrink-0 hidden sm:block" />
-
-          <Button
-            variant={isLooping ? "default" : "ghost"}
-            size="sm"
-            className="h-8 md:h-9 text-[10px] md:text-xs px-2 shrink-0"
-            onClick={() => setIsLooping(!isLooping)}
-            title="Hozirgi gapni takrorlash"
-            data-testid="button-loop"
-          >
-            <Repeat className="w-3 h-3 mr-1" />
-            <span className="hidden sm:inline">Takror</span>
-          </Button>
-
-          <div className="w-px h-5 bg-border/50 shrink-0 hidden sm:block" />
-
-          <div className="flex items-center gap-0.5 shrink-0">
+        <div className="rounded-xl glass border border-border/50 p-1 md:p-1.5" data-testid="learning-controls">
+          <div className="flex flex-wrap items-center gap-0.5">
             <Button
               variant="ghost" size="icon"
-              className="h-7 w-7"
-              onClick={() => changeSpeed(-1)}
-              disabled={playbackRate <= 0.5}
-              title="Sekinroq"
-              data-testid="button-speed-down"
+              className="h-8 w-8"
+              onClick={togglePlayPause}
+              disabled={!isReady}
+              title={isPlaying ? "Pauza" : "Ijro etish"}
+              data-testid="button-play-pause"
             >
-              <Minus className="w-3 h-3" />
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             </Button>
-            <span className="text-[10px] md:text-xs font-mono min-w-[2.5rem] text-center font-medium" data-testid="text-speed">
-              {playbackRate}x
-            </span>
+
             <Button
               variant="ghost" size="icon"
-              className="h-7 w-7"
-              onClick={() => changeSpeed(1)}
-              disabled={playbackRate >= 2}
-              title="Tezroq"
-              data-testid="button-speed-up"
+              className="h-8 w-8"
+              onClick={() => skipSeconds(-5)}
+              disabled={!isReady}
+              title="5 soniya orqaga"
+              data-testid="button-back-5"
             >
-              <Plus className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </Button>
+
+            <Button
+              variant="ghost" size="icon"
+              className="h-8 w-8"
+              onClick={goToPrevSubtitle}
+              disabled={!isReady || !hasSubtitles}
+              title="Oldingi subtitle"
+              data-testid="button-prev-subtitle"
+            >
+              <SkipBack className="w-3.5 h-3.5" />
+            </Button>
+
+            <Button
+              variant="ghost" size="icon"
+              className="h-8 w-8"
+              onClick={replayCurrentSubtitle}
+              disabled={!isReady || activeIndex < 0}
+              title="Qayta eshitish"
+              data-testid="button-replay"
+            >
+              <Repeat className="w-3.5 h-3.5" />
+            </Button>
+
+            <Button
+              variant="ghost" size="icon"
+              className="h-8 w-8"
+              onClick={goToNextSubtitle}
+              disabled={!isReady || !hasSubtitles}
+              title="Keyingi subtitle"
+              data-testid="button-next-subtitle"
+            >
+              <SkipForward className="w-3.5 h-3.5" />
+            </Button>
+
+            <Button
+              variant="ghost" size="icon"
+              className="h-8 w-8"
+              onClick={() => skipSeconds(5)}
+              disabled={!isReady}
+              title="5 soniya oldinga"
+              data-testid="button-forward-5"
+            >
+              <RotateCcw className="w-3.5 h-3.5 scale-x-[-1]" />
+            </Button>
+
+            <Button
+              variant={isLooping ? "default" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsLooping(!isLooping)}
+              title="Takrorlash"
+              data-testid="button-loop"
+            >
+              <Repeat className="w-3.5 h-3.5" />
+            </Button>
+
+            <div className="w-px h-5 bg-border/40 mx-0.5 hidden sm:block" />
+
+            <div className="flex items-center">
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={() => changeSpeed(-1)}
+                disabled={playbackRate <= 0.5}
+                title="Sekinroq"
+                data-testid="button-speed-down"
+              >
+                <Minus className="w-3 h-3" />
+              </Button>
+              <span className="text-[10px] font-mono w-[2rem] text-center font-medium" data-testid="text-speed">
+                {playbackRate}x
+              </span>
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={() => changeSpeed(1)}
+                disabled={playbackRate >= 2}
+                title="Tezroq"
+                data-testid="button-speed-up"
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+
+            <div className="w-px h-5 bg-border/40 mx-0.5 hidden sm:block" />
+
+            <div className="flex items-center">
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
+                disabled={subtitleZoom <= 0.7}
+                title="Kichikroq"
+                data-testid="button-zoom-out"
+              >
+                <ZoomOut className="w-3 h-3" />
+              </Button>
+              <span className="text-[9px] font-mono w-[1.6rem] text-center text-muted-foreground" data-testid="text-zoom">
+                {Math.round(subtitleZoom * 100)}%
+              </span>
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
+                disabled={subtitleZoom >= 1.6}
+                title="Kattaroq"
+                data-testid="button-zoom-in"
+              >
+                <ZoomIn className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
-
-          <div className="w-px h-5 bg-border/50 shrink-0 hidden sm:block" />
-
-          <div className="flex items-center gap-0.5 shrink-0">
-            <Button
-              variant="ghost" size="icon"
-              className="h-7 w-7"
-              onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
-              disabled={subtitleZoom <= 0.7}
-              title="Kichikroq"
-              data-testid="button-zoom-out"
-            >
-              <ZoomOut className="w-3 h-3" />
-            </Button>
-            <span className="text-[9px] md:text-[10px] font-mono min-w-[1.8rem] text-center text-muted-foreground" data-testid="text-zoom">
-              {Math.round(subtitleZoom * 100)}%
-            </span>
-            <Button
-              variant="ghost" size="icon"
-              className="h-7 w-7"
-              onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
-              disabled={subtitleZoom >= 1.6}
-              title="Kattaroq"
-              data-testid="button-zoom-in"
-            >
-              <ZoomIn className="w-3 h-3" />
-            </Button>
-          </div>
-
-          <div className="flex-1" />
-
-          <span className="text-[10px] md:text-xs font-mono text-muted-foreground shrink-0 hidden sm:block" data-testid="text-current-time">
-            {formatTime(currentTime)}
-          </span>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
-        <div className="flex items-center gap-0.5 md:gap-1 rounded-lg glass border border-border/50 p-0.5 md:p-1">
+      <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 rounded-lg glass border border-border/50 p-0.5">
           <Button
             variant={displayMode === "original" ? "default" : "ghost"}
             size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
+            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
             onClick={() => setDisplayMode("original")}
             data-testid="button-mode-original"
           >
-            <Monitor className="w-3 h-3 mr-0.5 md:mr-1 hidden sm:block" />
-            Asl matn
+            <Monitor className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
+            Asl
           </Button>
           <Button
             variant={displayMode === "both" ? "default" : "ghost"}
             size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
+            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
             onClick={() => setDisplayMode("both")}
             data-testid="button-mode-both"
           >
-            <Subtitles className="w-3 h-3 mr-0.5 md:mr-1 hidden sm:block" />
-            Asl + tarjima
+            <Subtitles className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
+            Asl+Tarjima
           </Button>
           <Button
             variant={displayMode === "translation" ? "default" : "ghost"}
             size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-3"
+            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
             onClick={() => setDisplayMode("translation")}
             data-testid="button-mode-translation"
           >
-            <Languages className="w-3 h-3 mr-0.5 md:mr-1 hidden sm:block" />
+            <Languages className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
             Tarjima
           </Button>
         </div>
-
+        <span className="text-[10px] font-mono text-muted-foreground hidden sm:block" data-testid="text-current-time">
+          {formatTime(currentTime)}
+        </span>
       </div>
       </div>
 
@@ -721,7 +714,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
             <div
               ref={panelRef}
               className="max-h-[200px] md:max-h-[320px] overflow-y-auto scroll-smooth"
-              style={{ fontSize: `${subtitleZoom * 100}%` }}
+              style={{ fontSize: `${14 * subtitleZoom}px` }}
             >
               <div className="p-1.5 md:p-2 divide-y divide-border/20">
                 {subtitles.map((item, idx) => {

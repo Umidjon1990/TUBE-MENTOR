@@ -268,7 +268,7 @@ export default function LessonDetailPage() {
   if (isLoading) {
     return (
       <UserLayout title="Dars yuklanmoqda...">
-        <div className="space-y-4 p-6">
+        <div className="space-y-4">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-6 w-96" />
           <Skeleton className="h-[600px] w-full" />
@@ -295,7 +295,7 @@ export default function LessonDetailPage() {
 
   return (
     <UserLayout title={lesson.title}>
-      <div className="p-4 md:p-6 space-y-4">
+      <div className="space-y-4">
         <div className="flex items-center gap-3 mb-2">
           <Link href="/lessons">
             <Button variant="ghost" size="sm" data-testid="button-back">

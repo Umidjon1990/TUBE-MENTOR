@@ -251,7 +251,7 @@ export default function PublicLessonPage() {
   if (isLoading) {
     return (
       <PublicLayout>
-        <div className="max-w-4xl mx-auto px-6 py-8 space-y-4">
+        <div className="max-w-4xl mx-auto px-3 md:px-6 py-4 md:py-8 space-y-4">
           <Skeleton className="h-8 w-16" />
           <Skeleton className="h-10 w-3/4" />
           <Skeleton className="h-6 w-1/2" />
@@ -281,7 +281,7 @@ export default function PublicLessonPage() {
 
   return (
     <PublicLayout>
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-3 md:px-6 py-4 md:py-8 space-y-4 md:space-y-6">
         <div className="flex items-center gap-3">
           <Link href="/library">
             <Button variant="ghost" size="sm" data-testid="button-back-library">

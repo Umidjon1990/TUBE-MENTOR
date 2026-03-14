@@ -35,31 +35,18 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 const isProduction = process.env.NODE_ENV === "production";
 
-async function ensureSessionTable() {
-  if (!isProduction || !process.env.DATABASE_URL) return;
-  const { Pool } = await import("pg");
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS "session" (
-      "sid" varchar NOT NULL COLLATE "default",
-      "sess" json NOT NULL,
-      "expire" timestamp(6) NOT NULL,
-      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-    );
-    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
-  `);
-  await pool.end();
-}
-
-await ensureSessionTable();
-
-const sessionStore = isProduction && process.env.DATABASE_URL
-  ? new PgStore({
+function createSessionStore() {
+  if (isProduction && process.env.DATABASE_URL) {
+    return new PgStore({
       conString: process.env.DATABASE_URL,
       createTableIfMissing: false,
       tableName: "session",
-    })
-  : new MemoryStore({ checkPeriod: 86400000 });
+    });
+  }
+  return new MemoryStore({ checkPeriod: 86400000 });
+}
+
+const sessionStore = createSessionStore();
 
 app.use(
   session({

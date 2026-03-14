@@ -5,7 +5,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "npm run db:push && npm run start",
+    "startCommand": "npm run db:push && node -e \"const{Pool}=require('pg');const p=new Pool({connectionString:process.env.DATABASE_URL});p.query('CREATE TABLE IF NOT EXISTS session (sid varchar NOT NULL PRIMARY KEY, sess json NOT NULL, expire timestamp(6) NOT NULL); CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);').then(()=>p.end())\" && npm run start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

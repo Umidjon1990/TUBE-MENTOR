@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import memorystore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -9,6 +10,7 @@ import { log } from "./logger";
 const app = express();
 const httpServer = createServer(app);
 const MemoryStore = memorystore(session);
+const PgStore = connectPgSimple(session);
 
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
@@ -31,16 +33,25 @@ app.use(
 
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
+const isProduction = process.env.NODE_ENV === "production";
+const sessionStore = isProduction && process.env.DATABASE_URL
+  ? new PgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      tableName: "session",
+    })
+  : new MemoryStore({ checkPeriod: 86400000 });
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "tube-mentor-ai-dev-secret",
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore({ checkPeriod: 86400000 }),
+    store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: "lax",
     },
   }),

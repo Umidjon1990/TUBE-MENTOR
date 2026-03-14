@@ -408,11 +408,25 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   const getAdaptiveFontSize = useCallback((text: string, isTranslation?: boolean) => {
     const len = text.length;
+    const textHasArabic = isArabic(text);
     if (isTranslation) {
+      if (textHasArabic) {
+        if (len > 120) return "clamp(0.75rem, 2.2vw, 1rem)";
+        if (len > 80) return "clamp(0.85rem, 2.5vw, 1.1rem)";
+        if (len > 50) return "clamp(0.9rem, 2.8vw, 1.2rem)";
+        return "clamp(1rem, 3vw, 1.3rem)";
+      }
       if (len > 120) return "clamp(0.55rem, 1.8vw, 0.75rem)";
       if (len > 80) return "clamp(0.6rem, 2vw, 0.85rem)";
       if (len > 50) return "clamp(0.65rem, 2.2vw, 0.9rem)";
       return "clamp(0.7rem, 2.5vw, 1rem)";
+    }
+    if (textHasArabic) {
+      if (len > 120) return "clamp(0.85rem, 2.5vw, 1.1rem)";
+      if (len > 80) return "clamp(1rem, 3vw, 1.25rem)";
+      if (len > 50) return "clamp(1.1rem, 3.5vw, 1.4rem)";
+      if (len > 30) return "clamp(1.2rem, 3.8vw, 1.55rem)";
+      return "clamp(1.3rem, 4vw, 1.7rem)";
     }
     if (len > 120) return "clamp(0.65rem, 2vw, 0.85rem)";
     if (len > 80) return "clamp(0.75rem, 2.5vw, 1rem)";
@@ -707,13 +721,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
             <div
               ref={panelRef}
               className="max-h-[200px] md:max-h-[320px] overflow-y-auto scroll-smooth"
+              style={{ fontSize: `${subtitleZoom * 100}%` }}
             >
               <div className="p-1.5 md:p-2 divide-y divide-border/20">
                 {subtitles.map((item, idx) => {
                   const isActive = idx === activeIndex;
                   const translation = getTranslation(item);
                   const originalIsArabic = isArabic(item.originalText);
-                  const translationIsArabic = translation ? isArabic(translation) : false;
 
                   return (
                     <div
@@ -729,20 +743,23 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                     >
                       <div className="flex items-start gap-1.5 md:gap-2">
                         <span
-                          className={`text-[9px] md:text-[10px] font-mono mt-0.5 md:mt-1 shrink-0 w-8 md:w-10 transition-colors cursor-pointer ${
+                          className={`font-mono mt-0.5 md:mt-1 shrink-0 w-8 md:w-10 transition-colors cursor-pointer ${
                             isActive ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground/70"
                           }`}
+                          style={{ fontSize: "0.7em" }}
                           onClick={() => seekTo(item.startTime)}
                         >
                           {formatTime(item.startTime)}
                         </span>
                         <div className="flex-1 min-w-0">
                           {(displayMode === "original" || displayMode === "both") && (
-                            <div className={`text-xs md:text-sm leading-relaxed transition-colors ${
+                            <div className={`leading-relaxed transition-colors ${
                               isActive ? "text-foreground font-medium" : "text-foreground/70"
                             }`}>
                               {isActive ? (
-                                renderClickableWords(item.originalText, item, false)
+                                <div style={{ fontSize: originalIsArabic ? "1.15em" : "0.95em" }}>
+                                  {renderClickableWords(item.originalText, item, false)}
+                                </div>
                               ) : (
                                 <p
                                   className="cursor-pointer break-words"
@@ -750,7 +767,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                                   style={{
                                     textAlign: originalIsArabic ? "right" : "left",
                                     fontFamily: originalIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
-                                    lineHeight: originalIsArabic ? "1.8" : "1.6",
+                                    lineHeight: originalIsArabic ? "2" : "1.6",
+                                    fontSize: originalIsArabic ? "1.05em" : "0.9em",
                                   }}
                                   onClick={() => seekTo(item.startTime)}
                                 >
@@ -761,9 +779,10 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                           )}
                           {(displayMode === "translation" || displayMode === "both") && translation && (
                             <div
-                              className={`text-[11px] md:text-xs leading-relaxed transition-colors cursor-pointer break-words ${
-                                displayMode === "both" ? "mt-0.5" : ""
+                              className={`leading-relaxed transition-colors cursor-pointer break-words ${
+                                displayMode === "both" ? "mt-1" : ""
                               } ${isActive ? "text-primary/80" : "text-muted-foreground"}`}
+                              style={{ fontSize: "0.85em" }}
                               onClick={() => seekTo(item.startTime)}
                             >
                               {renderTranslationText(translation, false)}
@@ -771,10 +790,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                           )}
                           {displayMode === "translation" && !translation && (
                             <p
-                              className={`text-xs md:text-sm leading-relaxed cursor-pointer break-words ${
+                              className={`leading-relaxed cursor-pointer break-words ${
                                 isActive ? "text-foreground font-medium" : "text-foreground/70"
                               }`}
-                              style={{ textAlign: "left" }}
+                              style={{
+                                textAlign: "left",
+                                fontSize: originalIsArabic ? "1.05em" : "0.9em",
+                              }}
                               onClick={() => seekTo(item.startTime)}
                             >
                               {item.originalText}

@@ -42,6 +42,14 @@ function stripYouTubeDuration(text: string): string {
     .replace(/^\d+\s+minutes?,\s*\d+\s+seconds?/i, "")
     .replace(/^\d+\s+minutes?/i, "")
     .replace(/^\d+\s+hours?,\s*\d+\s+minutes?(?:,\s*\d+\s+seconds?)?/i, "")
+    .replace(/^\d+\s+daqiqa,?\s*\d+\s+soniya/i, "")
+    .replace(/^\d+\s+daqiqa/i, "")
+    .replace(/^\d+\s+soniya/i, "")
+    .replace(/^\d+\s+soat,?\s*\d+\s+daqiqa(?:,?\s*\d+\s+soniya)?/i, "")
+    .replace(/^\d+\s+секунд[аы]?/i, "")
+    .replace(/^\d+\s+минут[аы]?,?\s*\d+\s+секунд[аы]?/i, "")
+    .replace(/^\d+\s+минут[аы]?/i, "")
+    .replace(/^\d+\s+час(?:а|ов)?,?\s*\d+\s+минут[аы]?(?:,?\s*\d+\s+секунд[аы]?)?/i, "")
     .trim();
 }
 
@@ -165,6 +173,14 @@ export function cleanTimestampedText(raw: string): string {
     .replace(/\d+\s+minutes?,\s*\d+\s+seconds?/gi, "")
     .replace(/\d+\s+minutes?/gi, "")
     .replace(/\d+\s+seconds?/gi, "")
+    .replace(/\d+\s+soat,?\s*\d+\s+daqiqa(?:,?\s*\d+\s+soniya)?/gi, "")
+    .replace(/\d+\s+daqiqa,?\s*\d+\s+soniya/gi, "")
+    .replace(/\d+\s+daqiqa/gi, "")
+    .replace(/\d+\s+soniya/gi, "")
+    .replace(/\d+\s+час(?:а|ов)?,?\s*\d+\s+минут[аы]?(?:,?\s*\d+\s+секунд[аы]?)?/gi, "")
+    .replace(/\d+\s+минут[аы]?,?\s*\d+\s+секунд[аы]?/gi, "")
+    .replace(/\d+\s+минут[аы]?/gi, "")
+    .replace(/\d+\s+секунд[аы]?/gi, "")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/[^\S\n]{2,}/g, " ")
     .trim();

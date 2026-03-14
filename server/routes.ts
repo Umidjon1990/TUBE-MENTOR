@@ -555,16 +555,23 @@ export async function registerRoutes(
     if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
     if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
 
-    if (!lesson.subtitlesJson && lesson.manualTranscript) {
-      try {
-        const manualResult = processManualTranscript(lesson.manualTranscript);
-        if (manualResult.timedSubtitles && manualResult.timedSubtitles.length > 0) {
-          const updated = await storage.updateLesson(id, { subtitlesJson: manualResult.timedSubtitles });
-          console.log(`[auto-fix] Dars #${id}: subtitlesJson tiklandi (${manualResult.timedSubtitles.length} ta)`);
-          lesson = updated;
+    if (lesson.manualTranscript) {
+      const existingSubs = lesson.subtitlesJson as { text: string }[] | null;
+      const needsReparse = !existingSubs || existingSubs.some(s => /\d+\s+(soniya|daqiqa|секунд|минут)/i.test(s.text));
+      if (needsReparse) {
+        try {
+          const manualResult = processManualTranscript(lesson.manualTranscript);
+          if (manualResult.timedSubtitles && manualResult.timedSubtitles.length > 0) {
+            const updated = await storage.updateLesson(id, {
+              subtitlesJson: manualResult.timedSubtitles,
+              transcript: manualResult.text,
+            });
+            console.log(`[auto-fix] Dars #${id}: subtitlesJson yangilandi (${manualResult.timedSubtitles.length} ta)`);
+            lesson = updated;
+          }
+        } catch (e) {
+          console.error(`[auto-fix] Dars #${id}: subtitle tiklash xatolik:`, e);
         }
-      } catch (e) {
-        console.error(`[auto-fix] Dars #${id}: subtitle tiklash xatolik:`, e);
       }
     }
 
@@ -1592,8 +1599,25 @@ export async function registerRoutes(
   app.get("/api/lessons/public/:id", async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
-    const lesson = await storage.getLessonById(id);
+    let lesson = await storage.getLessonById(id);
     if (!lesson || lesson.status !== "published") return res.status(404).json({ message: "Dars topilmadi" });
+
+    if (lesson.manualTranscript) {
+      const existingSubs = lesson.subtitlesJson as { text: string }[] | null;
+      const needsReparse = !existingSubs || existingSubs.some(s => /\d+\s+(soniya|daqiqa|секунд|минут)/i.test(s.text));
+      if (needsReparse) {
+        try {
+          const manualResult = processManualTranscript(lesson.manualTranscript);
+          if (manualResult.timedSubtitles && manualResult.timedSubtitles.length > 0) {
+            lesson = await storage.updateLesson(id, {
+              subtitlesJson: manualResult.timedSubtitles,
+              transcript: manualResult.text,
+            });
+          }
+        } catch {}
+      }
+    }
+
     const creator = lesson.createdBy ? await storage.getUser(lesson.createdBy) : null;
     const tags = await resolveTagNames(id);
     const category = lesson.categoryId ? await storage.getAllCategories().then(cats => cats.find(c => c.id === lesson.categoryId)) : null;

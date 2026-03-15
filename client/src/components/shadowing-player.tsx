@@ -251,7 +251,10 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
         playerRef.current.seekTo(sub.startTime, true);
       } else if (isAutoPlay && nextSub) {
         setPlayingIndex(playingIndex + 1);
-        playerRef.current.seekTo(nextSub.startTime, true);
+        const gap = nextSub.startTime - currentTime;
+        if (gap > 0.5) {
+          playerRef.current.seekTo(nextSub.startTime, true);
+        }
       } else {
         playerRef.current.pauseVideo();
         setPlayingIndex(-1);

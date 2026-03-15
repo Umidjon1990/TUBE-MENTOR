@@ -234,6 +234,7 @@ export default function LessonProcessPage() {
             isPending={importMutation.isPending}
             transcript={transcriptPreview}
             manualTranscript={lesson.manualTranscript || ""}
+            targetLanguage={lesson.targetLanguage || "ar"}
           />
         )}
         {step === "generating" && <GeneratingState />}
@@ -582,13 +583,113 @@ function extractTimedLines(manualTranscript: string): { time: string; text: stri
   return result;
 }
 
-function buildChatGptPrompt(transcript: string, manualTranscript: string): string {
+function buildChatGptPrompt(transcript: string, manualTranscript: string, targetLanguage: string = "ar"): string {
   const timedLines = manualTranscript ? extractTimedLines(manualTranscript) : [];
   const hasTiming = timedLines.length > 0;
 
   const timedSection = hasTiming
     ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!\n\nVAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i + 1}. [${l.time}] ${l.text}`).join("\n")}\n`
     : "";
+
+  if (targetLanguage === "en") {
+    return `# ROL
+Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional ingliz tili dars materiallari yaratasan.
+
+## TARJIMA QOIDALARI:
+- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
+- "explanation": O'ZBEK tilida
+
+# JAVOB FORMATI
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
+
+# JSON STRUKTURASI
+{
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "vocabulary": [
+    {
+      "word": "inglizcha so'z (masalan: accomplish)",
+      "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
+      "partOfSpeech": "noun/verb/adjective/adverb/preposition",
+      "example": "transkriptdan inglizcha misol gap",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida batafsil tushuntirish",
+      "type": "multiple_choice"
+    },
+    {
+      "question": "I _____ to the store yesterday — bo'sh joyga mos so'zni tanlang",
+      "options": ["go", "went", "gone", "going"],
+      "correctIndex": 1,
+      "explanation": "went — go fe'lining Past Simple shakli",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "accomplish",
+      "options": ["bajarmoq", "o'qimoq", "yozmoq", "bormoq"],
+      "correctIndex": 0,
+      "explanation": "accomplish — bajarmoq, amalga oshirmoq ma'nosida",
+      "type": "word_translation"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "inglizcha so'z yoki ibora",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "type": "vocabulary | grammar"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "inglizcha gap${hasTiming ? " — AYNAN vaqtli ro'yxatdagi matn" : ""}",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
+      "wordMap": [
+        {
+          "word": "inglizcha so'z",
+          "normalized": "so'zning asosiy shakli (masalan: go)",
+          "translationUz": "O'ZBEKCHA tarjima"
+        }
+      ]
+    }
+  ]
+}
+
+# QOIDALAR
+
+## 1. TARJIMA TILI
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- "word", "sentence", "front", "example" maydonlari — INGLIZ tilida
+
+## 2. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+- sentence_completion: 3-4 ta (inglizcha gap O'RTASIDA _____ bo'shliq, BOSHIDA yoki OXIRIDA EMAS!, 4 inglizcha variant)
+- word_translation: 3-4 ta (inglizcha so'z, 4 o'zbekcha variant)
+
+## 3. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA gaplar — BIRONTASINI HAM TASHLAB KETMA!
+
+## 4. SENTENCEANALYSIS
+- Transkriptdagi har bir gap: tarjima + wordMap SHART
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
+${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi matn bo\'lishi kerak (o\'zgartirma!)' : ""}
+
+## 5. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
+- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir
+${timedSection}
+# TRANSKRIPT:
+${transcript}`;
+  }
 
   return `# ROL
 Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
@@ -727,6 +828,7 @@ function JsonImportState({
   isPending,
   transcript,
   manualTranscript,
+  targetLanguage,
 }: {
   jsonText: string;
   onJsonChange: (v: string) => void;
@@ -735,11 +837,12 @@ function JsonImportState({
   isPending: boolean;
   transcript: string;
   manualTranscript: string;
+  targetLanguage: string;
 }) {
   const [showTemplate, setShowTemplate] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript);
+  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript, targetLanguage);
 
   function copyTemplate() {
     navigator.clipboard.writeText(chatGptPrompt).then(() => {

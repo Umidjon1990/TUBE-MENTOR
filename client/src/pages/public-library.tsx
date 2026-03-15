@@ -317,7 +317,7 @@ export default function PublicLibrary() {
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                        Video ichida kelgan so'zlarni toping — arabcha yoki o'zbekcha qidiring. Tarjimasi, kontekst va videoning aniq joyini ko'ring. Sinab ko'ring!
+                        Video ichida kelgan so'zlarni toping — inglizcha, arabcha yoki o'zbekcha qidiring. Tarjimasi, kontekst va videoning aniq joyini ko'ring. Sinab ko'ring!
                       </p>
                       <div className="inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all">
                         Ochish

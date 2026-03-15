@@ -78,14 +78,14 @@ export default function SmartDictionaryPage() {
             Smart Lug'at
           </h1>
           <p className="text-sm text-muted-foreground">
-            Barcha darslaringiz ichidan so'z qidiring — arabcha yoki o'zbekcha
+            Barcha darslaringiz ichidan so'z qidiring — inglizcha, arabcha yoki o'zbekcha
           </p>
         </div>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="So'z kiriting... (arabcha yoki o'zbekcha)"
+            placeholder="So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10 h-12 text-base bg-card border-border/50"

@@ -87,14 +87,14 @@ export default function PublicDictionaryPage() {
             Smart Lug'at
           </h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
-            Barcha darslar ichidan so'z qidiring — arabcha yoki o'zbekcha. Videodagi aniq joyini toping.
+            Barcha darslar ichidan so'z qidiring — inglizcha, arabcha yoki o'zbekcha. Videodagi aniq joyini toping.
           </p>
         </div>
 
         <div className="relative max-w-2xl mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="So'z kiriting... (arabcha yoki o'zbekcha)"
+            placeholder="So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10 h-12 text-base bg-card border-border/50"

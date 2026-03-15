@@ -15,6 +15,7 @@ import {
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
 import type { Lesson, CoinTransaction } from "@shared/schema";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 interface DashboardData {
   coins: number;
@@ -278,6 +279,11 @@ export default function DashboardPage() {
                               <Headphones className="w-3.5 h-3.5 text-primary/70" />
                             </Button>
                           </Link>
+                          {(lesson as any).targetLanguage && (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 uppercase border-blue-500/30 text-blue-400">
+                              {SUPPORTED_LANGUAGES.find(l => l.code === (lesson as any).targetLanguage)?.name || (lesson as any).targetLanguage}
+                            </Badge>
+                          )}
                           <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
                         </div>
                       </div>
@@ -378,6 +384,29 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="glass border-border/50" data-testid="card-language-courses">
+            <CardContent className="p-6">
+              <h2 className="text-base font-semibold mb-2">Mavjud tillar</h2>
+              <p className="text-xs text-muted-foreground mb-4">Dars yaratishda tilni tanlashingiz mumkin</p>
+              <div className="space-y-2">
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <Link key={lang.code} href="/lessons/create">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer" data-testid={`lang-card-${lang.code}`}>
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/10 to-cyan-500/10 flex items-center justify-center text-lg font-bold">
+                        {lang.code === "ar" ? "ع" : "En"}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{lang.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{lang.nameLocal}</p>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </UserLayout>
@@ -425,7 +454,14 @@ function PublicLessonsWidget() {
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{lesson.title}</p>
-              <p className="text-[10px] text-muted-foreground">{lesson.level}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] text-muted-foreground">{lesson.level}</p>
+                {(lesson as any).targetLanguage && (
+                  <Badge variant="outline" className="text-[8px] px-1 py-0 uppercase border-blue-500/30 text-blue-400">
+                    {SUPPORTED_LANGUAGES.find(l => l.code === (lesson as any).targetLanguage)?.name || (lesson as any).targetLanguage}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </Link>

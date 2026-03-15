@@ -507,8 +507,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
         {hasSubtitles && (
         <div className="rounded-lg glass border border-border/50 px-1 py-0.5" data-testid="learning-controls">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-0">
+          <div className="flex items-center flex-wrap gap-y-0.5">
+            <div className="flex items-center">
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7"
@@ -519,7 +519,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               </Button>
-
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7"
@@ -530,7 +529,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 <SkipBack className="w-3 h-3" />
               </Button>
-
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7"
@@ -541,7 +539,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 <Repeat className="w-3 h-3" />
               </Button>
-
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7"
@@ -552,7 +549,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 <SkipForward className="w-3 h-3" />
               </Button>
-
               <Button
                 variant={isLooping ? "default" : "ghost"}
                 size="icon"
@@ -563,9 +559,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 <Repeat className="w-3 h-3" />
               </Button>
+            </div>
 
-              <div className="w-px h-4 bg-border/40 mx-0.5" />
+            <div className="w-px h-4 bg-border/40 mx-0.5" />
 
+            <div className="flex items-center">
               <Button
                 variant="ghost" size="icon"
                 className="h-6 w-6"
@@ -589,14 +587,38 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               >
                 <Plus className="w-2.5 h-2.5" />
               </Button>
+              <div className="w-px h-4 bg-border/40 mx-0.5" />
+              <Button
+                variant="ghost" size="icon"
+                className="h-6 w-6"
+                onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
+                disabled={subtitleZoom <= 0.7}
+                title="Matn kichikroq"
+                data-testid="button-zoom-out"
+              >
+                <ZoomOut className="w-2.5 h-2.5" />
+              </Button>
+              <span className="text-[8px] font-mono w-[1.4rem] text-center text-muted-foreground" data-testid="text-zoom">
+                {Math.round(subtitleZoom * 100)}%
+              </span>
+              <Button
+                variant="ghost" size="icon"
+                className="h-6 w-6"
+                onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
+                disabled={subtitleZoom >= 1.6}
+                title="Matn kattaroq"
+                data-testid="button-zoom-in"
+              >
+                <ZoomIn className="w-2.5 h-2.5" />
+              </Button>
             </div>
 
-            <div className="flex items-center gap-0.5">
+            <div className="ml-auto flex items-center gap-0.5">
               <div className="flex items-center gap-0 rounded-md glass border border-border/50 p-0.5">
                 <Button
                   variant={displayMode === "original" ? "default" : "ghost"}
                   size="sm"
-                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  className="h-6 text-[9px] md:text-[10px] px-1 md:px-1.5"
                   onClick={() => setDisplayMode("original")}
                   data-testid="button-mode-original"
                 >
@@ -605,7 +627,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                 <Button
                   variant={displayMode === "both" ? "default" : "ghost"}
                   size="sm"
-                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  className="h-6 text-[9px] md:text-[10px] px-1 md:px-1.5"
                   onClick={() => setDisplayMode("both")}
                   data-testid="button-mode-both"
                 >
@@ -614,7 +636,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                 <Button
                   variant={displayMode === "translation" ? "default" : "ghost"}
                   size="sm"
-                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  className="h-6 text-[9px] md:text-[10px] px-1 md:px-1.5"
                   onClick={() => setDisplayMode("translation")}
                   data-testid="button-mode-translation"
                 >
@@ -649,31 +671,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-              <Button
-                variant="ghost" size="icon"
-                className="h-5 w-5"
-                onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
-                disabled={subtitleZoom <= 0.7}
-                title="Kichikroq"
-                data-testid="button-zoom-out"
-              >
-                <ZoomOut className="w-2.5 h-2.5" />
-              </Button>
-              <span className="text-[8px] font-mono w-[1.4rem] text-center text-muted-foreground" data-testid="text-zoom">
-                {Math.round(subtitleZoom * 100)}%
-              </span>
-              <Button
-                variant="ghost" size="icon"
-                className="h-5 w-5"
-                onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
-                disabled={subtitleZoom >= 1.6}
-                title="Kattaroq"
-                data-testid="button-zoom-in"
-              >
-                <ZoomIn className="w-2.5 h-2.5" />
-              </Button>
-              <div className="w-px h-3 bg-border/40 mx-0.5" />
+            <div className="flex items-center gap-1">
               {panelCollapsed ? <ChevronDown className="w-3 h-3 text-muted-foreground" /> : <ChevronUp className="w-3 h-3 text-muted-foreground" />}
             </div>
           </div>

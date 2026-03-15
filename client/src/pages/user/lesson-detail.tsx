@@ -300,7 +300,7 @@ export default function LessonDetailPage() {
       headerExtra={
         <>
           <Link href="/lessons">
-            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back" aria-label="Ortga">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
@@ -310,6 +310,7 @@ export default function LessonDetailPage() {
             className="h-8 w-8 border-primary/30 hover:bg-primary/10"
             onClick={() => setExportOpen(true)}
             data-testid="button-export"
+            aria-label="Yuklab olish"
           >
             <Download className="w-4 h-4" />
           </Button>

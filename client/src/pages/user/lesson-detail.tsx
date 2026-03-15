@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
 import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap } from "@/components/subtitle-player";
+import ShadowingPlayer from "@/components/shadowing-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download
+  Download, Headphones
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -357,6 +358,17 @@ export default function LessonDetailPage() {
               <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
             </Button>
           )}
+          <Link href={`/lessons/${lessonId}/shadowing`}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-primary/30 hover:bg-primary/10"
+              data-testid="button-shadowing-page"
+              aria-label="Shadowing"
+            >
+              <Headphones className="w-4 h-4" />
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="icon"
@@ -430,6 +442,9 @@ export default function LessonDetailPage() {
             <TabsTrigger value="eslatmalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-eslatmalar">
               <StickyNote className="w-3.5 h-3.5 hidden sm:block" /> Eslatmalar
             </TabsTrigger>
+            <TabsTrigger value="shadowing" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-shadowing">
+              <Headphones className="w-3.5 h-3.5 hidden sm:block" /> Shadowing
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="matn" className="mt-4">
@@ -476,6 +491,24 @@ export default function LessonDetailPage() {
               lessonId={parseInt(lessonId!)}
               sentences={sentences}
             />
+          </TabsContent>
+
+          <TabsContent value="shadowing" className="mt-4">
+            {lesson.youtubeUrl && subtitles.length > 0 ? (
+              <ShadowingPlayer
+                youtubeUrl={lesson.youtubeUrl}
+                subtitles={subtitles}
+                lessonId={lesson.id}
+                vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
+                sentenceWordMaps={sentenceWordMaps}
+                className="w-full"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                <Headphones className="w-10 h-10 opacity-40" />
+                <p className="text-sm">Shadowing uchun video va subtitle kerak</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
         </div>

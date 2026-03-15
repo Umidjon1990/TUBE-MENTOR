@@ -46,7 +46,8 @@ client/
         create-lesson.tsx      # Create lesson form with YouTube URL, coin cost
         my-lessons.tsx         # My lessons grid with search/filter/sort
         lesson-process.tsx     # Multi-step transcript extraction + AI generation
-        lesson-detail.tsx      # Interactive lesson with 7 tabs (Matn, Lug'at, Test, Nahw, Xulosa, Kartochkalar, Eslatmalar)
+        lesson-detail.tsx      # Interactive lesson with 8 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar, Shadowing)
+        shadowing.tsx          # Standalone shadowing page (/lessons/:id/shadowing) — audio-only sentence practice
         flashcards.tsx         # Flashcards management
         notes.tsx              # Notes management
         analytics.tsx          # Full analytics dashboard with charts
@@ -79,6 +80,7 @@ shared/
 ## Subtitle Player System
 
 - `client/src/components/subtitle-player.tsx` — YouTube embed + subtitle system + learning controls + word interaction; accepts `readOnly` prop to disable save actions for public view
+- `client/src/components/shadowing-player.tsx` — Audio-only sentence practice: hidden YT player, per-sentence play/pause, loop, speed control, word click inspection, display mode switching
 - YouTube IFrame API for embedded video playback
 - **Learning controls bar**: Play/Pause, ±5s skip, prev/next subtitle, replay current, loop toggle (Takror), speed control (0.5x–2x via Sekinroq/Tezroq), current time display
 - Subtitle overlay on video with glassmorphism styling

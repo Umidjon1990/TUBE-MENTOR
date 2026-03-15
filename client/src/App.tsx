@@ -28,6 +28,7 @@ import AdminDataCenterPage from "@/pages/admin/data-center";
 import PublicLibraryPage from "@/pages/public-library";
 import PublicLessonPage from "@/pages/public-lesson";
 import PublicDictionaryPage from "@/pages/public-dictionary";
+import ShadowingPage from "@/pages/user/shadowing";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -52,6 +53,11 @@ function Router() {
       <Route path="/lessons/:id/process">
         <ProtectedRoute allowedRoles={["student", "teacher"]}>
           <LessonProcessPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/lessons/:id/shadowing">
+        <ProtectedRoute allowedRoles={["student", "teacher"]}>
+          <ShadowingPage />
         </ProtectedRoute>
       </Route>
       <Route path="/lessons/:id">

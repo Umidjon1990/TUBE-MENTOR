@@ -27,6 +27,7 @@ import AdminSettingsPage from "@/pages/admin/settings";
 import AdminDataCenterPage from "@/pages/admin/data-center";
 import PublicLibraryPage from "@/pages/public-library";
 import PublicLessonPage from "@/pages/public-lesson";
+import PublicDictionaryPage from "@/pages/public-dictionary";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/library" component={PublicLibraryPage} />
       <Route path="/library/:id" component={PublicLessonPage} />
+      <Route path="/smart-dictionary" component={PublicDictionaryPage} />
       <Route path="/login" component={LoginPage} />
 
       <Route path="/dashboard">

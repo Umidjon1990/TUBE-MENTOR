@@ -1340,6 +1340,110 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/dictionary/public/search", async (req, res) => {
+    const rawQ = req.query.q;
+    if (typeof rawQ !== "string") return res.json([]);
+    const q = rawQ.trim().toLowerCase();
+    if (q.length < 2 || q.length > 100) return res.json([]);
+
+    try {
+      const allLessons = await storage.getAllLessons();
+      const publishedLessons = allLessons.filter(l => l.status === "published");
+      const results: any[] = [];
+      const seen = new Set<string>();
+
+      const findSubtitleTime = (subtitles: any[], sentenceText: string): number => {
+        if (!subtitles.length || !sentenceText) return 0;
+        const sentWords = sentenceText.replace(/[^\p{L}\p{N}\s]/gu, "").toLowerCase().split(/\s+/).filter(Boolean);
+        if (!sentWords.length) return 0;
+        let bestScore = 0;
+        let bestTime = 0;
+        for (const sub of subtitles) {
+          const subText = (sub.text || "").replace(/[^\p{L}\p{N}\s]/gu, "").toLowerCase();
+          let matched = 0;
+          for (const w of sentWords) {
+            if (subText.includes(w)) matched++;
+          }
+          const score = matched / sentWords.length;
+          if (score > bestScore) {
+            bestScore = score;
+            bestTime = sub.startTime || 0;
+          }
+        }
+        return bestScore >= 0.3 ? bestTime : 0;
+      };
+
+      for (const lesson of publishedLessons) {
+        if (results.length >= 50) break;
+        const sentences: any[] = lesson.sentenceAnalysisJson as any[] || [];
+        const subtitles: any[] = lesson.subtitlesJson as any[] || [];
+        const vocab: any[] = lesson.vocabularyJson as any[] || [];
+
+        for (let si = 0; si < sentences.length && results.length < 50; si++) {
+          const s = sentences[si];
+          const wm: any[] = s.wordMap || [];
+          for (const w of wm) {
+            const word = (w.word || "").toLowerCase();
+            const norm = (w.normalized || "").toLowerCase();
+            const tuz = (w.translationUz || "").toLowerCase();
+            const tar = (w.translationAr || "").toLowerCase();
+            if (word.includes(q) || norm.includes(q) || tuz.includes(q) || tar.includes(q)) {
+              const key = `${norm || word}__${lesson.id}__${si}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+              const startTime = findSubtitleTime(subtitles, s.sentence || "");
+              results.push({
+                word: w.word,
+                normalized: w.normalized,
+                translationUz: w.translationUz,
+                translationAr: w.translationAr,
+                contextualMeaning: w.contextualMeaning,
+                sentence: s.sentence,
+                sentenceTranslation: s.translation,
+                lessonId: lesson.id,
+                lessonTitle: lesson.title,
+                sentenceIndex: si,
+                startTime,
+              });
+              if (results.length >= 50) break;
+            }
+          }
+        }
+
+        for (const v of vocab) {
+          if (results.length >= 50) break;
+          const word = (v.word || "").toLowerCase();
+          const tuz = (v.translation || "").toLowerCase();
+          const tar = (v.translationAr || "").toLowerCase();
+          if (word.includes(q) || tuz.includes(q) || tar.includes(q)) {
+            const key = `vocab__${word}__${lesson.id}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            results.push({
+              word: v.word,
+              normalized: v.word,
+              translationUz: v.translation,
+              translationAr: v.translationAr,
+              contextualMeaning: v.partOfSpeech || "",
+              sentence: v.example || "",
+              sentenceTranslation: "",
+              lessonId: lesson.id,
+              lessonTitle: lesson.title,
+              sentenceIndex: -1,
+              startTime: 0,
+              isVocab: true,
+            });
+          }
+        }
+      }
+
+      res.json(results.slice(0, 50));
+    } catch (err) {
+      console.error("Public dictionary search error:", err);
+      res.status(500).json({ message: "Qidiruvda xatolik" });
+    }
+  });
+
   app.get("/api/user/saved-words", requireAuth, async (req, res) => {
     const userId = (req as any).session.userId;
     const lessonId = req.query.lessonId ? parseInt(req.query.lessonId as string) : null;

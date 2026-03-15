@@ -16,6 +16,7 @@ function PublicNavbar() {
         </Link>
         <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">
           <Link href="/library" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-library">Kutubxona</Link>
+          <Link href="/smart-dictionary" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-dictionary">Lug'at</Link>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
         </nav>
         <div className="flex items-center gap-3">
@@ -52,6 +53,7 @@ function PublicFooter() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#features" className="hover:text-foreground transition-colors">Xususiyatlar</a></li>
               <li><Link href="/library" className="hover:text-foreground transition-colors">Kutubxona</Link></li>
+              <li><Link href="/smart-dictionary" className="hover:text-foreground transition-colors">Smart Lug'at</Link></li>
             </ul>
           </div>
           <div>

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useSearch } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
 import SubtitlePlayer, { type SubtitleItem, type SentenceWordMap } from "@/components/subtitle-player";
 import { ExportStudio } from "@/components/export-studio";
@@ -99,6 +99,14 @@ const levelColors: Record<string, string> = {
 export default function PublicLessonPage() {
   const [, params] = useRoute("/library/:id");
   const lessonId = params?.id;
+  const searchString = useSearch();
+  const initialTime = useMemo(() => {
+    const sp = new URLSearchParams(searchString);
+    const t = sp.get("t");
+    if (!t) return undefined;
+    const parsed = parseInt(t, 10);
+    return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
+  }, [searchString]);
   const { toast } = useToast();
 
   const { data: lesson, isLoading, error } = useQuery<PublicLesson>({
@@ -318,6 +326,7 @@ export default function PublicLessonPage() {
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
             className="w-full"
+            initialSeekTime={initialTime}
             readOnly
           />
         ) : lesson.thumbnailUrl ? (

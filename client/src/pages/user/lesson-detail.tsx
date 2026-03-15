@@ -46,6 +46,7 @@ interface SentenceAnalysis {
   translation: string;
   translationAr?: string;
   wordMap?: WordMapItem[];
+  lineIndices?: number[];
 }
 
 interface VocabItem {
@@ -171,6 +172,26 @@ export default function LessonDetailPage() {
     const normalizeText = (t: string) => normalizeAlef(stripDiacritics(t)).replace(/[\u060C\u061B\u061F\u06D4.,;?!:]/g, "").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
 
     if (timedSubs && timedSubs.length > 0) {
+      const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
+
+      if (hasLineIndices) {
+        return sentences.map((s, idx) => {
+          const indices = s.lineIndices || [];
+          const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
+          const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
+          return {
+            id: idx,
+            sentenceIndex: idx,
+            sentenceIndices: [idx],
+            startTime: firstLine?.startTime ?? idx * 8,
+            endTime: lastLine?.endTime ?? (idx + 1) * 8,
+            originalText: s.sentence,
+            translationUz: s.translation || "",
+            translationAr: s.translationAr || "",
+          };
+        });
+      }
+
       if (timedSubs.length === sentences.length) {
         return timedSubs.map((ts, idx) => ({
           id: idx,
@@ -249,6 +270,26 @@ export default function LessonDetailPage() {
 
   const shadowingSubtitles: SubtitleItem[] = useMemo(() => {
     if (!timedSubs || timedSubs.length === 0) return subtitles;
+
+    const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
+    if (hasLineIndices) {
+      return sentences.map((s, idx) => {
+        const indices = s.lineIndices || [];
+        const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
+        const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
+        const originalTexts = indices.map(i => timedSubs[i]?.text || "").filter(Boolean);
+        return {
+          id: idx,
+          sentenceIndex: idx,
+          sentenceIndices: [idx],
+          startTime: firstLine?.startTime ?? idx * 8,
+          endTime: lastLine?.endTime ?? (idx + 1) * 8,
+          originalText: originalTexts.join(" ") || s.sentence,
+          translationUz: s.translation || "",
+          translationAr: s.translationAr || "",
+        };
+      });
+    }
 
     const stripDiacritics = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
     const normalizeAlef = (t: string) => t.replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");

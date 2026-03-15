@@ -587,8 +587,17 @@ function buildChatGptPrompt(transcript: string, manualTranscript: string, target
   const timedLines = manualTranscript ? extractTimedLines(manualTranscript) : [];
   const hasTiming = timedLines.length > 0;
 
-  const timedSection = hasTiming
+  const arabTimedSection = hasTiming
     ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!\n\nVAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i + 1}. [${l.time}] ${l.text}`).join("\n")}\n`
+    : "";
+
+  const englishTimedSection = hasTiming
+    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni MA'NOVIY JIHATDAN TO'LIQ GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
+- Qisqa qatorlarni (masalan: "the verb", "to be") bitta to'liq gapga ("the verb to be") birlashtirib yoz
+- Har bir birlashtirilgan gap uchun "lineIndices" maydoniga qaysi qator raqamlari kiritilganini yoz (0 dan boshlab)
+- Natijada har bir sentenceAnalysis elementi TO'LIQ, MANTIQIY gap bo'lishi kerak
+
+VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`
     : "";
 
   if (targetLanguage === "en") {
@@ -647,8 +656,8 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "inglizcha gap${hasTiming ? " — AYNAN vaqtli ro'yxatdagi matn" : ""}",
-      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
+      "sentence": "to'liq inglizcha gap (qisqa qatorlarni birlashtirib yozilgan)",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",${hasTiming ? '\n      "lineIndices": [0, 1, 2],' : ""}
       "wordMap": [
         {
           "word": "inglizcha so'z",
@@ -675,18 +684,20 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - vocabulary: 8-15 ta so'z
 - quizzes: 10-12 ta savol (3 tur aralash)
 - flashcards: 8-12 ta karta
-- sentenceAnalysis: BARCHA gaplar — BIRONTASINI HAM TASHLAB KETMA!
+- sentenceAnalysis: BARCHA transkript qatorlari qamrab olinishi kerak — HECH BIRINI TASHLAB KETMA!
 
-## 4. SENTENCEANALYSIS
-- Transkriptdagi har bir gap: tarjima + wordMap SHART
+## 4. SENTENCEANALYSIS — ENG MUHIM
+- Transkriptdagi qisqa qatorlarni MA'NOVIY JIHATDAN to'liq gaplarga BIRLASHTIR
+- Masalan: "the verb" + "to be" + "is used in present tense" = bitta gap: "the verb to be is used in present tense"
+- Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz
 - wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
 - Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
-${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi matn bo\'lishi kerak (o\'zgartirma!)' : ""}
+${hasTiming ? '- "lineIndices": bu gap qaysi vaqtli qator raqamlarini o\'z ichiga olishini ko\'rsatadi (0 dan boshlab). BARCHA qatorlar qamrab olinishi SHART!' : ""}
 
 ## 5. TEXNIK
 - correctIndex: 0 dan boshlanadi (0-3)
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir
-${timedSection}
+${englishTimedSection}
 # TRANSKRIPT:
 ${transcript}`;
   }
@@ -815,7 +826,7 @@ ${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi ma
 ## 6. TEXNIK
 - correctIndex: 0 dan boshlanadi (0-3)
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir
-${timedSection}
+${arabTimedSection}
 # TRANSKRIPT:
 ${transcript}`;
 }

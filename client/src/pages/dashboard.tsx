@@ -391,9 +391,9 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground mb-4">Dars yaratishda tilni tanlashingiz mumkin</p>
               <div className="space-y-2">
                 {SUPPORTED_LANGUAGES.map(lang => (
-                  <Link key={lang.code} href="/lessons/create">
+                  <Link key={lang.code} href={`/lessons/create?lang=${lang.code}`}>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer" data-testid={`lang-card-${lang.code}`}>
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/10 to-cyan-500/10 flex items-center justify-center text-lg font-bold">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold ${lang.code === "ar" ? "bg-gradient-to-br from-emerald-500/20 to-teal-500/20" : "bg-gradient-to-br from-blue-500/20 to-indigo-500/20"}`}>
                         {lang.code === "ar" ? "ع" : "En"}
                       </div>
                       <div className="flex-1">

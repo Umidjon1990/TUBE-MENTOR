@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,18 +11,41 @@ import {
   Search,
   ClipboardCheck,
   Layers,
+  ArrowRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
+
+const langCardData: Record<string, { emoji: string; gradient: string; glow: string; shadow: string; bgPattern: string; desc: string }> = {
+  ar: {
+    emoji: "ع",
+    gradient: "from-emerald-500 via-teal-500 to-cyan-500",
+    glow: "shadow-emerald-500/30",
+    shadow: "hover:shadow-emerald-500/40",
+    bgPattern: "from-emerald-500/5 via-teal-500/5 to-cyan-500/5",
+    desc: "Harakat bilan to'liq arab tili darslari",
+  },
+  en: {
+    emoji: "En",
+    gradient: "from-blue-500 via-indigo-500 to-violet-500",
+    glow: "shadow-blue-500/30",
+    shadow: "hover:shadow-blue-500/40",
+    bgPattern: "from-blue-500/5 via-indigo-500/5 to-violet-500/5",
+    desc: "Ingliz tili darslari va so'z tahlili",
+  },
+};
 
 function HeroSection() {
+  const [hoveredLang, setHoveredLang] = useState<string | null>(null);
+
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 gradient-mesh" />
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px]" />
-      <div className="relative max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-36">
+      <div className="relative max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-28">
         <div className="flex flex-col items-center text-center gap-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 neon-glow-sm">
             <Sparkles className="w-4 h-4 text-primary" />
@@ -52,7 +76,7 @@ function HeroSection() {
             O'qituvchi yaratadi — o'quvchilar foydalanadi.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-2">
             <Link href="/library">
               <Button
                 size="lg"
@@ -63,6 +87,132 @@ function HeroSection() {
                 Boshlash
               </Button>
             </Link>
+          </div>
+
+          <div className="w-full max-w-3xl mt-8">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Languages className="w-5 h-5 text-primary" />
+              <h2 className="text-lg md:text-xl font-semibold">Tilni tanlang va dars yarating</h2>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5 px-2">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const card = langCardData[lang.code] || langCardData.ar;
+                const isHovered = hoveredLang === lang.code;
+
+                return (
+                  <Link key={lang.code} href={`/lessons/create?lang=${lang.code}`}>
+                    <div
+                      className="group relative cursor-pointer"
+                      style={{ perspective: "1000px" }}
+                      onMouseEnter={() => setHoveredLang(lang.code)}
+                      onMouseLeave={() => setHoveredLang(null)}
+                      data-testid={`hero-lang-card-${lang.code}`}
+                    >
+                      <div
+                        className={`
+                          relative rounded-2xl border border-white/10 overflow-hidden
+                          transition-all duration-500 ease-out
+                          bg-gradient-to-br ${card.bgPattern}
+                          backdrop-blur-xl
+                          shadow-2xl ${card.glow} ${card.shadow}
+                          hover:shadow-3xl
+                        `}
+                        style={{
+                          transform: isHovered
+                            ? "rotateY(-5deg) rotateX(5deg) translateY(-8px) scale(1.02)"
+                            : "rotateY(0deg) rotateX(0deg) translateY(0px) scale(1)",
+                          transformStyle: "preserve-3d",
+                          transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.5s ease",
+                        }}
+                      >
+                        <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500`} />
+
+                        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                        <div
+                          className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl transition-opacity duration-700"
+                          style={{
+                            background: `radial-gradient(circle, ${lang.code === "ar" ? "rgba(16,185,129,0.15)" : "rgba(99,102,241,0.15)"}, transparent)`,
+                            opacity: isHovered ? 1 : 0.3,
+                          }}
+                        />
+
+                        <div className="relative p-6 md:p-8" style={{ transformStyle: "preserve-3d" }}>
+                          <div className="flex items-start gap-5">
+                            <div
+                              className={`
+                                w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center
+                                bg-gradient-to-br ${card.gradient}
+                                shadow-lg ${card.glow}
+                                transition-all duration-500
+                                group-hover:scale-110 group-hover:rotate-3
+                              `}
+                              style={{
+                                transform: isHovered ? "translateZ(30px)" : "translateZ(0px)",
+                                transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)",
+                              }}
+                            >
+                              <span className="text-2xl md:text-3xl font-bold text-white">
+                                {card.emoji}
+                              </span>
+                            </div>
+
+                            <div className="flex-1 min-w-0" style={{
+                              transform: isHovered ? "translateZ(20px)" : "translateZ(0px)",
+                              transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)",
+                            }}>
+                              <h3 className="text-xl md:text-2xl font-bold mb-1 group-hover:text-white transition-colors">
+                                {lang.name}
+                              </h3>
+                              <p className="text-base text-muted-foreground/80 font-medium mb-1">
+                                {lang.nameLocal}
+                              </p>
+                              <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                                {card.desc}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div
+                            className={`
+                              flex items-center gap-2 mt-5 pt-4 border-t border-white/5
+                              text-sm font-medium transition-all duration-300
+                              ${isHovered ? "text-white" : "text-muted-foreground"}
+                            `}
+                            style={{
+                              transform: isHovered ? "translateZ(15px)" : "translateZ(0px)",
+                              transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), color 0.3s ease",
+                            }}
+                          >
+                            <span>Dars yaratish</span>
+                            <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} />
+                          </div>
+                        </div>
+
+                        <div
+                          className="absolute inset-0 rounded-2xl pointer-events-none"
+                          style={{
+                            background: isHovered
+                              ? `radial-gradient(ellipse at 30% 20%, ${lang.code === "ar" ? "rgba(16,185,129,0.08)" : "rgba(99,102,241,0.08)"}, transparent 60%)`
+                              : "none",
+                            transition: "background 0.5s ease",
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        className="absolute -bottom-2 left-4 right-4 h-8 rounded-2xl blur-xl transition-opacity duration-500"
+                        style={{
+                          background: `linear-gradient(to right, ${lang.code === "ar" ? "rgba(16,185,129,0.2)" : "rgba(99,102,241,0.2)"}, transparent)`,
+                          opacity: isHovered ? 1 : 0,
+                        }}
+                      />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

@@ -47,10 +47,14 @@ export default function CreateLessonPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
+  const initialLang = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("lang") || "ar"
+    : "ar";
+
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("beginner");
-  const [targetLanguage, setTargetLanguage] = useState("ar");
+  const [targetLanguage, setTargetLanguage] = useState(["ar", "en"].includes(initialLang) ? initialLang : "ar");
   const [categoryId, setCategoryId] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 

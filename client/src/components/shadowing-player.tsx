@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Play, Pause, SkipBack, SkipForward,
   Repeat, Minus, Plus, ZoomIn, ZoomOut,
-  Headphones, ChevronDown, ChevronUp
+  Headphones, ChevronDown, ChevronUp, ListMusic
 } from "lucide-react";
 import WordInspector, { type WordInfo } from "./word-inspector";
 import type { SubtitleItem, VocabLookup, SentenceWordMap, WordMapEntry } from "./subtitle-player";
@@ -82,6 +82,7 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
   const [playbackRate, setPlaybackRate] = useState(1);
   const [playingIndex, setPlayingIndex] = useState(-1);
   const [isLooping, setIsLooping] = useState(false);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [textZoom, setTextZoom] = useState(1);
 
   useEffect(() => {
@@ -237,12 +238,15 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
     if (currentTime >= effectiveEnd) {
       if (isLooping) {
         playerRef.current.seekTo(sub.startTime, true);
+      } else if (isAutoPlay && nextSub) {
+        setPlayingIndex(playingIndex + 1);
+        playerRef.current.seekTo(nextSub.startTime, true);
       } else {
         playerRef.current.pauseVideo();
         setPlayingIndex(-1);
       }
     }
-  }, [currentTime, playingIndex, subtitles, isReady, isLooping]);
+  }, [currentTime, playingIndex, subtitles, isReady, isLooping, isAutoPlay]);
 
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
@@ -357,6 +361,16 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
           <div className="flex items-center gap-0.5">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={goToPrev} disabled={!isReady} title="Oldingi gap" data-testid="shadow-prev">
               <SkipBack className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant={isAutoPlay ? "default" : "ghost"}
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setIsAutoPlay(!isAutoPlay)}
+              title={isAutoPlay ? "Ketma-ket o'ynash yoqilgan" : "Ketma-ket o'ynash"}
+              data-testid="shadow-autoplay"
+            >
+              <ListMusic className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant={isLooping ? "default" : "ghost"}

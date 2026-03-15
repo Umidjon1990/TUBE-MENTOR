@@ -232,7 +232,9 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
   useEffect(() => {
     if (playingIndex < 0 || !subtitles.length || !playerRef.current || !isReady) return;
     const sub = subtitles[playingIndex];
-    if (currentTime >= sub.endTime - 0.1) {
+    const nextSub = subtitles[playingIndex + 1];
+    const effectiveEnd = nextSub ? Math.min(sub.endTime, nextSub.startTime) : sub.endTime;
+    if (currentTime >= effectiveEnd) {
       if (isLooping) {
         playerRef.current.seekTo(sub.startTime, true);
       } else {

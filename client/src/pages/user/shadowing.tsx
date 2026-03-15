@@ -97,7 +97,7 @@ export default function ShadowingPage() {
           sentenceIndices: matchedIndices.length > 0 ? matchedIndices : [Math.min(sentCursor, sentences.length - 1)],
           startTime: ts.startTime,
           endTime: ts.endTime,
-          originalText: matchedSentences.length > 0 ? matchedSentences.join(" ") : ts.text,
+          originalText: ts.text,
           translationUz: matchedTranslations.join(" ") || "",
           translationAr: matchedTranslationsAr.join(" ") || "",
         };

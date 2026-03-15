@@ -213,6 +213,60 @@ export default function PublicLessonPage() {
     }));
   }, [sentences, timedSubs]);
 
+  const shadowingSubtitles: SubtitleItem[] = useMemo(() => {
+    if (!timedSubs || timedSubs.length === 0) return subtitles;
+
+    const stripDiacritics = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+    const normalizeAlef = (t: string) => t.replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
+    const normalizeText = (t: string) => normalizeAlef(stripDiacritics(t)).replace(/[\u060C\u061B\u061F\u06D4.,;?!:]/g, "").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
+
+    const sentNorms = sentences.map(s => normalizeText(s.sentence));
+    const sentWords = sentNorms.map(n => new Set(n.split(" ").filter(w => w.length > 1)));
+
+    let sentCursor = 0;
+    return timedSubs.map((ts, idx) => {
+      const tsNorm = normalizeText(ts.text);
+      const tsWordSet = new Set(tsNorm.split(" ").filter(w => w.length > 1));
+
+      const matchedTranslations: string[] = [];
+      const matchedTranslationsAr: string[] = [];
+      const matchedIndices: number[] = [];
+      let firstMatchIdx = -1;
+      let matchedCharLen = 0;
+      const tsLen = tsNorm.length;
+
+      for (let si = sentCursor; si < sentences.length; si++) {
+        const sWords = sentWords[si];
+        let hits = 0;
+        sWords.forEach(w => { if (tsWordSet.has(w)) hits++; });
+        const overlap = hits / Math.max(1, sWords.size);
+
+        if (overlap >= 0.5) {
+          if (firstMatchIdx < 0) firstMatchIdx = si;
+          matchedIndices.push(si);
+          matchedTranslations.push(sentences[si].translation);
+          if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
+          matchedCharLen += sentNorms[si].length;
+          sentCursor = si + 1;
+          if (matchedCharLen >= tsLen * 0.8) break;
+        } else if (matchedTranslations.length > 0) {
+          break;
+        }
+      }
+
+      return {
+        id: idx,
+        sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : Math.min(sentCursor, sentences.length - 1),
+        sentenceIndices: matchedIndices.length > 0 ? matchedIndices : [Math.min(sentCursor, sentences.length - 1)],
+        startTime: ts.startTime,
+        endTime: ts.endTime,
+        originalText: ts.text,
+        translationUz: matchedTranslations.join(" ") || "",
+        translationAr: matchedTranslationsAr.join(" ") || "",
+      };
+    });
+  }, [subtitles, sentences, timedSubs]);
+
   const sentenceWordMaps: SentenceWordMap[] = useMemo(() => {
     return sentences
       .map((s, idx) => ({
@@ -436,10 +490,10 @@ export default function PublicLessonPage() {
             </TabsContent>
 
             <TabsContent value="shadowing" className="mt-4">
-              {lesson.youtubeUrl && subtitles.length > 0 ? (
+              {lesson.youtubeUrl && shadowingSubtitles.length > 0 ? (
                 <ShadowingPlayer
                   youtubeUrl={lesson.youtubeUrl}
-                  subtitles={subtitles}
+                  subtitles={shadowingSubtitles}
                   lessonId={lesson.id}
                   vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
                   sentenceWordMaps={sentenceWordMaps}

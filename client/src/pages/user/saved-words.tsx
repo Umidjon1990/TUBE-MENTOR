@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import {
   BookOpen, Search, Trash2, Check, X, Filter,
-  BookmarkCheck, ArrowRight, Volume2, Sparkles,
+  BookmarkCheck, ArrowRight, Volume2, Sparkles, Copy, ClipboardCheck,
 } from "lucide-react";
 import type { SavedWord, Lesson } from "@shared/schema";
 
@@ -26,6 +26,7 @@ export default function SavedWordsPage() {
   const [search, setSearch] = useState("");
   const [filterLesson, setFilterLesson] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const { data: words = [], isLoading } = useQuery<SavedWord[]>({
@@ -83,6 +84,27 @@ export default function SavedWordsPage() {
 
   const learnedCount = words.filter(w => w.isLearned).length;
   const newCount = words.filter(w => !w.isLearned).length;
+
+  const copyForTelegram = () => {
+    if (filteredWords.length === 0) return;
+
+    const firstLesson = lessons.find(l => l.id === filteredWords[0].lessonId);
+    const lang = (firstLesson as any)?.targetLanguage || "ar";
+    const flags = lang === "en" ? "🇬🇧🇺🇿" : "🇸🇦🇺🇿";
+
+    const lines = filteredWords.map((w, i) => {
+      const pron = w.pronunciation ? ` =(${w.pronunciation})=` : "";
+      const translation = w.translationUz || w.translationAr || "";
+      return `${i + 1}. ${w.word}${pron} ${translation}`;
+    });
+
+    const text = `${flags}\n${lines.join("\n")}`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      toast({ title: "Nusxalandi!", description: `${filteredWords.length} ta so'z Telegram formatida nusxalandi` });
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   if (isLoading) {
     return (

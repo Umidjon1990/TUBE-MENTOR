@@ -295,36 +295,32 @@ export default function LessonDetailPage() {
 
   return (
     <UserLayout title={lesson.title}>
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-2">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
           <Link href="/lessons">
-            <Button variant="ghost" size="sm" data-testid="button-back">
-              <ArrowLeft className="w-4 h-4 mr-1" /> Ortga
+            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back">
+              <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold truncate" data-testid="text-lesson-title">
+            <h1 className="text-base md:text-lg font-bold truncate" data-testid="text-lesson-title">
               {lesson.title}
             </h1>
-            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-              <Badge variant="outline" className="text-xs">{lesson.level}</Badge>
-              <span>•</span>
-              <span>{vocabulary.length} so'z</span>
-              <span>•</span>
-              <span>{quizzes.length} test</span>
-              <span>•</span>
-              <span>{sentences.length} gap</span>
-            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-muted-foreground shrink-0">
+            <Badge variant="outline" className="text-[10px] h-5">{lesson.level}</Badge>
+            <span>{vocabulary.length} so'z</span>
+            <span>•</span>
+            <span>{quizzes.length} test</span>
           </div>
           <Button
             variant="outline"
-            size="sm"
-            className="shrink-0 gap-1.5 border-primary/30 hover:bg-primary/10"
+            size="icon"
+            className="h-8 w-8 shrink-0 border-primary/30 hover:bg-primary/10"
             onClick={() => setExportOpen(true)}
             data-testid="button-export"
           >
             <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Yuklab olish</span>
           </Button>
         </div>
 

@@ -484,7 +484,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   return (
     <div className={`${className}`}>
-      <div className="sticky top-0 z-20 bg-background pb-1.5 md:pb-3 space-y-1.5 md:space-y-3">
+      <div className="sticky top-0 z-20 bg-background pb-1 space-y-1">
         <div className="relative overflow-hidden bg-black">
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
@@ -504,209 +504,177 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         </div>
 
         {hasSubtitles && (
-        <div className="rounded-xl glass border border-border/50 p-1 md:p-1.5" data-testid="learning-controls">
-          <div className="flex flex-wrap items-center gap-0.5">
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={togglePlayPause}
-              disabled={!isReady}
-              title={isPlaying ? "Pauza" : "Ijro etish"}
-              data-testid="button-play-pause"
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </Button>
-
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={() => skipSeconds(-5)}
-              disabled={!isReady}
-              title="5 soniya orqaga"
-              data-testid="button-back-5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </Button>
-
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={goToPrevSubtitle}
-              disabled={!isReady || !hasSubtitles}
-              title="Oldingi subtitle"
-              data-testid="button-prev-subtitle"
-            >
-              <SkipBack className="w-3.5 h-3.5" />
-            </Button>
-
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={replayCurrentSubtitle}
-              disabled={!isReady || activeIndex < 0}
-              title="Qayta eshitish"
-              data-testid="button-replay"
-            >
-              <Repeat className="w-3.5 h-3.5" />
-            </Button>
-
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={goToNextSubtitle}
-              disabled={!isReady || !hasSubtitles}
-              title="Keyingi subtitle"
-              data-testid="button-next-subtitle"
-            >
-              <SkipForward className="w-3.5 h-3.5" />
-            </Button>
-
-            <Button
-              variant="ghost" size="icon"
-              className="h-8 w-8"
-              onClick={() => skipSeconds(5)}
-              disabled={!isReady}
-              title="5 soniya oldinga"
-              data-testid="button-forward-5"
-            >
-              <RotateCcw className="w-3.5 h-3.5 scale-x-[-1]" />
-            </Button>
-
-            <Button
-              variant={isLooping ? "default" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsLooping(!isLooping)}
-              title="Takrorlash"
-              data-testid="button-loop"
-            >
-              <Repeat className="w-3.5 h-3.5" />
-            </Button>
-
-            <div className="w-px h-5 bg-border/40 mx-0.5 hidden sm:block" />
-
-            <div className="flex items-center">
+        <div className="rounded-lg glass border border-border/50 px-1 py-0.5" data-testid="learning-controls">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-0">
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7"
+                onClick={togglePlayPause}
+                disabled={!isReady}
+                title={isPlaying ? "Pauza" : "Ijro etish"}
+                data-testid="button-play-pause"
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </Button>
+
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={goToPrevSubtitle}
+                disabled={!isReady || !hasSubtitles}
+                title="Oldingi subtitle"
+                data-testid="button-prev-subtitle"
+              >
+                <SkipBack className="w-3 h-3" />
+              </Button>
+
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={replayCurrentSubtitle}
+                disabled={!isReady || activeIndex < 0}
+                title="Qayta eshitish"
+                data-testid="button-replay"
+              >
+                <Repeat className="w-3 h-3" />
+              </Button>
+
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7"
+                onClick={goToNextSubtitle}
+                disabled={!isReady || !hasSubtitles}
+                title="Keyingi subtitle"
+                data-testid="button-next-subtitle"
+              >
+                <SkipForward className="w-3 h-3" />
+              </Button>
+
+              <Button
+                variant={isLooping ? "default" : "ghost"}
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setIsLooping(!isLooping)}
+                title="Takrorlash"
+                data-testid="button-loop"
+              >
+                <Repeat className="w-3 h-3" />
+              </Button>
+
+              <div className="w-px h-4 bg-border/40 mx-0.5" />
+
+              <Button
+                variant="ghost" size="icon"
+                className="h-6 w-6"
                 onClick={() => changeSpeed(-1)}
                 disabled={playbackRate <= 0.5}
                 title="Sekinroq"
                 data-testid="button-speed-down"
               >
-                <Minus className="w-3 h-3" />
+                <Minus className="w-2.5 h-2.5" />
               </Button>
-              <span className="text-[10px] font-mono w-[2rem] text-center font-medium" data-testid="text-speed">
+              <span className="text-[9px] font-mono w-[1.5rem] text-center font-medium" data-testid="text-speed">
                 {playbackRate}x
               </span>
               <Button
                 variant="ghost" size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6"
                 onClick={() => changeSpeed(1)}
                 disabled={playbackRate >= 2}
                 title="Tezroq"
                 data-testid="button-speed-up"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-2.5 h-2.5" />
               </Button>
             </div>
 
-            <div className="w-px h-5 bg-border/40 mx-0.5 hidden sm:block" />
+            <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-0 rounded-md glass border border-border/50 p-0.5">
+                <Button
+                  variant={displayMode === "original" ? "default" : "ghost"}
+                  size="sm"
+                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  onClick={() => setDisplayMode("original")}
+                  data-testid="button-mode-original"
+                >
+                  Asl
+                </Button>
+                <Button
+                  variant={displayMode === "both" ? "default" : "ghost"}
+                  size="sm"
+                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  onClick={() => setDisplayMode("both")}
+                  data-testid="button-mode-both"
+                >
+                  Ikkalasi
+                </Button>
+                <Button
+                  variant={displayMode === "translation" ? "default" : "ghost"}
+                  size="sm"
+                  className="h-6 text-[9px] md:text-[10px] px-1.5"
+                  onClick={() => setDisplayMode("translation")}
+                  data-testid="button-mode-translation"
+                >
+                  Tarjima
+                </Button>
+              </div>
+              <span className="text-[9px] font-mono text-muted-foreground hidden md:block" data-testid="text-current-time">
+                {formatTime(currentTime)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
 
-            <div className="flex items-center">
+      {hasSubtitles && (
+        <div
+          className="rounded-lg glass border border-border/50 overflow-hidden transition-all duration-300 mt-1"
+          data-testid="subtitle-panel"
+        >
+          <div
+            className="flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30 hover:bg-white/5 transition-colors cursor-pointer"
+            onClick={() => setPanelCollapsed(!panelCollapsed)}
+            data-testid="button-toggle-panel"
+          >
+            <div className="flex items-center gap-1.5">
+              <Subtitles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[10px] md:text-xs font-medium">Subtitlelar</span>
+              {activeIndex >= 0 && (
+                <span className="text-[9px] text-primary font-mono">
+                  {activeIndex + 1}/{subtitles.length}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
               <Button
                 variant="ghost" size="icon"
-                className="h-7 w-7"
+                className="h-5 w-5"
                 onClick={() => setSubtitleZoom(z => Math.max(0.7, +(z - 0.1).toFixed(1)))}
                 disabled={subtitleZoom <= 0.7}
                 title="Kichikroq"
                 data-testid="button-zoom-out"
               >
-                <ZoomOut className="w-3 h-3" />
+                <ZoomOut className="w-2.5 h-2.5" />
               </Button>
-              <span className="text-[9px] font-mono w-[1.6rem] text-center text-muted-foreground" data-testid="text-zoom">
+              <span className="text-[8px] font-mono w-[1.4rem] text-center text-muted-foreground" data-testid="text-zoom">
                 {Math.round(subtitleZoom * 100)}%
               </span>
               <Button
                 variant="ghost" size="icon"
-                className="h-7 w-7"
+                className="h-5 w-5"
                 onClick={() => setSubtitleZoom(z => Math.min(1.6, +(z + 0.1).toFixed(1)))}
                 disabled={subtitleZoom >= 1.6}
                 title="Kattaroq"
                 data-testid="button-zoom-in"
               >
-                <ZoomIn className="w-3 h-3" />
+                <ZoomIn className="w-2.5 h-2.5" />
               </Button>
+              <div className="w-px h-3 bg-border/40 mx-0.5" />
+              {panelCollapsed ? <ChevronDown className="w-3 h-3 text-muted-foreground" /> : <ChevronUp className="w-3 h-3 text-muted-foreground" />}
             </div>
           </div>
-        </div>
-      )}
-
-      <div className="flex items-center gap-1">
-        <div className="flex items-center gap-0.5 rounded-lg glass border border-border/50 p-0.5">
-          <Button
-            variant={displayMode === "original" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
-            onClick={() => setDisplayMode("original")}
-            data-testid="button-mode-original"
-          >
-            <Monitor className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
-            Asl
-          </Button>
-          <Button
-            variant={displayMode === "both" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
-            onClick={() => setDisplayMode("both")}
-            data-testid="button-mode-both"
-          >
-            <Subtitles className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
-            Asl+Tarjima
-          </Button>
-          <Button
-            variant={displayMode === "translation" ? "default" : "ghost"}
-            size="sm"
-            className="h-7 text-[10px] md:text-xs px-1.5 md:px-2.5"
-            onClick={() => setDisplayMode("translation")}
-            data-testid="button-mode-translation"
-          >
-            <Languages className="w-3 h-3 mr-0.5 hidden sm:inline-block" />
-            Tarjima
-          </Button>
-        </div>
-        <span className="text-[10px] font-mono text-muted-foreground hidden sm:block" data-testid="text-current-time">
-          {formatTime(currentTime)}
-        </span>
-      </div>
-      </div>
-
-      {hasSubtitles && (
-        <div
-          className="rounded-xl glass border border-border/50 overflow-hidden transition-all duration-300 mt-1.5 md:mt-3"
-          data-testid="subtitle-panel"
-        >
-          <button
-            className="w-full flex items-center justify-between px-2.5 md:px-4 py-1.5 md:py-2 border-b border-border/30 hover:bg-white/5 transition-colors cursor-pointer"
-            onClick={() => setPanelCollapsed(!panelCollapsed)}
-            data-testid="button-toggle-panel"
-          >
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <Subtitles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
-              <span className="text-[11px] md:text-sm font-medium">Subtitlelar</span>
-              {activeIndex >= 0 && (
-                <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">
-                  {activeIndex + 1}/{subtitles.length}
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Badge variant="secondary" className="text-[9px] hidden sm:inline-flex">
-                {subtitles.length} qator
-              </Badge>
-              {panelCollapsed ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />}
-            </div>
-          </button>
 
           {!panelCollapsed && (
             <div

@@ -414,14 +414,15 @@ function TextBlocksSection({ blocks, targetLanguage = "ar" }: { blocks: Sentence
         Matn va Tarjima
       </Text>
       {blocks.map((block) => (
-        <View key={block.index} style={styles.sentenceBlock} wrap={false}>
+        <View key={block.index} style={[styles.sentenceBlock, !isArabic ? { borderBottomWidth: 0.5, borderBottomColor: "#e0e0e0", paddingBottom: 10, marginBottom: 12 } : {}]} wrap={false}>
           {block.sentence && block.wordMap && block.wordMap.length > 0 ? (
             <View style={{
               flexDirection: "row" as const,
               flexWrap: "wrap" as const,
-              gap: 8,
+              gap: isArabic ? 8 : 4,
               justifyContent: isArabic ? "flex-end" as const : "flex-start" as const,
               marginBottom: 6,
+              ...(isArabic ? {} : { backgroundColor: "#f8fafc", padding: 6, borderRadius: 4 }),
             }}>
               {isArabic ? (
                 <>
@@ -439,13 +440,13 @@ function TextBlocksSection({ blocks, targetLanguage = "ar" }: { blocks: Sentence
                 </>
               ) : (
                 <>
-                  <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica" }}>{block.index}.</Text>
+                  <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica", marginRight: 4 }}>{block.index}.</Text>
                   {block.wordMap.map((w, wi) => {
                     const clr = WORD_COLORS[wi % WORD_COLORS.length];
                     return (
-                      <View key={wi} style={{ alignItems: "center" as const }}>
-                        <Text style={{ fontSize: 13, color: clr, fontFamily: "Helvetica-Bold" }}>{w.word}</Text>
-                        <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
+                      <View key={wi} style={{ alignItems: "center" as const, paddingHorizontal: 3 }}>
+                        <Text style={{ fontSize: 12, color: clr, fontFamily: "Helvetica-Bold" }}>{w.word}</Text>
+                        <SmartText style={{ fontSize: 7, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
                       </View>
                     );
                   })}

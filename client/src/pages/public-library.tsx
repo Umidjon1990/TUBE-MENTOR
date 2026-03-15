@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages, ArrowRight } from "lucide-react";
+import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages } from "lucide-react";
 import type { Lesson, Category } from "@shared/schema";
 import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
@@ -286,48 +286,6 @@ export default function PublicLibrary() {
         ) : (
           <>
             {!hasFilters && <FeaturedSection lessons={lessons} />}
-
-            {!hasFilters && (
-              <Link href="/smart-dictionary">
-                <section
-                  className="mb-12 p-5 md:p-6 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-violet-500/5 cursor-pointer group hover:border-primary/40 transition-all duration-300 relative overflow-hidden"
-                  style={{ boxShadow: "0 0 20px hsl(var(--primary) / 0.08), 0 0 40px hsl(var(--primary) / 0.04)" }}
-                  data-testid="section-smart-dictionary-promo"
-                >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
-                  <div className="flex items-start gap-4 relative z-10">
-                    <div
-                      className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center"
-                      style={{ boxShadow: "0 0 16px hsl(var(--primary) / 0.4), 0 0 32px hsl(var(--primary) / 0.2)" }}
-                    >
-                      <Languages className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3
-                          className="text-lg font-bold text-primary"
-                          style={{ textShadow: "0 0 12px hsl(var(--primary) / 0.3)" }}
-                          data-testid="text-smart-dictionary-title"
-                        >
-                          Smart Lug'at
-                        </h3>
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
-                          <Sparkles className="w-3 h-3 mr-0.5" />
-                          AI
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                        Video ichida kelgan so'zlarni toping — inglizcha, arabcha yoki o'zbekcha qidiring. Tarjimasi, kontekst va videoning aniq joyini ko'ring. Sinab ko'ring!
-                      </p>
-                      <div className="inline-flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all">
-                        Ochish
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </Link>
-            )}
 
             <section data-testid="section-all-lessons">
               <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">

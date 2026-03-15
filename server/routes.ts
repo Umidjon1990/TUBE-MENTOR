@@ -1278,10 +1278,14 @@ export async function registerRoutes(
   app.get("/api/user/dictionary/search", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
     const q = (req.query.q as string || "").trim().toLowerCase();
+    const langFilter = req.query.lang as string || "";
     if (!q || q.length < 2) return res.json([]);
 
     try {
-      const userLessons = await storage.getLessonsByUser(userId);
+      let userLessons = await storage.getLessonsByUser(userId);
+      if (langFilter && ["ar", "en"].includes(langFilter)) {
+        userLessons = userLessons.filter(l => (l.targetLanguage || "ar") === langFilter);
+      }
       const results: any[] = [];
       const seen = new Set<string>();
 
@@ -1380,11 +1384,15 @@ export async function registerRoutes(
     const rawQ = req.query.q;
     if (typeof rawQ !== "string") return res.json([]);
     const q = rawQ.trim().toLowerCase();
+    const langFilter = req.query.lang as string || "";
     if (q.length < 2 || q.length > 100) return res.json([]);
 
     try {
       const allLessons = await storage.getAllLessons();
-      const publishedLessons = allLessons.filter(l => l.status === "published");
+      let publishedLessons = allLessons.filter(l => l.status === "published");
+      if (langFilter && ["ar", "en"].includes(langFilter)) {
+        publishedLessons = publishedLessons.filter(l => (l.targetLanguage || "ar") === langFilter);
+      }
       const results: any[] = [];
       const seen = new Set<string>();
 

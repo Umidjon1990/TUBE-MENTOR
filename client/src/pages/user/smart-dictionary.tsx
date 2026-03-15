@@ -1,13 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, BookOpen, Play, Clock, ArrowRight, Languages } from "lucide-react";
+import { Search, BookOpen, Play, Clock, ArrowRight, Languages, ArrowLeft } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 interface DictResult {
   word: string;
@@ -37,7 +38,13 @@ export default function SmartDictionaryPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [, navigate] = useLocation();
+  const searchString = useSearch();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const params = new URLSearchParams(searchString);
+  const lang = params.get("lang") || "";
+  const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === lang);
+  const langName = langInfo?.name || lang;
 
   useEffect(() => {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
@@ -52,10 +59,11 @@ export default function SmartDictionaryPage() {
   }, []);
 
   const { data: results = [], isLoading } = useQuery<DictResult[]>({
-    queryKey: ["/api/user/dictionary/search", debouncedQuery],
+    queryKey: ["/api/user/dictionary/search", debouncedQuery, lang],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
-      const res = await fetch(`/api/user/dictionary/search?q=${encodeURIComponent(debouncedQuery)}`);
+      const url = `/api/user/dictionary/search?q=${encodeURIComponent(debouncedQuery)}${lang ? `&lang=${lang}` : ""}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Search failed");
       return res.json();
     },
@@ -69,27 +77,53 @@ export default function SmartDictionaryPage() {
     return acc;
   }, {});
 
+  const placeholderText = lang === "en"
+    ? "So'z kiriting... (inglizcha yoki o'zbekcha)"
+    : lang === "ar"
+    ? "So'z kiriting... (arabcha yoki o'zbekcha)"
+    : "So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)";
+
+  const descText = lang
+    ? `${langName} darslaringiz ichidan so'z qidiring`
+    : "Barcha darslaringiz ichidan so'z qidiring";
+
   return (
     <UserLayout title="Smart Lug'at">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="space-y-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-1 gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={() => window.history.back()}
+            data-testid="button-dict-back"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Orqaga
+          </Button>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-dictionary-title">
             <Languages className="w-7 h-7 text-primary" />
             Smart Lug'at
+            {langInfo && (
+              <Badge variant="secondary" className="text-xs ml-1">
+                {langInfo.flag} {langName}
+              </Badge>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Barcha darslaringiz ichidan so'z qidiring — inglizcha, arabcha yoki o'zbekcha
+            {descText}
           </p>
         </div>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)"
+            placeholder={placeholderText}
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10 h-12 text-base bg-card border-border/50"
             dir="auto"
+            autoFocus
             data-testid="input-dictionary-search"
           />
         </div>
@@ -100,7 +134,7 @@ export default function SmartDictionaryPage() {
               <Search className="w-8 h-8 text-primary/50" />
             </div>
             <p className="text-muted-foreground text-sm">
-              Arabcha yoki o'zbekcha so'z yozing — barcha darslaringizdan topiladi
+              Kamida 2 ta harf yozing — {lang ? `${langName} darslaringizdan` : "barcha darslaringizdan"} qidiriladi
             </p>
           </div>
         )}

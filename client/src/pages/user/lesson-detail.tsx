@@ -23,7 +23,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones
+  Download, Headphones, Search
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -453,6 +453,17 @@ export default function LessonDetailPage() {
               <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
             </Button>
           )}
+          <Link href={`/dictionary?lang=${lesson.targetLanguage || "ar"}`}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 border-primary/30 hover:bg-primary/10"
+              data-testid="button-smart-dictionary"
+              aria-label="Smart Lug'at"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </Link>
           <Link href={`/lessons/${lessonId}/shadowing`}>
             <Button
               variant="outline"

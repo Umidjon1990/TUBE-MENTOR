@@ -26,7 +26,7 @@ import {
   ArrowLeft, AlertCircle, Sparkles, Lightbulb,
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Check, X, User, Calendar,
-  Tag, FolderOpen, Star, Globe, Download, RotateCcw, Headphones
+  Tag, FolderOpen, Star, Globe, Download, RotateCcw, Headphones, Search
 } from "lucide-react";
 import type { Lesson, Tag as TagType, Category } from "@shared/schema";
 
@@ -395,6 +395,17 @@ export default function PublicLessonPage() {
           <h1 className="flex-1 text-sm md:text-base font-bold truncate" data-testid="text-lesson-title-header">
             {lesson.title}
           </h1>
+          <Link href={`/smart-dictionary?lang=${lesson.targetLanguage || "ar"}`}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 shrink-0 border-primary/30 hover:bg-primary/10"
+              data-testid="button-smart-dictionary"
+              aria-label="Smart Lug'at"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="icon"

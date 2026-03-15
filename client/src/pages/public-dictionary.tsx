@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, BookOpen, Play, Clock, ArrowRight, ArrowLeft, Languages, Volume2 } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 interface DictResult {
   word: string;
@@ -38,7 +39,13 @@ export default function PublicDictionaryPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [, navigate] = useLocation();
+  const searchString = useSearch();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const params = new URLSearchParams(searchString);
+  const lang = params.get("lang") || "";
+  const langInfo = SUPPORTED_LANGUAGES.find(l => l.code === lang);
+  const langName = langInfo?.name || lang;
 
   useEffect(() => {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
@@ -53,10 +60,11 @@ export default function PublicDictionaryPage() {
   }, []);
 
   const { data: results = [], isLoading } = useQuery<DictResult[]>({
-    queryKey: ["/api/dictionary/public/search", debouncedQuery],
+    queryKey: ["/api/dictionary/public/search", debouncedQuery, lang],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 2) return [];
-      const res = await fetch(`/api/dictionary/public/search?q=${encodeURIComponent(debouncedQuery)}`);
+      const url = `/api/dictionary/public/search?q=${encodeURIComponent(debouncedQuery)}${lang ? `&lang=${lang}` : ""}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Search failed");
       return res.json();
     },
@@ -70,31 +78,50 @@ export default function PublicDictionaryPage() {
     return acc;
   }, {});
 
+  const placeholderText = lang === "en"
+    ? "So'z kiriting... (inglizcha yoki o'zbekcha)"
+    : lang === "ar"
+    ? "So'z kiriting... (arabcha yoki o'zbekcha)"
+    : "So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)";
+
+  const descText = lang
+    ? `${langName} darslari ichidan so'z qidiring. Videodagi aniq joyini toping.`
+    : "Barcha darslar ichidan so'z qidiring — inglizcha, arabcha yoki o'zbekcha. Videodagi aniq joyini toping.";
+
   return (
     <PublicLayout>
       <div className="max-w-4xl mx-auto px-3 md:px-6 py-6 md:py-10 space-y-6">
-        <Link href="/library">
-          <Button variant="ghost" size="sm" className="mb-1 gap-1.5 text-muted-foreground hover:text-foreground" data-testid="button-back-library">
-            <ArrowLeft className="w-4 h-4" />
-            Kutubxonaga qaytish
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-1 gap-1.5 text-muted-foreground hover:text-foreground"
+          onClick={() => window.history.back()}
+          data-testid="button-back-library"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Orqaga
+        </Button>
         <div className="text-center space-y-3">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-cyan-400/20 flex items-center justify-center">
             <Languages className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold" data-testid="text-public-dictionary-title">
             Smart Lug'at
+            {langInfo && (
+              <Badge variant="secondary" className="text-sm ml-2 align-middle">
+                {langInfo.flag} {langName}
+              </Badge>
+            )}
           </h1>
           <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
-            Barcha darslar ichidan so'z qidiring — inglizcha, arabcha yoki o'zbekcha. Videodagi aniq joyini toping.
+            {descText}
           </p>
         </div>
 
         <div className="relative max-w-2xl mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="So'z kiriting... (inglizcha, arabcha yoki o'zbekcha)"
+            placeholder={placeholderText}
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10 h-12 text-base bg-card border-border/50"
@@ -110,7 +137,7 @@ export default function PublicDictionaryPage() {
               <Search className="w-8 h-8 text-primary/50" />
             </div>
             <p className="text-muted-foreground text-sm">
-              Kamida 2 ta harf yozing — barcha e'lon qilingan darslardan qidiriladi
+              Kamida 2 ta harf yozing — {lang ? `${langName} darslardan` : "barcha e'lon qilingan darslardan"} qidiriladi
             </p>
           </div>
         )}

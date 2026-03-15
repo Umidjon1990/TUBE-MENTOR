@@ -490,20 +490,19 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         <div className="relative overflow-hidden bg-black">
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
-            {activeSubtitle && (
-              <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center" data-testid="subtitle-overlay">
-                <div
-                  className="w-full px-3 md:px-6 py-2 md:py-3 bg-gradient-to-t from-black/90 via-black/75 to-transparent"
-                  style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center bottom" }}
-                >
-                  <div className="text-center">
-                    {renderOverlayText(activeSubtitle)}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {activeSubtitle && (
+          <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
+            <div
+              className="text-center"
+              style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center center" }}
+            >
+              {renderOverlayText(activeSubtitle)}
+            </div>
+          </div>
+        )}
 
         {hasSubtitles && (
         <div className="md:rounded-lg glass border-y md:border border-border/50 px-1 py-0.5" data-testid="learning-controls">

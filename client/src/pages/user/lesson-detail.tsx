@@ -294,36 +294,29 @@ export default function LessonDetailPage() {
   }
 
   return (
-    <UserLayout title={lesson.title}>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
+    <UserLayout
+      title={lesson.title}
+      noPadding
+      headerExtra={
+        <>
           <Link href="/lessons">
             <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base md:text-lg font-bold truncate" data-testid="text-lesson-title">
-              {lesson.title}
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-muted-foreground shrink-0">
-            <Badge variant="outline" className="text-[10px] h-5">{lesson.level}</Badge>
-            <span>{vocabulary.length} so'z</span>
-            <span>•</span>
-            <span>{quizzes.length} test</span>
-          </div>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0 border-primary/30 hover:bg-primary/10"
+            className="h-8 w-8 border-primary/30 hover:bg-primary/10"
             onClick={() => setExportOpen(true)}
             data-testid="button-export"
           >
             <Download className="w-4 h-4" />
           </Button>
-        </div>
-
+        </>
+      }
+    >
+      <div>
         <ExportStudio
           open={exportOpen}
           onOpenChange={setExportOpen}
@@ -344,7 +337,7 @@ export default function LessonDetailPage() {
             seekNonce={seekNonce}
           />
         ) : lesson.thumbnailUrl ? (
-          <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">
+          <div className="relative overflow-hidden aspect-video">
             <img src={lesson.thumbnailUrl} alt={lesson.title} className="w-full h-full object-cover" />
             {lesson.youtubeUrl && (
               <a
@@ -362,6 +355,7 @@ export default function LessonDetailPage() {
           </div>
         ) : null}
 
+        <div className="px-2 md:px-4 py-2">
         <Tabs defaultValue="matn" className="w-full">
           <TabsList className="w-full flex overflow-x-auto gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
             <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
@@ -430,6 +424,7 @@ export default function LessonDetailPage() {
             />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </UserLayout>
   );

@@ -240,6 +240,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       playerContainerRef.current.appendChild(containerDiv);
       playerRef.current = new window.YT.Player(containerDiv.id, {
         videoId,
+        width: "100%",
+        height: "100%",
         playerVars: { autoplay: 0, modestbranding: 1, rel: 0, cc_load_policy: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
           onReady: () => {

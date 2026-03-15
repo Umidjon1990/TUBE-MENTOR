@@ -93,7 +93,7 @@ function SidebarContent({ currentPath }: { currentPath: string }) {
   );
 }
 
-export default function UserLayout({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle?: string }) {
+export default function UserLayout({ children, title, subtitle, noPadding, headerExtra }: { children: React.ReactNode; title: string; subtitle?: string; noPadding?: boolean; headerExtra?: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
@@ -136,7 +136,8 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {headerExtra}
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border/50">
               <Flame className={`w-3.5 h-3.5 ${(user?.streakDays ?? 0) > 0 ? "text-orange-400" : "text-muted-foreground/40"}`} />
               <span className="text-xs font-semibold" data-testid="text-user-streak">{user?.streakDays ?? 0}</span>
@@ -188,7 +189,7 @@ export default function UserLayout({ children, title, subtitle }: { children: Re
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-3 md:p-6">
+        <main className={`flex-1 overflow-y-auto ${noPadding ? "" : "p-3 md:p-6"}`}>
           {children}
         </main>
       </div>

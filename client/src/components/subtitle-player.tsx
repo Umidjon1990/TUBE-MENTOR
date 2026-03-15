@@ -486,7 +486,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   return (
     <div className={`${className}`}>
-      <div className="sticky top-0 z-20 bg-background pb-1 space-y-1">
+      <div className="sticky top-0 z-20 bg-background pb-0 md:pb-1 space-y-0 md:space-y-1">
         <div className="relative overflow-hidden bg-black">
           <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
@@ -506,7 +506,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         </div>
 
         {hasSubtitles && (
-        <div className="rounded-lg glass border border-border/50 px-1 py-0.5" data-testid="learning-controls">
+        <div className="md:rounded-lg glass border-y md:border border-border/50 px-1 py-0.5" data-testid="learning-controls">
           <div className="flex items-center flex-wrap gap-y-0.5">
             <div className="flex items-center">
               <Button
@@ -654,7 +654,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
       {hasSubtitles && (
         <div
-          className="rounded-lg glass border border-border/50 overflow-hidden transition-all duration-300 mt-1"
+          className="md:rounded-lg glass border-y md:border border-border/50 overflow-hidden transition-all duration-300 mt-1"
           data-testid="subtitle-panel"
         >
           <div

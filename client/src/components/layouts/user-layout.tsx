@@ -126,14 +126,14 @@ export default function UserLayout({ children, title, subtitle, noPadding, heade
       )}
 
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        <header className="flex-shrink-0 z-30 glass-strong h-14 md:h-16 flex items-center px-3 md:px-6 gap-2 md:gap-4" data-testid="topbar-user">
+        <header className="flex-shrink-0 z-30 glass-strong h-12 md:h-14 flex items-center px-2 md:px-6 gap-1.5 md:gap-4" data-testid="topbar-user">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Menyuni ochish" data-testid="button-open-mobile-menu">
             <Menu className="w-5 h-5" />
           </Button>
 
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">{title}</h1>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm md:text-lg font-semibold tracking-tight truncate" data-testid="text-page-title">{title}</h1>
+            {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
           </div>
 
           <div className="flex items-center gap-1.5">

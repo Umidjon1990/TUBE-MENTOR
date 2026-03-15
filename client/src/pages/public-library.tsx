@@ -137,10 +137,14 @@ function FeaturedSection({ lessons }: { lessons: LessonWithCategory[] }) {
 }
 
 export default function PublicLibrary() {
+  const initialLang = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("lang") || "all"
+    : "all";
+
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
-  const [langFilter, setLangFilter] = useState<string>("all");
+  const [langFilter, setLangFilter] = useState<string>(["ar", "en"].includes(initialLang) ? initialLang : "all");
 
   const { data, isLoading, isError } = useQuery<{ lessons: LessonWithCategory[]; categories: Category[] }>({
     queryKey: ["/api/lessons/public", search, categoryFilter, levelFilter, langFilter],

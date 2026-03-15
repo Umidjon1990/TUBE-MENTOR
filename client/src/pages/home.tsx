@@ -101,7 +101,7 @@ function HeroSection() {
                 const isHovered = hoveredLang === lang.code;
 
                 return (
-                  <Link key={lang.code} href={`/lessons/create?lang=${lang.code}`}>
+                  <Link key={lang.code} href={`/library?lang=${lang.code}`}>
                     <div
                       className="group relative cursor-pointer"
                       style={{ perspective: "1000px" }}
@@ -185,7 +185,7 @@ function HeroSection() {
                               transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), color 0.3s ease",
                             }}
                           >
-                            <span>Dars yaratish</span>
+                            <span>Darslarni ko'rish</span>
                             <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} />
                           </div>
                         </div>

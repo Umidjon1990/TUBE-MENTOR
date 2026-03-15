@@ -1,6 +1,6 @@
 # TUBE MENTOR
 
-EdTech platform that transforms YouTube videos into interactive Arabic lessons with Uzbek UI. Teachers create lessons, students consume them.
+EdTech platform that transforms YouTube videos into interactive language lessons with Uzbek UI. Supports multiple target languages (Arabic, English) with Arabic as default. Teachers create lessons, students consume them.
 
 ## Architecture
 
@@ -100,6 +100,15 @@ shared/
 - **Auto transcript timing**: YouTube XML `<text start="X" dur="Y">` attributes parsed and stored; merged via `mergeShortSubtitles()`
 - **Subtitle↔sentenceAnalysis matching**: Fuzzy matching with word overlap scoring (40%+ threshold) to pair timed subtitles with AI translations
 - Falls back to mock timestamps (8s per sentence) from sentenceAnalysisJson only when no timed data available
+
+## Multi-Language Support
+
+- **Target languages**: Arabic ("ar", default) and English ("en") — defined in `shared/languages.ts`
+- **DB field**: `lessons.targetLanguage` (text, defaults to "ar") — all existing lessons default to Arabic
+- **AI prompts**: Per-language system prompts in `server/services/ai-generator.ts` via `buildArabicSystemPrompt()` / `buildEnglishSystemPrompt()`
+- **Create lesson**: Language selector on create-lesson form sends `targetLanguage` to API
+- **Public library**: Filter by `targetLanguage` query param; language badge shown on lesson cards
+- **Extensible**: Add new languages by adding to `SUPPORTED_LANGUAGES` array in `shared/languages.ts`
 
 ## Word Inspector & Saved Words System
 

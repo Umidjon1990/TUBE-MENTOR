@@ -284,13 +284,18 @@ export default function MyLessonsPage() {
                       </AlertDialog>
                       <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
                     </div>
-                    {lesson.level && (
-                      <div className="absolute bottom-2 left-2">
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1">
+                      {lesson.level && (
                         <span className="text-[10px] px-2 py-0.5 rounded bg-black/60 text-white backdrop-blur-sm">
                           {levelLabels[lesson.level] ?? lesson.level}
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {(lesson as any).targetLanguage && (lesson as any).targetLanguage !== "ar" && (
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-blue-600/80 text-white backdrop-blur-sm uppercase">
+                          {(lesson as any).targetLanguage}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="p-4">
                     <Link href={lesson.summaryShort ? `/lessons/${lesson.id}` : (lesson.status === "pending" ? `/lessons/${lesson.id}/process` : "#")}>

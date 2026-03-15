@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Category, Tag } from "@shared/schema";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 const LESSON_COST = 10;
 
@@ -49,6 +50,7 @@ export default function CreateLessonPage() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("beginner");
+  const [targetLanguage, setTargetLanguage] = useState("ar");
   const [categoryId, setCategoryId] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
@@ -69,6 +71,7 @@ export default function CreateLessonPage() {
       const body: any = {
         youtubeUrl,
         level,
+        targetLanguage,
       };
       if (title.trim()) body.title = title.trim();
       if (categoryId) body.categoryId = parseInt(categoryId);
@@ -205,7 +208,25 @@ export default function CreateLessonPage() {
               />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Til <span className="text-destructive">*</span>
+                </Label>
+                <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+                  <SelectTrigger className="bg-muted/30 border-border/50" data-testid="select-target-language">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_LANGUAGES.map(lang => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name} ({lang.nameLocal})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
                   Daraja <span className="text-destructive">*</span>

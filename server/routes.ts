@@ -487,6 +487,7 @@ export async function registerRoutes(
     categoryId: z.number().int().positive().optional(),
     tagIds: z.array(z.number().int().positive()).optional(),
     level: z.enum(["beginner", "intermediate", "advanced"]),
+    targetLanguage: z.enum(["ar", "en"]).default("ar"),
   });
 
   app.post("/api/user/lessons", requireAuth, async (req, res) => {
@@ -496,7 +497,7 @@ export async function registerRoutes(
       return res.status(400).json({ message: parsed.error.errors[0].message });
     }
 
-    const { youtubeUrl, title, categoryId, tagIds, level } = parsed.data;
+    const { youtubeUrl, title, categoryId, tagIds, level, targetLanguage } = parsed.data;
 
     const costSetting = await storage.getSystemSetting("lesson_creation_cost");
     const LESSON_COST = costSetting?.value ? parseInt(costSetting.value) : 10;
@@ -522,6 +523,7 @@ export async function registerRoutes(
           youtubeUrl,
           thumbnailUrl,
           level,
+          targetLanguage,
           status: "pending",
           categoryId: categoryId ?? null,
           createdBy: userId,
@@ -590,6 +592,7 @@ export async function registerRoutes(
     if (req.body.title !== undefined) updateData.title = req.body.title;
     if (req.body.categoryId !== undefined) updateData.categoryId = req.body.categoryId;
     if (req.body.level !== undefined) updateData.level = req.body.level;
+    if (req.body.targetLanguage !== undefined && ["ar", "en"].includes(req.body.targetLanguage)) updateData.targetLanguage = req.body.targetLanguage;
 
     const updated = await storage.updateLesson(id, updateData);
     res.json(updated);
@@ -747,7 +750,7 @@ export async function registerRoutes(
     console.log(`[generate] Dars #${id}: AI kontent yaratish boshlandi (${sentences.length} ta gap)...`);
     const genStart = Date.now();
     try {
-      const content = await generateLessonContent(lesson.transcript, sentences, lesson.level);
+      const content = await generateLessonContent(lesson.transcript, sentences, lesson.level, lesson.targetLanguage || "ar");
       console.log(`[generate] Dars #${id}: AI kontent tayyor (${((Date.now() - genStart) / 1000).toFixed(1)}s, provider: ${content.aiMetaJson.provider})`);
 
       const updated = await storage.updateLesson(id, {
@@ -1123,7 +1126,7 @@ export async function registerRoutes(
     const allLessons = await storage.getAllLessons();
     let publicLessons = allLessons.filter(l => l.status === "published");
 
-    const { search, category, level, featured } = req.query;
+    const { search, category, level, featured, targetLanguage: langFilter } = req.query;
     if (search && typeof search === "string") {
       const q = search.toLowerCase();
       publicLessons = publicLessons.filter(l =>
@@ -1144,6 +1147,9 @@ export async function registerRoutes(
     }
     if (featured === "true") {
       publicLessons = publicLessons.filter(l => l.isFeatured);
+    }
+    if (langFilter && typeof langFilter === "string") {
+      publicLessons = publicLessons.filter(l => (l.targetLanguage || "ar") === langFilter);
     }
 
     publicLessons.sort((a, b) => {

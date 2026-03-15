@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages, ArrowRight } from "lucide-react";
 import type { Lesson, Category } from "@shared/schema";
+import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 type LessonWithCategory = Lesson & { categoryName?: string | null };
 
@@ -48,12 +49,19 @@ function LessonCard({ lesson }: { lesson: LessonWithCategory }) {
                 </Badge>
               </div>
             )}
-            <Badge
-              className={`absolute top-2 right-2 ${levelColors[lesson.level] || ""}`}
-              data-testid={`badge-level-${lesson.id}`}
-            >
-              {levelLabels[lesson.level] || lesson.level}
-            </Badge>
+            <div className="absolute top-2 right-2 flex items-center gap-1">
+              {(lesson as any).targetLanguage && (lesson as any).targetLanguage !== "ar" && (
+                <Badge className="bg-blue-600/90 text-white border-blue-700/50 uppercase text-[10px]" data-testid={`badge-lang-${lesson.id}`}>
+                  {(lesson as any).targetLanguage}
+                </Badge>
+              )}
+              <Badge
+                className={levelColors[lesson.level] || ""}
+                data-testid={`badge-level-${lesson.id}`}
+              >
+                {levelLabels[lesson.level] || lesson.level}
+              </Badge>
+            </div>
           </div>
         )}
         <CardContent className="p-4">
@@ -132,14 +140,16 @@ export default function PublicLibrary() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [langFilter, setLangFilter] = useState<string>("all");
 
   const { data, isLoading, isError } = useQuery<{ lessons: LessonWithCategory[]; categories: Category[] }>({
-    queryKey: ["/api/lessons/public", search, categoryFilter, levelFilter],
+    queryKey: ["/api/lessons/public", search, categoryFilter, levelFilter, langFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (categoryFilter && categoryFilter !== "all") params.set("category", categoryFilter);
       if (levelFilter && levelFilter !== "all") params.set("level", levelFilter);
+      if (langFilter && langFilter !== "all") params.set("targetLanguage", langFilter);
       const qs = params.toString();
       const res = await fetch(`/api/lessons/public${qs ? `?${qs}` : ""}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch");
@@ -149,7 +159,7 @@ export default function PublicLibrary() {
 
   const lessons = data?.lessons ?? [];
   const categories = data?.categories ?? [];
-  const hasFilters = search || categoryFilter !== "all" || levelFilter !== "all";
+  const hasFilters = search || categoryFilter !== "all" || levelFilter !== "all" || langFilter !== "all";
 
   return (
     <PublicLayout>
@@ -213,6 +223,20 @@ export default function PublicLibrary() {
               <SelectItem value="advanced">Yuqori</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={langFilter} onValueChange={setLangFilter}>
+            <SelectTrigger className="w-full sm:w-[160px]" data-testid="select-language">
+              <Languages className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Til" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Barcha tillar</SelectItem>
+              {SUPPORTED_LANGUAGES.map(lang => (
+                <SelectItem key={lang.code} value={lang.code}>
+                  {lang.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {hasFilters && (
             <Button
               variant="ghost"
@@ -221,6 +245,7 @@ export default function PublicLibrary() {
                 setSearch("");
                 setCategoryFilter("all");
                 setLevelFilter("all");
+                setLangFilter("all");
               }}
               data-testid="button-clear-filters"
             >

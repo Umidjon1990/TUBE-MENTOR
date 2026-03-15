@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { getLanguageConfig } from "@shared/languages";
 
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
@@ -65,6 +66,7 @@ export interface SentenceAnalysis {
 export interface AiMeta {
   provider: "mock" | "openai";
   model: string;
+  targetLanguage?: string;
   generatedAt: string;
   transcriptLength: number;
   sentenceCount: number;
@@ -92,36 +94,8 @@ function detectLanguage(text: string): "arabic" | "english" | "mixed" {
   return "mixed";
 }
 
-export async function generateLessonContent(
-  transcript: string,
-  sentences: string[],
-  level: string
-): Promise<GeneratedLessonContent> {
-  try {
-    return await generateWithOpenAI(transcript, sentences, level);
-  } catch (error: any) {
-    const msg = error?.message || String(error);
-    const isTimeout = msg.includes("timeout") || msg.includes("ETIMEDOUT") || msg.includes("abort");
-    console.error(`[AI] OpenAI xatolik (${isTimeout ? "timeout" : "boshqa"}):`, msg);
-    if (isTimeout) {
-      throw new Error("AI so'rovi vaqt chegarasidan oshdi (timeout). Qaytadan urinib ko'ring.");
-    }
-    console.log("[AI] Mock fallback ishlatilmoqda...");
-    return generateMockContent(transcript, sentences, level);
-  }
-}
-
-async function generateWithOpenAI(
-  transcript: string,
-  sentences: string[],
-  level: string
-): Promise<GeneratedLessonContent> {
-  const levelLabel = LEVEL_LABELS[level] || level;
-  const difficulty = DIFFICULTY_MAP[level] || "medium";
-  const trimmedTranscript = transcript.slice(0, 8000);
-  const lang = detectLanguage(trimmedTranscript);
-
-  const systemPrompt = `# ROL
+function buildArabicSystemPrompt(lang: string, levelLabel: string, difficulty: string): string {
+  return `# ROL
 Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
 
 Sen quyidagi manbalarga tayanasan:
@@ -251,6 +225,148 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - correctIndex: 0 dan boshlanadi (0-3)
 - Daraja: ${levelLabel}
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
+}
+
+function buildEnglishSystemPrompt(lang: string, levelLabel: string, difficulty: string): string {
+  return `# ROL
+Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional ingliz tili dars materiallari yaratasan.
+
+# JAVOB FORMATI
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
+
+# JSON STRUKTURASI
+{
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "summaryShortAr": "Short summary of the video (2-3 sentences, in English)",
+  "summaryDetailedAr": "Detailed summary of the video (5-8 sentences, in English)",
+  "vocabulary": [
+    {
+      "word": "English word or phrase from the transcript",
+      "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
+      "translationAr": "English definition or synonym",
+      "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction",
+      "example": "Example sentence from transcript using this word",
+      "difficulty": "${difficulty}"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida batafsil tushuntirish",
+      "type": "multiple_choice"
+    },
+    {
+      "question": "I _____ to school every day — bo'sh joyga mos so'zni tanlang",
+      "options": ["go", "goes", "went", "going"],
+      "correctIndex": 0,
+      "explanation": "I go to school every day — Men har kuni maktabga boraman. Simple present tense da 'I' bilan 'go' ishlatiladi",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "accomplish",
+      "options": ["erishmoq", "yurmoq", "o'qimoq", "uxlamoq"],
+      "correctIndex": 0,
+      "explanation": "'accomplish' — maqsadga erishmoq, bajarmoq degan ma'noni bildiradi",
+      "type": "word_translation"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "English word or phrase",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "backAr": "English definition, synonym, or usage note",
+      "type": "vocabulary | grammar"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "Original English sentence from transcript",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
+      "translationAr": "The same English sentence (for reference)",
+      "wordMap": [
+        {
+          "word": "original word as it appears",
+          "normalized": "base/dictionary form (e.g., 'goes' -> 'go')",
+          "translationUz": "O'ZBEKCHA tarjima",
+          "translationAr": "English definition or synonym"
+        }
+      ]
+    }
+  ]
+}
+
+# QOIDALAR
+
+## 1. INGLIZ TILI SO'ZLARI
+- BARCHA so'zlar asl inglizcha shaklida yozilsin
+- Transkripsiya (IPA) kerak EMAS
+- "word" maydoni: inglizcha so'z yoki ibora
+- "translationAr" maydoni: inglizcha izoh yoki sinonim
+
+## 2. TARJIMA TILI
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- "summaryShortAr", "summaryDetailedAr", "translationAr", "backAr" — INGLIZ tilida
+
+## 3. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+- sentence_completion: 3-4 ta (inglizcha gap O'RTASIDA _____ bo'shliq, 4 inglizcha variant)
+- word_translation: 3-4 ta (inglizcha so'z, 4 o'zbekcha variant)
+
+## 4. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA gaplar — BIRONTASINI HAM TASHLAB KETMA!
+
+## 5. SENTENCEANALYSIS
+- Transkriptdagi har bir gap: tarjima + wordMap SHART
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- Har bir so'z uchun faqat 4 ta maydon: word, normalized, translationUz, translationAr
+
+## 6. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
+- Daraja: ${levelLabel}
+- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
+}
+
+export async function generateLessonContent(
+  transcript: string,
+  sentences: string[],
+  level: string,
+  targetLanguage: string = "ar"
+): Promise<GeneratedLessonContent> {
+  try {
+    return await generateWithOpenAI(transcript, sentences, level, targetLanguage);
+  } catch (error: any) {
+    const msg = error?.message || String(error);
+    const isTimeout = msg.includes("timeout") || msg.includes("ETIMEDOUT") || msg.includes("abort");
+    console.error(`[AI] OpenAI xatolik (${isTimeout ? "timeout" : "boshqa"}):`, msg);
+    if (isTimeout) {
+      throw new Error("AI so'rovi vaqt chegarasidan oshdi (timeout). Qaytadan urinib ko'ring.");
+    }
+    console.log("[AI] Mock fallback ishlatilmoqda...");
+    return generateMockContent(transcript, sentences, level, targetLanguage);
+  }
+}
+
+async function generateWithOpenAI(
+  transcript: string,
+  sentences: string[],
+  level: string,
+  targetLanguage: string = "ar"
+): Promise<GeneratedLessonContent> {
+  const levelLabel = LEVEL_LABELS[level] || level;
+  const difficulty = DIFFICULTY_MAP[level] || "medium";
+  const trimmedTranscript = transcript.slice(0, 8000);
+  const lang = detectLanguage(trimmedTranscript);
+  const langConfig = getLanguageConfig(targetLanguage);
+
+  const systemPrompt = targetLanguage === "ar"
+    ? buildArabicSystemPrompt(lang, levelLabel, difficulty)
+    : buildEnglishSystemPrompt(lang, levelLabel, difficulty);
 
 
   const maxSentences = 30;
@@ -357,6 +473,7 @@ ${trimmedTranscript}`;
     aiMetaJson: {
       provider: "openai",
       model: "gpt-4o-mini",
+      targetLanguage,
       generatedAt: new Date().toISOString(),
       transcriptLength: transcript.length,
       sentenceCount: sentences.length,
@@ -427,7 +544,8 @@ function mockArabicTranslation(text: string): string {
 function generateMockContent(
   transcript: string,
   sentences: string[],
-  level: string
+  level: string,
+  targetLanguage: string = "ar"
 ): GeneratedLessonContent {
   const words = extractWords(transcript);
   const selectedWords = words.slice(0, Math.min(10, words.length));

@@ -45,6 +45,7 @@ export const lessons = pgTable("lessons", {
   transcriptSource: text("transcript_source"),
   manualTranscript: text("manual_transcript"),
   language: text("language").default("uz").notNull(),
+  targetLanguage: text("target_language").default("ar").notNull(),
   level: text("level").default("beginner").notNull(),
   status: text("status").default("draft").notNull(),
   categoryId: integer("category_id").references(() => categories.id),
@@ -237,6 +238,7 @@ export const insertLessonSchema = createInsertSchema(lessons).pick({
   youtubeUrl: true,
   thumbnailUrl: true,
   language: true,
+  targetLanguage: true,
   level: true,
   categoryId: true,
 });

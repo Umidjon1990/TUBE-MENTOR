@@ -1,13 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, BookOpen, Play, Clock, ArrowRight, Languages, Volume2 } from "lucide-react";
+import { Search, BookOpen, Play, Clock, ArrowRight, ArrowLeft, Languages, Volume2 } from "lucide-react";
 
 interface DictResult {
   word: string;
@@ -73,6 +73,12 @@ export default function PublicDictionaryPage() {
   return (
     <PublicLayout>
       <div className="max-w-4xl mx-auto px-3 md:px-6 py-6 md:py-10 space-y-6">
+        <Link href="/library">
+          <Button variant="ghost" size="sm" className="mb-1 gap-1.5 text-muted-foreground hover:text-foreground" data-testid="button-back-library">
+            <ArrowLeft className="w-4 h-4" />
+            Kutubxonaga qaytish
+          </Button>
+        </Link>
         <div className="text-center space-y-3">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-cyan-400/20 flex items-center justify-center">
             <Languages className="w-8 h-8 text-primary" />

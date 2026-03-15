@@ -198,6 +198,14 @@ html, body {
 }
 
 @layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }

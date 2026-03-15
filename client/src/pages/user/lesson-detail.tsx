@@ -467,12 +467,13 @@ export default function LessonDetailPage() {
           <Link href={`/lessons/${lessonId}/shadowing`}>
             <Button
               variant="outline"
-              size="icon"
-              className="h-8 w-8 border-primary/30 hover:bg-primary/10"
+              size="sm"
+              className="h-8 gap-1.5 border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
               data-testid="button-shadowing-page"
-              aria-label="Shadowing"
+              aria-label="Audiosi"
             >
               <Headphones className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs">Audiosi</span>
             </Button>
           </Link>
           <Button
@@ -530,27 +531,27 @@ export default function LessonDetailPage() {
 
         <div className="px-2 md:px-4 py-2">
         <Tabs defaultValue="matn" className="w-full">
-          <TabsList className="w-full flex overflow-x-auto gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
-            <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
+          <TabsList className="w-full flex overflow-x-auto scrollbar-none gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-lesson">
+            <TabsTrigger value="matn" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-matn">
               <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn
             </TabsTrigger>
-            <TabsTrigger value="lugat" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-lugat">
+            <TabsTrigger value="lugat" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-lugat">
               <Languages className="w-3.5 h-3.5 hidden sm:block" /> Lug'at
             </TabsTrigger>
-            <TabsTrigger value="test" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
+            <TabsTrigger value="test" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-test">
               <Brain className="w-3.5 h-3.5 hidden sm:block" /> Test
             </TabsTrigger>
-            <TabsTrigger value="xulosa" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
+            <TabsTrigger value="xulosa" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-xulosa">
               <FileText className="w-3.5 h-3.5 hidden sm:block" /> Xulosa
             </TabsTrigger>
-            <TabsTrigger value="kartochkalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
+            <TabsTrigger value="kartochkalar" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-kartochkalar">
               <Layers className="w-3.5 h-3.5 hidden sm:block" /> Kartochkalar
             </TabsTrigger>
-            <TabsTrigger value="eslatmalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-eslatmalar">
+            <TabsTrigger value="eslatmalar" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-eslatmalar">
               <StickyNote className="w-3.5 h-3.5 hidden sm:block" /> Eslatmalar
             </TabsTrigger>
-            <TabsTrigger value="shadowing" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-shadowing">
-              <Headphones className="w-3.5 h-3.5 hidden sm:block" /> Shadowing
+            <TabsTrigger value="shadowing" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-shadowing">
+              <Headphones className="w-3.5 h-3.5 hidden sm:block" /> Audiosi
             </TabsTrigger>
           </TabsList>
 

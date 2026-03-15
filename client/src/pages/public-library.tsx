@@ -180,9 +180,15 @@ export default function PublicLibrary() {
               <BookOpen className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold" data-testid="text-library-title">Darslar kutubxonasi</h1>
+              <h1 className="text-2xl font-bold" data-testid="text-library-title">
+                {langFilter === "en" ? "Ingliz tili darslari" : langFilter === "ar" ? "Arab tili darslari" : "Darslar kutubxonasi"}
+              </h1>
               <p className="text-sm text-muted-foreground" data-testid="text-library-subtitle">
-                Barcha e'lon qilingan darslarni ko'ring va o'rganing
+                {langFilter === "en"
+                  ? "Ingliz tili bo'yicha barcha darslarni ko'ring va o'rganing"
+                  : langFilter === "ar"
+                    ? "Arab tili bo'yicha barcha darslarni ko'ring va o'rganing"
+                    : "Barcha e'lon qilingan darslarni ko'ring va o'rganing"}
               </p>
             </div>
           </div>
@@ -193,7 +199,7 @@ export default function PublicLibrary() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Darslarni qidirish..."
+              placeholder={langFilter === "en" ? "Inglizcha darslarni qidirish..." : langFilter === "ar" ? "Arabcha darslarni qidirish..." : "Darslarni qidirish..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -345,12 +351,14 @@ export default function PublicLibrary() {
                   <CardContent className="p-12 text-center">
                     <BookOpen className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2" data-testid="text-no-results">
-                      Darslar topilmadi
+                      {langFilter === "en" ? "Inglizcha darslar topilmadi" : langFilter === "ar" ? "Arabcha darslar topilmadi" : "Darslar topilmadi"}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       {hasFilters
                         ? "Qidiruv so'rovingiz bo'yicha darslar topilmadi. Filtrlarni o'zgartirib ko'ring."
-                        : "Hozircha e'lon qilingan darslar yo'q."}
+                        : langFilter !== "all"
+                          ? `Hozircha ${langFilter === "en" ? "ingliz" : "arab"} tilida e'lon qilingan darslar yo'q.`
+                          : "Hozircha e'lon qilingan darslar yo'q."}
                     </p>
                     {hasFilters && (
                       <Button

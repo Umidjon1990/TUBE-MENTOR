@@ -205,6 +205,7 @@ export default function ShadowingPage() {
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
             className="w-full"
+            targetLanguage={lesson.targetLanguage || "ar"}
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">

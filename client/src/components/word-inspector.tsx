@@ -24,6 +24,7 @@ interface WordInspectorProps {
   onClose: () => void;
   isMobile: boolean;
   readOnly?: boolean;
+  targetLanguage?: string;
 }
 
 function highlightWord(sentence: string, word: string, color: "cyan" | "amber" = "cyan"): JSX.Element {
@@ -76,7 +77,7 @@ function highlightWord(sentence: string, word: string, color: "cyan" | "amber" =
   );
 }
 
-export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile, readOnly = false }: WordInspectorProps) {
+export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile, readOnly = false, targetLanguage = "ar" }: WordInspectorProps) {
   const [saved, setSaved] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -155,15 +156,20 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
     return { left, top, width: popupW };
   })() : undefined;
 
+  const isArabic = targetLanguage === "ar";
+  const wordLabel = isArabic ? "Arabcha so'z" : "Inglizcha so'z";
+  const sentenceLabel = isArabic ? "Arabcha shakli" : "Inglizcha gap";
+  const synonymLabel = isArabic ? "Sinonim" : "Sinonim / izoh";
+
   const content = (
     <div className="space-y-2.5 md:space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Arabcha so'z</p>
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{wordLabel}</p>
           <h3
             className="text-2xl font-bold text-foreground break-words"
-            dir="rtl"
-            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+            dir={isArabic ? "rtl" : "ltr"}
+            style={isArabic ? { fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" } : { lineHeight: "1.4" }}
             data-testid="text-inspector-word"
           >
             {wordInfo.word}
@@ -187,25 +193,27 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
           </p>
         </div>
 
-        <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
-          <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">Sinonim</p>
-          <p
-            className="text-sm font-semibold text-foreground break-words"
-            dir="rtl"
-            style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
-            data-testid="text-synonym-ar"
-          >
-            {wordInfo.translationAr || "—"}
-          </p>
-        </div>
+        {isArabic && (
+          <div className="rounded-lg bg-violet-500/5 border border-violet-500/20 p-2.5">
+            <p className="text-[10px] font-medium text-violet-400/70 uppercase tracking-wider mb-0.5">{synonymLabel}</p>
+            <p
+              className="text-sm font-semibold text-foreground break-words"
+              dir="rtl"
+              style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" }}
+              data-testid="text-synonym-ar"
+            >
+              {wordInfo.translationAr || "—"}
+            </p>
+          </div>
+        )}
 
         {wordInfo.sourceSentence && (
           <div className="rounded-lg bg-muted/30 border border-border/30 p-2.5">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Arabcha shakli</p>
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">{sentenceLabel}</p>
             <p
               className="text-sm text-foreground/90 leading-relaxed break-words"
-              dir="rtl"
-              style={{ textAlign: "right", fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" }}
+              dir={isArabic ? "rtl" : "ltr"}
+              style={isArabic ? { textAlign: "right", fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.8" } : { lineHeight: "1.6" }}
               data-testid="text-source-sentence"
             >
               {highlightWord(wordInfo.sourceSentence, wordInfo.word, "cyan")}

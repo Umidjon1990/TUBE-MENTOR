@@ -62,9 +62,10 @@ interface ShadowingPlayerProps {
   sentenceWordMaps?: SentenceWordMap[];
   className?: string;
   readOnly?: boolean;
+  targetLanguage?: string;
 }
 
-export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], className = "", readOnly = false }: ShadowingPlayerProps) {
+export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], className = "", readOnly = false, targetLanguage = "ar" }: ShadowingPlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -480,6 +481,7 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
           onClose={closeInspector}
           isMobile={isMobile}
           readOnly={readOnly}
+          targetLanguage={targetLanguage}
         />
       )}
     </div>

@@ -401,6 +401,7 @@ export default function LessonDetailPage() {
             className="w-full"
             initialSeekTime={seekTime}
             seekNonce={seekNonce}
+            targetLanguage={lesson.targetLanguage || "ar"}
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative overflow-hidden aspect-video">
@@ -502,6 +503,7 @@ export default function LessonDetailPage() {
                 vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
                 sentenceWordMaps={sentenceWordMaps}
                 className="w-full"
+                targetLanguage={lesson.targetLanguage || "ar"}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">

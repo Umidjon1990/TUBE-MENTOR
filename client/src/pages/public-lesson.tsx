@@ -329,6 +329,7 @@ export default function PublicLessonPage() {
             className="w-full"
             initialSeekTime={initialTime}
             readOnly
+            targetLanguage={lesson.targetLanguage || "ar"}
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">
@@ -444,6 +445,7 @@ export default function PublicLessonPage() {
                   sentenceWordMaps={sentenceWordMaps}
                   className="w-full"
                   readOnly
+                  targetLanguage={lesson.targetLanguage || "ar"}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">

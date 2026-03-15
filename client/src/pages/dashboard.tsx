@@ -10,7 +10,7 @@ import {
   PlayCircle, PlusCircle, Layers, Hourglass, Globe,
   ArrowRight, ArrowUpRight, ArrowDownRight, AlertCircle,
   Flame, Star, Trophy, Zap, Shield, Target, Award, FolderOpen,
-  Headphones
+  Headphones, Search
 } from "lucide-react";
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
@@ -391,18 +391,26 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground mb-4">Dars yaratishda tilni tanlashingiz mumkin</p>
               <div className="space-y-2">
                 {SUPPORTED_LANGUAGES.map(lang => (
-                  <Link key={lang.code} href={`/lessons/create?lang=${lang.code}`}>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 hover:border-primary/30 transition-all cursor-pointer" data-testid={`lang-card-${lang.code}`}>
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold ${lang.code === "ar" ? "bg-gradient-to-br from-emerald-500/20 to-teal-500/20" : "bg-gradient-to-br from-blue-500/20 to-indigo-500/20"}`}>
-                        {lang.code === "ar" ? "ع" : "En"}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{lang.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{lang.nameLocal}</p>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+                  <div key={lang.code} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30" data-testid={`lang-card-${lang.code}`}>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold ${lang.code === "ar" ? "bg-gradient-to-br from-emerald-500/20 to-teal-500/20" : "bg-gradient-to-br from-blue-500/20 to-indigo-500/20"}`}>
+                      {lang.code === "ar" ? "ع" : "En"}
                     </div>
-                  </Link>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{lang.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{lang.nameLocal}</p>
+                    </div>
+                    <Link href={`/dictionary?lang=${lang.code}`}>
+                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs text-primary hover:bg-primary/10" data-testid={`button-dict-${lang.code}`}>
+                        <Search className="w-3.5 h-3.5" />
+                        Lug'at
+                      </Button>
+                    </Link>
+                    <Link href={`/lessons/create?lang=${lang.code}`}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" data-testid={`button-create-${lang.code}`}>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
                 ))}
               </div>
             </CardContent>

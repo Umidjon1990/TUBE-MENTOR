@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages } from "lucide-react";
+import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages, ArrowRight } from "lucide-react";
 import type { Lesson, Category } from "@shared/schema";
 import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
@@ -179,7 +179,7 @@ export default function PublicLibrary() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold" data-testid="text-library-title">
                 {langFilter === "en" ? "Ingliz tili darslari" : langFilter === "ar" ? "Arab tili darslari" : "Darslar kutubxonasi"}
               </h1>
@@ -191,6 +191,20 @@ export default function PublicLibrary() {
                     : "Barcha e'lon qilingan darslarni ko'ring va o'rganing"}
               </p>
             </div>
+            {langFilter !== "all" && (
+              <Link href={`/smart-dictionary?lang=${langFilter}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 text-primary shrink-0"
+                  data-testid="button-smart-dictionary"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">Smart Lug'at</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 

@@ -17,6 +17,41 @@ function shuffleArray<T>(arr: T[]): T[] {
   return copy;
 }
 
+function mergeEnglishSentences(sentences: SentenceBlock[]): SentenceBlock[] {
+  if (sentences.length === 0) return [];
+  const merged: SentenceBlock[] = [];
+  let current: SentenceBlock | null = null;
+
+  for (const s of sentences) {
+    if (!current) {
+      current = { ...s, wordMap: s.wordMap ? [...s.wordMap] : undefined };
+      continue;
+    }
+
+    const prevText = (current.sentence || "").trim();
+    const endsWithPunctuation = /[.!?;:]$/.test(prevText);
+
+    if (endsWithPunctuation || !prevText) {
+      merged.push(current);
+      current = { ...s, wordMap: s.wordMap ? [...s.wordMap] : undefined };
+    } else {
+      current.sentence = (current.sentence || "") + " " + (s.sentence || "");
+      current.translation = (current.translation || "") + " " + (s.translation || "");
+      if (s.translationAr) {
+        current.translationAr = (current.translationAr || "") + " " + s.translationAr;
+      }
+      if (current.wordMap && s.wordMap) {
+        current.wordMap = [...current.wordMap, ...s.wordMap];
+      } else if (s.wordMap) {
+        current.wordMap = [...s.wordMap];
+      }
+    }
+  }
+  if (current) merged.push(current);
+
+  return merged.map((b, i) => ({ ...b, index: i + 1 }));
+}
+
 export function prepareTextBlocks(
   data: LessonExportData,
   config: ExportConfig
@@ -29,13 +64,18 @@ export function prepareTextBlocks(
     return [];
   }
   const hasWordByWord = config.sections.includes("wordByWord");
-  return data.sentences.map((s, i) => ({
+  const raw = data.sentences.map((s, i) => ({
     index: i + 1,
     sentence: (config.sections.includes("arabText") || hasWordByWord) ? s.sentence : "",
     translation: (config.sections.includes("uzTranslation") || hasWordByWord) ? s.translation : "",
     translationAr: s.translationAr,
     wordMap: hasWordByWord ? s.wordMap : undefined,
   }));
+
+  const isArabic = !data.targetLanguage || data.targetLanguage === "ar";
+  if (isArabic) return raw;
+
+  return mergeEnglishSentences(raw);
 }
 
 export function prepareVocabulary(

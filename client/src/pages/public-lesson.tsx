@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link, useSearch } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
 import SubtitlePlayer, { type SubtitleItem, type SentenceWordMap } from "@/components/subtitle-player";
+import ShadowingPlayer from "@/components/shadowing-player";
 import { ExportStudio } from "@/components/export-studio";
 import { buildExportData } from "@/lib/export-transform";
 import { generatePDF } from "@/lib/export-pdf";
@@ -25,7 +26,7 @@ import {
   ArrowLeft, AlertCircle, Sparkles, Lightbulb,
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Check, X, User, Calendar,
-  Tag, FolderOpen, Star, Globe, Download, RotateCcw
+  Tag, FolderOpen, Star, Globe, Download, RotateCcw, Headphones
 } from "lucide-react";
 import type { Lesson, Tag as TagType, Category } from "@shared/schema";
 
@@ -408,6 +409,9 @@ export default function PublicLessonPage() {
               <TabsTrigger value="kartochkalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
                 <Layers className="w-3.5 h-3.5 hidden sm:block" /> Kartochkalar
               </TabsTrigger>
+              <TabsTrigger value="shadowing" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-shadowing">
+                <Headphones className="w-3.5 h-3.5 hidden sm:block" /> Shadowing
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="matn" className="mt-4">
@@ -428,6 +432,25 @@ export default function PublicLessonPage() {
 
             <TabsContent value="kartochkalar" className="mt-4">
               <PublicFlashcardsTab flashcards={presetFlashcards} />
+            </TabsContent>
+
+            <TabsContent value="shadowing" className="mt-4">
+              {lesson.youtubeUrl && subtitles.length > 0 ? (
+                <ShadowingPlayer
+                  youtubeUrl={lesson.youtubeUrl}
+                  subtitles={subtitles}
+                  lessonId={lesson.id}
+                  vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
+                  sentenceWordMaps={sentenceWordMaps}
+                  className="w-full"
+                  readOnly
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                  <Headphones className="w-10 h-10 opacity-40" />
+                  <p className="text-sm">Shadowing uchun video va subtitle kerak</p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

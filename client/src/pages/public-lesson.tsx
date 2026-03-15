@@ -281,8 +281,8 @@ export default function PublicLessonPage() {
 
   return (
     <PublicLayout>
-      <div className="max-w-4xl mx-auto px-3 md:px-6 py-4 md:py-8 space-y-4 md:space-y-6">
-        <div className="flex items-center gap-3">
+      <div className="space-y-0">
+        <div className="max-w-5xl mx-auto px-3 md:px-6 py-2 md:py-3 flex items-center gap-3">
           <Link href="/library">
             <Button variant="ghost" size="sm" data-testid="button-back-library">
               <ArrowLeft className="w-4 h-4 mr-1" /> Kutubxona
@@ -309,72 +309,6 @@ export default function PublicLessonPage() {
           isExporting={isExporting}
         />
 
-        <div className="space-y-4">
-          <div className="space-y-3">
-            <h1 className="text-2xl md:text-3xl font-bold" data-testid="text-lesson-title">
-              {lesson.title}
-            </h1>
-
-            <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="outline" className={levelColors[lesson.level] || ""} data-testid="badge-level">
-                {levelLabels[lesson.level] || lesson.level}
-              </Badge>
-              {lesson.isFeatured && (
-                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" data-testid="badge-featured">
-                  <Star className="w-3 h-3 mr-1 fill-current" /> Tavsiya etilgan
-                </Badge>
-              )}
-              {lesson.categoryName && (
-                <Badge variant="secondary" data-testid="badge-category">
-                  <FolderOpen className="w-3 h-3 mr-1" /> {lesson.categoryName}
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5" data-testid="text-creator">
-                <User className="w-3.5 h-3.5" /> {lesson.creatorName}
-              </span>
-              {lesson.publishedAt && (
-                <span className="flex items-center gap-1.5" data-testid="text-published-date">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {new Date(lesson.publishedAt).toLocaleDateString("uz-UZ", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </span>
-              )}
-              <span className="flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5" /> {sentences.length} gap
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Languages className="w-3.5 h-3.5" /> {vocabulary.length} so'z
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Brain className="w-3.5 h-3.5" /> {quizzes.length} test
-              </span>
-            </div>
-
-            {lesson.tags && lesson.tags.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap" data-testid="tags-list">
-                <Tag className="w-3.5 h-3.5 text-muted-foreground" />
-                {lesson.tags.map((tag) => (
-                  <Badge key={tag.id} variant="outline" className="text-xs" data-testid={`badge-tag-${tag.id}`}>
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {lesson.summaryShort && (
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-summary-short">
-                {lesson.summaryShort}
-              </p>
-            )}
-          </div>
-        </div>
-
         {lesson.youtubeUrl && /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(lesson.youtubeUrl) ? (
           <SubtitlePlayer
             youtubeUrl={lesson.youtubeUrl}
@@ -382,7 +316,7 @@ export default function PublicLessonPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
-            className="max-w-3xl"
+            className="w-full"
             readOnly
           />
         ) : lesson.thumbnailUrl ? (
@@ -404,47 +338,89 @@ export default function PublicLessonPage() {
           </div>
         ) : null}
 
-        <Separator />
+        <div className="max-w-5xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
+          <div className="space-y-3">
+            <h1 className="text-xl md:text-2xl font-bold" data-testid="text-lesson-title">
+              {lesson.title}
+            </h1>
 
-        <Tabs defaultValue="matn" className="w-full">
-          <TabsList className="w-full flex overflow-x-auto gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-public-lesson">
-            <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
-              <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn
-            </TabsTrigger>
-            <TabsTrigger value="lugat" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-lugat">
-              <Languages className="w-3.5 h-3.5 hidden sm:block" /> Lug'at
-            </TabsTrigger>
-            <TabsTrigger value="test" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
-              <Brain className="w-3.5 h-3.5 hidden sm:block" /> Test
-            </TabsTrigger>
-            <TabsTrigger value="xulosa" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
-              <FileText className="w-3.5 h-3.5 hidden sm:block" /> Xulosa
-            </TabsTrigger>
-            <TabsTrigger value="kartochkalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
-              <Layers className="w-3.5 h-3.5 hidden sm:block" /> Kartochkalar
-            </TabsTrigger>
-          </TabsList>
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+              <Badge variant="outline" className={levelColors[lesson.level] || ""} data-testid="badge-level">
+                {levelLabels[lesson.level] || lesson.level}
+              </Badge>
+              {lesson.isFeatured && (
+                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" data-testid="badge-featured">
+                  <Star className="w-3 h-3 mr-1 fill-current" /> Tavsiya etilgan
+                </Badge>
+              )}
+              {lesson.categoryName && (
+                <Badge variant="secondary" data-testid="badge-category">
+                  <FolderOpen className="w-3 h-3 mr-1" /> {lesson.categoryName}
+                </Badge>
+              )}
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="w-3 h-3" /> {lesson.creatorName}
+              </span>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <BookOpen className="w-3 h-3" /> {sentences.length} gap
+              </span>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Languages className="w-3 h-3" /> {vocabulary.length} so'z
+              </span>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Brain className="w-3 h-3" /> {quizzes.length} test
+              </span>
+            </div>
 
-          <TabsContent value="matn" className="mt-4">
-            <PublicTranscriptTab sentences={sentences} />
-          </TabsContent>
+            {lesson.summaryShort && (
+              <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-summary-short">
+                {lesson.summaryShort}
+              </p>
+            )}
+          </div>
 
-          <TabsContent value="lugat" className="mt-4">
-            <PublicVocabularyTab vocabulary={vocabulary} sentences={sentences} />
-          </TabsContent>
+          <Separator />
 
-          <TabsContent value="test" className="mt-4">
-            <PublicQuizTab quizzes={quizzes} />
-          </TabsContent>
+          <Tabs defaultValue="matn" className="w-full">
+            <TabsList className="w-full flex overflow-x-auto gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-public-lesson">
+              <TabsTrigger value="matn" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-matn">
+                <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn
+              </TabsTrigger>
+              <TabsTrigger value="lugat" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-lugat">
+                <Languages className="w-3.5 h-3.5 hidden sm:block" /> Lug'at
+              </TabsTrigger>
+              <TabsTrigger value="test" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-test">
+                <Brain className="w-3.5 h-3.5 hidden sm:block" /> Test
+              </TabsTrigger>
+              <TabsTrigger value="xulosa" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-xulosa">
+                <FileText className="w-3.5 h-3.5 hidden sm:block" /> Xulosa
+              </TabsTrigger>
+              <TabsTrigger value="kartochkalar" className="flex-1 min-w-0 text-xs md:text-sm py-2 gap-1" data-testid="tab-kartochkalar">
+                <Layers className="w-3.5 h-3.5 hidden sm:block" /> Kartochkalar
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="xulosa" className="mt-4">
-            <PublicSummaryTab lesson={lesson} sentences={sentences} vocabulary={vocabulary} />
-          </TabsContent>
+            <TabsContent value="matn" className="mt-4">
+              <PublicTranscriptTab sentences={sentences} />
+            </TabsContent>
 
-          <TabsContent value="kartochkalar" className="mt-4">
-            <PublicFlashcardsTab flashcards={presetFlashcards} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="lugat" className="mt-4">
+              <PublicVocabularyTab vocabulary={vocabulary} sentences={sentences} />
+            </TabsContent>
+
+            <TabsContent value="test" className="mt-4">
+              <PublicQuizTab quizzes={quizzes} />
+            </TabsContent>
+
+            <TabsContent value="xulosa" className="mt-4">
+              <PublicSummaryTab lesson={lesson} sentences={sentences} vocabulary={vocabulary} />
+            </TabsContent>
+
+            <TabsContent value="kartochkalar" className="mt-4">
+              <PublicFlashcardsTab flashcards={presetFlashcards} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </PublicLayout>
   );

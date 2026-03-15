@@ -607,6 +607,36 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.patch("/api/user/lessons/:id/publish", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+    if (lesson.status !== "approved") return res.status(400).json({ message: "Faqat tasdiqlangan darslar e'lon qilinishi mumkin" });
+    const updated = await storage.updateLesson(id, {
+      status: "published",
+      publishedBy: req.session.userId,
+      publishedAt: new Date(),
+    });
+    res.json(updated);
+  });
+
+  app.patch("/api/user/lessons/:id/unpublish", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+    if (lesson.status !== "published") return res.status(400).json({ message: "Faqat e'lon qilingan darslar olib tashlanishi mumkin" });
+    const updated = await storage.updateLesson(id, {
+      status: "approved",
+      publishedAt: null,
+      publishedBy: null,
+    });
+    res.json(updated);
+  });
+
   app.post("/api/user/lessons/:id/transcript", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });

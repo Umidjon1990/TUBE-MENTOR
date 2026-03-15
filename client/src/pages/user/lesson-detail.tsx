@@ -123,6 +123,34 @@ export default function LessonDetailPage() {
     enabled: !!lessonId,
   });
 
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", `/api/user/lessons/${lessonId}/publish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      toast({ title: "Dars e'lon qilindi!", description: "Dars endi hammaga ko'rinadi." });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Darsni e'lon qilishda xatolik yuz berdi.", variant: "destructive" });
+    },
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", `/api/user/lessons/${lessonId}/unpublish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      toast({ title: "Dars olib tashlandi", description: "Dars endi ommaviy ko'rinmaydi." });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Darsni olib tashlashda xatolik yuz berdi.", variant: "destructive" });
+    },
+  });
+
   const sentences: SentenceAnalysis[] = useMemo(() =>
     (lesson?.sentenceAnalysisJson as SentenceAnalysis[] || []), [lesson?.sentenceAnalysisJson]);
   const vocabulary: VocabItem[] = useMemo(() =>
@@ -304,6 +332,31 @@ export default function LessonDetailPage() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
+          {lesson.status === "approved" && (
+            <Button
+              size="sm"
+              className="h-8 gap-1 text-xs bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-primary-foreground"
+              onClick={() => publishMutation.mutate()}
+              disabled={publishMutation.isPending}
+              data-testid="button-publish-lesson"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{publishMutation.isPending ? "..." : "E'lon qilish"}</span>
+            </Button>
+          )}
+          {lesson.status === "published" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1 text-xs border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+              onClick={() => unpublishMutation.mutate()}
+              disabled={unpublishMutation.isPending}
+              data-testid="button-unpublish-lesson"
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="icon"

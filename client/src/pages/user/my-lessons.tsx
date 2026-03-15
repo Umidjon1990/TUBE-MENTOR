@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   BookOpen, Search, PlusCircle, PlayCircle,
-  Calendar, ArrowUpDown, Filter, Wand2, Trash2, FolderOpen
+  Calendar, ArrowUpDown, Filter, Wand2, Trash2, FolderOpen,
+  Globe, EyeOff
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -77,6 +78,32 @@ export default function MyLessonsPage() {
     },
     onError: () => {
       toast({ title: "Xatolik", description: "Darsni o'chirishda xatolik yuz berdi.", variant: "destructive" });
+    },
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("PATCH", `/api/user/lessons/${id}/publish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      toast({ title: "Dars e'lon qilindi!", description: "Dars endi hammaga ko'rinadi." });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Darsni e'lon qilishda xatolik yuz berdi.", variant: "destructive" });
+    },
+  });
+
+  const unpublishMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("PATCH", `/api/user/lessons/${id}/unpublish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+      toast({ title: "Dars olib tashlandi", description: "Dars endi ommaviy ko'rinmaydi." });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Darsni olib tashlashda xatolik yuz berdi.", variant: "destructive" });
     },
   });
 
@@ -281,6 +308,31 @@ export default function MyLessonsPage() {
                           {lesson.categoryName}
                         </Badge>
                       </div>
+                    )}
+                    {lesson.status === "approved" && (
+                      <Button
+                        size="sm"
+                        className="w-full gap-1.5 mb-2 bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-primary-foreground text-xs h-8"
+                        onClick={(e) => { e.preventDefault(); publishMutation.mutate(lesson.id); }}
+                        disabled={publishMutation.isPending}
+                        data-testid={`button-publish-${lesson.id}`}
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        {publishMutation.isPending ? "E'lon qilinmoqda..." : "E'lon qilish"}
+                      </Button>
+                    )}
+                    {lesson.status === "published" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full gap-1.5 mb-2 border-orange-500/30 text-orange-400 hover:bg-orange-500/10 text-xs h-8"
+                        onClick={(e) => { e.preventDefault(); unpublishMutation.mutate(lesson.id); }}
+                        disabled={unpublishMutation.isPending}
+                        data-testid={`button-unpublish-${lesson.id}`}
+                      >
+                        <EyeOff className="w-3.5 h-3.5" />
+                        {unpublishMutation.isPending ? "Olib tashlanmoqda..." : "E'londan olish"}
+                      </Button>
                     )}
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1">

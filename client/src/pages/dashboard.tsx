@@ -9,7 +9,8 @@ import {
   BookOpen, Coins, BarChart3, Clock, TrendingUp,
   PlayCircle, PlusCircle, Layers, Hourglass, Globe,
   ArrowRight, ArrowUpRight, ArrowDownRight, AlertCircle,
-  Flame, Star, Trophy, Zap, Shield, Target, Award, FolderOpen
+  Flame, Star, Trophy, Zap, Shield, Target, Award, FolderOpen,
+  Headphones
 } from "lucide-react";
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
@@ -271,7 +272,14 @@ export default function DashboardPage() {
                             )}
                           </div>
                         </div>
-                        <Badge variant={st.variant} className="text-[10px] flex-shrink-0">{st.label}</Badge>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Link href={`/lessons/${lesson.id}/shadowing`}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10" title="Shadowing" data-testid={`button-shadowing-${lesson.id}`}>
+                              <Headphones className="w-3.5 h-3.5 text-primary/70" />
+                            </Button>
+                          </Link>
+                          <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
+                        </div>
                       </div>
                     );
                   })}

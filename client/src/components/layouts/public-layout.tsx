@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { GraduationCap } from "lucide-react";
-import { Link } from "wouter";
+import { GraduationCap, Languages } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 function PublicNavbar() {
+  const [location] = useLocation();
   return (
     <header className="sticky top-0 z-50 glass-strong" data-testid="navbar-public">
       <div className="max-w-6xl mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between gap-2 md:gap-4">
@@ -15,11 +16,21 @@ function PublicNavbar() {
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6" aria-label="Asosiy navigatsiya">
-          <Link href="/library" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-library">Kutubxona</Link>
-          <Link href="/smart-dictionary" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-dictionary">Lug'at</Link>
+          <Link href="/library" className={`text-sm transition-colors ${location === "/library" ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground"}`} data-testid="link-library">Kutubxona</Link>
+          <Link href="/smart-dictionary" data-testid="link-dictionary">
+            <span className={`inline-flex items-center gap-1.5 text-sm font-semibold transition-all ${location === "/smart-dictionary" ? "text-primary" : "text-primary/80 hover:text-primary"}`} style={{ textShadow: "0 0 12px hsl(var(--primary) / 0.5), 0 0 24px hsl(var(--primary) / 0.25)" }}>
+              <Languages className="w-4 h-4" />
+              Smart Lug'at
+            </span>
+          </Link>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
         </nav>
         <div className="flex items-center gap-3">
+          <Link href="/smart-dictionary" className="md:hidden" data-testid="link-dictionary-mobile">
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.4))" }}>
+              <Languages className="w-5 h-5" />
+            </Button>
+          </Link>
           <Link href="/login">
             <Button variant="outline" size="sm" className="border-primary/30 hover:border-primary/60 hover:bg-primary/5" data-testid="button-login">
               Kirish

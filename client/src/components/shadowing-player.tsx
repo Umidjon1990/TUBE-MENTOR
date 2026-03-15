@@ -116,6 +116,10 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
       const inner = new Map<string, WordMapEntry>();
       for (const wm of swm.wordMap) {
         inner.set(wm.normalized, wm);
+        const wordLower = wm.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+        if (wordLower !== wm.normalized) {
+          inner.set(wordLower, wm);
+        }
       }
       m.set(swm.sentenceIndex, inner);
     }
@@ -143,12 +147,19 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
     }
 
     const normalizedWord = normalizeArabic(cleanWord).toLowerCase();
+    const plainWord = cleanWord.toLowerCase();
     let wmEntry: WordMapEntry | undefined;
     for (const si of subtitle.sentenceIndices) {
-      wmEntry = wordMapLookup.get(si)?.get(normalizedWord);
+      wmEntry = wordMapLookup.get(si)?.get(normalizedWord) || wordMapLookup.get(si)?.get(plainWord);
       if (wmEntry) break;
     }
-    const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(cleanWord.toLowerCase());
+    if (!wmEntry) {
+      for (const [, innerMap] of wordMapLookup) {
+        wmEntry = innerMap.get(normalizedWord) || innerMap.get(plainWord);
+        if (wmEntry) break;
+      }
+    }
+    const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(plainWord);
 
     setSelectedWord({
       word: cleanWord,

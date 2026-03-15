@@ -154,6 +154,10 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       const inner = new Map<string, WordMapEntry>();
       for (const wm of swm.wordMap) {
         inner.set(wm.normalized, wm);
+        const wordLower = wm.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+        if (wordLower !== wm.normalized) {
+          inner.set(wordLower, wm);
+        }
       }
       m.set(swm.sentenceIndex, inner);
     }
@@ -181,13 +185,20 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     }
 
     const normalizedWord = normalizeArabic(cleanWord).toLowerCase();
+    const plainWord = cleanWord.toLowerCase();
     let wmEntry: WordMapEntry | undefined;
     let matchedSentenceIndex = -1;
     for (const si of subtitle.sentenceIndices) {
-      wmEntry = wordMapLookup.get(si)?.get(normalizedWord);
+      wmEntry = wordMapLookup.get(si)?.get(normalizedWord) || wordMapLookup.get(si)?.get(plainWord);
       if (wmEntry) { matchedSentenceIndex = si; break; }
     }
-    const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(cleanWord.toLowerCase());
+    if (!wmEntry) {
+      for (const [si, innerMap] of wordMapLookup) {
+        wmEntry = innerMap.get(normalizedWord) || innerMap.get(plainWord);
+        if (wmEntry) { matchedSentenceIndex = si; break; }
+      }
+    }
+    const vocabEntry = vocabMap.get(normalizedWord) || vocabMap.get(plainWord);
 
     const transAr = wmEntry?.translationAr || vocabEntry?.translationAr || "";
 

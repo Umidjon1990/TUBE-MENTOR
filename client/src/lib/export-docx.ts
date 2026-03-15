@@ -153,9 +153,10 @@ function sectionHeading(text: string, color: string): Paragraph {
   });
 }
 
-function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
+function buildTextSection(blocks: SentenceBlock[], targetLanguage = "ar"): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   paragraphs.push(sectionHeading("Matn va Tarjima", COLORS.emerald));
+  const isArabic = targetLanguage === "ar";
 
   const wordColors = [
     "DC2626", "2563EB", "059669", "D97706", "7C3AED",
@@ -177,7 +178,7 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
               alignment: AlignmentType.CENTER,
               spacing: { after: 0 },
               children: [
-                new TextRun({ text: w.word, bold: true, size: 22, color: clr, font: hasArabic(w.word) ? ARABIC_FONT : "Arial", rightToLeft: true }),
+                new TextRun({ text: w.word, bold: true, size: 22, color: clr, font: isArabic && hasArabic(w.word) ? ARABIC_FONT : "Arial", rightToLeft: isArabic }),
               ],
             }),
             new Paragraph({
@@ -205,42 +206,72 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
         ],
       });
 
-      const reversedCells = [...cells].reverse();
-      reversedCells.push(indexCell);
+      let orderedCells: TableCell[];
+      if (isArabic) {
+        const reversedCells = [...cells].reverse();
+        reversedCells.push(indexCell);
+        orderedCells = reversedCells;
+      } else {
+        orderedCells = [indexCell, ...cells];
+      }
 
       paragraphs.push(
         new Paragraph({ spacing: { before: 250, after: 0 }, children: [] })
       );
 
       const wordTable = new Table({
-        rows: [new TableRow({ children: reversedCells })],
+        rows: [new TableRow({ children: orderedCells })],
         width: { size: 100, type: WidthType.PERCENTAGE },
       });
       paragraphs.push(wordTable as any);
     } else if (block.sentence) {
-      paragraphs.push(
-        new Paragraph({
-          alignment: AlignmentType.RIGHT,
-          bidirectional: true,
-          spacing: { before: 250, after: 40 },
-          children: [
-            new TextRun({
-              text: block.sentence,
-              size: 26,
-              color: COLORS.emerald,
-              font: hasArabic(block.sentence) ? ARABIC_FONT : "Arial",
-              rightToLeft: true,
-            }),
-            new TextRun({
-              text: `  ${block.index}.`,
-              bold: true,
-              size: 18,
-              color: COLORS.gray,
-              font: "Arial",
-            }),
-          ],
-        })
-      );
+      if (isArabic) {
+        paragraphs.push(
+          new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            bidirectional: true,
+            spacing: { before: 250, after: 40 },
+            children: [
+              new TextRun({
+                text: block.sentence,
+                size: 26,
+                color: COLORS.emerald,
+                font: hasArabic(block.sentence) ? ARABIC_FONT : "Arial",
+                rightToLeft: true,
+              }),
+              new TextRun({
+                text: `  ${block.index}.`,
+                bold: true,
+                size: 18,
+                color: COLORS.gray,
+                font: "Arial",
+              }),
+            ],
+          })
+        );
+      } else {
+        paragraphs.push(
+          new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 250, after: 40 },
+            children: [
+              new TextRun({
+                text: `${block.index}. `,
+                bold: true,
+                size: 18,
+                color: COLORS.gray,
+                font: "Arial",
+              }),
+              new TextRun({
+                text: block.sentence,
+                size: 26,
+                color: COLORS.emerald,
+                font: "Arial",
+              }),
+            ],
+          })
+        );
+      }
     }
 
     if (block.translation) {
@@ -270,10 +301,12 @@ function buildTextSection(blocks: SentenceBlock[]): Paragraph[] {
   return paragraphs;
 }
 
-function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
+function buildVocabularySection(vocab: VocabEntry[], targetLanguage = "ar"): (Paragraph | Table)[] {
   if (vocab.length === 0) return [];
   const elements: (Paragraph | Table)[] = [];
   elements.push(sectionHeading("Lug'at", COLORS.cyan));
+  const isArabic = targetLanguage === "ar";
+  const wordLabel = isArabic ? "Arab so'z" : "Ingliz so'z";
 
   const headerRow = new TableRow({
     tableHeader: true,
@@ -284,7 +317,7 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: "Arab so'z", bold: true, size: 20, color: COLORS.white, font: "Arial" })],
+            children: [new TextRun({ text: wordLabel, bold: true, size: 20, color: COLORS.white, font: "Arial" })],
           }),
         ],
       }),
@@ -329,8 +362,8 @@ function buildVocabularySection(vocab: VocabEntry[]): (Paragraph | Table)[] {
             shading: idx % 2 === 0 ? { type: ShadingType.SOLID, color: COLORS.lightGray } : undefined,
             children: [
               new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                children: [new TextRun({ text: v.word, size: 20, color: COLORS.emerald, font: hasArabic(v.word) ? ARABIC_FONT : "Arial", rightToLeft: true })],
+                alignment: isArabic ? AlignmentType.RIGHT : AlignmentType.LEFT,
+                children: [new TextRun({ text: v.word, size: 20, color: COLORS.emerald, font: isArabic && hasArabic(v.word) ? ARABIC_FONT : "Arial", rightToLeft: isArabic })],
               }),
             ],
           }),
@@ -706,12 +739,14 @@ export async function generateDocx(
 
   children.push(...brandingHeader(data.title));
 
+  const tl = data.targetLanguage || "ar";
+
   if (textBlocks.length > 0) {
-    children.push(...buildTextSection(textBlocks));
+    children.push(...buildTextSection(textBlocks, tl));
   }
 
   if (vocab.length > 0) {
-    children.push(...buildVocabularySection(vocab));
+    children.push(...buildVocabularySection(vocab, tl));
   }
 
   if (quizzes.length > 0) {

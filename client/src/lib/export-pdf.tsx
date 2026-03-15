@@ -400,8 +400,9 @@ function Footer() {
   );
 }
 
-function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
+function TextBlocksSection({ blocks, targetLanguage = "ar" }: { blocks: SentenceBlock[]; targetLanguage?: string }) {
   if (!blocks.length) return null;
+  const isArabic = targetLanguage === "ar";
   return (
     <View>
       <Text
@@ -415,21 +416,48 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
       {blocks.map((block) => (
         <View key={block.index} style={styles.sentenceBlock} wrap={false}>
           {block.sentence && block.wordMap && block.wordMap.length > 0 ? (
-            <View style={{ flexDirection: "row" as const, flexWrap: "wrap" as const, gap: 8, justifyContent: "flex-end" as const, marginBottom: 6 }}>
-              <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica" }}>{block.index}.</Text>
-              {[...block.wordMap].reverse().map((w, wi) => {
-                const origIdx = block.wordMap!.length - 1 - wi;
-                const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
-                return (
-                  <View key={wi} style={{ alignItems: "center" as const }}>
-                    <Text style={{ fontSize: 13, color: clr, fontFamily: "ArabicFont", fontWeight: 700 as const }}>{w.word}</Text>
-                    <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
-                  </View>
-                );
-              })}
+            <View style={{
+              flexDirection: "row" as const,
+              flexWrap: "wrap" as const,
+              gap: 8,
+              justifyContent: isArabic ? "flex-end" as const : "flex-start" as const,
+              marginBottom: 6,
+            }}>
+              {isArabic ? (
+                <>
+                  <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica" }}>{block.index}.</Text>
+                  {[...block.wordMap].reverse().map((w, wi) => {
+                    const origIdx = block.wordMap!.length - 1 - wi;
+                    const clr = WORD_COLORS[origIdx % WORD_COLORS.length];
+                    return (
+                      <View key={wi} style={{ alignItems: "center" as const }}>
+                        <Text style={{ fontSize: 13, color: clr, fontFamily: "ArabicFont", fontWeight: 700 as const }}>{w.word}</Text>
+                        <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
+                      </View>
+                    );
+                  })}
+                </>
+              ) : (
+                <>
+                  <Text style={{ fontSize: 10, color: colors.gray, fontFamily: "Helvetica" }}>{block.index}.</Text>
+                  {block.wordMap.map((w, wi) => {
+                    const clr = WORD_COLORS[wi % WORD_COLORS.length];
+                    return (
+                      <View key={wi} style={{ alignItems: "center" as const }}>
+                        <Text style={{ fontSize: 13, color: clr, fontFamily: "Helvetica-Bold" }}>{w.word}</Text>
+                        <SmartText style={{ fontSize: 8, color: clr, fontWeight: 700 as const, marginTop: 1 }}>{w.translation}</SmartText>
+                      </View>
+                    );
+                  })}
+                </>
+              )}
             </View>
           ) : block.sentence ? (
-            <Text style={styles.arabicText}>{block.sentence}  {block.index}.</Text>
+            isArabic ? (
+              <Text style={styles.arabicText}>{block.sentence}  {block.index}.</Text>
+            ) : (
+              <SmartText style={{ fontSize: 12, fontFamily: "Helvetica-Bold", color: colors.arabText, marginBottom: 4 }}>{`${block.index}. ${block.sentence}`}</SmartText>
+            )
           ) : null}
           {block.translation ? (
             <SmartText style={styles.uzText}>{`${block.index}. ${block.translation}`}</SmartText>
@@ -440,8 +468,10 @@ function TextBlocksSection({ blocks }: { blocks: SentenceBlock[] }) {
   );
 }
 
-function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
+function VocabularySection({ vocab, targetLanguage = "ar" }: { vocab: VocabEntry[]; targetLanguage?: string }) {
   if (!vocab.length) return null;
+  const isArabic = targetLanguage === "ar";
+  const wordLabel = isArabic ? "Arab so'zi" : "Ingliz so'zi";
   return (
     <View>
       <Text
@@ -459,7 +489,7 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
             { width: "25%", fontFamily: "Helvetica-Bold", color: colors.vocab },
           ]}
         >
-          Arab so'zi
+          {wordLabel}
         </Text>
         <Text
           style={[
@@ -503,13 +533,18 @@ function VocabularySection({ vocab }: { vocab: VocabEntry[] }) {
           <Text
             style={[
               styles.tableCell,
-              {
+              isArabic ? {
                 width: "25%",
                 textAlign: "right" as const,
                 fontFamily: "ArabicFont",
                 fontWeight: 700 as const,
                 color: colors.arabText,
                 lineHeight: 1.6,
+              } : {
+                width: "25%",
+                textAlign: "left" as const,
+                fontFamily: "Helvetica-Bold",
+                color: colors.arabText,
               },
             ]}
           >
@@ -683,8 +718,8 @@ function MiniGuidePDF({
     <Document>
       <Page size="A4" style={styles.page}>
         <Header title={data.title} level={data.level} />
-        <TextBlocksSection blocks={textBlocks} />
-        <VocabularySection vocab={vocabulary} />
+        <TextBlocksSection blocks={textBlocks} targetLanguage={data.targetLanguage} />
+        <VocabularySection vocab={vocabulary} targetLanguage={data.targetLanguage} />
         <QuizzesSection
           quizzes={quizzes}
           withAnswers={config.quizWithAnswers}

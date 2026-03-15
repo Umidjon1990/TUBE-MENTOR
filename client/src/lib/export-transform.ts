@@ -94,6 +94,7 @@ export function buildExportData(
   return {
     title: lesson.title || "Dars",
     level: lesson.level || "beginner",
+    targetLanguage: lesson.targetLanguage || "ar",
     sentences: sentences.map((s, i) => ({
       index: i + 1,
       sentence: s.sentence || "",

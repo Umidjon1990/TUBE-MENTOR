@@ -68,6 +68,7 @@ export interface SummaryData {
 export interface LessonExportData {
   title: string;
   level: string;
+  targetLanguage?: string;
   sentences: SentenceBlock[];
   vocabulary: VocabEntry[];
   quizzes: QuizEntry[];

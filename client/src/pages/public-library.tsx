@@ -191,22 +191,50 @@ export default function PublicLibrary() {
                     : "Barcha e'lon qilingan darslarni ko'ring va o'rganing"}
               </p>
             </div>
-            {langFilter !== "all" && (
-              <Link href={`/smart-dictionary?lang=${langFilter}`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 text-primary shrink-0"
-                  data-testid="button-smart-dictionary"
-                >
-                  <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline">Smart Lug'at</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
+
+        {langFilter !== "all" && (
+          <Link href={`/smart-dictionary?lang=${langFilter}`}>
+            <div
+              className="mb-8 p-4 md:p-5 rounded-xl border border-primary/25 bg-gradient-to-r from-primary/8 via-cyan-500/6 to-violet-500/8 cursor-pointer group hover:border-primary/50 transition-all duration-300 relative overflow-hidden"
+              style={{ boxShadow: "0 0 24px hsl(var(--primary) / 0.12), 0 0 48px hsl(var(--primary) / 0.06)" }}
+              data-testid="banner-smart-dictionary"
+            >
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-cyan-400/8 to-transparent rounded-tr-full" />
+              <div className="flex items-center gap-4 relative z-10">
+                <div
+                  className="w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center"
+                  style={{ boxShadow: "0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.25)" }}
+                >
+                  <Search className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h3
+                      className="text-lg font-bold text-primary"
+                      style={{ textShadow: "0 0 16px hsl(var(--primary) / 0.4)" }}
+                    >
+                      Smart Lug'at
+                    </h3>
+                    <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                      <Sparkles className="w-3 h-3 mr-0.5" />
+                      AI
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {langFilter === "en" ? "Inglizcha" : "Arabcha"} so'zlarni qidiring — tarjima, kontekst va videodagi aniq joyini toping
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all shrink-0">
+                  Ochish
+                  <ArrowRight className="w-4.5 h-4.5" />
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3 mb-8" data-testid="section-filters">
           <div className="relative flex-1">

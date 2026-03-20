@@ -141,7 +141,7 @@ export default function PublicLessonPage() {
       const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
 
       if (hasLineIndices) {
-        return sentences.map((s, idx) => {
+        const items = sentences.map((s, idx) => {
           const indices = s.lineIndices || [];
           const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
           const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
@@ -156,6 +156,10 @@ export default function PublicLessonPage() {
             translationAr: s.translationAr || "",
           };
         });
+        for (let i = 0; i < items.length - 1; i++) {
+          items[i].endTime = items[i + 1].startTime;
+        }
+        return items;
       }
 
       if (timedSubs.length === sentences.length) {
@@ -239,7 +243,7 @@ export default function PublicLessonPage() {
 
     const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
     if (hasLineIndices) {
-      return sentences.map((s, idx) => {
+      const items = sentences.map((s, idx) => {
         const indices = s.lineIndices || [];
         const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
         const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
@@ -255,6 +259,10 @@ export default function PublicLessonPage() {
           translationAr: s.translationAr || "",
         };
       });
+      for (let i = 0; i < items.length - 1; i++) {
+        items[i].endTime = items[i + 1].startTime;
+      }
+      return items;
     }
 
     const stripDiacritics = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");

@@ -385,8 +385,8 @@ export default function PublicLessonPage() {
 
   return (
     <PublicLayout>
-      <div className="space-y-0">
-        <div className="max-w-5xl mx-auto px-2 md:px-6 py-1.5 md:py-2 flex items-center gap-2">
+      <div className="max-w-5xl mx-auto space-y-0">
+        <div className="px-2 md:px-6 py-1.5 md:py-2 flex items-center gap-2">
           <Link href="/library">
             <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back-library">
               <ArrowLeft className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function PublicLessonPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
-            className="w-full"
+            className=""
             initialSeekTime={initialTime}
             readOnly
             targetLanguage={lesson.targetLanguage || "ar"}
@@ -469,7 +469,7 @@ export default function PublicLessonPage() {
           </div>
         ) : null}
 
-        <div className="max-w-5xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
+        <div className="px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
           <div className="space-y-3">
             <h1 className="text-xl md:text-2xl font-bold" data-testid="text-lesson-title">
               {lesson.title}

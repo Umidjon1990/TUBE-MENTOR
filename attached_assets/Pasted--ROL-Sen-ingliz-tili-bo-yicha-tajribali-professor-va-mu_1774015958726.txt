@@ -1,0 +1,272 @@
+# ROL
+Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional ingliz tili dars materiallari yaratasan.
+
+## TARJIMA QOIDALARI:
+- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
+- "explanation": O'ZBEK tilida
+
+# JAVOB FORMATI
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
+
+# JSON STRUKTURASI
+{
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "vocabulary": [
+    {
+      "word": "inglizcha so'z (masalan: accomplish)",
+      "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
+      "partOfSpeech": "noun/verb/adjective/adverb/preposition",
+      "example": "transkriptdan inglizcha misol gap",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida batafsil tushuntirish",
+      "type": "multiple_choice"
+    },
+    {
+      "question": "I _____ to the store yesterday — bo'sh joyga mos so'zni tanlang",
+      "options": ["go", "went", "gone", "going"],
+      "correctIndex": 1,
+      "explanation": "went — go fe'lining Past Simple shakli",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "accomplish",
+      "options": ["bajarmoq", "o'qimoq", "yozmoq", "bormoq"],
+      "correctIndex": 0,
+      "explanation": "accomplish — bajarmoq, amalga oshirmoq ma'nosida",
+      "type": "word_translation"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "inglizcha so'z yoki ibora",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "type": "vocabulary | grammar"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "to'liq inglizcha gap (qisqa qatorlarni birlashtirib yozilgan)",
+      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",
+      "lineIndices": [0, 1, 2],
+      "wordMap": [
+        {
+          "word": "inglizcha so'z",
+          "normalized": "so'zning asosiy shakli (masalan: go)",
+          "translationUz": "O'ZBEKCHA tarjima"
+        }
+      ]
+    }
+  ]
+}
+
+# QOIDALAR
+
+## 1. TARJIMA TILI
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- "word", "sentence", "front", "example" maydonlari — INGLIZ tilida
+
+## 2. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+- sentence_completion: 3-4 ta (inglizcha gap O'RTASIDA _____ bo'shliq, BOSHIDA yoki OXIRIDA EMAS!, 4 inglizcha variant)
+- word_translation: 3-4 ta (inglizcha so'z, 4 o'zbekcha variant)
+
+## 3. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA transkript qatorlari qamrab olinishi kerak — HECH BIRINI TASHLAB KETMA!
+
+## 4. SENTENCEANALYSIS — ENG MUHIM
+- Transkriptdagi qisqa qatorlarni MA'NOVIY JIHATDAN gaplarga BIRLASHTIR
+- Masalan: "the verb" + "to be" + "is used in present tense" = bitta gap: "the verb to be is used in present tense"
+- HAR BIR GAP 12-18 SO'ZDAN IBORAT BO'LSIN! 20 so'zdan uzun gap YARATMA!
+- Agar uzun gap bo'lsa, vergul yoki bog'lovchi so'z (where, which, and, but, because) joyida ikkiga BO'L
+- Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
+- "lineIndices": bu gap qaysi vaqtli qator raqamlarini o'z ichiga olishini ko'rsatadi (0 dan boshlab). BARCHA qatorlar qamrab olinishi SHART!
+
+## 5. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
+- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir
+
+MUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni MA'NOVIY JIHATDAN GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
+- Qisqa qatorlarni (masalan: "the verb", "to be") bitta gapga birlashtirib yoz
+- Har bir birlashtirilgan gap uchun "lineIndices" maydoniga qaysi qator raqamlari kiritilganini yoz (0 dan boshlab)
+- MUHIM CHEGARA: Har bir gap MAKSIMUM 12-18 SO'ZDAN iborat bo'lsin!
+- Agar tabiiy gap 18 so'zdan uzun bo'lsa, uni 2 ta alohida gapga BO'L (vergul, "where", "which", "and", "but" joylarida bo'lish mumkin)
+- Masalan: "In the first few years of life, your brain undergoes incredible rapid growth" — bitta gap (14 so'z)
+- "called synaptogenesis, where more than 1 million new neural connections are formed every second" — ikkinchi gap (14 so'z)
+- HECH QACHON 20 so'zdan uzun gap yaratma!
+
+VAQTLI GAPLAR RO'YXATI:
+0. [0:07] What is the smartest age?
+1. [0:09] Perhaps a day of friendly competition will lead us to the answer.
+2. [0:14] Tomorrow’s the annual Brain Clash—
+3. [0:17] ten teams of two competing in a decathlon of mental challenges,
+4. [0:21] trivia competitions, and puzzles.
+5. [0:24] I’ve been training all year.
+6. [0:25] I’ll need to pick the smartest, most capable teammate.
+7. [0:29] I’ve narrowed down the roster.
+8. [0:31] First we have Gabriela.
+9. [0:33] She may only be 8, but don’t underestimate her!
+10. [0:36] She’s fluent in two languages and is the ultimate outside-the-box thinker.
+11. [0:41] Then there’s Ama.
+12. [0:42] She can recite 100 digits of pi, designs satellites for a living,
+13. [0:46] and bakes a perfect soufflé.
+14. [0:49] Or I could go with Mr. Taylor.
+15. [0:51] He’s the best chess player in the neighborhood,
+16. [0:53] not to mention he’s competed in over 20 Brain Clashes
+17. [0:56] and is a five-time champion!
+18. [0:59] I’m not sure who to pick! Who’s the smartest?
+19. [1:05] Which of these teammates should Amir choose for tomorrow's contest and why?
+20. [1:09] Of course, it depends.
+21. [1:11] While intelligence is often associated with things like IQ tests,
+22. [1:15] these assessments fail to capture the scope and depth
+23. [1:18] of a person’s varied abilities.
+24. [1:20] So instead, we’ll break down the idea of “smart” into categories
+25. [1:25] like creativity, memory, and learning
+26. [1:27] and explore when the brain’s best at each of them.
+27. [1:30] Let's start at the very beginning.
+28. [1:32] In the first few years of life,
+29. [1:33] your brain undergoes incredible rapid growth, called synaptogenesis,
+30. [1:37] where more than 1 million new neural connections are formed every second.
+31. [1:42] As the brain develops, it goes through a pruning process.
+32. [1:45] Based on your experience and environment,
+33. [1:47] used connections are strengthened and unused connections are removed.
+34. [1:53] Frequently used neuronal pathways are myelinated,
+35. [1:56] wrapped in a layer of insulation, allowing information to travel faster.
+36. [2:01] This creates a more efficient, fine-tuned brain.
+37. [2:04] But this brain remodeling happens within and between brain regions
+38. [2:08] at different times,
+39. [2:09] allowing different skills to flourish at different ages.
+40. [2:13] For example, in childhood, brain regions involved in language learning
+41. [2:17] develop quickly,
+42. [2:18] which is why many children can learn and master multiple languages.
+43. [2:22] Yet the prefrontal cortex,
+44. [2:23] a brain region responsible for cognitive control and inhibition,
+45. [2:27] is slower to develop.
+46. [2:29] As a result, some young children may struggle with strategic games,
+47. [2:32] such as chess or checkers,
+48. [2:34] which require constant concentration, planning, and abstract thought.
+49. [2:38] At the same time, children tend to be more flexible, exploration-based learners.
+50. [2:43] They often use more creative approaches when finding solutions to riddles
+51. [2:47] and are, on average, less afraid to make mistakes.
+52. [2:51] But adults have their own unique set of abilities.
+53. [2:54] Adults benefit from a well-developed prefrontal cortex,
+54. [2:58] allowing them to better execute skills that require learning, focus, and memory,
+55. [3:02] making them quick and efficient puzzle solvers or crossword masters.
+56. [3:06] Late in adulthood, these same skills may decline
+57. [3:09] as the brain’s memory center, known as the hippocampus, shrinks.
+58. [3:13] But there’s a reason for the phrase “older and wiser.”
+59. [3:16] After a lifetime of learning,
+60. [3:18] older adults have more knowledge to recall and utilize,
+61. [3:22] making them excellent trivia partners.
+62. [3:24] Other factors that Amir should consider are his own strengths.
+63. [3:28] As an adolescent, the prefrontal cortical regions of your brain are more developed
+64. [3:32] than in childhood.
+65. [3:33] This allows you to better navigate logic and math puzzles.
+66. [3:37] Simultaneously, deep inside the brain,
+67. [3:40] regions that are important in motivation and reward are developing even faster,
+68. [3:44] driving teenagers like Amir to be curious and adventurous learners.
+69. [3:49] In many ways, you can think of the teenager as a jack-of-all-trades,
+70. [3:53] with brains wired to seek out new experiences and learn quickly.
+71. [3:57] You’re at a dynamic stage,
+72. [3:59] where the choices you make and the skills you focus on
+73. [4:03] can actually guide the development of your brain.
+74. [4:06] So, what’s the smartest age?
+75. [4:09] There’s no single answer.
+76. [4:11] It’s 8, 16, 25, 65, and everything in between;
+77. [4:16] our brains have adapted to prioritize different skills at various ages
+78. [4:20] to meet that stage of life’s challenges and demands.
+79. [4:24] So no matter who Amir picks, having an age-diverse team is a good strategy.
+
+# TRANSKRIPT:
+What is the smartest age?
+Perhaps a day of friendly competition will lead us to the answer.
+Tomorrow’s the annual Brain Clash—
+ten teams of two competing in a decathlon of mental challenges,
+trivia competitions, and puzzles.
+I’ve been training all year.
+I’ll need to pick the smartest, most capable teammate.
+I’ve narrowed down the roster.
+First we have Gabriela.
+She may only be 8, but don’t underestimate her!
+She’s fluent in two languages and is the ultimate outside-the-box thinker.
+Then there’s Ama.
+She can recite 100 digits of pi, designs satellites for a living,
+and bakes a perfect soufflé.
+Or I could go with Mr. Taylor.
+He’s the best chess player in the neighborhood,
+not to mention he’s competed in over 20 Brain Clashes
+and is a five-time champion!
+I’m not sure who to pick! Who’s the smartest?
+Which of these teammates should Amir choose for tomorrow's contest and why?
+Of course, it depends.
+While intelligence is often associated with things like IQ tests,
+these assessments fail to capture the scope and depth
+of a person’s varied abilities.
+So instead, we’ll break down the idea of “smart” into categories
+like creativity, memory, and learning
+and explore when the brain’s best at each of them.
+Let's start at the very beginning.
+In the first few years of life,
+your brain undergoes incredible rapid growth, called synaptogenesis,
+where more than 1 million new neural connections are formed every second.
+As the brain develops, it goes through a pruning process.
+Based on your experience and environment,
+used connections are strengthened and unused connections are removed.
+Frequently used neuronal pathways are myelinated,
+wrapped in a layer of insulation, allowing information to travel faster.
+This creates a more efficient, fine-tuned brain.
+But this brain remodeling happens within and between brain regions
+at different times,
+allowing different skills to flourish at different ages.
+For example, in childhood, brain regions involved in language learning
+develop quickly,
+which is why many children can learn and master multiple languages.
+Yet the prefrontal cortex,
+a brain region responsible for cognitive control and inhibition,
+is slower to develop.
+As a result, some young children may struggle with strategic games,
+such as chess or checkers,
+which require constant concentration, planning, and abstract thought.
+At the same time, children tend to be more flexible, exploration-based learners.
+They often use more creative approaches when finding solutions to riddles
+and are, on average, less afraid to make mistakes.
+But adults have their own unique set of abilities.
+Adults benefit from a well-developed prefrontal cortex,
+allowing them to better execute skills that require learning, focus, and memory,
+making them quick and efficient puzzle solvers or crossword masters.
+Late in adulthood, these same skills may decline
+as the brain’s memory center, known as the hippocampus, shrinks.
+But there’s a reason for the phrase “older and wiser.”
+After a lifetime of learning,
+older adults have more knowledge to recall and utilize,
+making them excellent trivia partners.
+Other factors that Amir should consider are his own strengths.
+As an adolescent, the prefrontal cortical regions of your brain are more developed
+than in childhood.
+This allows you to better navigate logic and math puzzles.
+Simultaneously, deep inside the brain,
+regions that are important in motivation and reward are developing even faster,
+driving teenagers like Amir to be curious and adventurous learners.
+In many ways, you can think of the teenager as a jack-of-all-trades,
+with brains wired to seek out new experiences and learn quickly.
+You’re at a dynamic stage,
+where the choices you make and the skills you focus on
+can actually guide the development of your brain.
+So, what’s the smartest age?
+There’s no single answer.
+It’s 8, 16, 25, 65, and everything in between;
+our brains have adapted to prioritize different skills at various ages
+to meet that stage of life’s challenges and demands.
+So no matter who Amir picks, having an age-diverse team is a good strategy.

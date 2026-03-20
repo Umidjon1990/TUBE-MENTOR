@@ -848,7 +848,7 @@ export async function registerRoutes(
           sentence = wordMapArr.map((w: any) => w.word).join(" ");
         }
 
-        return {
+        const result: any = {
           sentence,
           translation: s.translation || "",
           translationAr: s.translationAr || "",
@@ -856,6 +856,10 @@ export async function registerRoutes(
           keyWords: Array.isArray(s.keyWords) ? s.keyWords : [],
           wordMap: wordMapArr,
         };
+        if (Array.isArray(s.lineIndices) && s.lineIndices.length > 0) {
+          result.lineIndices = s.lineIndices;
+        }
+        return result;
       });
 
       const updateData: any = {

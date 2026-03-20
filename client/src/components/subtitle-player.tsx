@@ -425,15 +425,15 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     const textHasArabic = isArabic(text);
     if (isTranslation) {
       if (textHasArabic) {
-        if (len > 120) return "clamp(12px, 2.2vw, 16px)";
+        if (len > 120) return "clamp(13px, 2.2vw, 16px)";
         if (len > 80) return "clamp(14px, 2.5vw, 18px)";
         if (len > 50) return "clamp(15px, 2.8vw, 19px)";
         return "clamp(16px, 3vw, 21px)";
       }
-      if (len > 120) return "clamp(9px, 1.8vw, 12px)";
-      if (len > 80) return "clamp(10px, 2vw, 14px)";
-      if (len > 50) return "clamp(11px, 2.2vw, 15px)";
-      return "clamp(11px, 2.5vw, 16px)";
+      if (len > 120) return "clamp(11px, 2vw, 14px)";
+      if (len > 80) return "clamp(12px, 2.2vw, 15px)";
+      if (len > 50) return "clamp(13px, 2.5vw, 16px)";
+      return "clamp(13px, 2.8vw, 17px)";
     }
     if (textHasArabic) {
       if (len > 120) return "clamp(14px, 2.5vw, 18px)";
@@ -442,11 +442,11 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       if (len > 30) return "clamp(19px, 3.8vw, 25px)";
       return "clamp(21px, 4vw, 27px)";
     }
-    if (len > 120) return "clamp(11px, 2vw, 14px)";
-    if (len > 80) return "clamp(12px, 2.5vw, 16px)";
-    if (len > 50) return "clamp(14px, 3vw, 18px)";
-    if (len > 30) return "clamp(15px, 3.2vw, 20px)";
-    return "clamp(16px, 3.5vw, 22px)";
+    if (len > 120) return "clamp(13px, 2.2vw, 16px)";
+    if (len > 80) return "clamp(14px, 2.5vw, 18px)";
+    if (len > 50) return "clamp(15px, 3vw, 20px)";
+    if (len > 30) return "clamp(16px, 3.2vw, 22px)";
+    return "clamp(17px, 3.5vw, 24px)";
   }, []);
 
   const renderOverlayText = useCallback((item: SubtitleItem) => {
@@ -457,7 +457,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     if (displayMode === "original") {
       return (
         <div className="pointer-events-auto text-center" data-testid="text-subtitle-overlay-original">
-          <div className="font-medium leading-snug text-white" dir="auto" style={{ fontSize: originalFontSize }}>
+          <div className="font-medium leading-relaxed text-white break-words" dir="auto" style={{ fontSize: originalFontSize }}>
             {renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
@@ -466,19 +466,19 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     if (displayMode === "translation") {
       return (
         <div className="text-center" data-testid="text-subtitle-overlay-translation">
-          <div className="font-medium leading-snug text-white" dir="auto" style={{ fontSize: translation ? translationFontSize : originalFontSize }}>
+          <div className="font-medium leading-relaxed text-white break-words" dir="auto" style={{ fontSize: translation ? translationFontSize : originalFontSize }}>
             {translation ? renderTranslationText(translation, true) : renderClickableWords(item.originalText, item, true)}
           </div>
         </div>
       );
     }
     return (
-      <div className="space-y-1 pointer-events-auto text-center">
-        <div className="font-semibold leading-snug text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" dir="auto" data-testid="text-subtitle-overlay-original" style={{ fontSize: originalFontSize }}>
+      <div className="space-y-1.5 pointer-events-auto text-center">
+        <div className="font-semibold leading-relaxed text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] break-words" dir="auto" data-testid="text-subtitle-overlay-original" style={{ fontSize: originalFontSize }}>
           {renderClickableWords(item.originalText, item, true)}
         </div>
         {translation && (
-          <div className="leading-snug text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]" dir="auto" data-testid="text-subtitle-overlay-translation" style={{ fontSize: translationFontSize }}>
+          <div className="leading-relaxed text-cyan-200/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)] break-words" dir="auto" data-testid="text-subtitle-overlay-translation" style={{ fontSize: translationFontSize }}>
             {renderTranslationText(translation, true)}
           </div>
         )}
@@ -506,10 +506,10 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         </div>
 
         {activeSubtitle && (
-          <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
+          <div className="bg-black/95 px-3 md:px-6 py-2 md:py-3" data-testid="subtitle-overlay">
             <div
-              className="text-center"
-              style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center center" }}
+              className="max-w-full"
+              style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center top" }}
             >
               {renderOverlayText(activeSubtitle)}
             </div>
@@ -690,7 +690,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           {!panelCollapsed && (
             <div
               ref={panelRef}
-              className="max-h-[160px] md:max-h-[320px] overflow-y-auto scroll-smooth"
+              className="max-h-[50vh] md:max-h-[60vh] overflow-y-auto scroll-smooth"
               style={{ fontSize: `${14 * subtitleZoom}px` }}
             >
               <div className="p-1.5 md:p-2 divide-y divide-border/20">
@@ -703,7 +703,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                     <div
                       key={item.id}
                       data-subtitle-idx={idx}
-                      className={`w-full rounded-lg px-2.5 md:px-3 py-2 md:py-2.5 transition-all duration-200 group
+                      className={`w-full rounded-lg px-2.5 md:px-3 py-2.5 md:py-3 transition-all duration-200 group
                         ${isActive
                           ? "bg-primary/10 border border-primary/30 shadow-sm shadow-primary/5 ring-1 ring-primary/20"
                           : "hover:bg-white/5 border border-transparent"
@@ -711,16 +711,28 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                         ${idx > 0 && !isActive ? "mt-0.5" : ""}`}
                       data-testid={`button-subtitle-line-${idx}`}
                     >
-                      <div className="flex items-start gap-1.5 md:gap-2">
-                        <span
-                          className={`font-mono mt-0.5 md:mt-1 shrink-0 w-8 md:w-10 transition-colors cursor-pointer ${
-                            isActive ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground/70"
-                          }`}
-                          style={{ fontSize: "0.7em" }}
-                          onClick={() => seekTo(item.startTime)}
-                        >
-                          {formatTime(item.startTime)}
-                        </span>
+                      <div className="flex items-start gap-2 md:gap-3">
+                        <div className="shrink-0 flex flex-col items-center gap-1 mt-0.5">
+                          <button
+                            className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-colors ${
+                              isActive
+                                ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground/70"
+                            }`}
+                            onClick={() => seekTo(item.startTime)}
+                            data-testid={`button-play-subtitle-${idx}`}
+                          >
+                            <Play className="w-3 h-3 ml-0.5" />
+                          </button>
+                          <span
+                            className={`font-mono text-center transition-colors ${
+                              isActive ? "text-primary font-bold" : "text-muted-foreground"
+                            }`}
+                            style={{ fontSize: "0.6em" }}
+                          >
+                            {formatTime(item.startTime)}
+                          </span>
+                        </div>
                         <div className="flex-1 min-w-0">
                           {(displayMode === "original" || displayMode === "both") && (
                             <div className={`leading-relaxed transition-colors ${
@@ -738,7 +750,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                                     textAlign: originalIsArabic ? "right" : "left",
                                     fontFamily: originalIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
                                     lineHeight: originalIsArabic ? "2" : "1.6",
-                                    fontSize: originalIsArabic ? "1.05em" : "0.9em",
+                                    fontSize: originalIsArabic ? "1.05em" : "0.95em",
                                   }}
                                   onClick={() => seekTo(item.startTime)}
                                 >
@@ -750,9 +762,9 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                           {(displayMode === "translation" || displayMode === "both") && translation && (
                             <div
                               className={`leading-relaxed transition-colors cursor-pointer break-words ${
-                                displayMode === "both" ? "mt-1" : ""
+                                displayMode === "both" ? "mt-1.5" : ""
                               } ${isActive ? "text-primary/80" : "text-muted-foreground"}`}
-                              style={{ fontSize: "0.85em" }}
+                              style={{ fontSize: "0.88em" }}
                               onClick={() => seekTo(item.startTime)}
                             >
                               {renderTranslationText(translation, false)}
@@ -765,7 +777,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                               }`}
                               style={{
                                 textAlign: "left",
-                                fontSize: originalIsArabic ? "1.05em" : "0.9em",
+                                fontSize: originalIsArabic ? "1.05em" : "0.95em",
                               }}
                               onClick={() => seekTo(item.startTime)}
                             >
@@ -773,11 +785,14 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
                             </p>
                           )}
                         </div>
-                        {isActive && (
-                          <div className="shrink-0 mt-1">
+                        <div className="shrink-0 flex items-center gap-1">
+                          {isActive && (
                             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                          </div>
-                        )}
+                          )}
+                          <span className="text-[9px] font-mono text-muted-foreground/60">
+                            {idx + 1}/{subtitles.length}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );

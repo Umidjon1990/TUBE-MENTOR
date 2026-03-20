@@ -592,10 +592,14 @@ function buildChatGptPrompt(transcript: string, manualTranscript: string, target
     : "";
 
   const englishTimedSection = hasTiming
-    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni MA'NOVIY JIHATDAN TO'LIQ GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
-- Qisqa qatorlarni (masalan: "the verb", "to be") bitta to'liq gapga ("the verb to be") birlashtirib yoz
+    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni MA'NOVIY JIHATDAN GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
+- Qisqa qatorlarni (masalan: "the verb", "to be") bitta gapga birlashtirib yoz
 - Har bir birlashtirilgan gap uchun "lineIndices" maydoniga qaysi qator raqamlari kiritilganini yoz (0 dan boshlab)
-- Natijada har bir sentenceAnalysis elementi TO'LIQ, MANTIQIY gap bo'lishi kerak
+- MUHIM CHEGARA: Har bir gap MAKSIMUM 12-18 SO'ZDAN iborat bo'lsin!
+- Agar tabiiy gap 18 so'zdan uzun bo'lsa, uni 2 ta alohida gapga BO'L (vergul, "where", "which", "and", "but" joylarida bo'lish mumkin)
+- Masalan: "In the first few years of life, your brain undergoes incredible rapid growth" — bitta gap (14 so'z)
+- "called synaptogenesis, where more than 1 million new neural connections are formed every second" — ikkinchi gap (14 so'z)
+- HECH QACHON 20 so'zdan uzun gap yaratma!
 
 VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`
     : "";
@@ -687,8 +691,10 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - sentenceAnalysis: BARCHA transkript qatorlari qamrab olinishi kerak — HECH BIRINI TASHLAB KETMA!
 
 ## 4. SENTENCEANALYSIS — ENG MUHIM
-- Transkriptdagi qisqa qatorlarni MA'NOVIY JIHATDAN to'liq gaplarga BIRLASHTIR
+- Transkriptdagi qisqa qatorlarni MA'NOVIY JIHATDAN gaplarga BIRLASHTIR
 - Masalan: "the verb" + "to be" + "is used in present tense" = bitta gap: "the verb to be is used in present tense"
+- HAR BIR GAP 12-18 SO'ZDAN IBORAT BO'LSIN! 20 so'zdan uzun gap YARATMA!
+- Agar uzun gap bo'lsa, vergul yoki bog'lovchi so'z (where, which, and, but, because) joyida ikkiga BO'L
 - Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz
 - wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
 - Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)

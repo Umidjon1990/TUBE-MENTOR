@@ -592,14 +592,15 @@ function buildChatGptPrompt(transcript: string, manualTranscript: string, target
     : "";
 
   const englishTimedSection = hasTiming
-    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni MA'NOVIY JIHATDAN GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
-- Qisqa qatorlarni (masalan: "the verb", "to be") bitta gapga birlashtirib yoz
+    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni KETMA-KET GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
+- Qisqa qatorlarni bitta gapga birlashtirib yoz — LEKIN asl matnni O'ZGARTIRMA, faqat ketma-ket qatorlarni ulashtirib yoz!
+- NOTO'G'RI: Mazmunni qayta yozish, so'zlarni almashtirish, boshqa qatordagi mazmunni qo'shish
+- TO'G'RI: Qatorlarni AYNAN asl holatida birlashtirish (masalan: qator 3 matni + " " + qator 4 matni)
 - Har bir birlashtirilgan gap uchun "lineIndices" maydoniga qaysi qator raqamlari kiritilganini yoz (0 dan boshlab)
 - MUHIM CHEGARA: Har bir gap MAKSIMUM 12-18 SO'ZDAN iborat bo'lsin!
 - Agar tabiiy gap 18 so'zdan uzun bo'lsa, uni 2 ta alohida gapga BO'L (vergul, "where", "which", "and", "but" joylarida bo'lish mumkin)
-- Masalan: "In the first few years of life, your brain undergoes incredible rapid growth" — bitta gap (14 so'z)
-- "called synaptogenesis, where more than 1 million new neural connections are formed every second" — ikkinchi gap (14 so'z)
 - HECH QACHON 20 so'zdan uzun gap yaratma!
+- "translation" maydoni AYNAN shu birlashtirilgan gapdagi mazmunni tarjima qilsin — BOSHQA gaplar mazmunini qo'shma!
 
 VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`
     : "";
@@ -660,8 +661,8 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "to'liq inglizcha gap (qisqa qatorlarni birlashtirib yozilgan)",
-      "translation": "O'ZBEKCHA tarjima (bu SHART o'zbekcha bo'lishi kerak)",${hasTiming ? '\n      "lineIndices": [0, 1, 2],' : ""}
+      "sentence": "ketma-ket qatorlar matnini AYNAN asl holatida birlashtirgan gap (QAYTA YOZMA!)",
+      "translation": "O'ZBEKCHA tarjima — AYNAN shu gap mazmunini tarjima qil",${hasTiming ? '\n      "lineIndices": [0, 1, 2],' : ""}
       "wordMap": [
         {
           "word": "inglizcha so'z",
@@ -691,11 +692,15 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - sentenceAnalysis: BARCHA transkript qatorlari qamrab olinishi kerak — HECH BIRINI TASHLAB KETMA!
 
 ## 4. SENTENCEANALYSIS — ENG MUHIM
-- Transkriptdagi qisqa qatorlarni MA'NOVIY JIHATDAN gaplarga BIRLASHTIR
-- Masalan: "the verb" + "to be" + "is used in present tense" = bitta gap: "the verb to be is used in present tense"
+- Transkriptdagi qisqa qatorlarni gaplarga BIRLASHTIR
+- MUHIM: Gapni QAYTA YOZMA! Asl qatorlardagi so'zlarni AYNAN shu tartibda birlashtir!
+- NOTO'G'RI: "She bakes a perfect soufflé, or I could go with Mr. Taylor." (2 ta qatordan mazmun aralashtirilgan!)
+- TO'G'RI: "She can recite 100 digits of pi, designs satellites for a living, and bakes a perfect soufflé." (faqat asl qator matni)
+- Masalan: qator 5 "the verb" + qator 6 "to be" + qator 7 "is used in present tense" = bitta gap: "the verb to be is used in present tense"
+- QAYTA TARTIBLASH MUMKIN EMAS! Har bir gap faqat KETMA-KET qatorlarning AYNAN ASL MATNINI birlashtirishi kerak!
 - HAR BIR GAP 12-18 SO'ZDAN IBORAT BO'LSIN! 20 so'zdan uzun gap YARATMA!
 - Agar uzun gap bo'lsa, vergul yoki bog'lovchi so'z (where, which, and, but, because) joyida ikkiga BO'L
-- Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz
+- Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz — tarjima AYNAN shu gapdagi mazmunni tarjima qilsin!
 - wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
 - Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
 ${hasTiming ? '- "lineIndices": bu gap qaysi vaqtli qator raqamlarini o\'z ichiga olishini ko\'rsatadi (0 dan boshlab). BARCHA qatorlar qamrab olinishi SHART!' : ""}

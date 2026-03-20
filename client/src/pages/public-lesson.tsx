@@ -247,14 +247,13 @@ export default function PublicLessonPage() {
         const indices = s.lineIndices || [];
         const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
         const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
-        const originalTexts = indices.map(i => timedSubs[i]?.text || "").filter(Boolean);
         return {
           id: idx,
           sentenceIndex: idx,
           sentenceIndices: [idx],
           startTime: firstLine?.startTime ?? idx * 8,
           endTime: lastLine?.endTime ?? (idx + 1) * 8,
-          originalText: originalTexts.join(" ") || s.sentence,
+          originalText: s.sentence,
           translationUz: s.translation || "",
           translationAr: s.translationAr || "",
         };

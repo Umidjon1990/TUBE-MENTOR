@@ -302,13 +302,14 @@ export default function PublicLessonPage() {
         }
       }
 
+      const matchedSentenceTexts = matchedIndices.map(i => sentences[i]?.sentence || "").filter(Boolean);
       return {
         id: idx,
         sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : Math.min(sentCursor, sentences.length - 1),
         sentenceIndices: matchedIndices.length > 0 ? matchedIndices : [Math.min(sentCursor, sentences.length - 1)],
         startTime: ts.startTime,
         endTime: ts.endTime,
-        originalText: ts.text,
+        originalText: matchedSentenceTexts.length > 0 ? matchedSentenceTexts.join(" ") : ts.text,
         translationUz: matchedTranslations.join(" ") || "",
         translationAr: matchedTranslationsAr.join(" ") || "",
       };

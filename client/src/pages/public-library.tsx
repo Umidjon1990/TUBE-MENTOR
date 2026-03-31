@@ -209,13 +209,27 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
               <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{collection.description}</p>
             )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="mb-3">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
                 <span className="flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
                   {collection.lessonCount} dars
                 </span>
+                <span>{collection.lessonCount > 0 ? "Boshlash" : "Bo'sh"}</span>
               </div>
+              <div className="h-1 rounded-full overflow-hidden bg-muted/50">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: collection.lessonCount > 0 ? "5%" : "0%",
+                    background: "linear-gradient(90deg, hsl(var(--primary)), hsl(190 95% 60%))",
+                    boxShadow: "0 0 8px hsl(var(--primary) / 0.4)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0"
                 style={{
@@ -349,6 +363,7 @@ export default function PublicLibrary() {
   const lessons = data?.lessons ?? [];
   const categories = data?.categories ?? [];
   const hasFilters = search || categoryFilter !== "all" || levelFilter !== "all" || langFilter !== "all";
+  const hasNonLangFilters = search || categoryFilter !== "all" || levelFilter !== "all";
 
   return (
     <PublicLayout>
@@ -512,7 +527,7 @@ export default function PublicLibrary() {
           </div>
         ) : (
           <>
-            {!hasFilters && <CollectionsSection langFilter={langFilter} />}
+            {!hasNonLangFilters && <CollectionsSection langFilter={langFilter} />}
             {!hasFilters && <FeaturedSection lessons={lessons} />}
 
             <section data-testid="section-all-lessons">

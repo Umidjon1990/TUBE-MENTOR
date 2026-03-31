@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FolderOpen, Plus, Pencil, Trash2, Loader2, Eye, EyeOff, CheckCircle, Clock, Globe } from "lucide-react";
+import { FolderOpen, Plus, Pencil, Trash2, Loader2, Eye, EyeOff, CheckCircle, Clock, Globe, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Collection } from "@shared/schema";
@@ -184,16 +184,28 @@ export default function AdminCollectionsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {c.status === "draft" && (
+                      {(c.status === "draft" || c.status === "pending") && (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs border-amber-500/30 text-amber-400"
+                          className="h-8 text-xs border-emerald-500/30 text-emerald-400"
                           onClick={() => statusMutation.mutate({ id: c.id, status: "approved" })}
                           data-testid={`button-approve-${c.id}`}
                         >
                           <CheckCircle className="w-3.5 h-3.5 mr-1" />
                           Tasdiqlash
+                        </Button>
+                      )}
+                      {c.status === "pending" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs border-red-500/30 text-red-400"
+                          onClick={() => statusMutation.mutate({ id: c.id, status: "draft" })}
+                          data-testid={`button-reject-${c.id}`}
+                        >
+                          <X className="w-3.5 h-3.5 mr-1" />
+                          Rad etish
                         </Button>
                       )}
                       {c.status === "approved" && (

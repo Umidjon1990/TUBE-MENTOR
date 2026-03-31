@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   FolderOpen, Plus, Pencil, Trash2, Loader2, Eye, BookOpen, ArrowLeft,
-  GripVertical, X, Search, Globe, EyeOff
+  GripVertical, X, Search, Globe, EyeOff, ArrowUp, ArrowDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -153,6 +153,29 @@ export default function MyCollectionsPage() {
       toast({ title: "Dars olib tashlandi" });
     },
   });
+
+  const reorderMutation = useMutation({
+    mutationFn: ({ collectionId, items }: { collectionId: number; items: { lessonId: number; orderIndex: number }[] }) =>
+      apiRequest("PUT", `/api/user/collections/${collectionId}/lessons/order`, { items }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/collections", selectedCollection] });
+    },
+  });
+
+  function moveLessonOrder(lessonId: number, direction: "up" | "down") {
+    if (!collectionDetail?.lessons || !selectedCollection) return;
+    const sorted = [...collectionDetail.lessons].sort((a, b) => a.orderIndex - b.orderIndex);
+    const idx = sorted.findIndex(l => l.id === lessonId);
+    if (idx < 0) return;
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+    const items = sorted.map((l, i) => {
+      if (i === idx) return { lessonId: l.id, orderIndex: swapIdx };
+      if (i === swapIdx) return { lessonId: l.id, orderIndex: idx };
+      return { lessonId: l.id, orderIndex: i };
+    });
+    reorderMutation.mutate({ collectionId: selectedCollection, items });
+  }
 
   const publishMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) =>
@@ -421,9 +444,31 @@ export default function MyCollectionsPage() {
             </DialogHeader>
             <div className="space-y-3">
               {collectionDetail?.lessons && collectionDetail.lessons.length > 0 ? (
-                collectionDetail.lessons.map((l, idx) => (
+                [...collectionDetail.lessons].sort((a, b) => a.orderIndex - b.orderIndex).map((l, idx, arr) => (
                   <div key={l.id} className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border/50" data-testid={`lesson-item-${l.id}`}>
-                    <span className="text-sm font-mono text-muted-foreground w-6 text-center">{idx + 1}</span>
+                    <div className="flex flex-col gap-0.5 shrink-0">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        disabled={idx === 0 || reorderMutation.isPending}
+                        onClick={() => moveLessonOrder(l.id, "up")}
+                        data-testid={`button-move-up-${l.id}`}
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </Button>
+                      <span className="text-[10px] font-mono text-muted-foreground text-center">{idx + 1}</span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5"
+                        disabled={idx === arr.length - 1 || reorderMutation.isPending}
+                        onClick={() => moveLessonOrder(l.id, "down")}
+                        data-testid={`button-move-down-${l.id}`}
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </Button>
+                    </div>
                     {l.thumbnailUrl && (
                       <img src={l.thumbnailUrl} alt="" className="w-16 h-10 rounded object-cover shrink-0" />
                     )}

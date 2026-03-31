@@ -381,4 +381,11 @@ export const insertCollectionSchema = createInsertSchema(collections).pick({
 
 export type Collection = typeof collections.$inferSelect;
 export type InsertCollection = z.infer<typeof insertCollectionSchema>;
+
+export const insertCollectionLessonSchema = createInsertSchema(collectionLessons).pick({
+  collectionId: true,
+  lessonId: true,
+  orderIndex: true,
+});
+export type InsertCollectionLesson = z.infer<typeof insertCollectionLessonSchema>;
 export type CollectionLesson = typeof collectionLessons.$inferSelect;

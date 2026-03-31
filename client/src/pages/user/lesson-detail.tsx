@@ -696,7 +696,7 @@ function TranscriptTab({
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", String(lessonId)] });
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", String(lessonId)] });
       toast({ title: "Gap tahrirlandi" });
       setEditIdx(null);
       setEditForm(null);

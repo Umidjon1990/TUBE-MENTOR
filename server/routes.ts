@@ -672,6 +672,50 @@ export async function registerRoutes(
     res.json(updated);
   });
 
+  const wordMapItemSchema = z.object({
+    word: z.string().max(200),
+    normalized: z.string().max(200).optional().default(""),
+    translationUz: z.string().max(500),
+    translationAr: z.string().max(500).optional().default(""),
+  });
+
+  const sentenceEditSchema = z.object({
+    sentence: z.string().min(1).max(5000).optional(),
+    translation: z.string().max(5000).optional(),
+    translationAr: z.string().max(5000).optional(),
+    wordMap: z.array(wordMapItemSchema).max(100).optional(),
+  });
+
+  app.patch("/api/user/lessons/:id/sentences/:index", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    const index = parseInt(req.params.index as string);
+    if (isNaN(id) || isNaN(index) || index < 0) return res.status(400).json({ message: "Noto'g'ri parametrlar" });
+
+    const parsed = sentenceEditSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: "Noto'g'ri ma'lumot formati", errors: parsed.error.flatten() });
+
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    const sentences: any[] = (lesson.sentenceAnalysisJson as any[]) || [];
+    if (index >= sentences.length) return res.status(400).json({ message: "Gap indeksi noto'g'ri" });
+
+    const data = parsed.data;
+    if (data.sentence !== undefined) sentences[index].sentence = data.sentence;
+    if (data.translation !== undefined) sentences[index].translation = data.translation;
+    if (data.translationAr !== undefined) sentences[index].translationAr = data.translationAr;
+    if (data.wordMap !== undefined) {
+      sentences[index].wordMap = data.wordMap.map(wm => ({
+        ...wm,
+        normalized: wm.normalized || wm.word.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim(),
+      }));
+    }
+
+    const updated = await storage.updateLesson(id, { sentenceAnalysisJson: sentences });
+    res.json(updated);
+  });
+
   app.post("/api/user/lessons/:id/transcript", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });

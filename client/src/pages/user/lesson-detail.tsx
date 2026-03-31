@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +25,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones, Search
+  Download, Headphones, Search, Pencil
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -636,6 +638,13 @@ export default function LessonDetailPage() {
 
 type TranslationMode = "none" | "uz" | "ar" | "both";
 
+interface EditSentenceForm {
+  sentence: string;
+  translation: string;
+  translationAr: string;
+  wordMap: WordMapItem[];
+}
+
 function TranscriptTab({
   sentences, lessonId, bookmarks, flashcards
 }: {
@@ -648,6 +657,54 @@ function TranscriptTab({
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [difficultSet, setDifficultSet] = useState<Set<number>>(new Set());
   const [translationMode, setTranslationMode] = useState<TranslationMode>("uz");
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<EditSentenceForm | null>(null);
+
+  const openEdit = (idx: number) => {
+    const s = sentences[idx];
+    setEditForm({
+      sentence: s.sentence || "",
+      translation: s.translation || "",
+      translationAr: s.translationAr || "",
+      wordMap: s.wordMap ? s.wordMap.map(w => ({ ...w })) : [],
+    });
+    setEditIdx(idx);
+  };
+
+  const updateEditWordMap = (wi: number, field: keyof WordMapItem, value: string) => {
+    if (!editForm) return;
+    const next = editForm.wordMap.map((w, i) => i === wi ? { ...w, [field]: value } : w);
+    setEditForm({ ...editForm, wordMap: next });
+  };
+
+  const addWordMapItem = () => {
+    if (!editForm) return;
+    setEditForm({
+      ...editForm,
+      wordMap: [...editForm.wordMap, { word: "", normalized: "", translationUz: "", translationAr: "" }],
+    });
+  };
+
+  const removeWordMapItem = (wi: number) => {
+    if (!editForm) return;
+    setEditForm({ ...editForm, wordMap: editForm.wordMap.filter((_, i) => i !== wi) });
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async ({ index, data }: { index: number; data: EditSentenceForm }) => {
+      const res = await apiRequest("PATCH", `/api/user/lessons/${lessonId}/sentences/${index}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", String(lessonId)] });
+      toast({ title: "Gap tahrirlandi" });
+      setEditIdx(null);
+      setEditForm(null);
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Gapni saqlashda xatolik yuz berdi", variant: "destructive" });
+    },
+  });
 
   const bookmarkMutation = useMutation({
     mutationFn: async (data: { sentenceIndex: number; label: string }) => {
@@ -802,6 +859,15 @@ function TranscriptTab({
 
                     <Tooltip>
                       <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-400/70 hover:text-orange-400" onClick={() => openEdit(idx)} data-testid={`button-edit-sentence-${idx}`}>
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Tahrirlash</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <Button
                           variant="ghost" size="icon"
                           className={`h-7 w-7 ${isBookmarked ? "text-primary" : ""}`}
@@ -856,6 +922,119 @@ function TranscriptTab({
           );
         })}
       </div>
+
+      <Dialog open={editIdx !== null} onOpenChange={(open) => { if (!open) { setEditIdx(null); setEditForm(null); } }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-orange-400" />
+              Gapni tahrirlash {editIdx !== null && `(#${editIdx + 1})`}
+            </DialogTitle>
+          </DialogHeader>
+
+          {editForm && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Asl matn</Label>
+                <Textarea
+                  value={editForm.sentence}
+                  onChange={e => setEditForm({ ...editForm, sentence: e.target.value })}
+                  className="min-h-[60px]"
+                  data-testid="input-edit-sentence"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>O'zbekcha tarjima</Label>
+                <Textarea
+                  value={editForm.translation}
+                  onChange={e => setEditForm({ ...editForm, translation: e.target.value })}
+                  className="min-h-[60px]"
+                  data-testid="input-edit-translation"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Arabcha tarjima</Label>
+                <Textarea
+                  dir="rtl"
+                  value={editForm.translationAr}
+                  onChange={e => setEditForm({ ...editForm, translationAr: e.target.value })}
+                  className="min-h-[60px]"
+                  style={{ fontFamily: "'Noto Naskh Arabic', serif" }}
+                  data-testid="input-edit-translationAr"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>So'z xaritasi</Label>
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addWordMapItem} data-testid="button-add-wordmap">
+                    <Plus className="w-3 h-3" /> Qo'shish
+                  </Button>
+                </div>
+
+                {editForm.wordMap.length === 0 && (
+                  <p className="text-xs text-muted-foreground">So'z xaritasi bo'sh</p>
+                )}
+
+                <div className="space-y-2">
+                  {editForm.wordMap.map((wm, wi) => (
+                    <div key={wi} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5 items-start p-2 rounded-lg border border-border/50 bg-card/50">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground mb-0.5">So'z</p>
+                        <Input
+                          value={wm.word}
+                          onChange={e => updateEditWordMap(wi, "word", e.target.value)}
+                          className="h-7 text-xs"
+                          data-testid={`input-wordmap-word-${wi}`}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground mb-0.5">UZ tarjima</p>
+                        <Input
+                          value={wm.translationUz}
+                          onChange={e => updateEditWordMap(wi, "translationUz", e.target.value)}
+                          className="h-7 text-xs"
+                          data-testid={`input-wordmap-uz-${wi}`}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground mb-0.5">AR tarjima</p>
+                        <Input
+                          dir="rtl"
+                          value={wm.translationAr}
+                          onChange={e => updateEditWordMap(wi, "translationAr", e.target.value)}
+                          className="h-7 text-xs"
+                          style={{ fontFamily: "'Noto Naskh Arabic', serif" }}
+                          data-testid={`input-wordmap-ar-${wi}`}
+                        />
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 mt-3.5 text-red-400 hover:text-red-300" onClick={() => removeWordMapItem(wi)} data-testid={`button-remove-wordmap-${wi}`}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setEditIdx(null); setEditForm(null); }} data-testid="button-cancel-edit">
+              Bekor qilish
+            </Button>
+            <Button
+              onClick={() => editIdx !== null && editForm && saveMutation.mutate({ index: editIdx, data: editForm })}
+              disabled={saveMutation.isPending}
+              data-testid="button-save-edit"
+            >
+              {saveMutation.isPending ? <RotateCcw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Saqlash
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

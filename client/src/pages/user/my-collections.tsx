@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   FolderOpen, Plus, Pencil, Trash2, Loader2, Eye, BookOpen, ArrowLeft,
-  GripVertical, X, Search, Globe, EyeOff, ArrowUp, ArrowDown
+  GripVertical, X, Search, Globe, EyeOff, ArrowUp, ArrowDown, ImagePlus, XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -73,6 +73,8 @@ export default function MyCollectionsPage() {
   const [formTargetLanguage, setFormTargetLanguage] = useState("ar");
   const [formLevel, setFormLevel] = useState("beginner");
   const [formSortOrder, setFormSortOrder] = useState(0);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const { data: myCollections = [], isLoading } = useQuery<CollectionWithMeta[]>({
     queryKey: ["/api/user/collections"],
@@ -247,11 +249,95 @@ export default function MyCollectionsPage() {
     l => !existingLessonIds.has(l.id) && (!lessonSearch || l.title.toLowerCase().includes(lessonSearch.toLowerCase()))
   );
 
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append("cover", file);
+      const res = await fetch("/api/upload/cover", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Yuklashda xatolik");
+      }
+      const { url } = await res.json();
+      setFormCoverImage(url);
+      toast({ title: "Rasm yuklandi" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Yuklashda xatolik";
+      toast({ title: "Xatolik", description: msg, variant: "destructive" });
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
+  }
+
   const CollectionForm = () => (
     <div className="space-y-4">
       <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Papka nomi" data-testid="input-collection-name" />
       <Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Tavsif (ixtiyoriy)" rows={3} data-testid="input-collection-description" />
-      <Input value={formCoverImage} onChange={(e) => setFormCoverImage(e.target.value)} placeholder="Muqova rasmi URL (ixtiyoriy)" data-testid="input-collection-cover" />
+      <div>
+        <label className="text-sm text-muted-foreground mb-1.5 block">Muqova rasmi</label>
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={handleCoverUpload}
+          className="hidden"
+          data-testid="input-cover-file"
+        />
+        {formCoverImage ? (
+          <div className="relative group w-full h-36 rounded-lg overflow-hidden border border-border/50">
+            <img src={formCoverImage} alt="Muqova" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-8 text-xs"
+                onClick={() => coverInputRef.current?.click()}
+                data-testid="button-change-cover"
+              >
+                <ImagePlus className="w-3.5 h-3.5 mr-1" />
+                Almashtirish
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                className="h-8 text-xs"
+                onClick={() => setFormCoverImage("")}
+                data-testid="button-remove-cover"
+              >
+                <XCircle className="w-3.5 h-3.5 mr-1" />
+                O'chirish
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => coverInputRef.current?.click()}
+            disabled={uploadingCover}
+            className="w-full h-28 rounded-lg border-2 border-dashed border-border/50 hover:border-primary/40 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+            data-testid="button-upload-cover"
+          >
+            {uploadingCover ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <ImagePlus className="w-6 h-6" />
+            )}
+            <span className="text-xs">
+              {uploadingCover ? "Yuklanmoqda..." : "Muqova rasmi yuklash"}
+            </span>
+          </button>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <Select value={formTargetLanguage} onValueChange={setFormTargetLanguage}>
           <SelectTrigger data-testid="select-collection-language">

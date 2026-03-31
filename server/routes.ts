@@ -1,11 +1,33 @@
 import type { Express } from "express";
 import { type Server } from "http";
+import express from "express";
+import path from "path";
+import multer from "multer";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { verifyPassword, requireAdmin, requireAuth, hashPassword } from "./auth";
 import { z } from "zod";
 import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from "./services/transcript";
 import { generateLessonContent } from "./services/ai-generator";
+
+const uploadStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), "uploads")),
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `cover-${uniqueSuffix}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage: uploadStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Faqat rasm fayllari (JPEG, PNG, WebP, GIF) qabul qilinadi"));
+  },
+});
 
 const createUserSchema = z.object({
   fullName: z.string().min(2, "Ism kamida 2 ta belgidan iborat bo'lishi kerak"),
@@ -36,6 +58,16 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+  app.post("/api/upload/cover", requireAuth, upload.single("cover"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "Rasm yuklanmadi" });
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url });
+  });
+
   app.get("/api/health", async (_req, res) => {
     try {
       await pool.query("SELECT 1");

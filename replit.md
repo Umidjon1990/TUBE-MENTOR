@@ -48,6 +48,7 @@ client/
         lesson-process.tsx     # Multi-step transcript extraction + AI generation
         lesson-detail.tsx      # Interactive lesson with 8 tabs (Matn, Lug'at, Test, Xulosa, Kartochkalar, Eslatmalar, Shadowing)
         shadowing.tsx          # Standalone shadowing page (/lessons/:id/shadowing) — audio-only sentence practice
+        my-collections.tsx     # Collections (folders) management with cover upload, lesson ordering
         flashcards.tsx         # Flashcards management
         notes.tsx              # Notes management
         analytics.tsx          # Full analytics dashboard with charts
@@ -58,6 +59,7 @@ client/
         moderation.tsx         # Content moderation workflow
         coins.tsx              # Coin management
         categories.tsx         # Categories management
+        collections.tsx        # Admin collections management with approve/reject/publish
         data-center.tsx        # Data Center: aggregated vocabulary/sentences/quizzes/phrases/flashcards/saved-words/wordmaps with filtering, sorting, XLSX/CSV export
         settings.tsx           # System settings management
     lib/
@@ -73,8 +75,9 @@ server/
   services/
     transcript.ts              # YouTube caption extraction, manual/demo modes
     ai-generator.ts            # AI content generation (OpenAI GPT-4o with mock fallback)
+uploads/                         # Uploaded cover images (served at /uploads/*)
 shared/
-  schema.ts                    # 12 Drizzle models + relations + Zod types (includes summaryShortAr/summaryDetailedAr)
+  schema.ts                    # 14 Drizzle models + relations + Zod types (includes collections, collectionLessons)
 ```
 
 ## Subtitle Player System

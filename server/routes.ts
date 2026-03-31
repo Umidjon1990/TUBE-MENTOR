@@ -9,9 +9,15 @@ import { verifyPassword, requireAdmin, requireAuth, hashPassword } from "./auth"
 import { z } from "zod";
 import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from "./services/transcript";
 import { generateLessonContent } from "./services/ai-generator";
+import fs from "fs";
+
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 const uploadStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), "uploads")),
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);

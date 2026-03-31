@@ -172,14 +172,19 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
 
           {collection.coverImage && (
             <div className="relative w-full h-44 overflow-hidden rounded-t-2xl">
-              <img src={collection.coverImage} alt={collection.name} className="w-full h-full object-contain bg-black/30" />
+              <img
+                src={collection.coverImage}
+                alt={collection.name}
+                className="w-full h-full object-contain bg-black/30"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
             </div>
           )}
 
           <div className={`relative ${collection.coverImage ? 'px-5 pb-5 -mt-4' : 'p-5'}`}>
-            {!collection.coverImage && (
-              <div className="flex items-start gap-3.5 mb-4">
+            <div className={`flex items-start gap-3.5 mb-3 ${collection.coverImage ? 'pt-1' : ''}`}>
+              {!collection.coverImage && (
                 <div
                   className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden"
                   style={{
@@ -189,29 +194,8 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
                 >
                   <FolderOpen className="w-7 h-7 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.5))" }} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className="font-bold text-base line-clamp-1 group-hover:text-primary transition-colors duration-300"
-                    data-testid={`text-collection-name-${collection.id}`}
-                  >
-                    {collection.name}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Badge
-                      className={`text-[10px] px-1.5 py-0 ${levelColors[collection.level] || ""}`}
-                    >
-                      {levelLabels[collection.level] || collection.level}
-                    </Badge>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                      {collection.targetLanguage === "ar" ? "Arab" : "English"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {collection.coverImage && (
-              <div className="mb-3">
+              )}
+              <div className="flex-1 min-w-0">
                 <h3
                   className="font-bold text-base line-clamp-1 group-hover:text-primary transition-colors duration-300"
                   data-testid={`text-collection-name-${collection.id}`}
@@ -229,7 +213,7 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
                   </Badge>
                 </div>
               </div>
-            )}
+            </div>
 
             {collection.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{collection.description}</p>

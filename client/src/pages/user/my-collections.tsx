@@ -292,8 +292,8 @@ export default function MyCollectionsPage() {
           data-testid="input-cover-file"
         />
         {formCoverImage ? (
-          <div className="relative group w-full h-36 rounded-lg overflow-hidden border border-border/50">
-            <img src={formCoverImage} alt="Muqova" className="w-full h-full object-cover" />
+          <div className="relative group w-full rounded-lg overflow-hidden border border-border/50 bg-black/20">
+            <img src={formCoverImage} alt="Muqova" className="w-full max-h-48 object-contain" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Button
                 type="button"

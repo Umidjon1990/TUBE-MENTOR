@@ -171,9 +171,9 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
           />
 
           {collection.coverImage && (
-            <div className="relative w-full h-32 overflow-hidden">
-              <img src={collection.coverImage} alt={collection.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/30 to-transparent" />
+            <div className="relative w-full h-44 overflow-hidden rounded-t-2xl">
+              <img src={collection.coverImage} alt={collection.name} className="w-full h-full object-contain bg-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
             </div>
           )}
 

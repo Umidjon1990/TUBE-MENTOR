@@ -70,8 +70,10 @@ export async function registerRoutes(
     if (!req.file) {
       return res.status(400).json({ message: "Rasm yuklanmadi" });
     }
-    const url = `/uploads/${req.file.filename}`;
-    res.json({ url });
+    const base64 = fs.readFileSync(req.file.path).toString("base64");
+    const dataUrl = `data:${req.file.mimetype};base64,${base64}`;
+    try { fs.unlinkSync(req.file.path); } catch {}
+    res.json({ url: dataUrl });
   });
 
   app.get("/api/health", async (_req, res) => {

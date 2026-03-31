@@ -93,7 +93,7 @@ export interface IStorage {
   deleteSavedWord(id: number): Promise<void>;
   countSavedWordsByUser(userId: string): Promise<number>;
 
-  createCollection(data: InsertCollection & { createdBy?: number; status?: string }): Promise<Collection>;
+  createCollection(data: InsertCollection & { createdBy?: string; status?: string }): Promise<Collection>;
   getCollectionById(id: number): Promise<Collection | undefined>;
   getAllCollections(): Promise<Collection[]>;
   getCollectionsByUser(userId: string): Promise<Collection[]>;
@@ -488,7 +488,7 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count ?? 0;
   }
 
-  async createCollection(data: InsertCollection & { createdBy?: number; status?: string }): Promise<Collection> {
+  async createCollection(data: InsertCollection & { createdBy?: string; status?: string }): Promise<Collection> {
     const [c] = await db.insert(collections).values(data).returning();
     return c;
   }

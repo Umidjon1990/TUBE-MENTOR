@@ -1981,7 +1981,7 @@ export async function registerRoutes(
     if (!lessonId) return res.status(400).json({ message: "lessonId majburiy" });
     const lesson = await storage.getLessonById(lessonId);
     if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
-    if (lesson.userId !== userId && user?.role !== "admin") {
+    if (lesson.createdBy !== userId && user?.role !== "admin") {
       return res.status(403).json({ message: "Faqat o'z darslaringizni qo'shishingiz mumkin" });
     }
     try {

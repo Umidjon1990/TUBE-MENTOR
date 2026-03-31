@@ -1815,5 +1815,252 @@ export async function registerRoutes(
     });
   });
 
+  // ─── Collections (Papkalar) ───
+
+  const createCollectionSchema = z.object({
+    name: z.string().min(1, "Papka nomi kiritilishi shart"),
+    description: z.string().optional(),
+    coverImage: z.string().optional(),
+    targetLanguage: z.enum(["ar", "en"]).default("ar"),
+    level: z.enum(["beginner", "intermediate", "advanced"]).default("beginner"),
+    sortOrder: z.number().int().min(0).optional(),
+  });
+
+  app.get("/api/admin/collections", requireAdmin, async (_req, res) => {
+    const allCollections = await storage.getAllCollections();
+    const withCreator = await Promise.all(
+      allCollections.map(async (c) => {
+        const creator = c.createdBy ? await storage.getUser(c.createdBy) : null;
+        const cls = await storage.getCollectionLessons(c.id);
+        return { ...c, creatorName: creator?.fullName || "Noma'lum", lessonCount: cls.length };
+      })
+    );
+    res.json(withCreator.sort((a, b) => a.sortOrder - b.sortOrder));
+  });
+
+  app.patch("/api/admin/collections/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const { status, name, description, coverImage, targetLanguage, level, sortOrder } = req.body;
+    const updateData: Record<string, unknown> = {};
+    if (status !== undefined) updateData.status = status;
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (coverImage !== undefined) updateData.coverImage = coverImage;
+    if (targetLanguage !== undefined) updateData.targetLanguage = targetLanguage;
+    if (level !== undefined) updateData.level = level;
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+    const updated = await storage.updateCollection(id, updateData);
+    res.json(updated);
+  });
+
+  app.delete("/api/admin/collections/:id", requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    await storage.deleteCollection(id);
+    res.json({ success: true });
+  });
+
+  app.post("/api/user/collections", requireAuth, async (req, res) => {
+    const parsed = createCollectionSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.errors[0].message });
+    const collection = await storage.createCollection({
+      ...parsed.data,
+      createdBy: req.session.userId,
+      status: "draft",
+    });
+    res.status(201).json(collection);
+  });
+
+  app.get("/api/user/collections", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    let userCollections;
+    if (user?.role === "admin") {
+      userCollections = await storage.getAllCollections();
+    } else {
+      userCollections = await storage.getCollectionsByUser(userId);
+    }
+    const withLessons = await Promise.all(
+      userCollections.map(async (c) => {
+        const cls = await storage.getCollectionLessons(c.id);
+        return { ...c, lessonCount: cls.length };
+      })
+    );
+    res.json(withLessons.sort((a, b) => a.sortOrder - b.sortOrder));
+  });
+
+  app.get("/api/user/collections/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    const cls = await storage.getCollectionLessons(collection.id);
+    const allLessons = await Promise.all(
+      cls.sort((a, b) => a.orderIndex - b.orderIndex).map(async (cl) => {
+        const lesson = await storage.getLessonById(cl.lessonId);
+        return lesson ? { ...lesson, orderIndex: cl.orderIndex } : null;
+      })
+    );
+    res.json({ ...collection, lessons: allLessons.filter(Boolean) });
+  });
+
+  app.patch("/api/user/collections/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    const { name, description, coverImage, targetLanguage, level, sortOrder, status } = req.body;
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (coverImage !== undefined) updateData.coverImage = coverImage;
+    if (targetLanguage !== undefined) updateData.targetLanguage = targetLanguage;
+    if (level !== undefined) updateData.level = level;
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+    if (status !== undefined) updateData.status = status;
+    const updated = await storage.updateCollection(id, updateData);
+    res.json(updated);
+  });
+
+  app.delete("/api/user/collections/:id", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    await storage.deleteCollection(id);
+    res.json({ success: true });
+  });
+
+  app.post("/api/user/collections/:id/lessons", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    const { lessonId, orderIndex } = req.body;
+    if (!lessonId) return res.status(400).json({ message: "lessonId majburiy" });
+    const lesson = await storage.getLessonById(lessonId);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    try {
+      const cl = await storage.addLessonToCollection(id, lessonId, orderIndex ?? 0);
+      res.status(201).json(cl);
+    } catch (err: any) {
+      if (err.message?.includes("duplicate") || err.code === "23505") {
+        return res.status(409).json({ message: "Bu dars allaqachon papkada mavjud" });
+      }
+      throw err;
+    }
+  });
+
+  app.delete("/api/user/collections/:id/lessons/:lessonId", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    const lessonId = parseInt(req.params.lessonId as string);
+    if (isNaN(id) || isNaN(lessonId)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    await storage.removeLessonFromCollection(id, lessonId);
+    res.json({ success: true });
+  });
+
+  app.put("/api/user/collections/:id/lessons/order", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
+    const userId = req.session.userId!;
+    const user = await storage.getUser(userId);
+    if (collection.createdBy !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Ruxsat yo'q" });
+    }
+    const { items } = req.body;
+    if (!Array.isArray(items)) return res.status(400).json({ message: "items massiv bo'lishi kerak" });
+    for (const item of items) {
+      await storage.updateCollectionLessonOrder(id, item.lessonId, item.orderIndex);
+    }
+    res.json({ success: true });
+  });
+
+  app.get("/api/collections/public", async (req, res) => {
+    const { targetLanguage } = req.query;
+    let published = await storage.getPublishedCollections();
+    if (targetLanguage && typeof targetLanguage === "string") {
+      published = published.filter(c => c.targetLanguage === targetLanguage);
+    }
+    const withMeta = await Promise.all(
+      published.map(async (c) => {
+        const cls = await storage.getCollectionLessons(c.id);
+        const creator = c.createdBy ? await storage.getUser(c.createdBy) : null;
+        return {
+          ...c,
+          lessonCount: cls.length,
+          creatorName: creator?.fullName || "Noma'lum",
+        };
+      })
+    );
+    res.json(withMeta.sort((a, b) => a.sortOrder - b.sortOrder));
+  });
+
+  app.get("/api/collections/public/:id", async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    const collection = await storage.getCollectionById(id);
+    if (!collection || collection.status !== "published") {
+      return res.status(404).json({ message: "Papka topilmadi" });
+    }
+    const cls = await storage.getCollectionLessons(collection.id);
+    const lessonsRaw = await Promise.all(
+      cls.sort((a, b) => a.orderIndex - b.orderIndex).map(async (cl) => {
+        const lesson = await storage.getLessonById(cl.lessonId);
+        if (!lesson || lesson.status !== "published") return null;
+        return { ...lesson, orderIndex: cl.orderIndex };
+      })
+    );
+    const creator = collection.createdBy ? await storage.getUser(collection.createdBy) : null;
+    const progressData: Record<number, number> = {};
+    if (req.session?.userId) {
+      const userProgress = await storage.getProgressByUser(req.session.userId);
+      userProgress.forEach(p => { progressData[p.lessonId] = p.completionPercent ?? 0; });
+    }
+    const lessons = lessonsRaw.filter(Boolean).map((l: any) => ({
+      ...l,
+      completionPercent: progressData[l.id] ?? 0,
+    }));
+    res.json({
+      ...collection,
+      creatorName: creator?.fullName || "Noma'lum",
+      lessons,
+      lessonCount: lessons.length,
+    });
+  });
+
   return httpServer;
 }

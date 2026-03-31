@@ -11,6 +11,8 @@ import {
   type CoinTransaction, type InsertCoinTransaction, coinTransactions,
   type SavedWord, type InsertSavedWord, savedWords,
   type SystemSetting, systemSettings,
+  type Collection, type InsertCollection, collections,
+  type CollectionLesson, collectionLessons,
 } from "@shared/schema";
 import { db } from "./db";
 import { pool } from "./db";
@@ -90,6 +92,19 @@ export interface IStorage {
   updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined>;
   deleteSavedWord(id: number): Promise<void>;
   countSavedWordsByUser(userId: string): Promise<number>;
+
+  createCollection(data: Partial<Collection>): Promise<Collection>;
+  getCollectionById(id: number): Promise<Collection | undefined>;
+  getAllCollections(): Promise<Collection[]>;
+  getCollectionsByUser(userId: string): Promise<Collection[]>;
+  getPublishedCollections(): Promise<Collection[]>;
+  updateCollection(id: number, data: Partial<Collection>): Promise<Collection | undefined>;
+  deleteCollection(id: number): Promise<void>;
+
+  addLessonToCollection(collectionId: number, lessonId: number, orderIndex: number): Promise<CollectionLesson>;
+  removeLessonFromCollection(collectionId: number, lessonId: number): Promise<void>;
+  getCollectionLessons(collectionId: number): Promise<CollectionLesson[]>;
+  updateCollectionLessonOrder(collectionId: number, lessonId: number, orderIndex: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -471,6 +486,59 @@ export class DatabaseStorage implements IStorage {
   async countSavedWordsByUser(userId: string): Promise<number> {
     const result = await db.select({ count: sql<number>`count(*)::int` }).from(savedWords).where(eq(savedWords.userId, userId));
     return result[0]?.count ?? 0;
+  }
+
+  async createCollection(data: Partial<Collection>): Promise<Collection> {
+    const [c] = await db.insert(collections).values(data as any).returning();
+    return c;
+  }
+
+  async getCollectionById(id: number): Promise<Collection | undefined> {
+    const [c] = await db.select().from(collections).where(eq(collections.id, id));
+    return c;
+  }
+
+  async getAllCollections(): Promise<Collection[]> {
+    return db.select().from(collections);
+  }
+
+  async getCollectionsByUser(userId: string): Promise<Collection[]> {
+    return db.select().from(collections).where(eq(collections.createdBy, userId));
+  }
+
+  async getPublishedCollections(): Promise<Collection[]> {
+    return db.select().from(collections).where(eq(collections.status, "published"));
+  }
+
+  async updateCollection(id: number, data: Partial<Collection>): Promise<Collection | undefined> {
+    const [c] = await db.update(collections).set({ ...data, updatedAt: new Date() }).where(eq(collections.id, id)).returning();
+    return c;
+  }
+
+  async deleteCollection(id: number): Promise<void> {
+    await db.delete(collectionLessons).where(eq(collectionLessons.collectionId, id));
+    await db.delete(collections).where(eq(collections.id, id));
+  }
+
+  async addLessonToCollection(collectionId: number, lessonId: number, orderIndex: number): Promise<CollectionLesson> {
+    const [cl] = await db.insert(collectionLessons).values({ collectionId, lessonId, orderIndex }).returning();
+    return cl;
+  }
+
+  async removeLessonFromCollection(collectionId: number, lessonId: number): Promise<void> {
+    await db.delete(collectionLessons).where(
+      and(eq(collectionLessons.collectionId, collectionId), eq(collectionLessons.lessonId, lessonId))
+    );
+  }
+
+  async getCollectionLessons(collectionId: number): Promise<CollectionLesson[]> {
+    return db.select().from(collectionLessons).where(eq(collectionLessons.collectionId, collectionId));
+  }
+
+  async updateCollectionLessonOrder(collectionId: number, lessonId: number, orderIndex: number): Promise<void> {
+    await db.update(collectionLessons).set({ orderIndex }).where(
+      and(eq(collectionLessons.collectionId, collectionId), eq(collectionLessons.lessonId, lessonId))
+    );
   }
 }
 

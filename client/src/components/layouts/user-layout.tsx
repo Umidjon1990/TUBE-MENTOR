@@ -25,6 +25,7 @@ import {
   Flame,
   Zap,
   BookmarkCheck,
+  FolderOpen,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,6 +34,7 @@ const userNavItems = [
   { href: "/dashboard", label: "Boshqaruv paneli", icon: LayoutDashboard },
   { href: "/lessons/create", label: "Dars yaratish", icon: PlusCircle },
   { href: "/lessons", label: "Mening darslarim", icon: BookOpen },
+  { href: "/collections", label: "Papkalarim", icon: FolderOpen },
   { href: "/saved-words", label: "Mening so'zlarim", icon: BookmarkCheck },
   { href: "/flashcards", label: "Kartochkalar", icon: Layers },
   { href: "/notes", label: "Eslatmalar", icon: StickyNote },

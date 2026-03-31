@@ -160,6 +160,29 @@ export const savedWords = pgTable("saved_words", {
   uniqueIndex("saved_word_unique").on(table.userId, table.lessonId, table.normalized, table.subtitleTime),
 ]);
 
+export const collections = pgTable("collections", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  coverImage: text("cover_image"),
+  targetLanguage: text("target_language").default("ar").notNull(),
+  level: text("level").default("beginner").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  status: text("status").default("draft").notNull(),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const collectionLessons = pgTable("collection_lessons", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+  lessonId: integer("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  orderIndex: integer("order_index").default(0).notNull(),
+}, (table) => [
+  uniqueIndex("collection_lesson_unique").on(table.collectionId, table.lessonId),
+]);
+
 export const systemSettings = pgTable("system_settings", {
   id: serial("id").primaryKey(),
   key: text("key").notNull().unique(),
@@ -223,6 +246,16 @@ export const coinTransactionsRelations = relations(coinTransactions, ({ one }) =
 export const savedWordsRelations = relations(savedWords, ({ one }) => ({
   user: one(users, { fields: [savedWords.userId], references: [users.id] }),
   lesson: one(lessons, { fields: [savedWords.lessonId], references: [lessons.id] }),
+}));
+
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
+  creator: one(users, { fields: [collections.createdBy], references: [users.id] }),
+  collectionLessons: many(collectionLessons),
+}));
+
+export const collectionLessonsRelations = relations(collectionLessons, ({ one }) => ({
+  collection: one(collections, { fields: [collectionLessons.collectionId], references: [collections.id] }),
+  lesson: one(lessons, { fields: [collectionLessons.lessonId], references: [lessons.id] }),
 }));
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -336,3 +369,16 @@ export const insertSavedWordSchema = createInsertSchema(savedWords).pick({
 export type SavedWord = typeof savedWords.$inferSelect;
 export type InsertSavedWord = z.infer<typeof insertSavedWordSchema>;
 export type SystemSetting = typeof systemSettings.$inferSelect;
+
+export const insertCollectionSchema = createInsertSchema(collections).pick({
+  name: true,
+  description: true,
+  coverImage: true,
+  targetLanguage: true,
+  level: true,
+  sortOrder: true,
+});
+
+export type Collection = typeof collections.$inferSelect;
+export type InsertCollection = z.infer<typeof insertCollectionSchema>;
+export type CollectionLesson = typeof collectionLessons.$inferSelect;

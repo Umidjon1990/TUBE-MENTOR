@@ -27,8 +27,11 @@ import AdminSettingsPage from "@/pages/admin/settings";
 import AdminDataCenterPage from "@/pages/admin/data-center";
 import PublicLibraryPage from "@/pages/public-library";
 import PublicLessonPage from "@/pages/public-lesson";
+import PublicCollectionPage from "@/pages/public-collection";
 import PublicDictionaryPage from "@/pages/public-dictionary";
 import ShadowingPage from "@/pages/user/shadowing";
+import MyCollectionsPage from "@/pages/user/my-collections";
+import AdminCollectionsPage from "@/pages/admin/collections";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -36,6 +39,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/library" component={PublicLibraryPage} />
+      <Route path="/library/collection/:id" component={PublicCollectionPage} />
       <Route path="/library/:id" component={PublicLessonPage} />
       <Route path="/smart-dictionary" component={PublicDictionaryPage} />
       <Route path="/login" component={LoginPage} />
@@ -68,6 +72,11 @@ function Router() {
       <Route path="/lessons">
         <ProtectedRoute allowedRoles={["student", "teacher"]}>
           <MyLessonsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/collections">
+        <ProtectedRoute allowedRoles={["student", "teacher"]}>
+          <MyCollectionsPage />
         </ProtectedRoute>
       </Route>
       <Route path="/flashcards">
@@ -129,6 +138,11 @@ function Router() {
       <Route path="/admin/categories">
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminCategoriesPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/collections">
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AdminCollectionsPage />
         </ProtectedRoute>
       </Route>
       <Route path="/admin/data">

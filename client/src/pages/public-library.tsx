@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages, ArrowRight } from "lucide-react";
-import type { Lesson, Category } from "@shared/schema";
+import { Search, BookOpen, Star, Clock, GraduationCap, Sparkles, ArrowLeft, Filter, FolderOpen, Languages, ArrowRight, Play } from "lucide-react";
+import type { Lesson, Category, Collection } from "@shared/schema";
 import { SUPPORTED_LANGUAGES } from "@shared/languages";
 
 type LessonWithCategory = Lesson & { categoryName?: string | null };
@@ -109,6 +110,190 @@ function LessonCardSkeleton() {
         <Skeleton className="h-3 w-1/2" />
       </CardContent>
     </Card>
+  );
+}
+
+type CollectionWithMeta = Collection & { lessonCount: number; creatorName: string };
+
+function Collection3DCard({ collection, index }: { collection: CollectionWithMeta; index: number }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+    cardRef.current.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+  }, []);
+
+  return (
+    <Link href={`/library/collection/${collection.id}`}>
+      <div
+        ref={cardRef}
+        className="collection-card-enter cursor-pointer"
+        style={{
+          animationDelay: `${index * 100}ms`,
+          transformStyle: "preserve-3d",
+          transition: "transform 0.15s ease-out, box-shadow 0.3s ease",
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        data-testid={`card-collection-3d-${collection.id}`}
+      >
+        <div
+          className="relative rounded-2xl overflow-hidden border border-border/30 group"
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--card) / 0.7), hsl(var(--card) / 0.4))",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+        >
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.12), transparent 70%)",
+            }}
+          />
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-40 pointer-events-none"
+            style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.25), transparent 70%)" }}
+          />
+          <div className="absolute -bottom-8 -left-8 w-28 h-28 rounded-full opacity-30 pointer-events-none"
+            style={{ background: "radial-gradient(circle, hsl(260 80% 62% / 0.2), transparent 70%)" }}
+          />
+
+          <div className="relative p-5">
+            <div className="flex items-start gap-3.5 mb-4">
+              <div
+                className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--primary) / 0.25), hsl(260 80% 62% / 0.2))",
+                  boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--primary) / 0.1)",
+                }}
+              >
+                {collection.coverImage ? (
+                  <img src={collection.coverImage} alt={collection.name} className="w-full h-full object-cover" />
+                ) : (
+                  <FolderOpen className="w-7 h-7 text-primary" style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.5))" }} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3
+                  className="font-bold text-base line-clamp-1 group-hover:text-primary transition-colors duration-300"
+                  data-testid={`text-collection-name-${collection.id}`}
+                >
+                  {collection.name}
+                </h3>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Badge
+                    className={`text-[10px] px-1.5 py-0 ${levelColors[collection.level] || ""}`}
+                  >
+                    {levelLabels[collection.level] || collection.level}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {collection.targetLanguage === "ar" ? "Arab" : "English"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {collection.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{collection.description}</p>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" />
+                  {collection.lessonCount} dars
+                </span>
+              </div>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--primary)), hsl(190 95% 60%))",
+                  boxShadow: "0 0 12px hsl(var(--primary) / 0.4)",
+                }}
+              >
+                <Play className="w-3.5 h-3.5 text-primary-foreground ml-0.5" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.6), hsl(260 80% 62% / 0.4), transparent)",
+            }}
+          />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function CollectionsSection({ langFilter }: { langFilter: string }) {
+  const { data: publicCollections = [], isLoading } = useQuery<CollectionWithMeta[]>({
+    queryKey: ["/api/collections/public", langFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (langFilter && langFilter !== "all") params.set("targetLanguage", langFilter);
+      const qs = params.toString();
+      const res = await fetch(`/api/collections/public${qs ? `?${qs}` : ""}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <section className="mb-12" data-testid="section-collections-loading">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-44 rounded-2xl" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (publicCollections.length === 0) return null;
+
+  return (
+    <section className="mb-12" data-testid="section-collections">
+      <div className="flex items-center gap-2 mb-6">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(260 80% 62% / 0.15))",
+            boxShadow: "0 0 12px hsl(var(--primary) / 0.15)",
+          }}
+        >
+          <FolderOpen className="w-5 h-5 text-primary" style={{ filter: "drop-shadow(0 0 4px hsl(var(--primary) / 0.5))" }} />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold" data-testid="text-collections-title"
+            style={{ textShadow: "0 0 16px hsl(var(--primary) / 0.2)" }}
+          >
+            Podcast papkalar
+          </h2>
+          <p className="text-xs text-muted-foreground">Tartibli darslar to'plami</p>
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {publicCollections.map((collection, idx) => (
+          <Collection3DCard key={collection.id} collection={collection} index={idx} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -327,6 +512,7 @@ export default function PublicLibrary() {
           </div>
         ) : (
           <>
+            {!hasFilters && <CollectionsSection langFilter={langFilter} />}
             {!hasFilters && <FeaturedSection lessons={lessons} />}
 
             <section data-testid="section-all-lessons">

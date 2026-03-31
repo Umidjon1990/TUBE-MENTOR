@@ -113,7 +113,7 @@ function LessonCardSkeleton() {
   );
 }
 
-type CollectionWithMeta = Collection & { lessonCount: number; creatorName: string };
+type CollectionWithMeta = Collection & { lessonCount: number; creatorName: string; completionPercent: number };
 
 function Collection3DCard({ collection, index }: { collection: CollectionWithMeta; index: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -215,15 +215,21 @@ function Collection3DCard({ collection, index }: { collection: CollectionWithMet
                   <BookOpen className="w-3 h-3" />
                   {collection.lessonCount} dars
                 </span>
-                <span>{collection.lessonCount > 0 ? "Boshlash" : "Bo'sh"}</span>
+                <span>
+                  {collection.completionPercent > 0
+                    ? `${collection.completionPercent}%`
+                    : collection.lessonCount > 0 ? "Boshlash" : "Bo'sh"}
+                </span>
               </div>
               <div className="h-1 rounded-full overflow-hidden bg-muted/50">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: collection.lessonCount > 0 ? "5%" : "0%",
-                    background: "linear-gradient(90deg, hsl(var(--primary)), hsl(190 95% 60%))",
-                    boxShadow: "0 0 8px hsl(var(--primary) / 0.4)",
+                    width: `${Math.max(collection.completionPercent, collection.lessonCount > 0 ? 2 : 0)}%`,
+                    background: collection.completionPercent === 100
+                      ? "linear-gradient(90deg, hsl(142 76% 56%), hsl(142 76% 46%))"
+                      : "linear-gradient(90deg, hsl(var(--primary)), hsl(190 95% 60%))",
+                    boxShadow: `0 0 8px ${collection.completionPercent === 100 ? "hsl(142 76% 56% / 0.4)" : "hsl(var(--primary) / 0.4)"}`,
                   }}
                 />
               </div>

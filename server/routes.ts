@@ -1845,7 +1845,13 @@ export async function registerRoutes(
     if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
     const { status, name, description, coverImage, targetLanguage, level, sortOrder } = req.body;
     const updateData: Record<string, unknown> = {};
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      const validStatuses = ["draft", "pending", "approved", "published"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Noto'g'ri status" });
+      }
+      updateData.status = status;
+    }
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (coverImage !== undefined) updateData.coverImage = coverImage;
@@ -1932,7 +1938,17 @@ export async function registerRoutes(
     if (targetLanguage !== undefined) updateData.targetLanguage = targetLanguage;
     if (level !== undefined) updateData.level = level;
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      const isAdmin = user?.role === "admin";
+      const validTransitions: Record<string, string[]> = isAdmin
+        ? { draft: ["approved", "pending"], pending: ["approved", "draft"], approved: ["published", "draft"], published: ["approved", "draft"] }
+        : { draft: ["pending"], approved: ["published"], published: ["approved"] };
+      const allowed = validTransitions[collection.status] || [];
+      if (!allowed.includes(status)) {
+        return res.status(400).json({ message: `Status o'zgarishi mumkin emas: ${collection.status} → ${status}` });
+      }
+      updateData.status = status;
+    }
     const updated = await storage.updateCollection(id, updateData);
     res.json(updated);
   });
@@ -1965,11 +1981,15 @@ export async function registerRoutes(
     if (!lessonId) return res.status(400).json({ message: "lessonId majburiy" });
     const lesson = await storage.getLessonById(lessonId);
     if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.userId !== userId && user?.role !== "admin") {
+      return res.status(403).json({ message: "Faqat o'z darslaringizni qo'shishingiz mumkin" });
+    }
     try {
       const cl = await storage.addLessonToCollection(id, lessonId, orderIndex ?? 0);
       res.status(201).json(cl);
-    } catch (err: any) {
-      if (err.message?.includes("duplicate") || err.code === "23505") {
+    } catch (err: unknown) {
+      const e = err as { message?: string; code?: string };
+      if (e.message?.includes("duplicate") || e.code === "23505") {
         return res.status(409).json({ message: "Bu dars allaqachon papkada mavjud" });
       }
       throw err;
@@ -2015,14 +2035,25 @@ export async function registerRoutes(
     if (targetLanguage && typeof targetLanguage === "string") {
       published = published.filter(c => c.targetLanguage === targetLanguage);
     }
+    const progressData: Record<number, number> = {};
+    if (req.session?.userId) {
+      const userProgress = await storage.getProgressByUser(req.session.userId);
+      userProgress.forEach(p => { progressData[p.lessonId] = p.completionPercent ?? 0; });
+    }
     const withMeta = await Promise.all(
       published.map(async (c) => {
         const cls = await storage.getCollectionLessons(c.id);
         const creator = c.createdBy ? await storage.getUser(c.createdBy) : null;
+        let completionPercent = 0;
+        if (cls.length > 0 && Object.keys(progressData).length > 0) {
+          const total = cls.reduce((sum, cl) => sum + (progressData[cl.lessonId] ?? 0), 0);
+          completionPercent = Math.round(total / cls.length);
+        }
         return {
           ...c,
           lessonCount: cls.length,
           creatorName: creator?.fullName || "Noma'lum",
+          completionPercent,
         };
       })
     );
@@ -2050,7 +2081,7 @@ export async function registerRoutes(
       const userProgress = await storage.getProgressByUser(req.session.userId);
       userProgress.forEach(p => { progressData[p.lessonId] = p.completionPercent ?? 0; });
     }
-    const lessons = lessonsRaw.filter(Boolean).map((l: any) => ({
+    const lessons = lessonsRaw.filter((l): l is NonNullable<typeof l> => l !== null).map((l) => ({
       ...l,
       completionPercent: progressData[l.id] ?? 0,
     }));

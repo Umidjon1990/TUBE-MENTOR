@@ -2040,7 +2040,7 @@ export async function registerRoutes(
       const isAdmin = user?.role === "admin";
       const validTransitions: Record<string, string[]> = isAdmin
         ? { draft: ["approved", "pending"], pending: ["approved", "draft"], approved: ["published", "draft"], published: ["approved", "draft"] }
-        : { draft: ["pending"], approved: ["published"], published: ["approved"] };
+        : { draft: ["pending", "published"], pending: ["published", "draft"], approved: ["published"], published: ["approved", "draft"] };
       const allowed = validTransitions[collection.status] || [];
       if (!allowed.includes(status)) {
         return res.status(400).json({ message: `Status o'zgarishi mumkin emas: ${collection.status} → ${status}` });

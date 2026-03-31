@@ -440,18 +440,7 @@ export default function MyCollectionsPage() {
                       {c.lessonCount} ta dars
                     </span>
                     <div className="flex items-center gap-1">
-                      {c.status === "draft" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-[10px] px-2 border-primary/30 text-primary"
-                          onClick={() => publishMutation.mutate({ id: c.id, status: "pending" })}
-                          data-testid={`button-submit-${c.id}`}
-                        >
-                          Yuborish
-                        </Button>
-                      )}
-                      {c.status === "approved" && (
+                      {(c.status === "draft" || c.status === "pending" || c.status === "approved") && (
                         <Button
                           size="sm"
                           className="h-7 text-[10px] px-2 bg-gradient-to-r from-primary to-cyan-500"
@@ -459,7 +448,7 @@ export default function MyCollectionsPage() {
                           data-testid={`button-publish-${c.id}`}
                         >
                           <Globe className="w-3 h-3 mr-1" />
-                          E'lon
+                          E'lon qilish
                         </Button>
                       )}
                       {c.status === "published" && (

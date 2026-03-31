@@ -1844,6 +1844,8 @@ export async function registerRoutes(
     const collection = await storage.getCollectionById(id);
     if (!collection) return res.status(404).json({ message: "Papka topilmadi" });
     const { status, name, description, coverImage, targetLanguage, level, sortOrder } = req.body;
+    const validLangs = ["ar", "en"];
+    const validLevels = ["beginner", "intermediate", "advanced"];
     const updateData: Record<string, unknown> = {};
     if (status !== undefined) {
       const validStatuses = ["draft", "pending", "approved", "published"];
@@ -1855,8 +1857,14 @@ export async function registerRoutes(
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (coverImage !== undefined) updateData.coverImage = coverImage;
-    if (targetLanguage !== undefined) updateData.targetLanguage = targetLanguage;
-    if (level !== undefined) updateData.level = level;
+    if (targetLanguage !== undefined) {
+      if (!validLangs.includes(targetLanguage)) return res.status(400).json({ message: "Noto'g'ri til" });
+      updateData.targetLanguage = targetLanguage;
+    }
+    if (level !== undefined) {
+      if (!validLevels.includes(level)) return res.status(400).json({ message: "Noto'g'ri daraja" });
+      updateData.level = level;
+    }
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
     const updated = await storage.updateCollection(id, updateData);
     res.json(updated);
@@ -1931,12 +1939,20 @@ export async function registerRoutes(
       return res.status(403).json({ message: "Ruxsat yo'q" });
     }
     const { name, description, coverImage, targetLanguage, level, sortOrder, status } = req.body;
+    const validLangs = ["ar", "en"];
+    const validLevels = ["beginner", "intermediate", "advanced"];
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (coverImage !== undefined) updateData.coverImage = coverImage;
-    if (targetLanguage !== undefined) updateData.targetLanguage = targetLanguage;
-    if (level !== undefined) updateData.level = level;
+    if (targetLanguage !== undefined) {
+      if (!validLangs.includes(targetLanguage)) return res.status(400).json({ message: "Noto'g'ri til" });
+      updateData.targetLanguage = targetLanguage;
+    }
+    if (level !== undefined) {
+      if (!validLevels.includes(level)) return res.status(400).json({ message: "Noto'g'ri daraja" });
+      updateData.level = level;
+    }
     if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
     if (status !== undefined) {
       const isAdmin = user?.role === "admin";

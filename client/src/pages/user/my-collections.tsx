@@ -277,7 +277,7 @@ export default function MyCollectionsPage() {
     }
   }
 
-  const CollectionForm = () => (
+  const collectionFormJSX = (
     <div className="space-y-4">
       <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Papka nomi" data-testid="input-collection-name" />
       <Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Tavsif (ixtiyoriy)" rows={3} data-testid="input-collection-description" />
@@ -496,7 +496,7 @@ export default function MyCollectionsPage() {
             <DialogHeader>
               <DialogTitle>Yangi papka yaratish</DialogTitle>
             </DialogHeader>
-            <CollectionForm />
+            {collectionFormJSX}
             <DialogFooter>
               <Button variant="outline" onClick={() => setCreateOpen(false)}>Bekor qilish</Button>
               <Button onClick={handleCreate} disabled={!formName || createMutation.isPending} data-testid="button-save-create">
@@ -512,7 +512,7 @@ export default function MyCollectionsPage() {
             <DialogHeader>
               <DialogTitle>Papkani tahrirlash</DialogTitle>
             </DialogHeader>
-            <CollectionForm />
+            {collectionFormJSX}
             <DialogFooter>
               <Button variant="outline" onClick={() => setEditOpen(false)}>Bekor qilish</Button>
               <Button onClick={handleUpdate} disabled={!formName || updateMutation.isPending} data-testid="button-save-update">

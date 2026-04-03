@@ -11,6 +11,58 @@ import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from
 import { generateLessonContent } from "./services/ai-generator";
 import fs from "fs";
 
+function computeLineIndices(sents: any[], subs: { startTime: number; endTime: number; text: string }[]) {
+  const stripDiac = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+  const normalizeAr = (t: string) => stripDiac(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
+
+  const subNorms = subs.map(s => normalizeAr(s.text));
+  let concat = "";
+  const charToSub: number[] = [];
+  for (let si = 0; si < subNorms.length; si++) {
+    if (concat.length > 0) { concat += " "; charToSub.push(si); }
+    for (let c = 0; c < subNorms[si].length; c++) {
+      concat += subNorms[si][c];
+      charToSub.push(si);
+    }
+  }
+
+  let searchFrom = 0;
+  for (const sa of sents) {
+    if (sa.lineIndices && sa.lineIndices.length > 0) continue;
+    const sentNorm = normalizeAr(sa.sentence);
+    const sentWords = sentNorm.split(" ").filter((w: string) => w.length > 1);
+    if (sentWords.length === 0) continue;
+
+    let bestPos = -1;
+    for (let sw = 0; sw < Math.min(sentWords.length, 4); sw++) {
+      const chunk = sentWords.slice(sw, sw + Math.min(3, sentWords.length - sw)).join(" ");
+      if (chunk.length < 3) continue;
+      const pos = concat.indexOf(chunk, searchFrom);
+      if (pos >= 0) {
+        const wordsBefore = sentWords.slice(0, sw).join(" ");
+        bestPos = Math.max(0, pos - wordsBefore.length - (sw > 0 ? 1 : 0));
+        break;
+      }
+    }
+
+    if (bestPos < 0 && sentWords.length >= 2) {
+      const chunk = sentWords.slice(0, 2).join(" ");
+      const pos = concat.indexOf(chunk);
+      if (pos >= 0) bestPos = pos;
+    }
+
+    if (bestPos >= 0) {
+      const endPos = Math.min(bestPos + sentNorm.length + 10, charToSub.length - 1);
+      const subIdxSet = new Set<number>();
+      for (let p = bestPos; p <= endPos && p < charToSub.length; p++) {
+        subIdxSet.add(charToSub[p]);
+      }
+      sa.lineIndices = [...subIdxSet].sort((a, b) => a - b);
+      searchFrom = bestPos + 1;
+    }
+  }
+}
+
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -948,40 +1000,7 @@ export async function registerRoutes(
 
       const storedSubtitles = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
       if (storedSubtitles && storedSubtitles.length > 0) {
-        const stripDiac = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
-        const normalizeAr = (t: string) => stripDiac(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
-
-        const subNorms = storedSubtitles.map(s => normalizeAr(s.text));
-        const subWords = subNorms.map(n => new Set(n.split(" ").filter((w: string) => w.length > 1)));
-
-        let subCursor = 0;
-        for (const sa of sentenceAnalysisJson) {
-          if (sa.lineIndices && sa.lineIndices.length > 0) continue;
-          const sentNorm = normalizeAr(sa.sentence);
-          const sentWordSet = new Set(sentNorm.split(" ").filter((w: string) => w.length > 1));
-          const matched: number[] = [];
-          let accLen = 0;
-
-          for (let si = subCursor; si < storedSubtitles.length; si++) {
-            const sWords = subWords[si];
-            let hits = 0;
-            sentWordSet.forEach(w => { if (sWords.has(w)) hits++; });
-            const overlap = hits / Math.max(1, sentWordSet.size);
-
-            if (overlap >= 0.3 || (matched.length === 0 && si === subCursor && sentWordSet.size <= 3)) {
-              matched.push(si);
-              accLen += subNorms[si].length;
-              if (accLen >= sentNorm.length * 0.6) { subCursor = si + 1; break; }
-            } else if (matched.length > 0) {
-              subCursor = si;
-              break;
-            }
-          }
-          if (matched.length > 0) {
-            sa.lineIndices = matched;
-            if (subCursor <= matched[matched.length - 1]) subCursor = matched[matched.length - 1] + 1;
-          }
-        }
+        computeLineIndices(sentenceAnalysisJson, storedSubtitles);
         console.log(`[import] Dars #${id}: lineIndices avtomatik hisoblandi`);
       }
 
@@ -1035,41 +1054,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Subtitle yoki gap ma'lumoti yo'q" });
       }
 
-      const stripDiac = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
-      const normalizeAr = (t: string) => stripDiac(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
-
-      const subNorms = subs.map(s => normalizeAr(s.text));
-      const subWords = subNorms.map(n => new Set(n.split(" ").filter((w: string) => w.length > 1)));
-
-      let subCursor = 0;
-      for (const sa of sents) {
-        const sentNorm = normalizeAr(sa.sentence);
-        const sentWordSet = new Set(sentNorm.split(" ").filter((w: string) => w.length > 1));
-        const matched: number[] = [];
-        let accLen = 0;
-
-        for (let si = subCursor; si < subs.length; si++) {
-          const sWords = subWords[si];
-          let hits = 0;
-          sentWordSet.forEach(w => { if (sWords.has(w)) hits++; });
-          const overlap = hits / Math.max(1, sentWordSet.size);
-
-          if (overlap >= 0.3 || (matched.length === 0 && si === subCursor && sentWordSet.size <= 3)) {
-            matched.push(si);
-            accLen += subNorms[si].length;
-            if (accLen >= sentNorm.length * 0.6) { subCursor = si + 1; break; }
-          } else if (matched.length > 0) {
-            subCursor = si;
-            break;
-          }
-        }
-        if (matched.length > 0) {
-          sa.lineIndices = matched;
-          if (subCursor <= matched[matched.length - 1]) subCursor = matched[matched.length - 1] + 1;
-        } else {
-          delete sa.lineIndices;
-        }
-      }
+      for (const sa of sents) delete sa.lineIndices;
+      computeLineIndices(sents, subs);
 
       const updated = await storage.updateLesson(id, { sentenceAnalysisJson: sents });
       console.log(`[resync] Dars #${id}: lineIndices qayta hisoblandi (${sents.length} gap, ${subs.length} subtitle)`);

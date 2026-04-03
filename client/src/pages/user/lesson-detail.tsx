@@ -185,15 +185,33 @@ export default function LessonDetailPage() {
             id: idx,
             sentenceIndex: idx,
             sentenceIndices: [idx],
-            startTime: firstLine?.startTime ?? idx * 8,
-            endTime: lastLine?.endTime ?? (idx + 1) * 8,
+            startTime: firstLine?.startTime ?? -1,
+            endTime: lastLine?.endTime ?? -1,
             originalText: s.sentence,
             translationUz: s.translation || "",
             translationAr: s.translationAr || "",
           };
         });
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].startTime < 0) {
+            let prev = i > 0 ? items[i - 1].endTime : 0;
+            let next = -1;
+            for (let j = i + 1; j < items.length; j++) {
+              if (items[j].startTime >= 0) { next = items[j].startTime; break; }
+            }
+            if (next < 0) next = prev + 8;
+            const gap = i + 1 < items.length ? 1 : 0;
+            let count = 1;
+            for (let j = i + 1; j < items.length && items[j].startTime < 0; j++) count++;
+            const step = (next - prev) / (count + gap);
+            items[i].startTime = prev;
+            items[i].endTime = prev + step;
+          }
+        }
         for (let i = 0; i < items.length - 1; i++) {
-          items[i].endTime = items[i + 1].startTime;
+          if (items[i].endTime > items[i + 1].startTime) {
+            items[i].endTime = items[i + 1].startTime;
+          }
         }
         return items;
       }
@@ -287,15 +305,32 @@ export default function LessonDetailPage() {
           id: idx,
           sentenceIndex: idx,
           sentenceIndices: [idx],
-          startTime: firstLine?.startTime ?? idx * 8,
-          endTime: lastLine?.endTime ?? (idx + 1) * 8,
+          startTime: firstLine?.startTime ?? -1,
+          endTime: lastLine?.endTime ?? -1,
           originalText: s.sentence,
           translationUz: s.translation || "",
           translationAr: s.translationAr || "",
         };
       });
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].startTime < 0) {
+          let prev = i > 0 ? items[i - 1].endTime : 0;
+          let next = -1;
+          for (let j = i + 1; j < items.length; j++) {
+            if (items[j].startTime >= 0) { next = items[j].startTime; break; }
+          }
+          if (next < 0) next = prev + 8;
+          let count = 1;
+          for (let j = i + 1; j < items.length && items[j].startTime < 0; j++) count++;
+          const step = (next - prev) / (count + 1);
+          items[i].startTime = prev;
+          items[i].endTime = prev + step;
+        }
+      }
       for (let i = 0; i < items.length - 1; i++) {
-        items[i].endTime = items[i + 1].startTime;
+        if (items[i].endTime > items[i + 1].startTime) {
+          items[i].endTime = items[i + 1].startTime;
+        }
       }
       return items;
     }

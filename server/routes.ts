@@ -51,6 +51,14 @@ function computeLineIndices(sents: any[], subs: { startTime: number; endTime: nu
       if (pos >= 0) bestPos = pos;
     }
 
+    if (bestPos < 0) {
+      for (const w of sentWords) {
+        if (w.length < 4) continue;
+        const pos = concat.indexOf(w, searchFrom);
+        if (pos >= 0) { bestPos = pos; break; }
+      }
+    }
+
     if (bestPos >= 0) {
       const endPos = Math.min(bestPos + sentNorm.length + 10, charToSub.length - 1);
       const subIdxSet = new Set<number>();

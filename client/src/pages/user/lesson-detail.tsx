@@ -192,29 +192,42 @@ export default function LessonDetailPage() {
           };
         });
 
-        let prevEnd = 0;
+        let gi = 0;
+        while (gi < rawItems.length) {
+          if (rawItems[gi].rawStart < 0) { gi++; continue; }
+          let gEnd = gi;
+          let maxRawEnd = rawItems[gi].rawEnd;
+          while (gEnd + 1 < rawItems.length && rawItems[gEnd + 1].rawStart >= 0 && rawItems[gEnd + 1].rawStart < maxRawEnd) {
+            gEnd++;
+            maxRawEnd = Math.max(maxRawEnd, rawItems[gEnd].rawEnd);
+          }
+          const gTimeStart = rawItems[gi].rawStart;
+          const gTimeEnd = maxRawEnd;
+          const totalTime = gTimeEnd - gTimeStart;
+          let totalChars = 0;
+          for (let k = gi; k <= gEnd; k++) totalChars += rawItems[k].originalText.length;
+          let cursor = gTimeStart;
+          for (let k = gi; k <= gEnd; k++) {
+            const proportion = rawItems[k].originalText.length / totalChars;
+            rawItems[k].startTime = cursor;
+            rawItems[k].endTime = cursor + totalTime * proportion;
+            cursor = rawItems[k].endTime;
+          }
+          gi = gEnd + 1;
+        }
         for (let k = 0; k < rawItems.length; k++) {
-          if (rawItems[k].rawStart >= 0) {
-            const rs = rawItems[k].rawStart;
-            const re = rawItems[k].rawEnd;
-            const textLen = rawItems[k].originalText.length;
-            const minDur = Math.max(2, textLen * 0.04);
-            rawItems[k].startTime = Math.max(rs, prevEnd);
-            rawItems[k].endTime = Math.max(re, rawItems[k].startTime + minDur);
-            prevEnd = rawItems[k].endTime;
-          } else {
+          if (rawItems[k].rawStart < 0 && rawItems[k].startTime === 0 && rawItems[k].endTime === 0) {
+            let prev = k > 0 ? rawItems[k - 1].endTime : 0;
             let next = -1;
             for (let m = k + 1; m < rawItems.length; m++) {
-              if (rawItems[m].rawStart >= 0) { next = rawItems[m].rawStart; break; }
+              if (rawItems[m].startTime > 0 || rawItems[m].rawStart >= 0) { next = rawItems[m].startTime || rawItems[m].rawStart; break; }
             }
-            if (next < 0) next = prevEnd + 6;
+            if (next < 0) next = prev + 6;
             let count = 1;
-            for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0; m++) count++;
-            const avail = Math.max(next, prevEnd) - prevEnd;
-            const step = Math.max(avail / count, 2);
-            rawItems[k].startTime = prevEnd;
-            rawItems[k].endTime = prevEnd + step;
-            prevEnd = rawItems[k].endTime;
+            for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0 && rawItems[m].startTime === 0; m++) count++;
+            const step = Math.max((next - prev) / count, 2);
+            rawItems[k].startTime = prev;
+            rawItems[k].endTime = prev + step;
           }
         }
 
@@ -320,29 +333,42 @@ export default function LessonDetailPage() {
           translationAr: s.translationAr || "",
         };
       });
-      let prevEnd2 = 0;
+      let gi2 = 0;
+      while (gi2 < rawItems.length) {
+        if (rawItems[gi2].rawStart < 0) { gi2++; continue; }
+        let gEnd2 = gi2;
+        let maxRawEnd2 = rawItems[gi2].rawEnd;
+        while (gEnd2 + 1 < rawItems.length && rawItems[gEnd2 + 1].rawStart >= 0 && rawItems[gEnd2 + 1].rawStart < maxRawEnd2) {
+          gEnd2++;
+          maxRawEnd2 = Math.max(maxRawEnd2, rawItems[gEnd2].rawEnd);
+        }
+        const gTimeStart2 = rawItems[gi2].rawStart;
+        const gTimeEnd2 = maxRawEnd2;
+        const totalTime2 = gTimeEnd2 - gTimeStart2;
+        let totalChars2 = 0;
+        for (let k = gi2; k <= gEnd2; k++) totalChars2 += rawItems[k].originalText.length;
+        let cursor2 = gTimeStart2;
+        for (let k = gi2; k <= gEnd2; k++) {
+          const proportion2 = rawItems[k].originalText.length / totalChars2;
+          rawItems[k].startTime = cursor2;
+          rawItems[k].endTime = cursor2 + totalTime2 * proportion2;
+          cursor2 = rawItems[k].endTime;
+        }
+        gi2 = gEnd2 + 1;
+      }
       for (let k = 0; k < rawItems.length; k++) {
-        if (rawItems[k].rawStart >= 0) {
-          const rs = rawItems[k].rawStart;
-          const re = rawItems[k].rawEnd;
-          const textLen = rawItems[k].originalText.length;
-          const minDur = Math.max(2, textLen * 0.04);
-          rawItems[k].startTime = Math.max(rs, prevEnd2);
-          rawItems[k].endTime = Math.max(re, rawItems[k].startTime + minDur);
-          prevEnd2 = rawItems[k].endTime;
-        } else {
+        if (rawItems[k].rawStart < 0 && rawItems[k].startTime === 0 && rawItems[k].endTime === 0) {
+          let prev = k > 0 ? rawItems[k - 1].endTime : 0;
           let next = -1;
           for (let m = k + 1; m < rawItems.length; m++) {
-            if (rawItems[m].rawStart >= 0) { next = rawItems[m].rawStart; break; }
+            if (rawItems[m].startTime > 0 || rawItems[m].rawStart >= 0) { next = rawItems[m].startTime || rawItems[m].rawStart; break; }
           }
-          if (next < 0) next = prevEnd2 + 6;
+          if (next < 0) next = prev + 6;
           let count = 1;
-          for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0; m++) count++;
-          const avail = Math.max(next, prevEnd2) - prevEnd2;
-          const step = Math.max(avail / count, 2);
-          rawItems[k].startTime = prevEnd2;
-          rawItems[k].endTime = prevEnd2 + step;
-          prevEnd2 = rawItems[k].endTime;
+          for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0 && rawItems[m].startTime === 0; m++) count++;
+          const step = Math.max((next - prev) / count, 2);
+          rawItems[k].startTime = prev;
+          rawItems[k].endTime = prev + step;
         }
       }
       return rawItems.map(it => ({

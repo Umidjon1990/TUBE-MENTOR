@@ -198,6 +198,23 @@ export default function LessonDetailPage() {
             rawItems[k].endTime = rawItems[k].rawEnd;
           }
         }
+        for (let k = 0; k < rawItems.length - 1; k++) {
+          if (rawItems[k].endTime > rawItems[k + 1].startTime) {
+            if (rawItems[k].startTime === rawItems[k + 1].startTime) {
+              const totalDur = rawItems[k].endTime - rawItems[k].startTime;
+              let sameCount = 1;
+              for (let m = k + 1; m < rawItems.length && rawItems[m].startTime === rawItems[k].startTime; m++) sameCount++;
+              const sliceDur = totalDur / sameCount;
+              for (let m = 0; m < sameCount; m++) {
+                rawItems[k + m].startTime = rawItems[k].startTime + sliceDur * m;
+                rawItems[k + m].endTime = rawItems[k].startTime + sliceDur * (m + 1);
+              }
+              k += sameCount - 2;
+            } else {
+              rawItems[k].endTime = rawItems[k + 1].startTime;
+            }
+          }
+        }
         for (let k = 0; k < rawItems.length; k++) {
           if (rawItems[k].rawStart < 0) {
             let prev = k > 0 ? rawItems[k - 1].endTime : 0;
@@ -211,17 +228,6 @@ export default function LessonDetailPage() {
             const step = (next - prev) / count;
             rawItems[k].startTime = prev;
             rawItems[k].endTime = prev + step;
-          }
-        }
-        for (let k = 0; k < rawItems.length - 1; k++) {
-          if (rawItems[k].endTime > rawItems[k + 1].startTime) {
-            const mid = (rawItems[k].startTime + rawItems[k + 1].endTime) / 2;
-            if (mid > rawItems[k].startTime && mid < rawItems[k + 1].endTime) {
-              rawItems[k].endTime = mid;
-              rawItems[k + 1].startTime = mid;
-            } else {
-              rawItems[k].endTime = rawItems[k + 1].startTime;
-            }
           }
         }
 
@@ -333,6 +339,23 @@ export default function LessonDetailPage() {
           rawItems[k].endTime = rawItems[k].rawEnd;
         }
       }
+      for (let k = 0; k < rawItems.length - 1; k++) {
+        if (rawItems[k].endTime > rawItems[k + 1].startTime) {
+          if (rawItems[k].startTime === rawItems[k + 1].startTime) {
+            const totalDur = rawItems[k].endTime - rawItems[k].startTime;
+            let sameCount = 1;
+            for (let m = k + 1; m < rawItems.length && rawItems[m].startTime === rawItems[k].startTime; m++) sameCount++;
+            const sliceDur = totalDur / sameCount;
+            for (let m = 0; m < sameCount; m++) {
+              rawItems[k + m].startTime = rawItems[k].startTime + sliceDur * m;
+              rawItems[k + m].endTime = rawItems[k].startTime + sliceDur * (m + 1);
+            }
+            k += sameCount - 2;
+          } else {
+            rawItems[k].endTime = rawItems[k + 1].startTime;
+          }
+        }
+      }
       for (let k = 0; k < rawItems.length; k++) {
         if (rawItems[k].rawStart < 0) {
           let prev = k > 0 ? rawItems[k - 1].endTime : 0;
@@ -346,17 +369,6 @@ export default function LessonDetailPage() {
           const step = (next - prev) / count;
           rawItems[k].startTime = prev;
           rawItems[k].endTime = prev + step;
-        }
-      }
-      for (let k = 0; k < rawItems.length - 1; k++) {
-        if (rawItems[k].endTime > rawItems[k + 1].startTime) {
-          const mid = (rawItems[k].startTime + rawItems[k + 1].endTime) / 2;
-          if (mid > rawItems[k].startTime && mid < rawItems[k + 1].endTime) {
-            rawItems[k].endTime = mid;
-            rawItems[k + 1].startTime = mid;
-          } else {
-            rawItems[k].endTime = rawItems[k + 1].startTime;
-          }
         }
       }
       return rawItems.map(it => ({

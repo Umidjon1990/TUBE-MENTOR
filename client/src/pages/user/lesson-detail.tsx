@@ -177,43 +177,59 @@ export default function LessonDetailPage() {
       const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
 
       if (hasLineIndices) {
-        const items = sentences.map((s, idx) => {
+        const rawItems = sentences.map((s, idx) => {
           const indices = s.lineIndices || [];
           const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
           const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
           return {
-            id: idx,
-            sentenceIndex: idx,
-            sentenceIndices: [idx],
-            startTime: firstLine?.startTime ?? -1,
-            endTime: lastLine?.endTime ?? -1,
+            id: idx, sentenceIndex: idx, sentenceIndices: [idx],
+            rawStart: firstLine?.startTime ?? -1,
+            rawEnd: lastLine?.endTime ?? -1,
+            startTime: 0, endTime: 0,
             originalText: s.sentence,
             translationUz: s.translation || "",
             translationAr: s.translationAr || "",
           };
         });
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].startTime < 0) {
-            let prev = i > 0 ? items[i - 1].endTime : 0;
+
+        for (let k = 0; k < rawItems.length; k++) {
+          if (rawItems[k].rawStart >= 0) {
+            rawItems[k].startTime = rawItems[k].rawStart;
+            rawItems[k].endTime = rawItems[k].rawEnd;
+          }
+        }
+        for (let k = 0; k < rawItems.length; k++) {
+          if (rawItems[k].rawStart < 0) {
+            let prev = k > 0 ? rawItems[k - 1].endTime : 0;
             let next = -1;
-            for (let j = i + 1; j < items.length; j++) {
-              if (items[j].startTime >= 0) { next = items[j].startTime; break; }
+            for (let m = k + 1; m < rawItems.length; m++) {
+              if (rawItems[m].rawStart >= 0) { next = rawItems[m].startTime; break; }
             }
-            if (next < 0) next = prev + 8;
-            const gap = i + 1 < items.length ? 1 : 0;
+            if (next < 0) next = prev + 6;
             let count = 1;
-            for (let j = i + 1; j < items.length && items[j].startTime < 0; j++) count++;
-            const step = (next - prev) / (count + gap);
-            items[i].startTime = prev;
-            items[i].endTime = prev + step;
+            for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0; m++) count++;
+            const step = (next - prev) / count;
+            rawItems[k].startTime = prev;
+            rawItems[k].endTime = prev + step;
           }
         }
-        for (let i = 0; i < items.length - 1; i++) {
-          if (items[i].endTime > items[i + 1].startTime) {
-            items[i].endTime = items[i + 1].startTime;
+        for (let k = 0; k < rawItems.length - 1; k++) {
+          if (rawItems[k].endTime > rawItems[k + 1].startTime) {
+            const mid = (rawItems[k].startTime + rawItems[k + 1].endTime) / 2;
+            if (mid > rawItems[k].startTime && mid < rawItems[k + 1].endTime) {
+              rawItems[k].endTime = mid;
+              rawItems[k + 1].startTime = mid;
+            } else {
+              rawItems[k].endTime = rawItems[k + 1].startTime;
+            }
           }
         }
-        return items;
+
+        return rawItems.map(it => ({
+          id: it.id, sentenceIndex: it.sentenceIndex, sentenceIndices: it.sentenceIndices,
+          startTime: it.startTime, endTime: it.endTime,
+          originalText: it.originalText, translationUz: it.translationUz, translationAr: it.translationAr,
+        }));
       }
 
       if (timedSubs.length === sentences.length) {
@@ -297,42 +313,57 @@ export default function LessonDetailPage() {
 
     const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
     if (hasLineIndices) {
-      const items = sentences.map((s, idx) => {
+      const rawItems = sentences.map((s, idx) => {
         const indices = s.lineIndices || [];
         const firstLine = indices.length > 0 ? timedSubs[indices[0]] : undefined;
         const lastLine = indices.length > 0 ? timedSubs[indices[indices.length - 1]] : undefined;
         return {
-          id: idx,
-          sentenceIndex: idx,
-          sentenceIndices: [idx],
-          startTime: firstLine?.startTime ?? -1,
-          endTime: lastLine?.endTime ?? -1,
+          id: idx, sentenceIndex: idx, sentenceIndices: [idx],
+          rawStart: firstLine?.startTime ?? -1,
+          rawEnd: lastLine?.endTime ?? -1,
+          startTime: 0, endTime: 0,
           originalText: s.sentence,
           translationUz: s.translation || "",
           translationAr: s.translationAr || "",
         };
       });
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].startTime < 0) {
-          let prev = i > 0 ? items[i - 1].endTime : 0;
+      for (let k = 0; k < rawItems.length; k++) {
+        if (rawItems[k].rawStart >= 0) {
+          rawItems[k].startTime = rawItems[k].rawStart;
+          rawItems[k].endTime = rawItems[k].rawEnd;
+        }
+      }
+      for (let k = 0; k < rawItems.length; k++) {
+        if (rawItems[k].rawStart < 0) {
+          let prev = k > 0 ? rawItems[k - 1].endTime : 0;
           let next = -1;
-          for (let j = i + 1; j < items.length; j++) {
-            if (items[j].startTime >= 0) { next = items[j].startTime; break; }
+          for (let m = k + 1; m < rawItems.length; m++) {
+            if (rawItems[m].rawStart >= 0) { next = rawItems[m].startTime; break; }
           }
-          if (next < 0) next = prev + 8;
+          if (next < 0) next = prev + 6;
           let count = 1;
-          for (let j = i + 1; j < items.length && items[j].startTime < 0; j++) count++;
-          const step = (next - prev) / (count + 1);
-          items[i].startTime = prev;
-          items[i].endTime = prev + step;
+          for (let m = k + 1; m < rawItems.length && rawItems[m].rawStart < 0; m++) count++;
+          const step = (next - prev) / count;
+          rawItems[k].startTime = prev;
+          rawItems[k].endTime = prev + step;
         }
       }
-      for (let i = 0; i < items.length - 1; i++) {
-        if (items[i].endTime > items[i + 1].startTime) {
-          items[i].endTime = items[i + 1].startTime;
+      for (let k = 0; k < rawItems.length - 1; k++) {
+        if (rawItems[k].endTime > rawItems[k + 1].startTime) {
+          const mid = (rawItems[k].startTime + rawItems[k + 1].endTime) / 2;
+          if (mid > rawItems[k].startTime && mid < rawItems[k + 1].endTime) {
+            rawItems[k].endTime = mid;
+            rawItems[k + 1].startTime = mid;
+          } else {
+            rawItems[k].endTime = rawItems[k + 1].startTime;
+          }
         }
       }
-      return items;
+      return rawItems.map(it => ({
+        id: it.id, sentenceIndex: it.sentenceIndex, sentenceIndices: it.sentenceIndices,
+        startTime: it.startTime, endTime: it.endTime,
+        originalText: it.originalText, translationUz: it.translationUz, translationAr: it.translationAr,
+      }));
     }
 
     const stripDiacritics = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");

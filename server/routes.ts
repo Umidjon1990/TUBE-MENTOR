@@ -946,6 +946,45 @@ export async function registerRoutes(
         return result;
       });
 
+      const storedSubtitles = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+      if (storedSubtitles && storedSubtitles.length > 0) {
+        const stripDiac = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+        const normalizeAr = (t: string) => stripDiac(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
+
+        const subNorms = storedSubtitles.map(s => normalizeAr(s.text));
+        const subWords = subNorms.map(n => new Set(n.split(" ").filter((w: string) => w.length > 1)));
+
+        let subCursor = 0;
+        for (const sa of sentenceAnalysisJson) {
+          if (sa.lineIndices && sa.lineIndices.length > 0) continue;
+          const sentNorm = normalizeAr(sa.sentence);
+          const sentWordSet = new Set(sentNorm.split(" ").filter((w: string) => w.length > 1));
+          const matched: number[] = [];
+          let accLen = 0;
+
+          for (let si = subCursor; si < storedSubtitles.length; si++) {
+            const sWords = subWords[si];
+            let hits = 0;
+            sentWordSet.forEach(w => { if (sWords.has(w)) hits++; });
+            const overlap = hits / Math.max(1, sentWordSet.size);
+
+            if (overlap >= 0.3 || (matched.length === 0 && si === subCursor && sentWordSet.size <= 3)) {
+              matched.push(si);
+              accLen += subNorms[si].length;
+              if (accLen >= sentNorm.length * 0.6) { subCursor = si + 1; break; }
+            } else if (matched.length > 0) {
+              subCursor = si;
+              break;
+            }
+          }
+          if (matched.length > 0) {
+            sa.lineIndices = matched;
+            if (subCursor <= matched[matched.length - 1]) subCursor = matched[matched.length - 1] + 1;
+          }
+        }
+        console.log(`[import] Dars #${id}: lineIndices avtomatik hisoblandi`);
+      }
+
       const updateData: any = {
         summaryShort: content.summaryShort || "",
         summaryDetailed: content.summaryDetailed || "",
@@ -981,6 +1020,63 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error(`[import] Dars #${id}: xatolik:`, err?.message || err);
       res.status(500).json({ message: "Import qilishda xatolik yuz berdi" });
+    }
+  });
+
+  app.post("/api/user/lessons/:id/resync-timing", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
+    try {
+      const lesson = await storage.getLesson(id);
+      if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+      const subs = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+      const sents = lesson.sentenceAnalysisJson as any[] | null;
+      if (!subs || subs.length === 0 || !sents || sents.length === 0) {
+        return res.status(400).json({ message: "Subtitle yoki gap ma'lumoti yo'q" });
+      }
+
+      const stripDiac = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+      const normalizeAr = (t: string) => stripDiac(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
+
+      const subNorms = subs.map(s => normalizeAr(s.text));
+      const subWords = subNorms.map(n => new Set(n.split(" ").filter((w: string) => w.length > 1)));
+
+      let subCursor = 0;
+      for (const sa of sents) {
+        const sentNorm = normalizeAr(sa.sentence);
+        const sentWordSet = new Set(sentNorm.split(" ").filter((w: string) => w.length > 1));
+        const matched: number[] = [];
+        let accLen = 0;
+
+        for (let si = subCursor; si < subs.length; si++) {
+          const sWords = subWords[si];
+          let hits = 0;
+          sentWordSet.forEach(w => { if (sWords.has(w)) hits++; });
+          const overlap = hits / Math.max(1, sentWordSet.size);
+
+          if (overlap >= 0.3 || (matched.length === 0 && si === subCursor && sentWordSet.size <= 3)) {
+            matched.push(si);
+            accLen += subNorms[si].length;
+            if (accLen >= sentNorm.length * 0.6) { subCursor = si + 1; break; }
+          } else if (matched.length > 0) {
+            subCursor = si;
+            break;
+          }
+        }
+        if (matched.length > 0) {
+          sa.lineIndices = matched;
+          if (subCursor <= matched[matched.length - 1]) subCursor = matched[matched.length - 1] + 1;
+        } else {
+          delete sa.lineIndices;
+        }
+      }
+
+      const updated = await storage.updateLesson(id, { sentenceAnalysisJson: sents });
+      console.log(`[resync] Dars #${id}: lineIndices qayta hisoblandi (${sents.length} gap, ${subs.length} subtitle)`);
+      res.json(updated);
+    } catch (err: any) {
+      console.error(`[resync] Dars #${id}: xatolik:`, err?.message || err);
+      res.status(500).json({ message: "Sinxronizatsiya xatoligi" });
     }
   });
 

@@ -1,0 +1,1438 @@
+{
+"source": "",
+"summaryShort": "Bu matnda elektron va qog‘oz kitoblar haqida fikr yuritiladi. Muallif muhim narsa kitob turi emas, balki bizning o‘qishga bo‘lgan munosabatimiz ekanini ta’kidlaydi.",
+"summaryDetailed": "Matn boshida muallif elektron va qog‘oz kitoblarni ko‘z bilanmi yoki qalb bilanmi o‘qishimiz haqida savol qo‘yadi. So‘ng u elektron kitoblarning yengilligi, tez topilishi va vaqtni tejashi kabi foydalarini aytadi. Shuningdek, elektron matn orqali so‘z izlash, ma’lumotni saqlash va istalgan joyda o‘qish mumkinligi ta’kidlanadi. Biroq muallif qog‘oz kitobning ham alohida sehri borligini tushuntiradi. Qog‘oz kitobni qo‘lda ushlab, sahifalarini varaqlash odamga so‘zlar bilan chuqurroq yashash hissini beradi. Ko‘p odamlar qog‘ozda o‘qiganda ko‘proq xotirjamlik va kuchliroq diqqat topishini aytadi. Matn xulosasida muallif muammo kitob turida emas, balki o‘qishga bo‘lgan aloqamizda ekanini bildiradi. Eng muhimi, qanday o‘qish emas, balki umuman o‘qishning o‘zi ekani urg‘ulanadi.",
+"summaryShortAr": "يَتَحَدَّثُ النَّصُّ عَنِ الْكُتُبِ الْإِلِكْتُرُونِيَّةِ وَالْوَرَقِيَّةِ، وَيُقَارِنُ بَيْنَهُمَا. وَيُؤَكِّدُ الْكَاتِبُ أَنَّ الْأَهَمَّ لَيْسَ نَوْعَ الْكِتَابِ، بَلْ عَلَاقَتُنَا بِالْقِرَاءَةِ.",
+"summaryDetailedAr": "يَبْدَأُ النَّصُّ بِسُؤَالٍ جَمِيلٍ عَمَّا إِذَا كُنَّا نَقْرَأُ الْكُتُبَ بِأَعْيُنِنَا فَقَطْ أَمْ بِقُلُوبِنَا أَيْضًا. ثُمَّ يَذْكُرُ الْكَاتِبُ فَوَائِدَ الْكِتَابِ الْإِلِكْتُرُونِيِّ، مِثْلَ سُهُولَةِ حَمْلِهِ وَسُرْعَةِ الْوُصُولِ إِلَيْهِ وَتَوْفِيرِهِ لِلْوَقْتِ وَالْجُهْدِ. وَيُبَيِّنُ أَنَّ الْقَارِئَ يَسْتَطِيعُ أَنْ يَبْحَثَ عَنِ الْكَلِمَاتِ وَأَنْ يَحْفَظَ الْمَعْلُومَاتِ وَأَنْ يَقْرَأَ فِي أَيِّ مَكَانٍ وَفِي أَيِّ وَقْتٍ. وَمَعَ ذٰلِكَ فَإِنَّ لِلْكِتَابِ الْوَرَقِيِّ سِحْرًا خَاصًّا عِنْدَمَا نُمْسِكُهُ بِأَيْدِينَا وَنُقَلِّبُ صَفَحَاتِهِ. وَيَرَى الْكَاتِبُ أَنَّ كَثِيرًا مِنَ النَّاسِ يَجِدُونَ فِي الْقِرَاءَةِ الْوَرَقِيَّةِ هُدُوءًا أَكْبَرَ وَتَرْكِيزًا أَعْمَقَ. ثُمَّ يَصِلُ إِلَى أَنَّ الْمُشْكِلَةَ لَيْسَتْ فِي نَوْعِ الْكِتَابِ، بَلْ فِي عَلَاقَتِنَا نَحْنُ مَعَ الْكَلِمَاتِ وَمَعَ الْقِرَاءَةِ. وَفِي الْخُلَاصَةِ يُؤَكِّدُ أَنَّ الْأَهَمَّ هُوَ أَنْ نَقْرَأَ، لِأَنَّ الْقِرَاءَةَ تَفْتَحُ لَنَا طُرُقًا جَدِيدَةً فِي التَّفْكِيرِ وَفَهْمِ الْحَيَاةِ.",
+"vocabulary": [
+{
+"word": "إِلِكْتُرُونِيٌّ",
+"translation": "elektron",
+"translationAr": "رَقْمِيٌّ",
+"partOfSpeech": "صِفَةٌ",
+"example": "اَلْكِتَابُ الْإِلِكْتُرُونِيُّ سَهْلُ الْحَمْلِ.",
+"difficulty": "medium"
+},
+{
+"word": "وَرَقِيٌّ",
+"translation": "qog‘ozga oid, qog‘ozli",
+"translationAr": "مَطْبُوعٌ عَلَى الْوَرَقِ",
+"partOfSpeech": "صِفَةٌ",
+"example": "لِلْكِتَابِ الْوَرَقِيِّ سِحْرٌ خَاصٌّ.",
+"difficulty": "easy"
+},
+{
+"word": "سِحْرٌ",
+"translation": "sehr, joziba",
+"translationAr": "جَمَالٌ خَاصٌّ",
+"partOfSpeech": "اِسْمٌ",
+"example": "يَبْقَى لِلْكِتَابِ الْوَرَقِيِّ سِحْرُهُ الْخَاصُّ.",
+"difficulty": "medium"
+},
+{
+"word": "يُفَضِّلُهُ",
+"translation": "uni afzal ko‘radi",
+"translationAr": "يَخْتَارُهُ وَيُحِبُّهُ",
+"partOfSpeech": "فِعْلٌ",
+"example": "وَلِهٰذَا السَّبَبِ يُفَضِّلُهُ كَثِيرٌ مِنَ الطُّلَّابِ.",
+"difficulty": "medium"
+},
+{
+"word": "الْقَارِئُ",
+"translation": "o‘quvchi, kitobxon",
+"translationAr": "مَنْ يَقْرَأُ",
+"partOfSpeech": "اِسْمٌ",
+"example": "اَلْقَارِئُ يَسْتَطِيعُ أَنْ يَبْحَثَ عَنِ الْكَلِمَاتِ.",
+"difficulty": "easy"
+},
+{
+"word": "تَرْكِيزٌ",
+"translation": "diqqat, jamlanish",
+"translationAr": "اِنْتِبَاهٌ شَدِيدٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "يَجِدُونَ فِي الْقِرَاءَةِ الْوَرَقِيَّةِ تَرْكِيزًا أَعْمَقَ.",
+"difficulty": "medium"
+},
+{
+"word": "تَأَمُّلٌ",
+"translation": "tafakkur, chuqur mushohada",
+"translationAr": "تَفَكُّرٌ عَمِيقٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "يَجْعَلُنَا أَكْثَرَ تَأَمُّلًا وَارْتِبَاطًا.",
+"difficulty": "hard"
+},
+{
+"word": "ارْتِبَاطٌ",
+"translation": "bog‘liqlik, yaqin aloqa",
+"translationAr": "صِلَةٌ وَتَعَلُّقٌ",
+"partOfSpeech": "اِسْمٌ",
+"example": "اَلْكِتَابُ الْوَرَقِيُّ يَجْعَلُنَا أَكْثَرَ ارْتِبَاطًا.",
+"difficulty": "hard"
+},
+{
+"word": "الْخُلَاصَةُ",
+"translation": "xulosa",
+"translationAr": "النَّتِيجَةُ",
+"partOfSpeech": "اِسْمٌ",
+"example": "اَلْخُلَاصَةُ أَنَّ الْأَهَمَّ أَنْ نَقْرَأَ.",
+"difficulty": "easy"
+},
+{
+"word": "طُرُقٌ",
+"translation": "yo‘llar",
+"translationAr": "وَسَائِلُ وَمَسَالِكُ",
+"partOfSpeech": "اِسْمٌ",
+"example": "تَفْتَحُ لَنَا طُرُقًا جَدِيدَةً فِي التَّفْكِيرِ.",
+"difficulty": "medium"
+}
+],
+"quizzes": [
+{
+"question": "Matnda muallif eng muhim narsa nima deb aytadi?",
+"options": ["Faqat qog‘oz kitob o‘qish", "Faqat elektron kitob o‘qish", "Kitobning narxi", "Umuman o‘qishning o‘zi"],
+"correctIndex": 3,
+"explanation": "Muallif xulosada eng muhimi qanday o‘qish emas, balki o‘qishning o‘zi ekanini aytadi.",
+"type": "multiple_choice"
+},
+{
+"question": "Elektron kitobning matnda aytilgan afzalliklaridan biri qaysi?",
+"options": ["U faqat kutubxonada o‘qiladi", "U og‘ir bo‘ladi", "U vaqt va mehnatni tejaydi", "U har doim qimmatroq bo‘ladi"],
+"correctIndex": 2,
+"explanation": "Matnda elektron kitob tez topilishi, yengil bo‘lishi va vaqt hamda mehnatni tejashi aytilgan.",
+"type": "multiple_choice"
+},
+{
+"question": "Qog‘oz kitobning afzalligi sifatida nima aytilgan?",
+"options": ["U internet talab qiladi", "Unda so‘z qidirib bo‘lmaydi", "Unda ko‘proq xotirjamlik va chuqur diqqat bor", "Uni faqat o‘qituvchilar ishlatadi"],
+"correctIndex": 2,
+"explanation": "Muallif ko‘p odamlar qog‘oz kitobda o‘qiganda ko‘proq huzûr va kuchliroq diqqat sezishini aytadi.",
+"type": "multiple_choice"
+},
+{
+"question": "Muallifga ko‘ra muammo asosan nimada?",
+"options": ["Kitob do‘konlarida", "Kitob turida emas, o‘qishga bo‘lgan munosabatimizda", "Faqat telefonlarda", "Faqat o‘qituvchilarda"],
+"correctIndex": 1,
+"explanation": "Matnda muammo kitobning turida emas, balki bizning so‘zlar va o‘qish bilan aloqamizda ekani ta’kidlanadi.",
+"type": "multiple_choice"
+},
+{
+"question": "اَلْكِتَابُ الْوَرَقِيُّ لَهُ _____ خَاصٌّ — bo'sh joyga mos so'zni tanlang",
+"options": ["سِحْرٌ", "سِحْرًا", "سَاحِرٌ", "سِحْرٍ"],
+"correctIndex": 0,
+"explanation": "To‘g‘ri birikma: «لَهُ سِحْرٌ خَاصٌّ». Bu yerda «سِحْرٌ» marfu‘ holatda kelgan.",
+"type": "sentence_completion"
+},
+{
+"question": "اَلْقَارِئُ يَسْتَطِيعُ أَنْ يَبْحَثَ عَنِ _____ — bo'sh joyga mos so'zni tanlang",
+"options": ["الْكَلِمَاتِ", "الْكَلِمَاتُ", "الْكَلِمَاتَ", "كَلِمَةٌ"],
+"correctIndex": 0,
+"explanation": "«عَنْ» harfi jarr bo‘lgani uchun undan keyingi so‘z majrur keladi: «الْكَلِمَاتِ».",
+"type": "sentence_completion"
+},
+{
+"question": "اَلْقِرَاءَةُ تَفْتَحُ لَنَا طُرُقًا _____ فِي التَّفْكِيرِ — bo'sh joyga mos so'zni tanlang",
+"options": ["جَدِيدَةً", "جَدِيدَةٌ", "جَدِيدٍ", "جُدُدًا"],
+"correctIndex": 0,
+"explanation": "«طُرُقًا» mansub bo‘lgani uchun uning sifati ham mansub keladi: «جَدِيدَةً».",
+"type": "sentence_completion"
+},
+{
+"question": "اَلْكِتَابُ الْإِلِكْتُرُونِيُّ _____ الْحَمْلِ — bo'sh joyga mos so'zni tanlang",
+"options": ["سَهْلُ", "سَهْلَ", "سَهْلِ", "سُهُولَةُ"],
+"correctIndex": 0,
+"explanation": "To‘g‘ri ibora: «سَهْلُ الْحَمْلِ». Bu yerda «سَهْلُ» marfu‘ holda kelgan.",
+"type": "sentence_completion"
+},
+{
+"question": "الْقَارِئُ",
+"options": ["yozuvchi", "o‘quvchi, kitobxon", "ustoz", "sotuvchi"],
+"correctIndex": 1,
+"explanation": "«الْقَارِئُ» — o‘qiydigan kishi, ya’ni kitobxon degani.",
+"type": "word_translation"
+},
+{
+"question": "تَرْكِيزٌ",
+"options": ["uyqu", "sukut", "diqqat", "sur’at"],
+"correctIndex": 2,
+"explanation": "«تَرْكِيزٌ» — diqqat va fikrni bir joyga jamlash ma’nosini bildiradi.",
+"type": "word_translation"
+},
+{
+"question": "الْخُلَاصَةُ",
+"options": ["misol", "savol", "xulosa", "javob"],
+"correctIndex": 2,
+"explanation": "«الْخُلَاصَةُ» — xulosa, yakuniy natija degani.",
+"type": "word_translation"
+}
+],
+"flashcards": [
+{
+"front": "إِلِكْتُرُونِيٌّ",
+"back": "Elektron. Raqamli shakldagi narsa yoki matn haqida ishlatiladi.",
+"backAr": "مَا يَكُونُ عَلَى شَكْلٍ رَقْمِيٍّ أَوْ حَدِيثٍ.",
+"type": "vocabulary"
+},
+{
+"front": "وَرَقِيٌّ",
+"back": "Qog‘ozli. Qog‘ozga yozilgan yoki bosilgan narsaga aytiladi.",
+"backAr": "مَا كَانَ مَكْتُوبًا أَوْ مَطْبُوعًا عَلَى الْوَرَقِ.",
+"type": "vocabulary"
+},
+{
+"front": "سِحْرٌ خَاصٌّ",
+"back": "Alohida joziba, o‘ziga xos ta’sir. Matnda qog‘oz kitobning hissiy ta’siri nazarda tutilgan.",
+"backAr": "جَمَالٌ وَأَثَرٌ مُمَيَّزٌ لَا يُوجَدُ فِي كُلِّ شَيْءٍ.",
+"type": "grammar"
+},
+{
+"front": "الْقَارِئُ",
+"back": "O‘qiydigan kishi, kitobxon.",
+"backAr": "الشَّخْصُ الَّذِي يَقْرَأُ.",
+"type": "vocabulary"
+},
+{
+"front": "تَرْكِيزٌ أَعْمَقُ",
+"back": "Chuqurroq diqqat. Matnda qog‘oz kitob bilan kuchliroq diqqat paydo bo‘lishi nazarda tutilgan.",
+"backAr": "اِنْتِبَاهٌ أَقْوَى وَأَشَدُّ.",
+"type": "grammar"
+},
+{
+"front": "تَأَمُّلٌ",
+"back": "Chuqur fikrlash va mushohada qilish holati.",
+"backAr": "تَفَكُّرٌ عَمِيقٌ وَتَدَبُّرٌ.",
+"type": "vocabulary"
+},
+{
+"front": "الْخُلَاصَةُ",
+"back": "Xulosa, yakuniy fikr yoki natija.",
+"backAr": "النَّتِيجَةُ أَوِ الْفِكْرَةُ الْأَخِيرَةُ.",
+"type": "vocabulary"
+},
+{
+"front": "لَا تُعْطِينَا مَعْلُومَاتٍ فَقَطْ، بَلْ تَفْتَحُ لَنَا طُرُقًا جَدِيدَةً",
+"back": "Bu jumla o‘qish faqat ma’lumot bermasdan, tafakkurni ham kengaytirishini bildiradi.",
+"backAr": "هٰذِهِ الْجُمْلَةُ تَدُلُّ عَلَى أَنَّ الْقِرَاءَةَ لَا تُفِيدُ فِي الْمَعْلُومَاتِ فَقَطْ، بَلْ تُوَسِّعُ التَّفْكِيرَ أَيْضًا.",
+"type": "grammar"
+}
+],
+"sentenceAnalysis": [
+{
+"sentence": "هَلْ نَقْرَأُ بِأَعْيُنِنَا أَمْ بِقُلُوبِنَا الْكُتُبَ الْإِلِكْتُرُونِيَّةَ وَالْوَرَقِيَّةَ؟",
+"translation": "Biz elektron va qog‘oz kitoblarni ko‘zlarimiz bilanmi yoki qalblarimiz bilanmi o‘qiymiz?",
+"translationAr": "هَلْ نَقْرَأُ الْكُتُبَ بِالنَّظَرِ فَقَطْ أَمْ بِالْإِحْسَاسِ أَيْضًا؟",
+"wordMap": [
+{
+"word": "هَلْ",
+"normalized": "هل",
+"translationUz": "mi, nahotki",
+"translationAr": "أَدَاةُ اسْتِفْهَامٍ"
+},
+{
+"word": "نَقْرَأُ",
+"normalized": "نقرا",
+"translationUz": "o‘qiymiz",
+"translationAr": "نُطَالِعُ"
+},
+{
+"word": "بِأَعْيُنِنَا",
+"normalized": "باعيننا",
+"translationUz": "ko‘zlarimiz bilan",
+"translationAr": "بِعُيُونِنَا"
+},
+{
+"word": "أَمْ",
+"normalized": "ام",
+"translationUz": "yoki",
+"translationAr": "أَوْ"
+},
+{
+"word": "بِقُلُوبِنَا",
+"normalized": "بقلوبنا",
+"translationUz": "qalblarimiz bilan",
+"translationAr": "بِأَفْئِدَتِنَا"
+},
+{
+"word": "الْكُتُبَ",
+"normalized": "الكتب",
+"translationUz": "kitoblarni",
+"translationAr": "الْمُؤَلَّفَاتِ"
+},
+{
+"word": "الْإِلِكْتُرُونِيَّةَ",
+"normalized": "الالكترونية",
+"translationUz": "elektron",
+"translationAr": "الرَّقْمِيَّةَ"
+},
+{
+"word": "وَالْوَرَقِيَّةَ",
+"normalized": "والورقية",
+"translationUz": "va qog‘ozli",
+"translationAr": "وَالْمَطْبُوعَةَ"
+}
+]
+},
+{
+"sentence": "مَرْحَبًا بِكُمْ جَمِيعًا.",
+"translation": "Barchangizga xush kelibsiz.",
+"translationAr": "أَهْلًا وَسَهْلًا بِكُمْ كُلِّكُمْ.",
+"wordMap": [
+{
+"word": "مَرْحَبًا",
+"normalized": "مرحبا",
+"translationUz": "xush kelibsiz",
+"translationAr": "أَهْلًا"
+},
+{
+"word": "بِكُمْ",
+"normalized": "بكم",
+"translationUz": "sizlarga",
+"translationAr": "لَكُمْ"
+},
+{
+"word": "جَمِيعًا",
+"normalized": "جميعا",
+"translationUz": "barchangiz",
+"translationAr": "كُلَّكُمْ"
+}
+]
+},
+{
+"sentence": "أُرِيدُ أَنْ أَطْرَحَ الْيَوْمَ سُؤَالًا جَمِيلًا.",
+"translation": "Men bugun chiroyli bir savolni o‘rtaga tashlamoqchiman.",
+"translationAr": "أُرِيدُ أَنْ أَقُولَ الْيَوْمَ سُؤَالًا لَطِيفًا.",
+"wordMap": [
+{
+"word": "أُرِيدُ",
+"normalized": "اريد",
+"translationUz": "xohlayman",
+"translationAr": "أَشَاءُ"
+},
+{
+"word": "أَنْ",
+"normalized": "ان",
+"translationUz": "...ishni",
+"translationAr": "حَرْفُ مَصْدَرٍ"
+},
+{
+"word": "أَطْرَحَ",
+"normalized": "اطرح",
+"translationUz": "o‘rtaga tashlayman",
+"translationAr": "أُقَدِّمَ"
+},
+{
+"word": "الْيَوْمَ",
+"normalized": "اليوم",
+"translationUz": "bugun",
+"translationAr": "فِي هٰذَا الْيَوْمِ"
+},
+{
+"word": "سُؤَالًا",
+"normalized": "سؤالا",
+"translationUz": "savol",
+"translationAr": "اِسْتِفْهَامًا"
+},
+{
+"word": "جَمِيلًا",
+"normalized": "جميلا",
+"translationUz": "chiroyli",
+"translationAr": "لَطِيفًا"
+}
+]
+},
+{
+"sentence": "هَلْ نَقْرَأُ بِأَعْيُنِنَا فَقَطْ أَمْ بِقُلُوبِنَا أَيْضًا؟",
+"translation": "Biz faqat ko‘zlarimiz bilanmi yoki qalblarimiz bilan ham o‘qiymizmi?",
+"translationAr": "هَلْ نَقْرَأُ بِالنَّظَرِ وَحْدَهُ أَمْ بِالْقَلْبِ أَيْضًا؟",
+"wordMap": [
+{
+"word": "هَلْ",
+"normalized": "هل",
+"translationUz": "mi",
+"translationAr": "أَدَاةُ اسْتِفْهَامٍ"
+},
+{
+"word": "نَقْرَأُ",
+"normalized": "نقرا",
+"translationUz": "o‘qiymiz",
+"translationAr": "نُطَالِعُ"
+},
+{
+"word": "بِأَعْيُنِنَا",
+"normalized": "باعيننا",
+"translationUz": "ko‘zlarimiz bilan",
+"translationAr": "بِعُيُونِنَا"
+},
+{
+"word": "فَقَطْ",
+"normalized": "فقط",
+"translationUz": "faqat",
+"translationAr": "وَحْدَهُ"
+},
+{
+"word": "أَمْ",
+"normalized": "ام",
+"translationUz": "yoki",
+"translationAr": "أَوْ"
+},
+{
+"word": "بِقُلُوبِنَا",
+"normalized": "بقلوبنا",
+"translationUz": "qalblarimiz bilan",
+"translationAr": "بِأَفْئِدَتِنَا"
+},
+{
+"word": "أَيْضًا",
+"normalized": "ايضا",
+"translationUz": "ham",
+"translationAr": "كَذٰلِكَ"
+}
+]
+},
+{
+"sentence": "وَمِنْ هُنَا يَبْدَأُ الْحَدِيثُ عَنِ الْكُتُبِ الْإِلِكْتُرُونِيَّةِ وَالْكُتُبِ الْوَرَقِيَّةِ.",
+"translation": "Shu yerdan elektron va qog‘oz kitoblar haqidagi suhbat boshlanadi.",
+"translationAr": "وَمِنْ هٰذَا الْمَدْخَلِ يَبْدَأُ الْكَلَامُ عَنِ الْكُتُبِ الرَّقْمِيَّةِ وَالْوَرَقِيَّةِ.",
+"wordMap": [
+{
+"word": "وَمِنْ",
+"normalized": "ومن",
+"translationUz": "va mana shu yerdan",
+"translationAr": "وَمِنْ"
+},
+{
+"word": "هُنَا",
+"normalized": "هنا",
+"translationUz": "shu yerdan",
+"translationAr": "مِنْ هٰذَا الْمَوْضِعِ"
+},
+{
+"word": "يَبْدَأُ",
+"normalized": "يبدا",
+"translationUz": "boshlanadi",
+"translationAr": "يَشْرَعُ"
+},
+{
+"word": "الْحَدِيثُ",
+"normalized": "الحديث",
+"translationUz": "suhbat",
+"translationAr": "الْكَلَامُ"
+},
+{
+"word": "عَنِ",
+"normalized": "عن",
+"translationUz": "haqida",
+"translationAr": "بِشَأْنِ"
+},
+{
+"word": "الْكُتُبِ",
+"normalized": "الكتب",
+"translationUz": "kitoblar",
+"translationAr": "الْمُؤَلَّفَاتِ"
+},
+{
+"word": "الْإِلِكْتُرُونِيَّةِ",
+"normalized": "الالكترونية",
+"translationUz": "elektron",
+"translationAr": "الرَّقْمِيَّةِ"
+},
+{
+"word": "وَالْكُتُبِ",
+"normalized": "والكتب",
+"translationUz": "va kitoblar",
+"translationAr": "وَالْمُؤَلَّفَاتِ"
+},
+{
+"word": "الْوَرَقِيَّةِ",
+"normalized": "الورقية",
+"translationUz": "qog‘ozli",
+"translationAr": "الْمَطْبُوعَةِ"
+}
+]
+},
+{
+"sentence": "لَا شَكَّ أَنَّ الْكِتَابَةَ الْإِلِكْتُرُونِيَّةَ قَدْ أَصْبَحَتْ جُزْءًا مُهِمًّا مِنْ حَيَاتِنَا.",
+"translation": "Shubha yo‘qki, elektron yozuv yoki elektron matn hayotimizning muhim bir qismiga aylandi.",
+"translationAr": "لَا رَيْبَ أَنَّ الْكِتَابَةَ الرَّقْمِيَّةَ صَارَتْ قِسْمًا مُهِمًّا مِنْ حَيَاتِنَا.",
+"wordMap": [
+{
+"word": "لَا",
+"normalized": "لا",
+"translationUz": "yo‘q",
+"translationAr": "لَا"
+},
+{
+"word": "شَكَّ",
+"normalized": "شك",
+"translationUz": "shubha",
+"translationAr": "رَيْبَ"
+},
+{
+"word": "أَنَّ",
+"normalized": "ان",
+"translationUz": "albatta",
+"translationAr": "أَنَّ"
+},
+{
+"word": "الْكِتَابَةَ",
+"normalized": "الكتابة",
+"translationUz": "yozuv, matn",
+"translationAr": "التَّدْوِينَ"
+},
+{
+"word": "الْإِلِكْتُرُونِيَّةَ",
+"normalized": "الالكترونية",
+"translationUz": "elektron",
+"translationAr": "الرَّقْمِيَّةَ"
+},
+{
+"word": "قَدْ",
+"normalized": "قد",
+"translationUz": "darhaqiqat",
+"translationAr": "حَقًّا"
+},
+{
+"word": "أَصْبَحَتْ",
+"normalized": "اصبحت",
+"translationUz": "aylandi",
+"translationAr": "صَارَتْ"
+},
+{
+"word": "جُزْءًا",
+"normalized": "جزءا",
+"translationUz": "qism",
+"translationAr": "قِسْمًا"
+},
+{
+"word": "مُهِمًّا",
+"normalized": "مهما",
+"translationUz": "muhim",
+"translationAr": "ضَرُورِيًّا"
+},
+{
+"word": "مِنْ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "مِنْ"
+},
+{
+"word": "حَيَاتِنَا",
+"normalized": "حياتنا",
+"translationUz": "hayotimiz",
+"translationAr": "مَعِيشَتِنَا"
+}
+]
+},
+{
+"sentence": "فَهِيَ سَهْلَةُ الْحَمْلِ، وَسَرِيعَةُ الْوُصُولِ، وَتُوَفِّرُ الْوَقْتَ وَالْجُهْدَ.",
+"translation": "U yengil olib yuriladi, tez topiladi va vaqt hamda mehnatni tejaydi.",
+"translationAr": "فَهِيَ يَسِيرَةُ الْحَمْلِ، سَرِيعَةُ الْوُصُولِ، وَتُقَلِّلُ ضَيَاعَ الْوَقْتِ وَالْجُهْدِ.",
+"wordMap": [
+{
+"word": "فَهِيَ",
+"normalized": "فهي",
+"translationUz": "demak u",
+"translationAr": "فَهِيَ"
+},
+{
+"word": "سَهْلَةُ",
+"normalized": "سهلة",
+"translationUz": "yengil, oson",
+"translationAr": "يَسِيرَةُ"
+},
+{
+"word": "الْحَمْلِ",
+"normalized": "الحمل",
+"translationUz": "olib yurish",
+"translationAr": "النَّقْلِ"
+},
+{
+"word": "وَسَرِيعَةُ",
+"normalized": "وسريعة",
+"translationUz": "va tez",
+"translationAr": "وَعَاجِلَةُ"
+},
+{
+"word": "الْوُصُولِ",
+"normalized": "الوصول",
+"translationUz": "yetib borish, topish",
+"translationAr": "الْبُلُوغِ"
+},
+{
+"word": "وَتُوَفِّرُ",
+"normalized": "وتوفر",
+"translationUz": "tejaydi",
+"translationAr": "تُقَلِّلُ الضَّيَاعَ"
+},
+{
+"word": "الْوَقْتَ",
+"normalized": "الوقت",
+"translationUz": "vaqtni",
+"translationAr": "الزَّمَنَ"
+},
+{
+"word": "وَالْجُهْدَ",
+"normalized": "والجهد",
+"translationUz": "va mehnatni",
+"translationAr": "وَالْمَشَقَّةَ"
+}
+]
+},
+{
+"sentence": "وَمِنَ النَّافِعِ أَيْضًا أَنَّ الْقَارِئَ يَسْتَطِيعُ أَنْ يَبْحَثَ عَنِ الْكَلِمَاتِ وَأَنْ يَحْفَظَ الْمَعْلُومَاتِ وَأَنْ يَقْرَأَ فِي أَيِّ مَكَانٍ وَفِي أَيِّ وَقْتٍ.",
+"translation": "Yana bir foydali tomoni shuki, o‘quvchi so‘zlarni qidira oladi, ma’lumotlarni saqlay oladi va istalgan joyda hamda istalgan vaqtda o‘qiy oladi.",
+"translationAr": "وَمِنْ فَوَائِدِهِ أَيْضًا أَنَّ الْقَارِئَ يَقْدِرُ عَلَى الْبَحْثِ عَنِ الْكَلِمَاتِ وَحِفْظِ الْمَعْلُومَاتِ وَالْقِرَاءَةِ فِي كُلِّ مَكَانٍ وَكُلِّ وَقْتٍ.",
+"wordMap": [
+{
+"word": "وَمِنَ",
+"normalized": "ومن",
+"translationUz": "va ...dan",
+"translationAr": "وَمِنْ"
+},
+{
+"word": "النَّافِعِ",
+"normalized": "النافع",
+"translationUz": "foydali narsadan",
+"translationAr": "الْمُفِيدِ"
+},
+{
+"word": "أَيْضًا",
+"normalized": "ايضا",
+"translationUz": "ham",
+"translationAr": "كَذٰلِكَ"
+},
+{
+"word": "أَنَّ",
+"normalized": "ان",
+"translationUz": "albatta",
+"translationAr": "أَنَّ"
+},
+{
+"word": "الْقَارِئَ",
+"normalized": "القارئ",
+"translationUz": "o‘quvchi",
+"translationAr": "الْمُطَالِعَ"
+},
+{
+"word": "يَسْتَطِيعُ",
+"normalized": "يستطيع",
+"translationUz": "qodir bo‘ladi",
+"translationAr": "يَقْدِرُ"
+},
+{
+"word": "أَنْ",
+"normalized": "ان",
+"translationUz": "...ishni",
+"translationAr": "حَرْفُ مَصْدَرٍ"
+},
+{
+"word": "يَبْحَثَ",
+"normalized": "يبحث",
+"translationUz": "qidiradi",
+"translationAr": "يُفَتِّشَ"
+},
+{
+"word": "عَنِ",
+"normalized": "عن",
+"translationUz": "haqida, ...ni",
+"translationAr": "بِشَأْنِ"
+},
+{
+"word": "الْكَلِمَاتِ",
+"normalized": "الكلمات",
+"translationUz": "so‘zlarni",
+"translationAr": "الْأَلْفَاظِ"
+},
+{
+"word": "وَأَنْ",
+"normalized": "وان",
+"translationUz": "va ...ishni",
+"translationAr": "وَأَنْ"
+},
+{
+"word": "يَحْفَظَ",
+"normalized": "يحفظ",
+"translationUz": "saqlaydi, yodlaydi",
+"translationAr": "يَصُونَ"
+},
+{
+"word": "الْمَعْلُومَاتِ",
+"normalized": "المعلومات",
+"translationUz": "ma’lumotlarni",
+"translationAr": "الْبَيَانَاتِ"
+},
+{
+"word": "وَأَنْ",
+"normalized": "وان",
+"translationUz": "va ...ishni",
+"translationAr": "وَأَنْ"
+},
+{
+"word": "يَقْرَأَ",
+"normalized": "يقرا",
+"translationUz": "o‘qiydi",
+"translationAr": "يُطَالِعَ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "أَيِّ",
+"normalized": "اي",
+"translationUz": "har qanday",
+"translationAr": "كُلِّ"
+},
+{
+"word": "مَكَانٍ",
+"normalized": "مكان",
+"translationUz": "joy",
+"translationAr": "مَوْضِعٍ"
+},
+{
+"word": "وَفِي",
+"normalized": "وفي",
+"translationUz": "va ...da",
+"translationAr": "وَفِي"
+},
+{
+"word": "أَيِّ",
+"normalized": "اي",
+"translationUz": "har qanday",
+"translationAr": "كُلِّ"
+},
+{
+"word": "وَقْتٍ",
+"normalized": "وقت",
+"translationUz": "vaqt",
+"translationAr": "زَمَنٍ"
+}
+]
+},
+{
+"sentence": "وَلِهٰذَا السَّبَبِ يُفَضِّلُهُ كَثِيرٌ مِنَ الطُّلَّابِ وَالْمُتَعَلِّمِينَ وَالْمُعَلِّمِينَ.",
+"translation": "Shu sababli uni ko‘plab talabalar, o‘rganuvchilar va o‘qituvchilar afzal ko‘radilar.",
+"translationAr": "وَلِهٰذَا السَّبَبِ يَخْتَارُهُ كَثِيرٌ مِنَ الطُّلَّابِ وَالدَّارِسِينَ وَالْمُعَلِّمِينَ.",
+"wordMap": [
+{
+"word": "وَلِهٰذَا",
+"normalized": "ولهذا",
+"translationUz": "shu sababli",
+"translationAr": "وَلِهٰذَا"
+},
+{
+"word": "السَّبَبِ",
+"normalized": "السبب",
+"translationUz": "sabab",
+"translationAr": "الْعِلَّةِ"
+},
+{
+"word": "يُفَضِّلُهُ",
+"normalized": "يفضله",
+"translationUz": "uni afzal ko‘radi",
+"translationAr": "يَخْتَارُهُ"
+},
+{
+"word": "كَثِيرٌ",
+"normalized": "كثير",
+"translationUz": "ko‘pchilik",
+"translationAr": "عَدَدٌ كَبِيرٌ"
+},
+{
+"word": "مِنَ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "مِنْ"
+},
+{
+"word": "الطُّلَّابِ",
+"normalized": "الطلاب",
+"translationUz": "talabalar",
+"translationAr": "الدَّارِسِينَ"
+},
+{
+"word": "وَالْمُتَعَلِّمِينَ",
+"normalized": "والمتعلمين",
+"translationUz": "va o‘rganuvchilar",
+"translationAr": "وَالطَّالِبِينَ لِلْعِلْمِ"
+},
+{
+"word": "وَالْمُعَلِّمِينَ",
+"normalized": "والمعلمين",
+"translationUz": "va o‘qituvchilar",
+"translationAr": "وَالْمُدَرِّسِينَ"
+}
+]
+},
+{
+"sentence": "وَلٰكِنْ مِنْ جِهَةٍ أُخْرَى يَبْقَى لِلْكِتَابِ الْوَرَقِيِّ سِحْرُهُ الْخَاصُّ.",
+"translation": "Lekin boshqa tomondan, qog‘oz kitobning o‘ziga xos sehri saqlanib qoladi.",
+"translationAr": "وَلٰكِنْ مِنْ نَاحِيَةٍ أُخْرَى يَظَلُّ لِلْكِتَابِ الْوَرَقِيِّ جَمَالُهُ الْمُمَيَّزُ.",
+"wordMap": [
+{
+"word": "وَلٰكِنْ",
+"normalized": "ولكن",
+"translationUz": "lekin",
+"translationAr": "غَيْرَ أَنَّ"
+},
+{
+"word": "مِنْ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "مِنْ"
+},
+{
+"word": "جِهَةٍ",
+"normalized": "جهة",
+"translationUz": "tomon",
+"translationAr": "نَاحِيَةٍ"
+},
+{
+"word": "أُخْرَى",
+"normalized": "اخرى",
+"translationUz": "boshqa",
+"translationAr": "ثَانِيَةٍ"
+},
+{
+"word": "يَبْقَى",
+"normalized": "يبقى",
+"translationUz": "saqlanib qoladi",
+"translationAr": "يَظَلُّ"
+},
+{
+"word": "لِلْكِتَابِ",
+"normalized": "للكتاب",
+"translationUz": "kitob uchun, kitobda",
+"translationAr": "لِلْمُؤَلَّفِ"
+},
+{
+"word": "الْوَرَقِيِّ",
+"normalized": "الورقي",
+"translationUz": "qog‘ozli",
+"translationAr": "الْمَطْبُوعِ"
+},
+{
+"word": "سِحْرُهُ",
+"normalized": "سحره",
+"translationUz": "uning sehri",
+"translationAr": "جَمَالُهُ"
+},
+{
+"word": "الْخَاصُّ",
+"normalized": "الخاص",
+"translationUz": "o‘ziga xos",
+"translationAr": "الْمُمَيَّزُ"
+}
+]
+},
+{
+"sentence": "عِنْدَمَا نُمْسِكُ الْكِتَابَ بِأَيْدِينَا وَنُقَلِّبُ صَفَحَاتِهِ نَشْعُرُ أَنَّنَا نَعِيشُ مَعَ الْكَلِمَاتِ لَا أَنَّنَا نَمُرُّ عَلَيْهَا فَقَطْ.",
+"translation": "Biz kitobni qo‘limiz bilan ushlab, sahifalarini varaqlaganimizda, so‘zlar bilan yashayotgandek his qilamiz, shunchaki ulardan o‘tib ketayotgandek emas.",
+"translationAr": "حِينَ نُمْسِكُ الْكِتَابَ وَنُقَلِّبُ صَفَحَاتِهِ نُحِسُّ أَنَّنَا نَتَعَايَشُ مَعَ الْكَلِمَاتِ وَلَا نَمُرُّ بِهَا مُرُورًا سَرِيعًا.",
+"wordMap": [
+{
+"word": "عِنْدَمَا",
+"normalized": "عندما",
+"translationUz": "qachonki",
+"translationAr": "حِينَ"
+},
+{
+"word": "نُمْسِكُ",
+"normalized": "نمسك",
+"translationUz": "ushlaymiz",
+"translationAr": "نَأْخُذُ"
+},
+{
+"word": "الْكِتَابَ",
+"normalized": "الكتاب",
+"translationUz": "kitobni",
+"translationAr": "الْمُؤَلَّفَ"
+},
+{
+"word": "بِأَيْدِينَا",
+"normalized": "بايدينا",
+"translationUz": "qo‘llarimiz bilan",
+"translationAr": "بِكَفَّيْنَا"
+},
+{
+"word": "وَنُقَلِّبُ",
+"normalized": "ونقلب",
+"translationUz": "varaqlaymiz",
+"translationAr": "وَنُدِيرُ"
+},
+{
+"word": "صَفَحَاتِهِ",
+"normalized": "صفحاته",
+"translationUz": "uning sahifalarini",
+"translationAr": "أَوْرَاقَهُ"
+},
+{
+"word": "نَشْعُرُ",
+"normalized": "نشعر",
+"translationUz": "his qilamiz",
+"translationAr": "نُحِسُّ"
+},
+{
+"word": "أَنَّنَا",
+"normalized": "اننا",
+"translationUz": "biz albatta",
+"translationAr": "أَنَّنَا"
+},
+{
+"word": "نَعِيشُ",
+"normalized": "نعيش",
+"translationUz": "yashaymiz",
+"translationAr": "نَتَعَايَشُ"
+},
+{
+"word": "مَعَ",
+"normalized": "مع",
+"translationUz": "bilan",
+"translationAr": "مَعَ"
+},
+{
+"word": "الْكَلِمَاتِ",
+"normalized": "الكلمات",
+"translationUz": "so‘zlar",
+"translationAr": "الْأَلْفَاظِ"
+},
+{
+"word": "لَا",
+"normalized": "لا",
+"translationUz": "emas",
+"translationAr": "لَا"
+},
+{
+"word": "أَنَّنَا",
+"normalized": "اننا",
+"translationUz": "biz albatta",
+"translationAr": "أَنَّنَا"
+},
+{
+"word": "نَمُرُّ",
+"normalized": "نمر",
+"translationUz": "o‘tib ketamiz",
+"translationAr": "نَعْبُرُ"
+},
+{
+"word": "عَلَيْهَا",
+"normalized": "عليها",
+"translationUz": "ular ustidan",
+"translationAr": "فَوْقَهَا"
+},
+{
+"word": "فَقَطْ",
+"normalized": "فقط",
+"translationUz": "faqat",
+"translationAr": "وَحْدَهُ"
+}
+]
+},
+{
+"sentence": "وَبِصَرَاحَةٍ كَثِيرٌ مِنَ النَّاسِ يَجِدُونَ فِي الْقِرَاءَةِ الْوَرَقِيَّةِ هُدُوءًا أَكْبَرَ وَتَرْكِيزًا أَعْمَقَ.",
+"translation": "Ochig‘ini aytganda, ko‘p odamlar qog‘ozdagi o‘qishda kattaroq sokinlik va chuqurroq diqqat topadilar.",
+"translationAr": "وَفِعْلًا يَجِدُ كَثِيرٌ مِنَ النَّاسِ فِي الْقِرَاءَةِ الْوَرَقِيَّةِ سُكُونًا أَقْوَى وَتَرْكِيزًا أَشَدَّ.",
+"wordMap": [
+{
+"word": "وَبِصَرَاحَةٍ",
+"normalized": "وبصراحة",
+"translationUz": "ochig‘ini aytganda",
+"translationAr": "وَفِعْلًا"
+},
+{
+"word": "كَثِيرٌ",
+"normalized": "كثير",
+"translationUz": "ko‘p",
+"translationAr": "عَدَدٌ كَبِيرٌ"
+},
+{
+"word": "مِنَ",
+"normalized": "من",
+"translationUz": "dan",
+"translationAr": "مِنْ"
+},
+{
+"word": "النَّاسِ",
+"normalized": "الناس",
+"translationUz": "odamlar",
+"translationAr": "الْبَشَرِ"
+},
+{
+"word": "يَجِدُونَ",
+"normalized": "يجدون",
+"translationUz": "topadilar",
+"translationAr": "يَلْقَوْنَ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "الْقِرَاءَةِ",
+"normalized": "القراءة",
+"translationUz": "o‘qishda",
+"translationAr": "الْمُطَالَعَةِ"
+},
+{
+"word": "الْوَرَقِيَّةِ",
+"normalized": "الورقية",
+"translationUz": "qog‘ozli",
+"translationAr": "الْمَطْبُوعَةِ"
+},
+{
+"word": "هُدُوءًا",
+"normalized": "هدوءا",
+"translationUz": "sokinlik",
+"translationAr": "سُكُونًا"
+},
+{
+"word": "أَكْبَرَ",
+"normalized": "اكبر",
+"translationUz": "kattaroq",
+"translationAr": "أَعْظَمَ"
+},
+{
+"word": "وَتَرْكِيزًا",
+"normalized": "وتركيزا",
+"translationUz": "va diqqatni",
+"translationAr": "وَاِنْتِبَاهًا"
+},
+{
+"word": "أَعْمَقَ",
+"normalized": "اعمق",
+"translationUz": "chuqurroq",
+"translationAr": "أَشَدَّ عُمْقًا"
+}
+]
+},
+{
+"sentence": "فِي رَأْيِي لَيْسَتِ الْمُشْكِلَةُ فِي نَوْعِ الْكِتَابِ بَلْ فِي عَلَاقَتِنَا نَحْنُ مَعَ الْكَلِمَاتِ وَمَعَ الْقِرَاءَةِ مَثَلًا.",
+"translation": "Mening fikrimcha, muammo kitob turida emas, balki bizning so‘zlar va o‘qish bilan bo‘lgan munosabatimizdadir.",
+"translationAr": "فِي نَظَرِي لَيْسَتِ الْمُشْكِلَةُ فِي شَكْلِ الْكِتَابِ، بَلْ فِي صِلَتِنَا نَحْنُ بِالْكَلِمَاتِ وَالْقِرَاءَةِ.",
+"wordMap": [
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "رَأْيِي",
+"normalized": "رايي",
+"translationUz": "mening fikrimcha",
+"translationAr": "فِي نَظَرِي"
+},
+{
+"word": "لَيْسَتِ",
+"normalized": "ليست",
+"translationUz": "emas",
+"translationAr": "لَيْسَتْ"
+},
+{
+"word": "الْمُشْكِلَةُ",
+"normalized": "المشكلة",
+"translationUz": "muammo",
+"translationAr": "الْمُعْضِلَةُ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "نَوْعِ",
+"normalized": "نوع",
+"translationUz": "turida",
+"translationAr": "صِنْفِ"
+},
+{
+"word": "الْكِتَابِ",
+"normalized": "الكتاب",
+"translationUz": "kitobning",
+"translationAr": "الْمُؤَلَّفِ"
+},
+{
+"word": "بَلْ",
+"normalized": "بل",
+"translationUz": "balki",
+"translationAr": "بَلْ"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "عَلَاقَتِنَا",
+"normalized": "علاقتنا",
+"translationUz": "munosabatimizda",
+"translationAr": "صِلَتِنَا"
+},
+{
+"word": "نَحْنُ",
+"normalized": "نحن",
+"translationUz": "biz",
+"translationAr": "ضَمِيرُ الْجَمْعِ"
+},
+{
+"word": "مَعَ",
+"normalized": "مع",
+"translationUz": "bilan",
+"translationAr": "مَعَ"
+},
+{
+"word": "الْكَلِمَاتِ",
+"normalized": "الكلمات",
+"translationUz": "so‘zlar",
+"translationAr": "الْأَلْفَاظِ"
+},
+{
+"word": "وَمَعَ",
+"normalized": "ومع",
+"translationUz": "va bilan",
+"translationAr": "وَمَعَ"
+},
+{
+"word": "الْقِرَاءَةِ",
+"normalized": "القراءة",
+"translationUz": "o‘qish",
+"translationAr": "الْمُطَالَعَةِ"
+},
+{
+"word": "مَثَلًا",
+"normalized": "مثلا",
+"translationUz": "masalan",
+"translationAr": "عَلَى سَبِيلِ الْمِثَالِ"
+}
+]
+},
+{
+"sentence": "فَإِنْ كَانَ الْكِتَابُ الْإِلِكْتُرُونِيُّ يُقَرِّبُنَا مِنَ الْعِلْمِ فَهُوَ خَيْرٌ.",
+"translation": "Agar elektron kitob bizni ilmga yaqinlashtirsa, demak u yaxshidir.",
+"translationAr": "فَإِذَا كَانَ الْكِتَابُ الرَّقْمِيُّ يُدْنِينَا مِنَ الْعِلْمِ فَهُوَ نَافِعٌ.",
+"wordMap": [
+{
+"word": "فَإِنْ",
+"normalized": "فان",
+"translationUz": "agar",
+"translationAr": "فَإِذَا"
+},
+{
+"word": "كَانَ",
+"normalized": "كان",
+"translationUz": "bo‘lsa",
+"translationAr": "وُجِدَ"
+},
+{
+"word": "الْكِتَابُ",
+"normalized": "الكتاب",
+"translationUz": "kitob",
+"translationAr": "الْمُؤَلَّفُ"
+},
+{
+"word": "الْإِلِكْتُرُونِيُّ",
+"normalized": "الالكتروني",
+"translationUz": "elektron",
+"translationAr": "الرَّقْمِيُّ"
+},
+{
+"word": "يُقَرِّبُنَا",
+"normalized": "يقربنا",
+"translationUz": "bizni yaqinlashtiradi",
+"translationAr": "يُدْنِينَا"
+},
+{
+"word": "مِنَ",
+"normalized": "من",
+"translationUz": "ga, ...dan",
+"translationAr": "مِنْ"
+},
+{
+"word": "الْعِلْمِ",
+"normalized": "العلم",
+"translationUz": "ilmga",
+"translationAr": "الْمَعْرِفَةِ"
+},
+{
+"word": "فَهُوَ",
+"normalized": "فهو",
+"translationUz": "unda u",
+"translationAr": "فَهُوَ"
+},
+{
+"word": "خَيْرٌ",
+"normalized": "خير",
+"translationUz": "yaxshi",
+"translationAr": "نَافِعٌ"
+}
+]
+},
+{
+"sentence": "وَإِنْ كَانَ الْكِتَابُ الْوَرَقِيُّ يَجْعَلُنَا أَكْثَرَ تَأَمُّلًا وَارْتِبَاطًا فَهُوَ خَيْرٌ أَيْضًا.",
+"translation": "Agar qog‘oz kitob bizni yanada tafakkurli va bog‘langan qilsa, u ham yaxshidir.",
+"translationAr": "وَإِذَا كَانَ الْكِتَابُ الْوَرَقِيُّ يَزِيدُنَا تَفَكُّرًا وَتَعَلُّقًا فَهُوَ نَافِعٌ أَيْضًا.",
+"wordMap": [
+{
+"word": "وَإِنْ",
+"normalized": "وان",
+"translationUz": "agar",
+"translationAr": "وَإِذَا"
+},
+{
+"word": "كَانَ",
+"normalized": "كان",
+"translationUz": "bo‘lsa",
+"translationAr": "وُجِدَ"
+},
+{
+"word": "الْكِتَابُ",
+"normalized": "الكتاب",
+"translationUz": "kitob",
+"translationAr": "الْمُؤَلَّفُ"
+},
+{
+"word": "الْوَرَقِيُّ",
+"normalized": "الورقي",
+"translationUz": "qog‘ozli",
+"translationAr": "الْمَطْبُوعُ"
+},
+{
+"word": "يَجْعَلُنَا",
+"normalized": "يجعلنا",
+"translationUz": "bizni qiladi",
+"translationAr": "يُصَيِّرُنَا"
+},
+{
+"word": "أَكْثَرَ",
+"normalized": "اكثر",
+"translationUz": "yanada ko‘proq",
+"translationAr": "أَشَدَّ"
+},
+{
+"word": "تَأَمُّلًا",
+"normalized": "تأملا",
+"translationUz": "tafakkurli",
+"translationAr": "تَفَكُّرًا"
+},
+{
+"word": "وَارْتِبَاطًا",
+"normalized": "وارتباطا",
+"translationUz": "va bog‘liqlik bilan",
+"translationAr": "وَتَعَلُّقًا"
+},
+{
+"word": "فَهُوَ",
+"normalized": "فهو",
+"translationUz": "unda u",
+"translationAr": "فَهُوَ"
+},
+{
+"word": "خَيْرٌ",
+"normalized": "خير",
+"translationUz": "yaxshi",
+"translationAr": "نَافِعٌ"
+},
+{
+"word": "أَيْضًا",
+"normalized": "ايضا",
+"translationUz": "ham",
+"translationAr": "كَذٰلِكَ"
+}
+]
+},
+{
+"sentence": "اَلْخُلَاصَةُ أَنَّ الْأَهَمَّ لَيْسَ كَيْفَ نَقْرَأُ فَقَطْ بَلْ أَنْ نَقْرَأَ أَصْلًا.",
+"translation": "Xulosa shuki, eng muhimi faqat qanday o‘qish emas, balki umuman o‘qishdir.",
+"translationAr": "النَّتِيجَةُ أَنَّ الْأَهَمَّ لَيْسَ طَرِيقَةَ الْقِرَاءَةِ فَقَطْ، بَلْ وُجُودَ الْقِرَاءَةِ أَصْلًا.",
+"wordMap": [
+{
+"word": "اَلْخُلَاصَةُ",
+"normalized": "الخلاصة",
+"translationUz": "xulosa",
+"translationAr": "النَّتِيجَةُ"
+},
+{
+"word": "أَنَّ",
+"normalized": "ان",
+"translationUz": "albatta",
+"translationAr": "أَنَّ"
+},
+{
+"word": "الْأَهَمَّ",
+"normalized": "الاهم",
+"translationUz": "eng muhimi",
+"translationAr": "الْأَفْضَلَ"
+},
+{
+"word": "لَيْسَ",
+"normalized": "ليس",
+"translationUz": "emas",
+"translationAr": "لَيْسَ"
+},
+{
+"word": "كَيْفَ",
+"normalized": "كيف",
+"translationUz": "qanday",
+"translationAr": "بِأَيِّ طَرِيقَةٍ"
+},
+{
+"word": "نَقْرَأُ",
+"normalized": "نقرا",
+"translationUz": "o‘qiymiz",
+"translationAr": "نُطَالِعُ"
+},
+{
+"word": "فَقَطْ",
+"normalized": "فقط",
+"translationUz": "faqat",
+"translationAr": "وَحْدَهُ"
+},
+{
+"word": "بَلْ",
+"normalized": "بل",
+"translationUz": "balki",
+"translationAr": "بَلْ"
+},
+{
+"word": "أَنْ",
+"normalized": "ان",
+"translationUz": "...ishni",
+"translationAr": "حَرْفُ مَصْدَرٍ"
+},
+{
+"word": "نَقْرَأَ",
+"normalized": "نقرا",
+"translationUz": "o‘qishimiz",
+"translationAr": "نُطَالِعَ"
+},
+{
+"word": "أَصْلًا",
+"normalized": "اصلا",
+"translationUz": "umuman, aslida",
+"translationAr": "فِي الْأَصْلِ"
+}
+]
+},
+{
+"sentence": "لِأَنَّ الْقِرَاءَةَ لَا تُعْطِينَا مَعْلُومَاتٍ فَقَطْ، بَلْ تَفْتَحُ لَنَا طُرُقًا جَدِيدَةً فِي التَّفْكِيرِ وَفِي فَهْمِ الْحَيَاةِ.",
+"translation": "Chunki o‘qish bizga faqat ma’lumot bermaydi, balki tafakkurda va hayotni tushunishda yangi yo‘llarni ochadi.",
+"translationAr": "لِأَنَّ الْقِرَاءَةَ لَا تَمْنَحُنَا الْمَعْلُومَاتِ فَقَطْ، بَلْ تَفْتَحُ أَمَامَنَا سُبُلًا جَدِيدَةً فِي التَّفْكِيرِ وَفَهْمِ الْحَيَاةِ.",
+"wordMap": [
+{
+"word": "لِأَنَّ",
+"normalized": "لان",
+"translationUz": "chunki",
+"translationAr": "لِأَنَّ"
+},
+{
+"word": "الْقِرَاءَةَ",
+"normalized": "القراءة",
+"translationUz": "o‘qish",
+"translationAr": "الْمُطَالَعَةَ"
+},
+{
+"word": "لَا",
+"normalized": "لا",
+"translationUz": "emas",
+"translationAr": "حَرْفُ نَفْيٍ"
+},
+{
+"word": "تُعْطِينَا",
+"normalized": "تعطينا",
+"translationUz": "bizga beradi",
+"translationAr": "تَمْنَحُنَا"
+},
+{
+"word": "مَعْلُومَاتٍ",
+"normalized": "معلومات",
+"translationUz": "ma’lumotlar",
+"translationAr": "بَيَانَاتٍ"
+},
+{
+"word": "فَقَطْ",
+"normalized": "فقط",
+"translationUz": "faqat",
+"translationAr": "وَحْدَهَا"
+},
+{
+"word": "بَلْ",
+"normalized": "بل",
+"translationUz": "balki",
+"translationAr": "بَلْ"
+},
+{
+"word": "تَفْتَحُ",
+"normalized": "تفتح",
+"translationUz": "ochadi",
+"translationAr": "تَكْشِفُ"
+},
+{
+"word": "لَنَا",
+"normalized": "لنا",
+"translationUz": "bizga",
+"translationAr": "لَنَا"
+},
+{
+"word": "طُرُقًا",
+"normalized": "طرقا",
+"translationUz": "yo‘llar",
+"translationAr": "سُبُلًا"
+},
+{
+"word": "جَدِيدَةً",
+"normalized": "جديدة",
+"translationUz": "yangi",
+"translationAr": "حَدِيثَةً"
+},
+{
+"word": "فِي",
+"normalized": "في",
+"translationUz": "ichida",
+"translationAr": "فِي"
+},
+{
+"word": "التَّفْكِيرِ",
+"normalized": "التفكير",
+"translationUz": "tafakkur",
+"translationAr": "التَّأَمُّلِ"
+},
+{
+"word": "وَفِي",
+"normalized": "وفي",
+"translationUz": "va ...da",
+"translationAr": "وَفِي"
+},
+{
+"word": "فَهْمِ",
+"normalized": "فهم",
+"translationUz": "tushunish",
+"translationAr": "إِدْرَاكِ"
+},
+{
+"word": "الْحَيَاةِ",
+"normalized": "الحياة",
+"translationUz": "hayot",
+"translationAr": "الْمَعِيشَةِ"
+}
+]
+},
+{
+"sentence": "شُكْرًا.",
+"translation": "Rahmat.",
+"translationAr": "أَشْكُرُكُمْ.",
+"wordMap": [
+{
+"word": "شُكْرًا",
+"normalized": "شكرا",
+"translationUz": "rahmat",
+"translationAr": "اِمْتِنَانًا"
+}
+]
+}
+]
+}

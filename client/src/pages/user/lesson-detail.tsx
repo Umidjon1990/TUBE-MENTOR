@@ -25,7 +25,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones, Search, Pencil
+  Download, Headphones, Search, Pencil, RefreshCw
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -751,13 +751,40 @@ function TranscriptTab({
 
   const savedFronts = useMemo(() => new Set(flashcards.map(f => f.frontText)), [flashcards]);
 
+  const resyncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/user/lessons/${lessonId}/resync-timing`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", String(lessonId)] });
+      toast({ title: "Vaqt sinxronlandi", description: "Gaplar subtitle vaqtlariga qayta bog'landi" });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", description: "Sinxronizatsiya amalga oshmadi", variant: "destructive" });
+    },
+  });
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold text-lg flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-primary" /> Matn tahlili
         </h3>
-        <Badge variant="secondary">{sentences.length} gap</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{sentences.length} gap</Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs px-2 gap-1"
+            data-testid="button-resync-timing"
+            onClick={() => resyncMutation.mutate()}
+            disabled={resyncMutation.isPending}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${resyncMutation.isPending ? "animate-spin" : ""}`} />
+            Vaqtni sinxronlash
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1 md:gap-1.5">

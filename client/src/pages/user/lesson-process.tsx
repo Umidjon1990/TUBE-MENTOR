@@ -307,6 +307,7 @@ export default function LessonProcessPage() {
             onSubmit={() => importMutation.mutate()}
             onBack={() => setStep("no-transcript")}
             isPending={importMutation.isPending}
+            lessonId={lessonId!}
           />
         )}
         {step === "manual-input" && (
@@ -1149,6 +1150,113 @@ ${arabTimedSection}
 ${transcript}`;
 }
 
+function buildWhisperAnalysisPrompt(targetLanguage: string, subs: { startTime: number; endTime: number; text: string }[]): string {
+  const subsText = subs.map((s, i) => `[${i}] (${s.startTime.toFixed(1)}s - ${s.endTime.toFixed(1)}s): ${s.text}`).join("\n");
+
+  if (targetLanguage === "en") {
+    return `Sen ingliz tili professorisin. Quyida Whisper orqali transkripsiya qilingan matn berilgan.
+Sening vazifang: FAQAT TAHLIL qilish — tarjima, vocabulary, quizzes, sentenceAnalysis.
+Transkripsiyani O'ZGARTIRMA — AYNAN berilganidek ishlat!
+
+KERAK EMAS (YOZMA!):
+- subtitles — KERAK EMAS (Whisper allaqachon saqlagan)
+- flashcards — KERAK EMAS
+- grammarNotes, keyWords, contextualMeaning — KERAK EMAS
+
+Barcha tarjimalar O'ZBEK tilida bo'lsin.
+
+FAQAT JSON formatda javob ber — hech qanday boshqa matn YOZMA. { dan boshlab } gacha.
+
+{
+  "summaryShort": "2-3 gap, O'ZBEKCHA qisqa xulosa",
+  "summaryDetailed": "5-8 gap, O'ZBEKCHA batafsil xulosa",
+  "vocabulary": [
+    {"word": "inglizcha so'z", "translation": "O'ZBEKCHA tarjima", "partOfSpeech": "noun/verb/adj/adv", "example": "transkriptdan misol gap", "difficulty": "easy/medium/hard"}
+  ],
+  "quizzes": [
+    {"question": "O'ZBEKCHA savol", "options": ["A","B","C","D"], "correctIndex": 0, "explanation": "O'ZBEKCHA tushuntirish", "type": "multiple_choice"},
+    {"question": "I _____ to school", "options": ["go","went","gone","going"], "correctIndex": 1, "explanation": "went — Past Simple", "type": "sentence_completion"},
+    {"question": "accomplish", "options": ["bajarmoq","o'qimoq","yozmoq","bormoq"], "correctIndex": 0, "explanation": "accomplish — bajarmoq", "type": "word_translation"}
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "AYNAN transkripsiyadan [idx] gap matni — O'ZGARTIRMA!",
+      "translation": "O'ZBEKCHA tarjima",
+      "lineIndices": [0],
+      "wordMap": [
+        {"word": "so'z", "normalized": "asosiy shakl", "translationUz": "O'ZBEKCHA tarjima"}
+      ]
+    }
+  ]
+}
+
+QOIDALAR:
+1. VOCABULARY: 8-15 ta. "translation" O'ZBEK tilida.
+2. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4), word_translation (3-4).
+3. SENTENCEANALYSIS: HAR BIR transkripsiya gapi uchun BITTA element. "sentence" = AYNAN transkripsiyadan O'SHA MATN. lineIndices = [idx] — faqat O'Z RAQAMI. wordMap: HAR BIR so'z — "word", "normalized", "translationUz".
+4. lineIndices: sentenceAnalysis[0].lineIndices=[0], [1].lineIndices=[1]... OVERLAP TA'QIQLANGAN!
+5. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+6. subtitles, flashcards YOZMA!
+
+TRANSKRIPSIYA (${subs.length} ta gap):
+${subsText}`;
+  }
+
+  return `Sen arab tili professorisin. Quyida Whisper orqali transkripsiya qilingan ARABCHA matn berilgan.
+Sening vazifang: FAQAT TAHLIL qilish — tarjima, harakat qo'yish, vocabulary, quizzes, sentenceAnalysis.
+Transkripsiya matnini O'ZGARTIRMA — faqat HARAKAT qo'sh!
+
+HARAKAT QOIDASI — QAT'IY: Transkripsiyadan olingan arabcha so'zlarga TO'LIQ HARAKAT qo'shilishi SHART.
+TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
+NOTO'G'RI: ذهب الولد الى المدرسة
+
+KERAK EMAS (YOZMA!):
+- subtitles — KERAK EMAS (Whisper allaqachon saqlagan)
+- flashcards — KERAK EMAS
+- translationAr — KERAK EMAS
+- summaryShortAr, summaryDetailedAr — KERAK EMAS
+- grammarNotes, keyWords, contextualMeaning — KERAK EMAS
+
+Barcha tarjimalar (translation, translationUz) O'ZBEK tilida bo'lsin.
+
+FAQAT JSON formatda javob ber — hech qanday boshqa matn YOZMA. { dan boshlab } gacha.
+
+{
+  "summaryShort": "2-3 gap, O'ZBEKCHA qisqa xulosa",
+  "summaryDetailed": "5-8 gap, O'ZBEKCHA batafsil xulosa",
+  "vocabulary": [
+    {"word": "مُعَلِّمٌ", "translation": "o'qituvchi", "partOfSpeech": "اِسْمٌ", "example": "transkriptdan misol gap HARAKAT bilan", "difficulty": "easy/medium/hard"}
+  ],
+  "quizzes": [
+    {"question": "O'ZBEKCHA savol", "options": ["A","B","C","D"], "correctIndex": 0, "explanation": "O'ZBEKCHA tushuntirish", "type": "multiple_choice"},
+    {"question": "هَذَا _____ جَمِيلٌ", "options": ["بَيْتٌ","كِتَابٌ","وَلَدٌ","قَلَمٌ"], "correctIndex": 0, "explanation": "بَيْتٌ — uy", "type": "sentence_completion"},
+    {"question": "كَتَبَ", "options": ["o'qidi","yozdi","bordi","keldi"], "correctIndex": 1, "explanation": "كَتَبَ — yozmoq", "type": "word_translation"}
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "HARAKAT BILAN yozilgan gap matni — transkripsiyadan olingan",
+      "translation": "O'ZBEKCHA tarjima",
+      "lineIndices": [0],
+      "wordMap": [
+        {"word": "كَلِمَةٌ", "normalized": "كلمة", "translationUz": "so'z"}
+      ]
+    }
+  ]
+}
+
+QOIDALAR:
+1. SENTENCEANALYSIS: HAR BIR transkripsiya gapi uchun BITTA element. "sentence" = transkripsiyadan O'SHA MATN, lekin TO'LIQ HARAKAT bilan. lineIndices = [idx] — faqat O'Z RAQAMI. wordMap: HAR BIR so'z — "word" (HARAKAT bilan), "normalized" (harakatsiz), "translationUz" (O'ZBEKCHA).
+2. HARAKAT: sentenceAnalysis.sentence va wordMap.word da BARCHA arabcha so'zlarga TO'LIQ harakat qo'y!
+3. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
+4. QUIZZES: 10-12 ta. 3 tur: multiple_choice (4-5), sentence_completion (3-4), word_translation (3-4).
+5. lineIndices: [0].lineIndices=[0], [1].lineIndices=[1]... OVERLAP TA'QIQLANGAN!
+6. subtitles, flashcards, translationAr YOZMA!
+7. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+
+TRANSKRIPSIYA (${subs.length} ta gap):
+${subsText}`;
+}
+
 function buildFullAudioPrompt(targetLanguage: string = "ar"): string {
   if (targetLanguage === "en") {
     return `# MAJBURIY BUYRUQ — O'QIMASDAN O'TMA!
@@ -1478,6 +1586,7 @@ function ChatGptWorkflowState({
   onSubmit,
   onBack,
   isPending,
+  lessonId,
 }: {
   targetLanguage: string;
   jsonText: string;
@@ -1485,11 +1594,66 @@ function ChatGptWorkflowState({
   onSubmit: () => void;
   onBack: () => void;
   isPending: boolean;
+  lessonId: string;
 }) {
+  const { toast } = useToast();
+  const [wStep, setWStep] = useState<"upload" | "whisper-loading" | "prompt-ready" | "import">("upload");
+  const [whisperSubs, setWhisperSubs] = useState<{ startTime: number; endTime: number; text: string }[] | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const prompt = buildFullAudioPrompt(targetLanguage);
+  const whisperUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("audio", file);
+      const res = await fetch(`/api/user/lessons/${lessonId}/whisper-audio-upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ message: "Xatolik yuz berdi" }));
+        throw new Error(errData.message || `Server xatolik: ${res.status}`);
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.lesson?.subtitlesJson) {
+        const subs = data.lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[];
+        setWhisperSubs(subs);
+        queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+        toast({ title: "Whisper transkripsiya tayyor!", description: `${subs.length} ta gap aniqlandi` });
+        setWStep("prompt-ready");
+      } else {
+        toast({ title: "Xatolik", description: "Whisper natija bermadi", variant: "destructive" });
+        setWStep("upload");
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Whisper xatolik", description: error.message, variant: "destructive" });
+      setWStep("upload");
+    },
+  });
+
+  function handleUploadAudio() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*,.mp3,.wav,.ogg,.m4a,.mp4";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (file.size > 50 * 1024 * 1024) {
+          toast({ title: "Fayl juda katta", description: "Maksimal hajm 50MB", variant: "destructive" });
+          return;
+        }
+        setWStep("whisper-loading");
+        whisperUploadMutation.mutate(file);
+      }
+    };
+    input.click();
+  }
+
+  const prompt = whisperSubs ? buildWhisperAnalysisPrompt(targetLanguage, whisperSubs) : "";
 
   function copyPrompt() {
     navigator.clipboard.writeText(prompt).then(() => {
@@ -1515,7 +1679,6 @@ function ChatGptWorkflowState({
       const repaired = jsonrepair(step1);
       const parsed = JSON.parse(repaired);
       const missing: string[] = [];
-      if (!Array.isArray(parsed.subtitles) || parsed.subtitles.length === 0) missing.push("subtitles (bo'sh!)");
       if (!parsed.summaryShort) missing.push("summaryShort");
       if (!parsed.summaryDetailed) missing.push("summaryDetailed");
       if (!Array.isArray(parsed.vocabulary) || parsed.vocabulary.length === 0) missing.push("vocabulary (bo'sh!)");
@@ -1539,101 +1702,163 @@ function ChatGptWorkflowState({
             <MessageSquareText className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-base font-semibold">ChatGPT bilan dars yaratish</h3>
-            <p className="text-xs text-muted-foreground">Bepul — API xarajatisiz to'liq dars yarating</p>
+            <h3 className="text-base font-semibold">Whisper + ChatGPT bilan dars yaratish</h3>
+            <p className="text-xs text-muted-foreground">Whisper aniq transkripsiya + ChatGPT tahlil</p>
           </div>
         </div>
 
-        <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-4 space-y-3">
-          <p className="text-xs font-semibold text-emerald-400">Qadamlar:</p>
-          <ol className="text-xs text-muted-foreground space-y-2.5 list-none">
-            <li className="flex gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">1</span>
-              <span>YouTube videosidan <strong>audio</strong> yuklab oling (har qanday YouTube to MP3 sayt orqali, masalan: y2mate.com)</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">2</span>
-              <span>Quyidagi <strong>promptni nusxalang</strong> (pastdagi tugma)</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">3</span>
-              <span>
-                <a href="https://chat.openai.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">
-                  chat.openai.com
-                </a>
-                {" "}ga kiring, promptni joylashtiring va <strong>audio faylni biriktiring</strong>
-              </span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">4</span>
-              <span>ChatGPT javobidagi <strong>JSON</strong>ni to'liq nusxalang</span>
-            </li>
-            <li className="flex gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">5</span>
-              <span>Pastdagi maydonga <strong>joylashtiring</strong> va "Import" tugmasini bosing</span>
-            </li>
-          </ol>
+        <div className="flex items-center gap-2 mb-2">
+          {["upload", "whisper-loading", "prompt-ready", "import"].map((s, i) => {
+            const labels = ["Audio yuklash", "Whisper", "ChatGPT prompt", "Import"];
+            const isActive = wStep === s;
+            const isDone = ["upload", "whisper-loading", "prompt-ready", "import"].indexOf(wStep) > i;
+            return (
+              <div key={s} className="flex items-center gap-1.5">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isDone ? "bg-emerald-500 text-white" : isActive ? "bg-emerald-500/30 text-emerald-400 ring-1 ring-emerald-500" : "bg-muted/30 text-muted-foreground"}`}>
+                  {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
+                </div>
+                <span className={`text-[10px] ${isActive ? "text-emerald-400 font-medium" : "text-muted-foreground"}`}>{labels[i]}</span>
+                {i < 3 && <ChevronRight className="w-3 h-3 text-muted-foreground/50" />}
+              </div>
+            );
+          })}
+        </div>
 
-          <div className="mt-2 rounded-md bg-yellow-500/5 border border-yellow-500/20 px-3 py-2">
-            <p className="text-[10px] text-yellow-400/80">
-              <strong>Maslahat:</strong> Agar ChatGPT bo'sh javob bersa — <strong>yangi chat</strong> oching, <strong>GPT-4o</strong> modelini tanlang va qaytadan yuboring. Audio fayl 25MB dan kichik bo'lishi kerak. Prompt 100% aniq transkripsiya talab qiladi — ChatGPT eshitganini AYNAN yozishi kerak.
+        {wStep === "upload" && (
+          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              <strong>1-qadam:</strong> Audio faylni yuklang — Whisper uni aniq transkripsiya qiladi (har bir so'zning timing ini aniqlab beradi).
             </p>
+            <Button
+              className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700"
+              onClick={handleUploadAudio}
+              data-testid="button-upload-audio-whisper"
+            >
+              <Upload className="w-4 h-4" /> Audio fayl yuklash (MP3/WAV/M4A)
+            </Button>
           </div>
-        </div>
+        )}
 
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full gap-2 text-xs border-emerald-500/20 hover:border-emerald-500/40"
-            onClick={() => setShowPrompt(!showPrompt)}
-            data-testid="button-toggle-audio-prompt"
-          >
-            <FileText className="w-3.5 h-3.5" />
-            {showPrompt ? "Promptni yashirish" : "ChatGPT promptini ko'rish"}
-          </Button>
+        {wStep === "whisper-loading" && (
+          <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-6 text-center space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mx-auto" />
+            <p className="text-sm font-medium text-emerald-400">Whisper transkripsiya qilmoqda...</p>
+            <p className="text-xs text-muted-foreground">Audio tahlil qilinmoqda — har bir so'zning aniq vaqti aniqlanmoqda</p>
+          </div>
+        )}
 
-          {showPrompt && (
-            <div className="space-y-2">
-              <div className="rounded-lg bg-muted/30 border border-border/50 p-3 max-h-60 overflow-y-auto">
-                <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{prompt}</pre>
+        {wStep === "prompt-ready" && whisperSubs && (
+          <div className="space-y-3">
+            <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-medium text-emerald-400">Whisper transkripsiya tayyor — {whisperSubs.length} ta gap</span>
+              </div>
+              <div className="max-h-24 overflow-y-auto rounded bg-muted/20 p-2">
+                <p className="text-[10px] text-muted-foreground leading-relaxed" dir="auto">
+                  {whisperSubs.slice(0, 5).map(s => s.text).join(" ")}
+                  {whisperSubs.length > 5 && " ..."}
+                </p>
               </div>
             </div>
-          )}
 
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-            onClick={copyPrompt}
-            data-testid="button-copy-audio-prompt"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            {copied ? "Nusxalandi!" : "Promptni nusxalash"}
-          </Button>
-        </div>
+            <div className="rounded-lg bg-blue-500/5 border border-blue-500/20 p-4 space-y-3">
+              <p className="text-xs font-semibold text-blue-400">2-qadam: ChatGPT da tahlil qilish</p>
+              <ol className="text-xs text-muted-foreground space-y-2 list-none">
+                <li className="flex gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">1</span>
+                  <span>Quyidagi <strong>promptni nusxalang</strong></span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">2</span>
+                  <span>
+                    <a href="https://chat.openai.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline underline-offset-2 hover:text-blue-300">chat.openai.com</a>
+                    {" "}ga kiring va promptni joylashtiring (audio yuborish SHART EMAS!)
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">3</span>
+                  <span>ChatGPT javobidagi <strong>JSON</strong>ni nusxalang va pastga joylashtiring</span>
+                </li>
+              </ol>
+            </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">ChatGPT javobini bu yerga joylashtiring:</label>
-          <Textarea
-            placeholder='{"subtitles": [...], "summaryShort": "...", "vocabulary": [...], ...}'
-            value={jsonText}
-            onChange={(e) => onJsonChange(e.target.value)}
-            className="min-h-[160px] bg-muted/30 border-border/50 text-xs font-mono"
-            data-testid="textarea-chatgpt-json"
-          />
-        </div>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2 text-xs border-blue-500/20 hover:border-blue-500/40"
+                onClick={() => setShowPrompt(!showPrompt)}
+                data-testid="button-toggle-audio-prompt"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                {showPrompt ? "Promptni yashirish" : "ChatGPT promptini ko'rish"}
+              </Button>
 
-        {jsonText.trim() && (
-          <div className="flex items-center gap-2">
-            {jsonValid ? (
-              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
-                <CheckCircle2 className="w-3 h-3" /> JSON to'g'ri
-              </Badge>
-            ) : (
-              <Badge variant="destructive" className="text-[10px] gap-1">
-                <AlertTriangle className="w-3 h-3" /> {jsonError}
-              </Badge>
+              {showPrompt && (
+                <div className="rounded-lg bg-muted/30 border border-border/50 p-3 max-h-60 overflow-y-auto">
+                  <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{prompt}</pre>
+                </div>
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={copyPrompt}
+                data-testid="button-copy-audio-prompt"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copied ? "Nusxalandi!" : "Promptni nusxalash"}
+              </Button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => setWStep("import")}
+              data-testid="button-goto-import"
+            >
+              <ChevronRight className="w-3.5 h-3.5 mr-1" /> ChatGPT javobini import qilish
+            </Button>
+          </div>
+        )}
+
+        {wStep === "import" && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">ChatGPT javobini bu yerga joylashtiring:</label>
+              <Textarea
+                placeholder='{"summaryShort": "...", "vocabulary": [...], "sentenceAnalysis": [...], ...}'
+                value={jsonText}
+                onChange={(e) => onJsonChange(e.target.value)}
+                className="min-h-[160px] bg-muted/30 border-border/50 text-xs font-mono"
+                data-testid="textarea-chatgpt-json"
+              />
+            </div>
+
+            {jsonText.trim() && (
+              <div className="flex items-center gap-2">
+                {jsonValid ? (
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> JSON to'g'ri
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive" className="text-[10px] gap-1">
+                    <AlertTriangle className="w-3 h-3" /> {jsonError}
+                  </Badge>
+                )}
+              </div>
             )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => setWStep("prompt-ready")}
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Promptga qaytish
+            </Button>
           </div>
         )}
 
@@ -1641,18 +1866,20 @@ function ChatGptWorkflowState({
           <Button variant="outline" onClick={onBack} className="gap-1.5" data-testid="button-chatgpt-back">
             <ArrowLeft className="w-4 h-4" /> Orqaga
           </Button>
-          <Button
-            className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
-            disabled={!jsonValid || isPending}
-            onClick={onSubmit}
-            data-testid="button-chatgpt-import"
-          >
-            {isPending ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Yuklanmoqda...</>
-            ) : (
-              <><Upload className="w-4 h-4" /> Import qilish</>
-            )}
-          </Button>
+          {wStep === "import" && (
+            <Button
+              className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+              disabled={!jsonValid || isPending}
+              onClick={onSubmit}
+              data-testid="button-chatgpt-import"
+            >
+              {isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Yuklanmoqda...</>
+              ) : (
+                <><Upload className="w-4 h-4" /> Import qilish</>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

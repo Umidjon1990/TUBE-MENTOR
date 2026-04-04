@@ -198,6 +198,33 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const normalizeArabic = useCallback((t: string) =>
     stripArabicDiacritics(t).replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي"), [stripArabicDiacritics]);
 
+  const findWordTiming = useCallback((word: string, subtitleStartTime: number): { start: number; end: number } | null => {
+    if (!wordTimestamps.length) return null;
+    const cleanWord = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+    if (!cleanWord) return null;
+    const candidates = wordTimestamps.filter(wt => {
+      const wtClean = wt.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+      return wtClean === cleanWord || wtClean.includes(cleanWord) || cleanWord.includes(wtClean);
+    });
+    if (!candidates.length) return null;
+    let best = candidates[0];
+    let bestDist = Math.abs(best.start - subtitleStartTime);
+    for (let i = 1; i < candidates.length; i++) {
+      const dist = Math.abs(candidates[i].start - subtitleStartTime);
+      if (dist < bestDist) { best = candidates[i]; bestDist = dist; }
+    }
+    return { start: best.start, end: best.end };
+  }, [wordTimestamps]);
+
+  const playWordAudio = useCallback((word: string, subtitleStartTime: number) => {
+    if (!playerRef.current || !isReady) return;
+    const timing = findWordTiming(word, subtitleStartTime);
+    if (!timing) return;
+    wordPlaybackEndRef.current = timing.end + 0.3;
+    playerRef.current.seekTo(timing.start, true);
+    playerRef.current.playVideo();
+  }, [isReady, findWordTiming]);
+
   const handleWordClick = useCallback((word: string, subtitle: SubtitleItem, e: React.MouseEvent) => {
     e.stopPropagation();
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -293,7 +320,12 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
               playerRef.current?.playVideo();
             }
           },
-          onStateChange: (event: any) => setIsPlaying(event.data === window.YT.PlayerState.PLAYING),
+          onStateChange: (event: any) => {
+            setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
+            if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+              wordPlaybackEndRef.current = null;
+            }
+          },
         },
       });
     };
@@ -393,33 +425,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     const target = activeIndex < subtitles.length - 1 ? activeIndex + 1 : subtitles.length - 1;
     seekTo(subtitles[target].startTime);
   }, [activeIndex, subtitles, seekTo]);
-
-  const findWordTiming = useCallback((word: string, subtitleStartTime: number): { start: number; end: number } | null => {
-    if (!wordTimestamps.length) return null;
-    const cleanWord = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
-    if (!cleanWord) return null;
-    const candidates = wordTimestamps.filter(wt => {
-      const wtClean = wt.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
-      return wtClean === cleanWord || wtClean.includes(cleanWord) || cleanWord.includes(wtClean);
-    });
-    if (!candidates.length) return null;
-    let best = candidates[0];
-    let bestDist = Math.abs(best.start - subtitleStartTime);
-    for (let i = 1; i < candidates.length; i++) {
-      const dist = Math.abs(candidates[i].start - subtitleStartTime);
-      if (dist < bestDist) { best = candidates[i]; bestDist = dist; }
-    }
-    return { start: best.start, end: best.end };
-  }, [wordTimestamps]);
-
-  const playWordAudio = useCallback((word: string, subtitleStartTime: number) => {
-    if (!playerRef.current || !isReady) return;
-    const timing = findWordTiming(word, subtitleStartTime);
-    if (!timing) return;
-    wordPlaybackEndRef.current = timing.end + 0.3;
-    playerRef.current.seekTo(timing.start, true);
-    playerRef.current.playVideo();
-  }, [isReady, findWordTiming]);
 
   const replayCurrentSubtitle = useCallback(() => {
     if (activeIndex >= 0 && subtitles[activeIndex]) {

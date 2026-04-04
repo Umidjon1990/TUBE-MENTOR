@@ -137,6 +137,46 @@ export async function registerRoutes(
     res.json({ url: dataUrl });
   });
 
+  app.post("/api/upload/youtube-cookies", requireAuth, upload.single("cookies"), async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "Cookie fayl yuklanmadi" });
+    }
+    try {
+      const content = fs.readFileSync(req.file.path, "utf-8");
+      if (!content.includes("youtube.com") && !content.includes(".youtube.com")) {
+        try { fs.unlinkSync(req.file.path); } catch {}
+        return res.status(400).json({ message: "Bu YouTube cookie fayli emas. Netscape formatdagi cookies.txt faylini yuklang." });
+      }
+      const destPath = path.join(process.cwd(), "youtube_cookies.txt");
+      fs.copyFileSync(req.file.path, destPath);
+      try { fs.unlinkSync(req.file.path); } catch {}
+      console.log("[Cookies] YouTube cookie fayli yuklandi");
+      res.json({ success: true, message: "Cookie fayl muvaffaqiyatli yuklandi" });
+    } catch (err: any) {
+      res.status(500).json({ message: `Cookie yuklashda xatolik: ${err?.message}` });
+    }
+  });
+
+  app.get("/api/youtube-cookies/status", requireAuth, (_req, res) => {
+    const cookiePath = path.join(process.cwd(), "youtube_cookies.txt");
+    try {
+      const stats = fs.statSync(cookiePath);
+      res.json({ exists: true, updatedAt: stats.mtime.toISOString(), size: stats.size });
+    } catch {
+      res.json({ exists: false });
+    }
+  });
+
+  app.delete("/api/youtube-cookies", requireAuth, (_req, res) => {
+    const cookiePath = path.join(process.cwd(), "youtube_cookies.txt");
+    try {
+      fs.unlinkSync(cookiePath);
+      res.json({ success: true });
+    } catch {
+      res.json({ success: true });
+    }
+  });
+
   app.get("/api/health", async (_req, res) => {
     try {
       await pool.query("SELECT 1");

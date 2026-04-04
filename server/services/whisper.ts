@@ -7,6 +7,17 @@ import OpenAI, { toFile } from "openai";
 import { constants } from "fs";
 
 const YT_DLP_LOCAL = "/tmp/yt-dlp-latest";
+const COOKIES_PATH = join(process.cwd(), "youtube_cookies.txt");
+
+async function getCookiesArgs(): Promise<string[]> {
+  try {
+    await access(COOKIES_PATH, constants.R_OK);
+    console.log("[Whisper] Using cookies file for YouTube authentication");
+    return ["--cookies", COOKIES_PATH];
+  } catch {
+    return [];
+  }
+}
 
 function getYtDlpPath(): string {
   try {
@@ -74,17 +85,21 @@ interface WhisperVerboseResponse { text?: string; language?: string; words?: Whi
 export async function downloadYouTubeAudio(videoId: string): Promise<Buffer> {
   const outputPath = join(tmpdir(), `yt-audio-${randomUUID()}.mp3`);
   const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const cookiesArgs = await getCookiesArgs();
 
   await new Promise<void>((resolve, reject) => {
-    const proc = spawn(getYtDlpPath(), [
+    const args = [
       "-x",
       "--audio-format", "mp3",
       "--audio-quality", "5",
       "-o", outputPath,
       "--no-playlist",
       "--no-check-certificates",
+      ...cookiesArgs,
       url,
-    ]);
+    ];
+    console.log(`[Whisper] yt-dlp args: ${args.filter(a => a !== COOKIES_PATH).join(" ")}`);
+    const proc = spawn(getYtDlpPath(), args);
 
     let stderr = "";
     proc.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
@@ -92,7 +107,18 @@ export async function downloadYouTubeAudio(videoId: string): Promise<Buffer> {
 
     proc.on("close", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`yt-dlp failed (code ${code}): ${stderr.slice(-500)}`));
+      else {
+        const errMsg = stderr.slice(-500);
+        if (errMsg.includes("Sign in to confirm") || errMsg.includes("not a bot")) {
+          reject(new Error(
+            cookiesArgs.length > 0
+              ? `YouTube cookie faylini yangilang — eski cookie muddati tugagan. Brauzerdan yangi cookie eksport qiling.`
+              : `YouTube bot himoyasi: Cookie fayl kerak. Brauzerdan "youtube_cookies.txt" eksport qilib, "Sozlamalar" sahifasiga yuklang.`
+          ));
+        } else {
+          reject(new Error(`yt-dlp failed (code ${code}): ${errMsg}`));
+        }
+      }
     });
     proc.on("error", (err) => reject(new Error(`yt-dlp spawn error: ${err.message}`)));
 

@@ -1151,200 +1151,129 @@ ${transcript}`;
 
 function buildFullAudioPrompt(targetLanguage: string = "ar"): string {
   if (targetLanguage === "en") {
-    return `# ROL
-Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. Men senga YouTube videosining AUDIO FAYLINI yuboraman. Sen bu audioni eshitib:
-1) SO'ZMA-SO'Z transkripsiya qilasan (vaqt belgilari bilan)
-2) To'liq dars materiallari yaratasan
+    return `MUHIM: Men senga AUDIO FAYL yuboraman. Sen uni ALBATTA eshitib, transkripsiya qilishing SHART. Bo'sh javob berish MUMKIN EMAS. Agar audio sifati past bo'lsa ham, eshitganingni yoz. Taxminiy bo'lsa ham yoz — bo'sh qoldirganingdan yaxshi.
 
-## VAZIFA — 2 BOSQICH:
+HECH QACHON bunday javob berma:
+- "audio faylni eshitib bo'lmadi"
+- "transkripsiya qilib bo'lmadi"
+- bo'sh subtitles/vocabulary/quizzes massivlar
 
-### BOSQICH 1: TRANSKRIPSIYA
-Audiodagi har bir gapni eshitib, aniq vaqt belgilari bilan yoz:
-- Har bir gap uchun boshlanish va tugash vaqtini belgi (soniyalarda)
-- So'zlarni to'g'ri eshitib, aynan yoz
-- Gaplarni tabiiy joylaridan ajrat (pauza, nuqta, gap tugashi)
+Sen ingliz tili professorisin. Audio faylni eshitib: 1) transkripsiya qil (vaqt bilan), 2) dars materiallari yarat.
 
-### BOSQICH 2: DARS MATERIALLARI
-Transkriptsiya asosida to'liq dars materiallari yarat.
+Barcha tarjimalar O'ZBEK tilida bo'lsin.
 
-## TARJIMA QOIDALARI:
-- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
-- "explanation": O'ZBEK tilida
+FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
 
-# JAVOB FORMATI
-Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
-
-# JSON STRUKTURASI
 {
   "subtitles": [
-    {
-      "startTime": 0.0,
-      "endTime": 3.5,
-      "text": "audiodagi gap matni (inglizcha)"
-    }
+    {"startTime": 0.0, "endTime": 3.5, "text": "audiodagi inglizcha gap"}
   ],
-  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
-  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "summaryShort": "2-3 gap, O'ZBEKCHA",
+  "summaryDetailed": "5-8 gap, O'ZBEKCHA",
   "vocabulary": [
     {
-      "word": "inglizcha so'z (masalan: accomplish)",
-      "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
-      "partOfSpeech": "noun/verb/adjective/adverb/preposition",
-      "example": "transkriptdan inglizcha misol gap",
+      "word": "inglizcha so'z",
+      "translation": "O'ZBEKCHA tarjima",
+      "partOfSpeech": "noun/verb/adj/adv",
+      "example": "transkriptdan misol gap",
       "difficulty": "easy/medium/hard"
     }
   ],
   "quizzes": [
     {
-      "question": "O'ZBEK tilida savol",
-      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "question": "O'ZBEKCHA savol",
+      "options": ["A", "B", "C", "D"],
       "correctIndex": 0,
-      "explanation": "O'ZBEK tilida batafsil tushuntirish",
+      "explanation": "O'ZBEKCHA tushuntirish",
       "type": "multiple_choice"
     },
     {
-      "question": "I _____ to the store yesterday — bo'sh joyga mos so'zni tanlang",
+      "question": "I _____ to school yesterday",
       "options": ["go", "went", "gone", "going"],
       "correctIndex": 1,
-      "explanation": "went — go fe'lining Past Simple shakli",
+      "explanation": "went — Past Simple",
       "type": "sentence_completion"
     },
     {
       "question": "accomplish",
       "options": ["bajarmoq", "o'qimoq", "yozmoq", "bormoq"],
       "correctIndex": 0,
-      "explanation": "accomplish — bajarmoq, amalga oshirmoq ma'nosida",
+      "explanation": "accomplish — bajarmoq",
       "type": "word_translation"
     }
   ],
   "flashcards": [
-    {
-      "front": "inglizcha so'z yoki ibora",
-      "back": "O'ZBEKCHA tarjima va tushuntirish",
-      "type": "vocabulary"
-    }
+    {"front": "inglizcha so'z", "back": "O'ZBEKCHA tarjima", "type": "vocabulary"}
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "AYNAN subtitles dagi gap matni — o'zgartirma!",
-      "translation": "O'ZBEKCHA tarjima — AYNAN shu gap mazmunini tarjima qil",
+      "sentence": "AYNAN subtitles dagi gap — o'zgartirma!",
+      "translation": "O'ZBEKCHA tarjima",
       "lineIndices": [0],
       "wordMap": [
-        {
-          "word": "inglizcha so'z",
-          "normalized": "so'zning asosiy shakli (masalan: go)",
-          "translationUz": "O'ZBEKCHA tarjima"
-        }
+        {"word": "so'z", "normalized": "asosiy shakl", "translationUz": "O'ZBEKCHA"}
       ]
     }
   ]
 }
 
-# QOIDALAR
+QOIDALAR:
+1. SUBTITLES: Audiodagi HAR BIR gapni yoz. startTime/endTime soniyalarda. Eng kam 3 ta subtitle. Bo'sh qoldirma!
+2. VOCABULARY: 8-15 ta so'z. "translation" O'ZBEK tilida.
+3. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4).
+4. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi...  wordMap: gapdagi HAR BIR so'z.
+5. FLASHCARDS: 8-12 ta.
+6. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
 
-## 1. SUBTITLES — ENG MUHIM
-- Audiodagi HAR BIR gapni aniq eshitib yoz
-- startTime va endTime SONIYALARDA bo'lsin (masalan: 0.0, 3.5, 7.2)
-- Gaplarni tabiiy joylaridan ajrat — pauza bo'lgan joyda yangi gap
-- HECH QANDAY gapni tashlab ketma!
-- Eng kam 1 ta, eng ko'p 50 ta subtitle
-
-## 2. TARJIMA TILI
-- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
-- "word", "sentence", "front", "example" maydonlari — INGLIZ tilida
-
-## 3. SENTENCEANALYSIS
-- Har bir subtitle uchun ALOHIDA sentenceAnalysis yozilishi SHART
-- "sentence" maydoni AYNAN subtitles dagi matn bo'lishi kerak — O'ZGARTIRMA!
-- "lineIndices": [0] — birinchi subtitle uchun 0, ikkinchi uchun 1, va h.k.
-- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
-- BARCHA subtitles qamrab olinishi SHART!
-
-## 4. QUIZ TURLARI — MAJBURIY:
-- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
-- sentence_completion: 3-4 ta (inglizcha gap O'RTASIDA _____ bo'shliq, 4 inglizcha variant)
-- word_translation: 3-4 ta (inglizcha so'z, 4 o'zbekcha variant)
-
-## 5. SON CHEGARALARI
-- vocabulary: 8-15 ta so'z
-- quizzes: 10-12 ta savol (3 tur aralash)
-- flashcards: 8-12 ta karta
-- sentenceAnalysis: subtitles dagi BARCHA gaplar
-
-## 6. TEXNIK
-- correctIndex: 0 dan boshlanadi (0-3)
-- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
+ESLATMA: Bo'sh massiv QAYTARMA. Agar audioda gap eshitilsa — ALBATTA yoz!`;
   }
 
-  return `# ROL
-Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. Men senga YouTube videosining AUDIO FAYLINI yuboraman. Sen bu audioni eshitib:
-1) SO'ZMA-SO'Z transkripsiya qilasan (vaqt belgilari bilan)
-2) To'liq dars materiallari yaratasan
+  return `MUHIM: Men senga AUDIO FAYL yuboraman. Sen uni ALBATTA eshitib, transkripsiya qilishing SHART. Bo'sh javob berish MUMKIN EMAS. Agar audio sifati past bo'lsa ham, eshitganingni yoz. Taxminiy bo'lsa ham yoz — bo'sh qoldirganingdan yaxshi.
 
-Sen quyidagi manbalarga tayanasan:
-- كِتَابُ سِيبَوَيْهِ (Sibavayh kitobi — nahv asosi)
-- النَّحْوُ الْوَافِي لِعَبَّاسِ حَسَنٍ (Abbas Hasan — to'liq nahv)
-- أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
+HECH QACHON bunday javob berma:
+- "audio faylni eshitib bo'lmadi"
+- "transkripsiya qilib bo'lmadi"
+- bo'sh subtitles/vocabulary/quizzes massivlar
 
-## VAZIFA — 2 BOSQICH:
+Sen arab tili professorisin. Audio faylni eshitib: 1) transkripsiya qil (vaqt bilan, TO'LIQ HARAKAT bilan), 2) dars materiallari yarat.
 
-### BOSQICH 1: TRANSKRIPSIYA
-Audiodagi har bir gapni eshitib, aniq vaqt belgilari bilan yoz:
-- Har bir gap uchun boshlanish va tugash vaqtini belgi (soniyalarda)
-- Arabcha so'zlarni TO'LIQ HARAKAT BILAN yoz
-- Gaplarni tabiiy joylaridan ajrat
+HARAKAT QOIDASI: BARCHA arabcha so'zlar TO'LIQ HARAKAT bilan.
+TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
+NOTO'G'RI: ذهب الولد الى المدرسة
 
-### BOSQICH 2: DARS MATERIALLARI
-Transkriptsiya asosida to'liq dars materiallari yarat.
+Barcha tarjimalar O'ZBEK tilida. "translationAr" — arabcha izoh HARAKAT bilan.
 
-## HARAKAT (التَّشْكِيل) QOIDALARI — QAT'IY:
-- BARCHA arabcha so'zlar TO'LIQ HARAKAT bilan yozilsin
-- Har bir harf: فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
-- TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ | NOTO'G'RI: ذهب الولد الى المدرسة
-- Harakatsiz arabcha so'z QABUL QILINMAYDI
+FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
 
-## TARJIMA QOIDALARI:
-- "translation" maydoni: O'ZBEK tilida tarjima (SHART)
-- "translationAr": arabcha so'zning arabcha izohi (HARAKAT bilan)
-- "explanation": O'ZBEK tilida
-
-# JAVOB FORMATI
-Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
-
-# JSON STRUKTURASI
 {
   "subtitles": [
-    {
-      "startTime": 0.0,
-      "endTime": 3.5,
-      "text": "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ"
-    }
+    {"startTime": 0.0, "endTime": 3.5, "text": "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ"}
   ],
-  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
-  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
-  "summaryShortAr": "مُلَخَّصٌ قَصِيرٌ لِلْفِيدِيُو بِالتَّشْكِيلِ",
-  "summaryDetailedAr": "مُلَخَّصٌ تَفْصِيلِيٌّ لِلْفِيدِيُو بِالتَّشْكِيلِ",
+  "summaryShort": "2-3 gap, O'ZBEKCHA",
+  "summaryDetailed": "5-8 gap, O'ZBEKCHA",
+  "summaryShortAr": "مُلَخَّصٌ قَصِيرٌ بِالتَّشْكِيلِ",
+  "summaryDetailedAr": "مُلَخَّصٌ تَفْصِيلِيٌّ بِالتَّشْكِيلِ",
   "vocabulary": [
     {
-      "word": "مُعَلِّمٌ (TO'LIQ HARAKAT BILAN)",
+      "word": "مُعَلِّمٌ",
       "translation": "O'ZBEKCHA tarjima",
-      "translationAr": "تَفْسِيرٌ أَوْ مُرَادِفٌ بِالتَّشْكِيلِ",
+      "translationAr": "مُرَادِفٌ بِالتَّشْكِيلِ",
       "partOfSpeech": "اِسْمٌ/فِعْلٌ/حَرْفٌ/صِفَةٌ",
-      "example": "transkriptdan misol gap (HARAKAT bilan)",
+      "example": "transkriptdan misol gap HARAKAT bilan",
       "difficulty": "easy/medium/hard"
     }
   ],
   "quizzes": [
     {
-      "question": "O'ZBEK tilida savol",
-      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "question": "O'ZBEKCHA savol",
+      "options": ["A", "B", "C", "D"],
       "correctIndex": 0,
-      "explanation": "O'ZBEK tilida tushuntirish",
+      "explanation": "O'ZBEKCHA tushuntirish",
       "type": "multiple_choice"
     },
     {
-      "question": "هَذَا _____ جَمِيلٌ — bo'sh joyga mos so'zni tanlang",
-      "options": ["بَيْتٌ", "كِتَابٌ", "وَلَدٌ", "سَيَّارَةٌ"],
+      "question": "هَذَا _____ جَمِيلٌ",
+      "options": ["بَيْتٌ", "كِتَابٌ", "وَلَدٌ", "قَلَمٌ"],
       "correctIndex": 0,
       "explanation": "بَيْتٌ — uy",
       "type": "sentence_completion"
@@ -1353,72 +1282,35 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
       "question": "كَتَبَ",
       "options": ["o'qidi", "yozdi", "bordi", "keldi"],
       "correctIndex": 1,
-      "explanation": "كَتَبَ — yozmoq fe'li",
+      "explanation": "كَتَبَ — yozmoq",
       "type": "word_translation"
     }
   ],
   "flashcards": [
-    {
-      "front": "كَلِمَةٌ بِالتَّشْكِيلِ",
-      "back": "O'ZBEKCHA tarjima va tushuntirish",
-      "backAr": "التَّرْجَمَةُ بِالْعَرَبِيَّةِ مَعَ التَّشْكِيلِ",
-      "type": "vocabulary"
-    }
+    {"front": "كَلِمَةٌ بِالتَّشْكِيلِ", "back": "O'ZBEKCHA tarjima", "backAr": "بِالتَّشْكِيلِ", "type": "vocabulary"}
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "الْجُمْلَةُ بِالتَّشْكِيلِ — AYNAN subtitles dagi matn",
+      "sentence": "AYNAN subtitles dagi gap — o'zgartirma!",
       "translation": "O'ZBEKCHA tarjima",
-      "translationAr": "الْجُمْلَةُ بِالتَّشْكِيلِ",
+      "translationAr": "بِالتَّشْكِيلِ",
       "lineIndices": [0],
       "wordMap": [
-        {
-          "word": "كَلِمَةٌ بِالتَّشْكِيلِ",
-          "normalized": "harakat olib tashlangan shakl",
-          "translationUz": "O'ZBEKCHA tarjima",
-          "translationAr": "مُرَادِفٌ بِالتَّشْكِيلِ"
-        }
+        {"word": "كَلِمَةٌ", "normalized": "harakatsiz shakl", "translationUz": "O'ZBEKCHA", "translationAr": "مُرَادِفٌ"}
       ]
     }
   ]
 }
 
-# QOIDALAR
+QOIDALAR:
+1. SUBTITLES: Audiodagi HAR BIR gapni TO'LIQ HARAKAT bilan yoz. startTime/endTime soniyalarda. Eng kam 3 ta. Bo'sh qoldirma!
+2. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
+3. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4, arabcha so'z HARAKAT bilan).
+4. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi...  wordMap: gapdagi HAR BIR so'z HARAKAT bilan.
+5. FLASHCARDS: 8-12 ta. HARAKAT bilan.
+6. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
 
-## 1. SUBTITLES — ENG MUHIM
-- Audiodagi HAR BIR gapni eshitib, TO'LIQ HARAKAT bilan yoz
-- startTime va endTime SONIYALARDA (masalan: 0.0, 3.5, 7.2)
-- Gaplarni tabiiy joylaridan ajrat
-- HECH QANDAY gapni tashlab ketma!
-
-## 2. HARAKAT — QAT'IY
-- BARCHA arabcha so'zlarda TO'LIQ harakat bo'lishi SHART
-- Harakatsiz arabcha so'z QABUL QILINMAYDI
-
-## 3. TARJIMA TILI
-- "translation", "explanation", "back" — O'ZBEK tilida
-- "translationAr", "backAr", "summaryShortAr", "summaryDetailedAr" — arab tilida HARAKAT bilan
-
-## 4. SENTENCEANALYSIS
-- Har bir subtitle uchun ALOHIDA sentenceAnalysis yozilishi SHART
-- "sentence" maydoni AYNAN subtitles dagi matn — O'ZGARTIRMA!
-- "lineIndices": [0] — birinchi subtitle uchun 0, ikkinchi uchun 1, va h.k.
-- wordMap: gapdagi HAR BIR so'z tahlili — tashlab ketma!
-
-## 5. QUIZ TURLARI — MAJBURIY:
-- multiple_choice: 4-5 ta
-- sentence_completion: 3-4 ta (gap O'RTASIDA _____, 4 arabcha variant HARAKAT bilan)
-- word_translation: 3-4 ta (arabcha so'z HARAKAT bilan, 4 o'zbekcha variant)
-
-## 6. SON CHEGARALARI
-- vocabulary: 8-15 ta so'z
-- quizzes: 10-12 ta savol (3 tur aralash)
-- flashcards: 8-12 ta karta
-- sentenceAnalysis: BARCHA subtitles qamrab olinsin
-
-## 7. TEXNIK
-- correctIndex: 0 dan boshlanadi (0-3)
-- JSON VALID bo'lishi SHART`;
+ESLATMA: Bo'sh massiv QAYTARMA. Agar audioda gap eshitilsa — ALBATTA yoz! 100% aniq bo'lmasa ham yozganingiz yaxshi.`;
 }
 
 function ChatGptWorkflowState({
@@ -1465,12 +1357,17 @@ function ChatGptWorkflowState({
       const repaired = jsonrepair(step1);
       const parsed = JSON.parse(repaired);
       const missing: string[] = [];
+      if (!Array.isArray(parsed.subtitles) || parsed.subtitles.length === 0) missing.push("subtitles (bo'sh!)");
       if (!parsed.summaryShort) missing.push("summaryShort");
       if (!parsed.summaryDetailed) missing.push("summaryDetailed");
-      if (!Array.isArray(parsed.vocabulary) || parsed.vocabulary.length === 0) missing.push("vocabulary");
-      if (!Array.isArray(parsed.sentenceAnalysis) || parsed.sentenceAnalysis.length === 0) missing.push("sentenceAnalysis");
-      if (missing.length > 0) jsonError = `Topilmadi: ${missing.join(", ")}`;
-      else jsonValid = true;
+      if (!Array.isArray(parsed.vocabulary) || parsed.vocabulary.length === 0) missing.push("vocabulary (bo'sh!)");
+      if (!Array.isArray(parsed.sentenceAnalysis) || parsed.sentenceAnalysis.length === 0) missing.push("sentenceAnalysis (bo'sh!)");
+      if (missing.length > 0) {
+        const hasEmpty = missing.some(m => m.includes("bo'sh"));
+        jsonError = hasEmpty
+          ? "ChatGPT to'liq javob bermadi — qaytadan urinib ko'ring. Topilmadi: " + missing.join(", ")
+          : `Topilmadi: ${missing.join(", ")}`;
+      } else jsonValid = true;
     } catch {
       jsonError = "JSON formati noto'g'ri";
     }
@@ -1518,6 +1415,12 @@ function ChatGptWorkflowState({
               <span>Pastdagi maydonga <strong>joylashtiring</strong> va "Import" tugmasini bosing</span>
             </li>
           </ol>
+
+          <div className="mt-2 rounded-md bg-yellow-500/5 border border-yellow-500/20 px-3 py-2">
+            <p className="text-[10px] text-yellow-400/80">
+              <strong>Maslahat:</strong> Agar ChatGPT bo'sh javob bersa yoki "transkripsiya qilib bo'lmadi" desa — <strong>yangi chat</strong> oching va qaytadan yuboring. GPT-4o modelini tanlang. Audio fayl 25MB dan kichik bo'lishi kerak.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-2">

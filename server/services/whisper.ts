@@ -37,6 +37,10 @@ export interface WhisperResult {
   language: string;
 }
 
+interface WhisperVerboseWord { word: string; start: number; end: number; }
+interface WhisperVerboseSegment { start: number; end: number; text?: string; words?: WhisperVerboseWord[]; }
+interface WhisperVerboseResponse { text?: string; language?: string; words?: WhisperVerboseWord[]; segments?: WhisperVerboseSegment[]; }
+
 export async function downloadYouTubeAudio(videoId: string): Promise<Buffer> {
   const outputPath = join(tmpdir(), `yt-audio-${randomUUID()}.mp3`);
   const url = `https://www.youtube.com/watch?v=${videoId}`;
@@ -164,9 +168,9 @@ export async function transcribeWithWhisper(audioBuffer: Buffer, language?: stri
       response_format: "verbose_json",
       timestamp_granularities: ["word", "segment"],
       ...(language ? { language } : {}),
-    } as any);
+    });
 
-    const resp = response as any;
+    const resp = response as unknown as WhisperVerboseResponse;
 
     if (resp.language && !detectedLanguage) {
       detectedLanguage = resp.language;

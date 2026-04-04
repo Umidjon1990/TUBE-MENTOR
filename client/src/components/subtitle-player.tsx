@@ -642,7 +642,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
           </div>
         </div>
 
-        {activeSubtitle && (
+        {activeSubtitle && !fullScreenLayout && (
           <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
             <div
               className="max-w-full"
@@ -820,9 +820,9 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
           <div
             ref={panelRef}
             className={`${fullScreenLayout ? "flex-1 min-h-0" : "max-h-[50vh] md:max-h-[60vh]"} overflow-y-auto scroll-smooth`}
-            style={{ fontSize: `${14 * subtitleZoom}px` }}
+            style={{ fontSize: `${(fullScreenLayout ? 17 : 14) * subtitleZoom}px` }}
           >
-            <div className="p-1.5 md:p-2 space-y-1">
+            <div className={`${fullScreenLayout ? "p-2 md:p-3 space-y-1.5" : "p-1.5 md:p-2 space-y-1"}`}>
               {subtitles.map((item, idx) => {
                 const isActive = idx === activeIndex;
                 const translation = getTranslation(item);
@@ -832,7 +832,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
                   <div
                     key={item.id}
                     data-subtitle-idx={idx}
-                    className={`w-full rounded-lg px-2.5 md:px-3 py-2.5 md:py-3 transition-all duration-300
+                    className={`w-full rounded-lg ${fullScreenLayout ? "px-3 md:px-4 py-3 md:py-4" : "px-2.5 md:px-3 py-2.5 md:py-3"} transition-all duration-300
                       ${isActive
                         ? "bg-primary/15 border border-primary/40 shadow-[0_0_15px_hsl(var(--primary)/0.15)] ring-1 ring-primary/30"
                         : "hover:bg-white/5 border border-transparent opacity-60 hover:opacity-80"

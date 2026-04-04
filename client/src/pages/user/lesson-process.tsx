@@ -12,7 +12,7 @@ import {
   Loader2, Sparkles, FileText, AlertTriangle,
   CheckCircle2, RefreshCcw, Type, BookOpenCheck,
   ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste, AudioWaveform,
-  MessageSquareText, ChevronDown, ChevronUp, ExternalLink
+  MessageSquareText, ChevronDown, ChevronUp
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { jsonrepair } from "jsonrepair";
@@ -307,7 +307,6 @@ export default function LessonProcessPage() {
             onSubmit={() => importMutation.mutate()}
             onBack={() => setStep("no-transcript")}
             isPending={importMutation.isPending}
-            lessonId={lesson.id}
           />
         )}
         {step === "manual-input" && (
@@ -366,7 +365,7 @@ function StepIndicator({ step }: { step: ProcessStep }) {
 
   function getStepStatus(key: string): "active" | "done" | "pending" {
     if (key === "transcript") {
-      if (["loading", "extracting", "no-transcript", "manual-input"].includes(step)) return "active";
+      if (["loading", "extracting", "no-transcript", "manual-input", "chatgpt-workflow"].includes(step)) return "active";
       return "done";
     }
     if (key === "generate") {
@@ -1429,7 +1428,6 @@ function ChatGptWorkflowState({
   onSubmit,
   onBack,
   isPending,
-  lessonId,
 }: {
   targetLanguage: string;
   jsonText: string;
@@ -1437,7 +1435,6 @@ function ChatGptWorkflowState({
   onSubmit: () => void;
   onBack: () => void;
   isPending: boolean;
-  lessonId: number;
 }) {
   const [showPrompt, setShowPrompt] = useState(false);
   const [copied, setCopied] = useState(false);

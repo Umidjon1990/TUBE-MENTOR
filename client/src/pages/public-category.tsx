@@ -29,64 +29,66 @@ function LessonCard({ lesson }: { lesson: LessonWithCategory }) {
   return (
     <Link href={`/library/${lesson.id}`}>
       <Card
-        className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer h-full"
+        className="glass border-border/50 hover:border-primary/30 transition-all duration-300 group cursor-pointer h-full overflow-hidden"
         data-testid={`card-lesson-${lesson.id}`}
       >
-        {lesson.thumbnailUrl && (
-          <div className="relative overflow-hidden rounded-t-md">
-            <img
-              src={lesson.thumbnailUrl}
-              alt={lesson.title}
-              className="w-full aspect-video object-cover group-hover:scale-[1.02] transition-transform duration-300"
-              data-testid={`img-thumbnail-${lesson.id}`}
-            />
-            {lesson.isFeatured && (
-              <div className="absolute top-2 left-2">
-                <Badge className="bg-amber-500/90 text-white border-amber-600/50" data-testid={`badge-featured-${lesson.id}`}>
-                  <Star className="w-3 h-3 mr-1" />
-                  Tavsiya etilgan
+        <div className="flex flex-row sm:flex-col">
+          {lesson.thumbnailUrl && (
+            <div className="relative overflow-hidden w-32 sm:w-full shrink-0 sm:rounded-t-md">
+              <img
+                src={lesson.thumbnailUrl}
+                alt={lesson.title}
+                className="w-full h-full sm:aspect-video object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                data-testid={`img-thumbnail-${lesson.id}`}
+              />
+              {lesson.isFeatured && (
+                <div className="absolute top-2 left-2">
+                  <Badge className="bg-amber-500/90 text-white border-amber-600/50 text-[10px]" data-testid={`badge-featured-${lesson.id}`}>
+                    <Star className="w-3 h-3 mr-1" />
+                    Tavsiya
+                  </Badge>
+                </div>
+              )}
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                {(lesson as any).targetLanguage && (lesson as any).targetLanguage !== "ar" && (
+                  <Badge className="bg-blue-600/90 text-white border-blue-700/50 uppercase text-[10px]" data-testid={`badge-lang-${lesson.id}`}>
+                    {(lesson as any).targetLanguage}
+                  </Badge>
+                )}
+                <Badge
+                  className={levelColors[lesson.level] || ""}
+                  data-testid={`badge-level-${lesson.id}`}
+                >
+                  {levelLabels[lesson.level] || lesson.level}
                 </Badge>
               </div>
-            )}
-            <div className="absolute top-2 right-2 flex items-center gap-1">
-              {(lesson as any).targetLanguage && (lesson as any).targetLanguage !== "ar" && (
-                <Badge className="bg-blue-600/90 text-white border-blue-700/50 uppercase text-[10px]" data-testid={`badge-lang-${lesson.id}`}>
-                  {(lesson as any).targetLanguage}
-                </Badge>
-              )}
-              <Badge
-                className={levelColors[lesson.level] || ""}
-                data-testid={`badge-level-${lesson.id}`}
-              >
-                {levelLabels[lesson.level] || lesson.level}
-              </Badge>
             </div>
-          </div>
-        )}
-        <CardContent className="p-4">
-          <h3
-            className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors"
-            data-testid={`text-title-${lesson.id}`}
-          >
-            {lesson.title}
-          </h3>
-          {lesson.summaryShort && (
-            <p
-              className="text-xs text-muted-foreground line-clamp-2 mb-3"
-              data-testid={`text-summary-${lesson.id}`}
-            >
-              {lesson.summaryShort}
-            </p>
           )}
-          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-            {lesson.publishedAt && (
-              <span className="flex items-center gap-1" data-testid={`text-date-${lesson.id}`}>
-                <Clock className="w-3 h-3" />
-                {new Date(lesson.publishedAt).toLocaleDateString("uz-UZ")}
-              </span>
+          <CardContent className="p-3 sm:p-4 flex-1 min-w-0">
+            <h3
+              className="font-semibold text-base sm:text-lg line-clamp-2 mb-1.5 group-hover:text-primary transition-colors"
+              data-testid={`text-title-${lesson.id}`}
+            >
+              {lesson.title}
+            </h3>
+            {lesson.summaryShort && (
+              <p
+                className="text-sm text-muted-foreground line-clamp-2 mb-2"
+                data-testid={`text-summary-${lesson.id}`}
+              >
+                {lesson.summaryShort}
+              </p>
             )}
-          </div>
-        </CardContent>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+              {lesson.publishedAt && (
+                <span className="flex items-center gap-1" data-testid={`text-date-${lesson.id}`}>
+                  <Clock className="w-3 h-3" />
+                  {new Date(lesson.publishedAt).toLocaleDateString("uz-UZ")}
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </div>
       </Card>
     </Link>
   );
@@ -206,20 +208,20 @@ export default function PublicCategoryPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="glass border-border/50">
                 <Skeleton className="w-full aspect-video rounded-t-md" />
                 <CardContent className="p-4 space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-3 w-1/2" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredLessons.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {filteredLessons.map((lesson) => (
               <LessonCard key={lesson.id} lesson={lesson} />
             ))}

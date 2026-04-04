@@ -1116,7 +1116,7 @@ export async function registerRoutes(
         word: v.word || "",
         translation: v.translation || "",
         translationAr: v.translationAr || "",
-        partOfSpeech: v.partOfSpeech || "ism",
+        partOfSpeech: v.partOfSpeech || "noun",
         example: v.example || "",
         difficulty: v.difficulty || "easy",
       }));
@@ -1198,11 +1198,33 @@ export async function registerRoutes(
       let subtitlesForLineIndices: { startTime: number; endTime: number; text: string }[] | null = null;
 
       if (Array.isArray(content.subtitles) && content.subtitles.length > 0) {
-        const importedSubs = content.subtitles.map((s: any) => ({
-          startTime: typeof s.startTime === "number" ? Math.round(s.startTime * 1000) / 1000 : 0,
-          endTime: typeof s.endTime === "number" ? Math.round(s.endTime * 1000) / 1000 : 0,
-          text: (s.text || "").trim(),
-        })).filter((s: any) => s.text.length > 0);
+        const wordTimestampsArr: { word: string; startTime: number; endTime: number; subtitleIndex: number }[] = [];
+
+        const importedSubs = content.subtitles
+          .map((s: any) => ({
+            startTime: typeof s.startTime === "number" ? Math.round(s.startTime * 1000) / 1000 : 0,
+            endTime: typeof s.endTime === "number" ? Math.round(s.endTime * 1000) / 1000 : 0,
+            text: (s.text || "").trim(),
+            _wordTimings: Array.isArray(s.wordTimings) ? s.wordTimings : [],
+          }))
+          .filter((s: any) => s.text.length > 0);
+
+        for (let finalIdx = 0; finalIdx < importedSubs.length; finalIdx++) {
+          const sub = importedSubs[finalIdx] as any;
+          if (sub._wordTimings.length > 0) {
+            for (const wt of sub._wordTimings) {
+              if (wt.word && typeof wt.startTime === "number" && typeof wt.endTime === "number" && wt.startTime <= wt.endTime) {
+                wordTimestampsArr.push({
+                  word: wt.word,
+                  startTime: Math.round(wt.startTime * 1000) / 1000,
+                  endTime: Math.round(wt.endTime * 1000) / 1000,
+                  subtitleIndex: finalIdx,
+                });
+              }
+            }
+          }
+          delete sub._wordTimings;
+        }
 
         if (importedSubs.length > 0) {
           updateData.subtitlesJson = importedSubs;
@@ -1211,6 +1233,12 @@ export async function registerRoutes(
             updateData.transcript = importedSubs.map((s: any) => s.text).join(" ");
           }
           subtitlesForLineIndices = importedSubs;
+
+          if (wordTimestampsArr.length > 0) {
+            updateData.wordTimestampsJson = wordTimestampsArr;
+            console.log(`[import] Dars #${id}: word-level timestamps import (${wordTimestampsArr.length} so'z)`);
+          }
+
           console.log(`[import] Dars #${id}: ChatGPT audio subtitles import (${importedSubs.length} ta)`);
         }
       }

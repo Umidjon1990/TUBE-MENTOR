@@ -27,6 +27,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
+  thumbnailUrl: text("thumbnail_url"),
 });
 
 export const tags = pgTable("tags", {
@@ -282,6 +283,7 @@ export const insertCategorySchema = createInsertSchema(categories).pick({
   name: true,
   slug: true,
   description: true,
+  thumbnailUrl: true,
 });
 
 export const insertTagSchema = createInsertSchema(tags).pick({

@@ -22,10 +22,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FolderTree, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { FolderTree, Plus, Pencil, Trash2, Loader2, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Category } from "@shared/schema";
+
+function normalizeGoogleDriveUrl(url: string): string {
+  if (!url) return url;
+  const trimmed = url.trim();
+  let fileId: string | null = null;
+  const patterns = [
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/uc\?(?:.*&)?id=([a-zA-Z0-9_-]+)/,
+    /drive\.google\.com\/thumbnail\?id=([a-zA-Z0-9_-]+)/,
+    /docs\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/,
+    /lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/,
+  ];
+  for (const pat of patterns) {
+    const match = trimmed.match(pat);
+    if (match) { fileId = match[1]; break; }
+  }
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}=s800`;
+  }
+  return trimmed;
+}
 
 export default function AdminCategoriesPage() {
   const { toast } = useToast();
@@ -34,13 +56,14 @@ export default function AdminCategoriesPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; description: string }) =>
+    mutationFn: (data: { name: string; description: string; thumbnailUrl: string }) =>
       apiRequest("POST", "/api/admin/categories", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -53,7 +76,7 @@ export default function AdminCategoriesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name: string; description: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: { name: string; description: string; thumbnailUrl: string } }) =>
       apiRequest("PATCH", `/api/admin/categories/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -81,6 +104,7 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
     setName("");
     setDescription("");
+    setThumbnailUrl("");
     setDialogOpen(true);
   }
 
@@ -88,6 +112,7 @@ export default function AdminCategoriesPage() {
     setEditingCategory(cat);
     setName(cat.name);
     setDescription(cat.description || "");
+    setThumbnailUrl(cat.thumbnailUrl || "");
     setDialogOpen(true);
   }
 
@@ -96,14 +121,16 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
     setName("");
     setDescription("");
+    setThumbnailUrl("");
   }
 
   function handleSubmit() {
     if (!name.trim()) return;
+    const normalizedThumb = normalizeGoogleDriveUrl(thumbnailUrl.trim());
     if (editingCategory) {
-      updateMutation.mutate({ id: editingCategory.id, data: { name: name.trim(), description: description.trim() } });
+      updateMutation.mutate({ id: editingCategory.id, data: { name: name.trim(), description: description.trim(), thumbnailUrl: normalizedThumb } });
     } else {
-      createMutation.mutate({ name: name.trim(), description: description.trim() });
+      createMutation.mutate({ name: name.trim(), description: description.trim(), thumbnailUrl: normalizedThumb });
     }
   }
 
@@ -146,6 +173,16 @@ export default function AdminCategoriesPage() {
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
                   data-testid={`category-row-${cat.id}`}
                 >
+                  {cat.thumbnailUrl && (
+                    <div className="w-16 h-10 rounded overflow-hidden shrink-0 bg-muted/30 mr-2">
+                      <img
+                        src={normalizeGoogleDriveUrl(cat.thumbnailUrl)}
+                        alt={cat.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm" data-testid={`text-category-name-${cat.id}`}>{cat.name}</span>
@@ -205,6 +242,32 @@ export default function AdminCategoriesPage() {
                 placeholder="Kategoriya haqida qisqa izoh"
                 data-testid="input-category-description"
               />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-primary" />
+                Rasm URL (Google Drive yoki to'g'ridan-to'g'ri link)
+              </label>
+              <Input
+                value={thumbnailUrl}
+                onChange={(e) => setThumbnailUrl(e.target.value)}
+                placeholder="https://drive.google.com/file/d/... yoki to'g'ridan-to'g'ri URL"
+                data-testid="input-category-thumbnail"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Tavsiya: 800×450px (16:9). Google Drive linkini qo'ying — avtomatik moslashtiriladi.
+              </p>
+              {thumbnailUrl.trim() && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-border/50 bg-muted/30">
+                  <img
+                    src={normalizeGoogleDriveUrl(thumbnailUrl.trim())}
+                    alt="Preview"
+                    className="w-full aspect-video object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    data-testid="img-category-preview"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

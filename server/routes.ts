@@ -1477,9 +1477,30 @@ export async function registerRoutes(
     res.json(cats);
   });
 
+  function normalizeGoogleDriveUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    const trimmed = url.trim();
+    if (!trimmed) return null;
+    let fileId: string | null = null;
+    const patterns = [
+      /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/,
+      /drive\.google\.com\/uc\?(?:.*&)?id=([a-zA-Z0-9_-]+)/,
+      /drive\.google\.com\/thumbnail\?id=([a-zA-Z0-9_-]+)/,
+      /docs\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/,
+      /lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pat of patterns) {
+      const match = trimmed.match(pat);
+      if (match) { fileId = match[1]; break; }
+    }
+    if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}=s800`;
+    return trimmed;
+  }
+
   app.post("/api/admin/categories", requireAdmin, async (req, res) => {
     try {
-      const { name, description } = req.body;
+      const { name, description, thumbnailUrl } = req.body;
       if (!name || typeof name !== "string" || !name.trim()) {
         return res.status(400).json({ message: "Kategoriya nomi kiritilishi shart" });
       }
@@ -1488,7 +1509,12 @@ export async function registerRoutes(
       if (existing) {
         return res.status(400).json({ message: "Bu nomli kategoriya allaqachon mavjud" });
       }
-      const cat = await storage.createCategory({ name: name.trim(), slug, description: description?.trim() || null });
+      const cat = await storage.createCategory({
+        name: name.trim(),
+        slug,
+        description: description?.trim() || null,
+        thumbnailUrl: normalizeGoogleDriveUrl(thumbnailUrl),
+      });
       res.json(cat);
     } catch (e: any) {
       res.status(500).json({ message: e.message });
@@ -1499,7 +1525,7 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
-      const { name, description } = req.body;
+      const { name, description, thumbnailUrl } = req.body;
       const updateData: any = {};
       if (name && typeof name === "string" && name.trim()) {
         updateData.name = name.trim();
@@ -1513,6 +1539,9 @@ export async function registerRoutes(
       }
       if (description !== undefined) {
         updateData.description = description?.trim() || null;
+      }
+      if (thumbnailUrl !== undefined) {
+        updateData.thumbnailUrl = normalizeGoogleDriveUrl(thumbnailUrl);
       }
       const cat = await storage.updateCategory(id, updateData);
       if (!cat) return res.status(404).json({ message: "Kategoriya topilmadi" });
@@ -1536,6 +1565,46 @@ export async function registerRoutes(
   app.get("/api/tags", requireAuth, async (_req, res) => {
     const allTags = await storage.getAllTags();
     res.json(allTags);
+  });
+
+  app.get("/api/categories/public", async (req, res) => {
+    try {
+      const allCategories = await storage.getAllCategories();
+      const allLessons = await storage.getAllLessons();
+      const publishedLessons = allLessons.filter(l => l.status === "published");
+      const categoriesWithCount = allCategories.map(cat => {
+        const catLessons = publishedLessons.filter(l => l.categoryId === cat.id);
+        return {
+          ...cat,
+          thumbnailUrl: normalizeGoogleDriveUrl(cat.thumbnailUrl),
+          lessonCount: catLessons.length,
+          languages: [...new Set(catLessons.map(l => l.targetLanguage || "ar"))],
+        };
+      }).filter(c => c.lessonCount > 0);
+      res.json(categoriesWithCount);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.get("/api/categories/public/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const allCategories = await storage.getAllCategories();
+      const cat = allCategories.find(c => c.id === id);
+      if (!cat) return res.status(404).json({ message: "Kategoriya topilmadi" });
+      const allLessons = await storage.getAllLessons();
+      const publishedLessons = allLessons.filter(l => l.status === "published" && l.categoryId === id);
+      res.json({
+        ...cat,
+        thumbnailUrl: normalizeGoogleDriveUrl(cat.thumbnailUrl),
+        lessonCount: publishedLessons.length,
+        languages: [...new Set(publishedLessons.map(l => l.targetLanguage || "ar"))],
+      });
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
   });
 
   app.get("/api/lessons/public", async (req, res) => {

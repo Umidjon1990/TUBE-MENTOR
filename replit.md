@@ -40,7 +40,8 @@ client/
       login.tsx                # Login page
       dashboard.tsx            # User dashboard with gamification widgets (XP, streak, badges)
       not-found.tsx            # 404 page
-      public-library.tsx       # Public lesson library with search/filter
+      public-library.tsx       # Public library showing category folder cards (main view) + collections
+      public-category.tsx      # Category detail page showing lessons within a category (/library/category/:id)
       public-lesson.tsx        # Public lesson detail (full interactive: SubtitlePlayer, Export, Arabic RTL, word maps, quiz, flashcards; no auth-dependent save actions)
       user/
         create-lesson.tsx      # Create lesson form with YouTube URL, coin cost

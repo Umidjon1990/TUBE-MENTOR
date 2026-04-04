@@ -27,6 +27,7 @@ import AdminSettingsPage from "@/pages/admin/settings";
 import AdminDataCenterPage from "@/pages/admin/data-center";
 import PublicLibraryPage from "@/pages/public-library";
 import PublicLessonPage from "@/pages/public-lesson";
+import PublicCategoryPage from "@/pages/public-category";
 import PublicCollectionPage from "@/pages/public-collection";
 import PublicDictionaryPage from "@/pages/public-dictionary";
 import ShadowingPage from "@/pages/user/shadowing";
@@ -39,6 +40,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/library" component={PublicLibraryPage} />
+      <Route path="/library/category/:id" component={PublicCategoryPage} />
       <Route path="/library/collection/:id" component={PublicCollectionPage} />
       <Route path="/library/:id" component={PublicLessonPage} />
       <Route path="/smart-dictionary" component={PublicDictionaryPage} />

@@ -204,6 +204,7 @@ export default function ShadowingPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
+            wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
             className="w-full"
             targetLanguage={lesson.targetLanguage || "ar"}
           />

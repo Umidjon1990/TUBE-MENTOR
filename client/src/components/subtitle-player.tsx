@@ -85,6 +85,12 @@ function tokenizeText(text: string): { prefix: string; word: string; suffix: str
   return tokens;
 }
 
+export interface WordTimestampItem {
+  word: string;
+  start: number;
+  end: number;
+}
+
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 interface SubtitlePlayerProps {
@@ -93,6 +99,7 @@ interface SubtitlePlayerProps {
   lessonId?: number;
   vocabulary?: VocabLookup[];
   sentenceWordMaps?: SentenceWordMap[];
+  wordTimestamps?: WordTimestampItem[];
   className?: string;
   initialSeekTime?: number;
   seekNonce?: number;
@@ -100,7 +107,7 @@ interface SubtitlePlayerProps {
   targetLanguage?: string;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }: SubtitlePlayerProps) {
+export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }: SubtitlePlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -367,9 +374,44 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     return translationLang === "uz" ? item.translationUz : item.translationAr;
   }, [translationLang]);
 
+  const subtitleWordTimings = useMemo(() => {
+    if (!wordTimestamps.length) return new Map<number, { start: number; end: number }[]>();
+    const map = new Map<number, { start: number; end: number }[]>();
+    for (const sub of subtitles) {
+      const subWords = wordTimestamps.filter(wt => wt.start >= sub.startTime - 0.15 && wt.end <= sub.endTime + 0.5);
+      if (subWords.length > 0) {
+        map.set(sub.id, subWords.map(w => ({ start: w.start, end: w.end })));
+      } else {
+        const tokens = tokenizeText(sub.originalText).filter(t => t.word);
+        const duration = sub.endTime - sub.startTime;
+        const wordDur = tokens.length > 0 ? duration / tokens.length : duration;
+        const timings: { start: number; end: number }[] = [];
+        for (let i = 0; i < tokens.length; i++) {
+          timings.push({ start: sub.startTime + i * wordDur, end: sub.startTime + (i + 1) * wordDur });
+        }
+        map.set(sub.id, timings);
+      }
+    }
+    return map;
+  }, [wordTimestamps, subtitles]);
+
+  const getWordKaraokeState = useCallback((subtitle: SubtitleItem, wordIndex: number): "past" | "active" | "future" | null => {
+    const timings = subtitleWordTimings.get(subtitle.id);
+    if (!timings || !timings.length) return null;
+    const wt = timings[wordIndex];
+    if (!wt) return null;
+    if (currentTime >= wt.end) return "past";
+    if (currentTime >= wt.start) return "active";
+    return "future";
+  }, [subtitleWordTimings, currentTime]);
+
   const renderClickableWords = useCallback((text: string, subtitle: SubtitleItem, isOverlay: boolean) => {
     const tokens = tokenizeText(text);
     const textIsArabic = isArabic(text);
+    const isActive = activeIndex >= 0 && subtitles[activeIndex]?.id === subtitle.id;
+    const hasKaraoke = isActive && wordTimestamps.length > 0;
+    let wordCounter = 0;
+
     return (
       <span
         dir={textIsArabic ? "rtl" : "ltr"}
@@ -380,28 +422,44 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           lineHeight: textIsArabic ? "1.8" : "1.6",
         }}
       >
-        {tokens.map((t, i) => (
-          <span key={i}>
-            {t.prefix && <span>{t.prefix}</span>}
-            {t.word && (
-              <span
-                className={`cursor-pointer rounded transition-all duration-150 ${
-                  isOverlay
-                    ? "hover:bg-cyan-400/20 active:bg-cyan-400/30 hover:text-cyan-100 px-0.5 py-0.5 md:px-1 hover:shadow-[0_0_8px_rgba(0,200,255,0.15)]"
-                    : "hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5 hover:underline hover:decoration-primary/40 hover:underline-offset-2"
-                }`}
-                onClick={(e) => handleWordClick(t.word, subtitle, e)}
-                data-testid={`word-${t.word.toLowerCase()}-${i}`}
-              >
-                {t.word}
-              </span>
-            )}
-            {t.suffix && <span>{t.suffix}</span>}
-          </span>
-        ))}
+        {tokens.map((t, i) => {
+          const wi = t.word ? wordCounter++ : -1;
+          const karaokeState = hasKaraoke && t.word ? getWordKaraokeState(subtitle, wi) : null;
+
+          let karaokeClass = "";
+          if (karaokeState === "active") {
+            karaokeClass = isOverlay
+              ? "text-cyan-300 bg-cyan-400/30 shadow-[0_0_12px_rgba(0,255,255,0.4)] scale-105"
+              : "text-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.3)] scale-105";
+          } else if (karaokeState === "past") {
+            karaokeClass = isOverlay
+              ? "text-white/50"
+              : "text-foreground/40";
+          }
+
+          return (
+            <span key={i}>
+              {t.prefix && <span>{t.prefix}</span>}
+              {t.word && (
+                <span
+                  className={`cursor-pointer rounded transition-all duration-100 ${karaokeClass} ${
+                    isOverlay
+                      ? "hover:bg-cyan-400/20 active:bg-cyan-400/30 hover:text-cyan-100 px-0.5 py-0.5 md:px-1 hover:shadow-[0_0_8px_rgba(0,200,255,0.15)]"
+                      : "hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5 hover:underline hover:decoration-primary/40 hover:underline-offset-2"
+                  }`}
+                  onClick={(e) => handleWordClick(t.word, subtitle, e)}
+                  data-testid={`word-${t.word.toLowerCase()}-${i}`}
+                >
+                  {t.word}
+                </span>
+              )}
+              {t.suffix && <span>{t.suffix}</span>}
+            </span>
+          );
+        })}
       </span>
     );
-  }, [handleWordClick]);
+  }, [handleWordClick, wordTimestamps, activeIndex, subtitles, currentTime, getWordKaraokeState]);
 
   const renderTranslationText = useCallback((text: string, isOverlayCtx: boolean) => {
     const textIsArabic = isArabic(text);

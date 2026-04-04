@@ -9,6 +9,7 @@ import { verifyPassword, requireAdmin, requireAuth, hashPassword } from "./auth"
 import { z } from "zod";
 import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from "./services/transcript";
 import { generateLessonContent } from "./services/ai-generator";
+import { transcribeYouTubeVideo } from "./services/whisper";
 import fs from "fs";
 
 function computeLineIndices(sents: any[], subs: { startTime: number; endTime: number; text: string }[]) {
@@ -749,6 +750,43 @@ export async function registerRoutes(
     const enabled = !lesson.downloadEnabled;
     const updated = await storage.updateLesson(id, { downloadEnabled: enabled });
     res.json(updated);
+  });
+
+  app.post("/api/user/lessons/:id/whisper-transcribe", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+    if (!lesson.youtubeUrl) return res.status(400).json({ message: "YouTube URL topilmadi" });
+
+    const videoMatch = lesson.youtubeUrl.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    if (!videoMatch) return res.status(400).json({ message: "Noto'g'ri YouTube URL" });
+
+    try {
+      const lang = (lesson.targetLanguage || "ar") === "ar" ? "ar" : undefined;
+      const result = await transcribeYouTubeVideo(videoMatch[1], lang);
+
+      const wordTimestamps = result.words.map(w => ({
+        word: w.word,
+        start: Math.round(w.start * 1000) / 1000,
+        end: Math.round(w.end * 1000) / 1000,
+      }));
+
+      const updated = await storage.updateLesson(id, {
+        wordTimestampsJson: wordTimestamps,
+      });
+
+      res.json({
+        success: true,
+        wordCount: wordTimestamps.length,
+        language: result.language,
+        lesson: updated,
+      });
+    } catch (err: any) {
+      console.error(`[Whisper] Dars #${id}: xatolik:`, err?.message || err);
+      res.status(500).json({ message: `Whisper xatolik: ${err?.message || "Noma'lum xatolik"}` });
+    }
   });
 
   const wordMapItemSchema = z.object({

@@ -75,6 +75,7 @@ server/
   services/
     transcript.ts              # YouTube caption extraction, manual/demo modes
     ai-generator.ts            # AI content generation (OpenAI GPT-4o with mock fallback)
+    whisper.ts                 # YouTube audio download (yt-dlp) + OpenAI Whisper word-level transcription with chunking
 uploads/                         # Uploaded cover images (served at /uploads/*)
 shared/
   schema.ts                    # 14 Drizzle models + relations + Zod types (includes collections, collectionLessons)
@@ -95,7 +96,8 @@ shared/
 - **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel), with active/hover states
 - **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet with safe-area padding
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
-- Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`
+- **Whisper karaoke mode**: When `wordTimestamps` prop is provided (from Whisper transcription), words highlight in real-time — active word = neon cyan glow + scale, past words = dimmed, future words = normal. Pre-computed per-subtitle timing map with fallback to proportional interpolation when Whisper timestamps don't align perfectly.
+- Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`, `wordTimestamps`
 - **Sticky video**: Video + controls stick to top of viewport (`position: sticky`) while subtitle panel and tabs scroll below
 - **WordMap lookup**: Per-sentence word-level translations (UZ+AR) + grammaticalRole + i_rab fields for precise word inspector & Nahw tab data
 - **Nahw (نحو) tab**: Syntactic analysis tab showing sentenceType (جملة فعلية/اسمية), per-word grammaticalRole (الوظيفة النحوية), and i_rab (الإعراب) in expandable sentence cards with table view

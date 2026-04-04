@@ -25,7 +25,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones, Search, Pencil, RefreshCw, XCircle
+  Download, Headphones, Search, Pencil, RefreshCw, XCircle, AudioWaveform, Loader2
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -165,6 +165,19 @@ export default function LessonDetailPage() {
     },
     onError: () => {
       toast({ title: "Xatolik", variant: "destructive" });
+    },
+  });
+
+  const whisperMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/user/lessons/${lessonId}/whisper-transcribe`);
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      toast({ title: "Whisper transkripsiya tayyor!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Whisper xatolik", description: err?.message || "Qayta urinib ko'ring", variant: "destructive" });
     },
   });
 
@@ -554,6 +567,35 @@ export default function LessonDetailPage() {
               <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
             </Button>
           )}
+          {lesson.youtubeUrl && !(Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50"
+                  onClick={() => whisperMutation.mutate()}
+                  disabled={whisperMutation.isPending}
+                  data-testid="button-whisper-transcribe"
+                >
+                  {whisperMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AudioWaveform className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">Whisper</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>So'zma-so'z vaqt belgilari olish (karaoke rejim)</TooltipContent>
+            </Tooltip>
+          )}
+          {Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="h-8 gap-1 text-xs border-emerald-500/30 text-emerald-400 px-2">
+                  <AudioWaveform className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Karaoke</span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Whisper transkripsiya tayyor — karaoke rejim yoqilgan</TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -624,6 +666,7 @@ export default function LessonDetailPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
+            wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
             className="w-full"
             initialSeekTime={seekTime}
             seekNonce={seekNonce}
@@ -728,6 +771,7 @@ export default function LessonDetailPage() {
                 lessonId={lesson.id}
                 vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
                 sentenceWordMaps={sentenceWordMaps}
+                wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
                 className="w-full"
                 targetLanguage={lesson.targetLanguage || "ar"}
               />

@@ -7,7 +7,7 @@ import {
   Headphones, ChevronDown, ChevronUp, ListMusic
 } from "lucide-react";
 import WordInspector, { type WordInfo } from "./word-inspector";
-import type { SubtitleItem, VocabLookup, SentenceWordMap, WordMapEntry } from "./subtitle-player";
+import type { SubtitleItem, VocabLookup, SentenceWordMap, WordMapEntry, WordTimestampItem } from "./subtitle-player";
 
 declare global {
   interface Window {
@@ -60,12 +60,13 @@ interface ShadowingPlayerProps {
   lessonId?: number;
   vocabulary?: VocabLookup[];
   sentenceWordMaps?: SentenceWordMap[];
+  wordTimestamps?: WordTimestampItem[];
   className?: string;
   readOnly?: boolean;
   targetLanguage?: string;
 }
 
-export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], className = "", readOnly = false, targetLanguage = "ar" }: ShadowingPlayerProps) {
+export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", readOnly = false, targetLanguage = "ar" }: ShadowingPlayerProps) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -323,9 +324,44 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
     playSentence(target);
   }, [playingIndex, activeIndex, subtitles.length, playSentence]);
 
+  const subtitleWordTimings = useMemo(() => {
+    if (!wordTimestamps.length) return new Map<number, { start: number; end: number }[]>();
+    const map = new Map<number, { start: number; end: number }[]>();
+    for (const sub of subtitles) {
+      const subWords = wordTimestamps.filter(wt => wt.start >= sub.startTime - 0.15 && wt.end <= sub.endTime + 0.5);
+      if (subWords.length > 0) {
+        map.set(sub.id, subWords.map(w => ({ start: w.start, end: w.end })));
+      } else {
+        const tokens = tokenizeText(sub.originalText).filter(t => t.word);
+        const duration = sub.endTime - sub.startTime;
+        const wordDur = tokens.length > 0 ? duration / tokens.length : duration;
+        const timings: { start: number; end: number }[] = [];
+        for (let i = 0; i < tokens.length; i++) {
+          timings.push({ start: sub.startTime + i * wordDur, end: sub.startTime + (i + 1) * wordDur });
+        }
+        map.set(sub.id, timings);
+      }
+    }
+    return map;
+  }, [wordTimestamps, subtitles]);
+
+  const getWordKaraokeState = useCallback((subtitle: SubtitleItem, wordIndex: number): "past" | "active" | "future" | null => {
+    const timings = subtitleWordTimings.get(subtitle.id);
+    if (!timings || !timings.length) return null;
+    const wt = timings[wordIndex];
+    if (!wt) return null;
+    if (currentTime >= wt.end) return "past";
+    if (currentTime >= wt.start) return "active";
+    return "future";
+  }, [subtitleWordTimings, currentTime]);
+
   const renderClickableWords = useCallback((text: string, subtitle: SubtitleItem) => {
     const tokens = tokenizeText(text);
     const textIsArabic = isArabic(text);
+    const isActive = activeIndex >= 0 && subtitles[activeIndex]?.id === subtitle.id;
+    const hasKaraoke = isActive && wordTimestamps.length > 0;
+    let wordCounter = 0;
+
     return (
       <span
         dir={textIsArabic ? "rtl" : "ltr"}
@@ -336,24 +372,36 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
           lineHeight: textIsArabic ? "2" : "1.8",
         }}
       >
-        {tokens.map((t, i) => (
-          <span key={i}>
-            {t.prefix && <span>{t.prefix}</span>}
-            {t.word && (
-              <span
-                className="cursor-pointer rounded transition-all duration-150 hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5 hover:underline hover:decoration-primary/40 hover:underline-offset-2"
-                onClick={(e) => handleWordClick(t.word, subtitle, e)}
-                data-testid={`shadow-word-${t.word.toLowerCase()}-${i}`}
-              >
-                {t.word}
-              </span>
-            )}
-            {t.suffix && <span>{t.suffix}</span>}
-          </span>
-        ))}
+        {tokens.map((t, i) => {
+          const wi = t.word ? wordCounter++ : -1;
+          const karaokeState = hasKaraoke && t.word ? getWordKaraokeState(subtitle, wi) : null;
+
+          let karaokeClass = "";
+          if (karaokeState === "active") {
+            karaokeClass = "text-primary bg-primary/20 shadow-[0_0_8px_hsl(var(--primary)/0.3)] scale-105";
+          } else if (karaokeState === "past") {
+            karaokeClass = "text-foreground/40";
+          }
+
+          return (
+            <span key={i}>
+              {t.prefix && <span>{t.prefix}</span>}
+              {t.word && (
+                <span
+                  className={`cursor-pointer rounded transition-all duration-100 ${karaokeClass} hover:bg-primary/15 active:bg-primary/25 hover:text-primary px-0.5 hover:underline hover:decoration-primary/40 hover:underline-offset-2`}
+                  onClick={(e) => handleWordClick(t.word, subtitle, e)}
+                  data-testid={`shadow-word-${t.word.toLowerCase()}-${i}`}
+                >
+                  {t.word}
+                </span>
+              )}
+              {t.suffix && <span>{t.suffix}</span>}
+            </span>
+          );
+        })}
       </span>
     );
-  }, [handleWordClick]);
+  }, [handleWordClick, wordTimestamps, activeIndex, subtitles, currentTime, getWordKaraokeState]);
 
   if (!videoId || !subtitles.length) {
     return (

@@ -241,6 +241,19 @@ export default function LessonDetailPage() {
     const normalizeText = (t: string) => normalizeAlef(stripDiacritics(t)).replace(/[\u060C\u061B\u061F\u06D4.,;?!:]/g, "").replace(/[^\w\u0621-\u064A\u0660-\u0669\s]/g, "").replace(/\s+/g, " ").trim();
 
     if (timedSubs && timedSubs.length > 0) {
+      if (timedSubs.length === sentences.length) {
+        return timedSubs.map((ts, idx) => ({
+          id: idx,
+          sentenceIndex: idx,
+          sentenceIndices: [idx],
+          startTime: ts.startTime,
+          endTime: ts.endTime,
+          originalText: sentences[idx]?.sentence || ts.text,
+          translationUz: sentences[idx]?.translation || "",
+          translationAr: sentences[idx]?.translationAr || "",
+        }));
+      }
+
       const hasLineIndices = sentences.some(s => s.lineIndices && s.lineIndices.length > 0);
 
       if (hasLineIndices) {
@@ -302,19 +315,6 @@ export default function LessonDetailPage() {
           id: it.id, sentenceIndex: it.sentenceIndex, sentenceIndices: it.sentenceIndices,
           startTime: it.startTime, endTime: it.endTime,
           originalText: it.originalText, translationUz: it.translationUz, translationAr: it.translationAr,
-        }));
-      }
-
-      if (timedSubs.length === sentences.length) {
-        return timedSubs.map((ts, idx) => ({
-          id: idx,
-          sentenceIndex: idx,
-          sentenceIndices: [idx],
-          startTime: ts.startTime,
-          endTime: ts.endTime,
-          originalText: sentences[idx]?.sentence || ts.text,
-          translationUz: sentences[idx]?.translation || "",
-          translationAr: sentences[idx]?.translationAr || "",
         }));
       }
 

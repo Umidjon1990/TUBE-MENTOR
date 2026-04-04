@@ -646,7 +646,7 @@ export default function LessonDetailPage() {
               </Tooltip>
             </>
           )}
-          {Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0 && (
+          {(Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0) ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge variant="outline" className="h-8 gap-1 text-xs border-emerald-500/30 text-emerald-400 px-2">
@@ -654,9 +654,19 @@ export default function LessonDetailPage() {
                   <span className="hidden sm:inline">Karaoke</span>
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>Whisper transkripsiya tayyor — karaoke rejim yoqilgan</TooltipContent>
+              <TooltipContent>Whisper transkripsiya — aniq karaoke rejim</TooltipContent>
             </Tooltip>
-          )}
+          ) : (Array.isArray(lesson.subtitlesJson) && lesson.subtitlesJson.length > 0) ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="h-8 gap-1 text-xs border-yellow-500/30 text-yellow-400 px-2">
+                  <AudioWaveform className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Karaoke</span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>Subtitle asosida karaoke — so'zlar taqsimiy vaqt bilan</TooltipContent>
+            </Tooltip>
+          ) : null}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

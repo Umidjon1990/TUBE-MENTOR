@@ -386,10 +386,12 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   }, [translationLang]);
 
   const subtitleWordTimings = useMemo(() => {
-    if (!wordTimestamps.length) return new Map<number, { start: number; end: number }[]>();
+    if (!subtitles.length) return new Map<number, { start: number; end: number }[]>();
     const map = new Map<number, { start: number; end: number }[]>();
     for (const sub of subtitles) {
-      const subWords = wordTimestamps.filter(wt => wt.start >= sub.startTime - 0.15 && wt.end <= sub.endTime + 0.5);
+      const subWords = wordTimestamps.length > 0
+        ? wordTimestamps.filter(wt => wt.start >= sub.startTime - 0.15 && wt.end <= sub.endTime + 0.5)
+        : [];
       if (subWords.length > 0) {
         map.set(sub.id, subWords.map(w => ({ start: w.start, end: w.end })));
       } else {
@@ -420,7 +422,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     const tokens = tokenizeText(text);
     const textIsArabic = isArabic(text);
     const isActive = activeIndex >= 0 && subtitles[activeIndex]?.id === subtitle.id;
-    const hasKaraoke = isActive && wordTimestamps.length > 0;
+    const hasKaraoke = isActive && subtitleWordTimings.has(subtitle.id);
     let wordCounter = 0;
 
     return (
@@ -470,7 +472,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         })}
       </span>
     );
-  }, [handleWordClick, wordTimestamps, activeIndex, subtitles, currentTime, getWordKaraokeState]);
+  }, [handleWordClick, subtitleWordTimings, activeIndex, subtitles, currentTime, getWordKaraokeState]);
 
   const renderTranslationText = useCallback((text: string, isOverlayCtx: boolean) => {
     const textIsArabic = isArabic(text);

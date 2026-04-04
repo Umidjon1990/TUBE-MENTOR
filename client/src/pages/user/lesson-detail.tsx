@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
-import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap, parseWordTimestamps } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap, type WordTimestampItem, parseWordTimestamps } from "@/components/subtitle-player";
 import ShadowingPlayer from "@/components/shadowing-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -794,6 +794,11 @@ export default function LessonDetailPage() {
               lessonId={parseInt(lessonId!)}
               bookmarks={userBookmarks}
               flashcards={flashcards}
+              wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
+              onPlayWordAudio={(startTime) => {
+                setSeekTime(startTime);
+                setSeekNonce(n => n + 1);
+              }}
             />
           </TabsContent>
 
@@ -870,12 +875,14 @@ interface EditSentenceForm {
 }
 
 function TranscriptTab({
-  sentences, lessonId, bookmarks, flashcards
+  sentences, lessonId, bookmarks, flashcards, wordTimestamps, onPlayWordAudio
 }: {
   sentences: SentenceAnalysis[];
   lessonId: number;
   bookmarks: BookmarkType[];
   flashcards: Flashcard[];
+  wordTimestamps?: WordTimestampItem[];
+  onPlayWordAudio?: (startTime: number, endTime: number) => void;
 }) {
   const { toast } = useToast();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
@@ -883,6 +890,28 @@ function TranscriptTab({
   const [translationMode, setTranslationMode] = useState<TranslationMode>("uz");
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<EditSentenceForm | null>(null);
+
+  const playWord = useCallback((word: string, sentenceStartTime?: number) => {
+    if (!wordTimestamps?.length || !onPlayWordAudio) return;
+    const cleanWord = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+    if (!cleanWord) return;
+    const candidates = wordTimestamps.filter(wt => {
+      const wtClean = wt.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+      return wtClean === cleanWord || wtClean.includes(cleanWord) || cleanWord.includes(wtClean);
+    });
+    if (!candidates.length) return;
+    let best = candidates[0];
+    if (sentenceStartTime != null) {
+      let bestDist = Math.abs(best.start - sentenceStartTime);
+      for (let i = 1; i < candidates.length; i++) {
+        const dist = Math.abs(candidates[i].start - sentenceStartTime);
+        if (dist < bestDist) { best = candidates[i]; bestDist = dist; }
+      }
+    }
+    onPlayWordAudio(best.start, best.end);
+  }, [wordTimestamps, onPlayWordAudio]);
+
+  const hasWordTimings = !!wordTimestamps?.length && !!onPlayWordAudio;
 
   const openEdit = (idx: number) => {
     const s = sentences[idx];
@@ -1078,7 +1107,13 @@ function TranscriptTab({
                                   {s.wordMap.map((wm, wi) => (
                                     <Tooltip key={wi}>
                                       <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="text-xs cursor-help py-1">
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-xs py-1 ${hasWordTimings ? "cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors" : "cursor-help"}`}
+                                          onClick={hasWordTimings ? () => playWord(wm.word) : undefined}
+                                          data-testid={`badge-word-${idx}-${wi}`}
+                                        >
+                                          {hasWordTimings && <Volume2 className="w-3 h-3 mr-1 text-primary/60" />}
                                           {wm.word}
                                         </Badge>
                                       </TooltipTrigger>

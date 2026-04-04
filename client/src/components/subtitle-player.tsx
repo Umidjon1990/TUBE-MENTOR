@@ -125,6 +125,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  const wordPlaybackEndRef = useRef<number | null>(null);
+
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -204,10 +206,9 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
     if (!selectedWord) {
       wasPlayingRef.current = isPlaying;
-      if (playerRef.current && isReady && isPlaying) {
-        playerRef.current.pauseVideo();
-      }
     }
+
+    playWordAudio(cleanWord, subtitle.startTime);
 
     const normalizedWord = normalizeArabic(cleanWord).toLowerCase();
     const plainWord = cleanWord.toLowerCase();
@@ -227,6 +228,8 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
     const transAr = wmEntry?.translationAr || vocabEntry?.translationAr || "";
 
+    const hasWordTiming = !!findWordTiming(cleanWord, subtitle.startTime);
+
     setSelectedWord({
       word: cleanWord,
       normalized: cleanWord.toLowerCase(),
@@ -238,13 +241,15 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       sourceSentenceAr: subtitle.translationAr || "",
       subtitleTime: subtitle.startTime,
       lessonId: lessonId || 0,
+      hasAudio: hasWordTiming,
     });
     setAnchorRect(rect);
-  }, [vocabMap, wordMapLookup, lessonId, isReady, isPlaying, selectedWord, normalizeArabic]);
+  }, [vocabMap, wordMapLookup, lessonId, isReady, isPlaying, selectedWord, normalizeArabic, playWordAudio, findWordTiming]);
 
   const closeInspector = useCallback(() => {
     setSelectedWord(null);
     setAnchorRect(null);
+    wordPlaybackEndRef.current = null;
     if (wasPlayingRef.current && playerRef.current && isReady) {
       playerRef.current.playVideo();
       wasPlayingRef.current = false;
@@ -311,9 +316,15 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       timerRef.current = setInterval(() => {
         try {
           const t = playerRef.current.getCurrentTime();
-          if (typeof t === "number") setCurrentTime(t);
+          if (typeof t === "number") {
+            setCurrentTime(t);
+            if (wordPlaybackEndRef.current !== null && t >= wordPlaybackEndRef.current) {
+              playerRef.current.pauseVideo();
+              wordPlaybackEndRef.current = null;
+            }
+          }
         } catch {}
-      }, 200);
+      }, 150);
     } else {
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     }
@@ -350,6 +361,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
 
   const togglePlayPause = useCallback(() => {
     if (!playerRef.current || !isReady) return;
+    wordPlaybackEndRef.current = null;
     if (isPlaying) playerRef.current.pauseVideo();
     else playerRef.current.playVideo();
   }, [isPlaying, isReady]);
@@ -381,6 +393,33 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
     const target = activeIndex < subtitles.length - 1 ? activeIndex + 1 : subtitles.length - 1;
     seekTo(subtitles[target].startTime);
   }, [activeIndex, subtitles, seekTo]);
+
+  const findWordTiming = useCallback((word: string, subtitleStartTime: number): { start: number; end: number } | null => {
+    if (!wordTimestamps.length) return null;
+    const cleanWord = word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+    if (!cleanWord) return null;
+    const candidates = wordTimestamps.filter(wt => {
+      const wtClean = wt.word.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "").toLowerCase();
+      return wtClean === cleanWord || wtClean.includes(cleanWord) || cleanWord.includes(wtClean);
+    });
+    if (!candidates.length) return null;
+    let best = candidates[0];
+    let bestDist = Math.abs(best.start - subtitleStartTime);
+    for (let i = 1; i < candidates.length; i++) {
+      const dist = Math.abs(candidates[i].start - subtitleStartTime);
+      if (dist < bestDist) { best = candidates[i]; bestDist = dist; }
+    }
+    return { start: best.start, end: best.end };
+  }, [wordTimestamps]);
+
+  const playWordAudio = useCallback((word: string, subtitleStartTime: number) => {
+    if (!playerRef.current || !isReady) return;
+    const timing = findWordTiming(word, subtitleStartTime);
+    if (!timing) return;
+    wordPlaybackEndRef.current = timing.end + 0.3;
+    playerRef.current.seekTo(timing.start, true);
+    playerRef.current.playVideo();
+  }, [isReady, findWordTiming]);
 
   const replayCurrentSubtitle = useCallback(() => {
     if (activeIndex >= 0 && subtitles[activeIndex]) {
@@ -893,6 +932,7 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
           wordInfo={selectedWord}
           anchorRect={anchorRect}
           onClose={closeInspector}
+          onPlayWord={playWordAudio}
           isMobile={isMobile}
           readOnly={readOnly}
           targetLanguage={targetLanguage}

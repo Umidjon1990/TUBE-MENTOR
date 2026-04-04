@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { X, BookmarkPlus, Check } from "lucide-react";
+import { X, BookmarkPlus, Check, Volume2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,12 +16,14 @@ export interface WordInfo {
   sourceSentenceAr?: string;
   subtitleTime: number;
   lessonId: number;
+  hasAudio?: boolean;
 }
 
 interface WordInspectorProps {
   wordInfo: WordInfo | null;
   anchorRect: DOMRect | null;
   onClose: () => void;
+  onPlayWord?: (word: string, subtitleTime: number) => void;
   isMobile: boolean;
   readOnly?: boolean;
   targetLanguage?: string;
@@ -77,7 +79,7 @@ function highlightWord(sentence: string, word: string, color: "cyan" | "amber" =
   );
 }
 
-export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile, readOnly = false, targetLanguage = "ar" }: WordInspectorProps) {
+export default function WordInspector({ wordInfo, anchorRect, onClose, onPlayWord, isMobile, readOnly = false, targetLanguage = "ar" }: WordInspectorProps) {
   const [saved, setSaved] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -166,14 +168,27 @@ export default function WordInspector({ wordInfo, anchorRect, onClose, isMobile,
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{wordLabel}</p>
-          <h3
-            className="text-2xl font-bold text-foreground break-words"
-            dir={isArabic ? "rtl" : "ltr"}
-            style={isArabic ? { fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" } : { lineHeight: "1.4" }}
-            data-testid="text-inspector-word"
-          >
-            {wordInfo.word}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3
+              className="text-2xl font-bold text-foreground break-words"
+              dir={isArabic ? "rtl" : "ltr"}
+              style={isArabic ? { fontFamily: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: "1.6" } : { lineHeight: "1.4" }}
+              data-testid="text-inspector-word"
+            >
+              {wordInfo.word}
+            </h3>
+            {wordInfo.hasAudio && onPlayWord && (
+              <Button
+                variant="ghost" size="icon"
+                className="shrink-0 h-8 w-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary"
+                onClick={() => onPlayWord(wordInfo.word, wordInfo.subtitleTime)}
+                title="Eshitish"
+                data-testid="button-play-word-audio"
+              >
+                <Volume2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <Button
           variant="ghost" size="icon"

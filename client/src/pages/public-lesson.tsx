@@ -427,24 +427,28 @@ export default function PublicLessonPage() {
             <Headphones className="w-4 h-4" />
             <span className="hidden sm:inline text-xs">Audiosi</span>
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 shrink-0 border-primary/30 hover:bg-primary/10"
-            onClick={() => setExportOpen(true)}
-            data-testid="button-export"
-          >
-            <Download className="w-4 h-4" />
-          </Button>
+          {lesson.downloadEnabled !== false && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 shrink-0 border-primary/30 hover:bg-primary/10"
+              onClick={() => setExportOpen(true)}
+              data-testid="button-export"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
-        <ExportStudio
-          open={exportOpen}
-          onOpenChange={setExportOpen}
-          lessonData={exportData}
-          onExport={handleExport}
-          isExporting={isExporting}
-        />
+        {lesson.downloadEnabled !== false && (
+          <ExportStudio
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            lessonData={exportData}
+            onExport={handleExport}
+            isExporting={isExporting}
+          />
+        )}
 
         {lesson.youtubeUrl && /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(lesson.youtubeUrl) ? (
           <SubtitlePlayer

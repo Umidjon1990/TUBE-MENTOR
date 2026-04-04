@@ -62,6 +62,7 @@ export const lessons = pgTable("lessons", {
   aiMetaJson: json("ai_meta_json"),
   moderationNote: text("moderation_note"),
   isFeatured: boolean("is_featured").default(false).notNull(),
+  downloadEnabled: boolean("download_enabled").default(true).notNull(),
   createdBy: varchar("created_by").references(() => users.id),
   approvedBy: varchar("approved_by").references(() => users.id),
   publishedBy: varchar("published_by").references(() => users.id),

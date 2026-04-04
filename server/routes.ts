@@ -740,6 +740,17 @@ export async function registerRoutes(
     res.json(updated);
   });
 
+  app.patch("/api/user/lessons/:id/download-toggle", requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+    const enabled = !lesson.downloadEnabled;
+    const updated = await storage.updateLesson(id, { downloadEnabled: enabled });
+    res.json(updated);
+  });
+
   const wordMapItemSchema = z.object({
     word: z.string().max(200),
     normalized: z.string().max(200).optional().default(""),

@@ -185,6 +185,7 @@ shared/
   - `backAr` per flashcard
   - `summaryShortAr` / `summaryDetailedAr` for lesson summaries
 - Schema columns: `summary_short_ar`, `summary_detailed_ar` on lessons table
+- Schema column: `download_enabled` (boolean, default true) — teacher can toggle PDF/DOCX download for students
 - Mock fallback includes Arabic data for testing
 
 ## API Routes

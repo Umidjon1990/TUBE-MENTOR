@@ -25,7 +25,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones, Search, Pencil, RefreshCw
+  Download, Headphones, Search, Pencil, RefreshCw, XCircle
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -152,6 +152,19 @@ export default function LessonDetailPage() {
     },
     onError: () => {
       toast({ title: "Xatolik", description: "Darsni olib tashlashda xatolik yuz berdi.", variant: "destructive" });
+    },
+  });
+
+  const downloadToggleMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", `/api/user/lessons/${lessonId}/download-toggle`);
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      toast({ title: lesson?.downloadEnabled ? "Yuklab olish o'chirildi" : "Yuklab olish yoqildi" });
+    },
+    onError: () => {
+      toast({ title: "Xatolik", variant: "destructive" });
     },
   });
 
@@ -541,6 +554,24 @@ export default function LessonDetailPage() {
               <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
             </Button>
           )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`h-8 gap-1 text-xs ${lesson.downloadEnabled ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10" : "border-red-500/30 text-red-400 hover:bg-red-500/10"}`}
+                onClick={() => downloadToggleMutation.mutate()}
+                disabled={downloadToggleMutation.isPending}
+                data-testid="button-download-toggle"
+              >
+                {lesson.downloadEnabled ? <Download className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">{lesson.downloadEnabled ? "PDF yoqilgan" : "PDF o'chirilgan"}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {lesson.downloadEnabled ? "O'quvchilar PDF/DOCX yuklab olishi mumkin. Bosib o'chiring." : "PDF/DOCX yuklab olish o'chirilgan. Bosib yoqing."}
+            </TooltipContent>
+          </Tooltip>
           <Link href={`/dictionary?lang=${lesson.targetLanguage || "ar"}`}>
             <Button
               variant="outline"

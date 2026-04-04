@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link, useSearch } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
-import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap, type WordTimestampItem, parseWordTimestamps } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap, type WordTimestampItem, type SubtitlePlayerHandle, parseWordTimestamps } from "@/components/subtitle-player";
 import ShadowingPlayer from "@/components/shadowing-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,6 +94,7 @@ export default function LessonDetailPage() {
 
   const [seekTime, setSeekTime] = useState<number | undefined>(undefined);
   const [seekNonce, setSeekNonce] = useState(0);
+  const subtitlePlayerRef = useRef<SubtitlePlayerHandle>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(searchString);
@@ -732,6 +733,7 @@ export default function LessonDetailPage() {
 
         {lesson.youtubeUrl && /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/.test(lesson.youtubeUrl) ? (
           <SubtitlePlayer
+            ref={subtitlePlayerRef}
             youtubeUrl={lesson.youtubeUrl}
             subtitles={subtitles}
             lessonId={lesson.id}
@@ -795,9 +797,13 @@ export default function LessonDetailPage() {
               bookmarks={userBookmarks}
               flashcards={flashcards}
               wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
-              onPlayWordAudio={(startTime) => {
-                setSeekTime(startTime);
-                setSeekNonce(n => n + 1);
+              onPlayWordAudio={(startTime, endTime) => {
+                if (subtitlePlayerRef.current) {
+                  subtitlePlayerRef.current.playWordSegment(startTime, endTime);
+                } else {
+                  setSeekTime(startTime);
+                  setSeekNonce(n => n + 1);
+                }
               }}
             />
           </TabsContent>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useImperativeHandle, forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -118,7 +118,11 @@ interface SubtitlePlayerProps {
   targetLanguage?: string;
 }
 
-export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }: SubtitlePlayerProps) {
+export interface SubtitlePlayerHandle {
+  playWordSegment: (start: number, end: number) => void;
+}
+
+const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }, ref) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -140,6 +144,15 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
   const [isLooping, setIsLooping] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(() => window.innerWidth < 768);
   const [subtitleZoom, setSubtitleZoom] = useState(1);
+
+  useImperativeHandle(ref, () => ({
+    playWordSegment: (start: number, end: number) => {
+      if (!playerRef.current || !isReady) return;
+      wordPlaybackEndRef.current = end + 0.3;
+      playerRef.current.seekTo(start, true);
+      playerRef.current.playVideo();
+    },
+  }), [isReady]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -945,4 +958,6 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
       )}
     </div>
   );
-}
+});
+
+export default SubtitlePlayer;

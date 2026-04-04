@@ -1,9 +1,39 @@
-import { spawn } from "child_process";
-import { writeFile, unlink, readFile, stat } from "fs/promises";
+import { spawn, execSync } from "child_process";
+import { writeFile, unlink, readFile, stat, access } from "fs/promises";
 import { randomUUID } from "crypto";
 import { tmpdir } from "os";
 import { join } from "path";
 import OpenAI, { toFile } from "openai";
+import { constants } from "fs";
+
+const YT_DLP_LOCAL = "/tmp/yt-dlp-latest";
+
+function getYtDlpPath(): string {
+  try {
+    execSync(`test -x ${YT_DLP_LOCAL}`, { stdio: "ignore" });
+    return YT_DLP_LOCAL;
+  } catch {
+    return "yt-dlp";
+  }
+}
+
+export async function ensureLatestYtDlp(): Promise<void> {
+  try {
+    execSync(`test -x ${YT_DLP_LOCAL}`, { stdio: "ignore" });
+    return;
+  } catch {}
+  try {
+    console.log("[Whisper] Downloading latest yt-dlp...");
+    execSync(
+      `curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ${YT_DLP_LOCAL} && chmod +x ${YT_DLP_LOCAL}`,
+      { timeout: 30000 }
+    );
+    const ver = execSync(`${YT_DLP_LOCAL} --version`, { encoding: "utf-8" }).trim();
+    console.log(`[Whisper] yt-dlp updated to ${ver}`);
+  } catch (err: any) {
+    console.warn("[Whisper] Failed to download latest yt-dlp, using system version:", err?.message);
+  }
+}
 
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
@@ -46,7 +76,7 @@ export async function downloadYouTubeAudio(videoId: string): Promise<Buffer> {
   const url = `https://www.youtube.com/watch?v=${videoId}`;
 
   await new Promise<void>((resolve, reject) => {
-    const proc = spawn("yt-dlp", [
+    const proc = spawn(getYtDlpPath(), [
       "-x",
       "--audio-format", "mp3",
       "--audio-quality", "5",
@@ -220,6 +250,7 @@ export async function transcribeWithWhisper(audioBuffer: Buffer, language?: stri
 }
 
 export async function transcribeYouTubeVideo(videoId: string, language?: string): Promise<WhisperResult> {
+  await ensureLatestYtDlp();
   console.log(`[Whisper] Downloading audio for video: ${videoId}...`);
   const audioBuffer = await downloadYouTubeAudio(videoId);
   console.log(`[Whisper] Audio downloaded: ${(audioBuffer.length / 1024 / 1024).toFixed(1)}MB`);

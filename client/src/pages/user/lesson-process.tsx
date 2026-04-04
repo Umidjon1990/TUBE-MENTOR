@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Loader2, Sparkles, FileText, AlertTriangle,
   CheckCircle2, RefreshCcw, Type, BookOpenCheck,
-  ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste
+  ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste, AudioWaveform
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { jsonrepair } from "jsonrepair";
@@ -155,6 +155,33 @@ export default function LessonProcessPage() {
     transcriptMutation.mutate({ mode: "demo" });
   }
 
+  const whisperMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/user/lessons/${lessonId}/whisper-transcribe`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.transcript) {
+        setTranscriptPreview(data.transcript);
+        setTranscriptSource("whisper");
+        setSentenceCount(0);
+        setStep("transcript-ready");
+        queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+        toast({ title: "Whisper transkripsiya tayyor!", description: `${data.wordCount} ta so'z aniqlandi` });
+      } else {
+        toast({ title: "Xatolik", description: "Whisper natija bermadi", variant: "destructive" });
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Whisper xatolik", description: parseError(error), variant: "destructive" });
+    },
+  });
+
+  function attemptWhisper() {
+    setStep("extracting");
+    whisperMutation.mutate();
+  }
+
   function startGeneration() {
     setStep("generating");
     generateMutation.mutate();
@@ -198,13 +225,15 @@ export default function LessonProcessPage() {
           </div>
         )}
 
-        {step === "extracting" && <ExtractingState />}
+        {step === "extracting" && <ExtractingState isWhisper={whisperMutation.isPending} />}
         {step === "no-transcript" && (
           <NoTranscriptState
             onRetry={attemptAutoExtract}
             onManual={() => setStep("manual-input")}
             onDemo={useDemo}
+            onWhisper={attemptWhisper}
             isRetrying={transcriptMutation.isPending}
+            isWhispering={whisperMutation.isPending}
           />
         )}
         {step === "manual-input" && (
@@ -296,17 +325,21 @@ function StepIndicator({ step }: { step: ProcessStep }) {
   );
 }
 
-function ExtractingState() {
+function ExtractingState({ isWhisper = false }: { isWhisper?: boolean }) {
   return (
-    <Card className="glass border-primary/20" data-testid="card-extracting">
+    <Card className={`glass ${isWhisper ? "border-amber-500/20" : "border-primary/20"}`} data-testid="card-extracting">
       <CardContent className="p-8">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-cyan-500/10 flex items-center justify-center mb-4">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${isWhisper ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10" : "bg-gradient-to-br from-primary/10 to-cyan-500/10"}`}>
+            {isWhisper ? <AudioWaveform className="w-8 h-8 text-amber-400 animate-pulse" /> : <Loader2 className="w-8 h-8 text-primary animate-spin" />}
           </div>
-          <h3 className="text-lg font-semibold mb-2">Transkript olinmoqda...</h3>
+          <h3 className="text-lg font-semibold mb-2">
+            {isWhisper ? "Whisper AI transkripsiya qilmoqda..." : "Transkript olinmoqda..."}
+          </h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            YouTube videosidan subtitle va transkript ma'lumotlari olinmoqda. Bu bir necha soniya davom etishi mumkin.
+            {isWhisper
+              ? "Audio yuklanmoqda va Whisper AI orqali so'zma-so'z transkripsiya qilinmoqda. Bu 1-3 daqiqa davom etishi mumkin."
+              : "YouTube videosidan subtitle va transkript ma'lumotlari olinmoqda. Bu bir necha soniya davom etishi mumkin."}
           </p>
         </div>
       </CardContent>
@@ -318,12 +351,16 @@ function NoTranscriptState({
   onRetry,
   onManual,
   onDemo,
+  onWhisper,
   isRetrying,
+  isWhispering,
 }: {
   onRetry: () => void;
   onManual: () => void;
   onDemo: () => void;
+  onWhisper: () => void;
   isRetrying: boolean;
+  isWhispering: boolean;
 }) {
   return (
     <Card className="glass border-orange-500/20" data-testid="card-no-transcript">
@@ -352,6 +389,22 @@ function NoTranscriptState({
             <div className="text-left">
               <p className="text-sm font-medium">Qayta urinib ko'rish</p>
               <p className="text-xs text-muted-foreground">Subtitlerni avtomatik olishga yana urinish</p>
+            </div>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-auto py-4 px-4 border-amber-500/20 hover:border-amber-500/40"
+            onClick={onWhisper}
+            disabled={isWhispering}
+            data-testid="button-whisper-transcript"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              {isWhispering ? <Loader2 className="w-5 h-5 text-amber-400 animate-spin" /> : <AudioWaveform className="w-5 h-5 text-amber-400" />}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium">Whisper AI bilan transkripsiya</p>
+              <p className="text-xs text-muted-foreground">Audio'dan so'zma-so'z matn olish (1-3 daqiqa)</p>
             </div>
           </Button>
 

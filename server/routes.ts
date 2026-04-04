@@ -773,15 +773,31 @@ export async function registerRoutes(
         end: Math.round(w.end * 1000) / 1000,
       }));
 
-      const updated = await storage.updateLesson(id, {
+      const subtitlesFromWhisper = result.segments.map(seg => ({
+        startTime: Math.round(seg.start * 1000) / 1000,
+        endTime: Math.round(seg.end * 1000) / 1000,
+        text: seg.text.trim(),
+      }));
+
+      const updateData: Record<string, any> = {
         wordTimestampsJson: wordTimestamps,
         transcriptSource: "whisper",
-      });
+      };
+
+      if (!lesson.transcript && result.text) {
+        updateData.transcript = result.text;
+      }
+      if ((!lesson.subtitlesJson || (Array.isArray(lesson.subtitlesJson) && lesson.subtitlesJson.length === 0)) && subtitlesFromWhisper.length > 0) {
+        updateData.subtitlesJson = subtitlesFromWhisper;
+      }
+
+      const updated = await storage.updateLesson(id, updateData);
 
       res.json({
         success: true,
         wordCount: wordTimestamps.length,
         language: result.language,
+        transcript: result.text,
         lesson: updated,
       });
     } catch (err: any) {

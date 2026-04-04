@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,8 +14,6 @@ import {
   ArrowRight,
   Zap,
   Star,
-  CheckCircle2,
-  ChevronRight,
   Globe,
   Mic,
   Brain,
@@ -42,42 +40,9 @@ const langCardData: Record<string, { emoji: string; gradient: string; iconBg: st
   },
 };
 
-function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+function LanguageSection() {
+  const [hoveredLang, setHoveredLang] = useState<string | null>(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !started.current) {
-          started.current = true;
-          let current = 0;
-          const step = Math.ceil(target / 40);
-          const interval = setInterval(() => {
-            current += step;
-            if (current >= target) {
-              current = target;
-              clearInterval(interval);
-            }
-            setCount(current);
-          }, 30);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-
-  return (
-    <div ref={ref} className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
-      {count}{suffix}
-    </div>
-  );
-}
-
-function HeroSection() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 hero-gradient-bright" />
@@ -85,104 +50,19 @@ function HeroSection() {
         <div className="absolute top-10 left-[10%] w-64 h-64 rounded-full bg-primary/20 blur-[80px] animate-float-slow" />
         <div className="absolute top-20 right-[15%] w-72 h-72 rounded-full bg-violet-500/15 blur-[80px] animate-float-slow-reverse" />
         <div className="absolute bottom-10 left-[30%] w-80 h-80 rounded-full bg-cyan-400/15 blur-[100px] animate-float-slow" />
-        <div className="absolute top-1/3 right-[5%] w-48 h-48 rounded-full bg-amber-400/10 blur-[60px]" />
       </div>
-
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,hsl(var(--background)/0.4)_100%)]" />
 
-      <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-12 md:pt-20 pb-16 md:pb-28">
-        <div className="flex flex-col items-center text-center gap-6 md:gap-8">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5">
-            <Zap className="w-4 h-4 text-primary" />
-            <span
-              className="text-sm font-semibold text-primary tracking-wide"
-              data-testid="text-badge-ai"
-            >
-              AI YORDAMIDA VIDEO DARSLIKLAR
-            </span>
-          </div>
-
-          <h1
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl leading-[1.08]"
-            data-testid="text-hero-title"
-          >
-            <span className="text-foreground">YouTube videolaridan</span>
-            <br />
-            <span className="hero-title-gradient">
-              MUKAMMAL DARSLIK
-            </span>
-          </h1>
-
-          <p
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed"
-            data-testid="text-hero-description"
-          >
-            Istalgan YouTube videosidan professional darsliklar tayyorlang.
-            <br className="hidden sm:block" />
-            O'qituvchi yaratadi — o'quvchilar foydalanadi.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
-            <Link href="/library">
-              <Button
-                size="lg"
-                className="hero-cta-button px-8 h-12 text-base font-semibold"
-                data-testid="button-get-started"
-              >
-                <PlayCircle className="w-5 h-5 mr-2" />
-                Boshlash
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-            <a href="#features">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-border/60 hover:border-primary/40 hover:bg-primary/5 px-8 h-12 text-base font-semibold transition-all duration-300"
-                data-testid="button-learn-more"
-              >
-                <BookOpen className="w-5 h-5 mr-2" />
-                Batafsil
-              </Button>
-            </a>
-          </div>
-
-          <div className="flex items-center gap-8 mt-4 flex-wrap justify-center">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>Bepul foydalanish</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>AI bilan tahlil</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>So'zma-so'z tarjima</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function LanguageSection() {
-  const [hoveredLang, setHoveredLang] = useState<string | null>(null);
-
-  return (
-    <section className="relative py-16 md:py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent" />
-      <div className="relative max-w-5xl mx-auto px-4 md:px-6">
+      <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-12 md:pt-20 pb-16 md:pb-24">
         <div className="flex flex-col items-center text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/15">
             <Globe className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Til tanlang</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3" data-testid="text-language-title">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3" data-testid="text-language-title">
             Qaysi tilni o'rganmoqchisiz?
-          </h2>
-          <p className="text-muted-foreground max-w-lg">
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-lg">
             Tilni tanlang va video darsliklardan foydalaning
           </p>
         </div>
@@ -243,15 +123,19 @@ function LanguageSection() {
                         </div>
                       </div>
 
-                      <div
-                        className={`
-                          flex items-center gap-2 mt-5 pt-4 border-t border-border/30
-                          text-sm font-semibold transition-all duration-300
-                          ${isHovered ? "text-primary" : "text-muted-foreground"}
-                        `}
-                      >
-                        <span>Darslarni ko'rish</span>
-                        <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1.5" : ""}`} />
+                      <div className="mt-5 pt-4 border-t border-border/30">
+                        <Button
+                          className={`w-full h-11 font-semibold text-sm transition-all duration-300 ${
+                            isHovered
+                              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                              : "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+                          }`}
+                          data-testid={`button-start-${lang.code}`}
+                        >
+                          <PlayCircle className="w-4 h-4 mr-2" />
+                          Boshlash
+                          <ArrowRight className={`w-4 h-4 ml-2 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`} />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -259,32 +143,6 @@ function LanguageSection() {
               </Link>
             );
           })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StatsSection() {
-  return (
-    <section className="relative py-10 md:py-16">
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {[
-            { value: 100, suffix: "+", label: "Video darsliklar" },
-            { value: 2, suffix: "", label: "Til mavjud" },
-            { value: 50, suffix: "+", label: "So'z tahlili" },
-            { value: 10, suffix: "+", label: "Test savollari" },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="flex flex-col items-center text-center p-4 rounded-2xl bg-card/50 border border-border/40 backdrop-blur-sm"
-              data-testid={`stat-card-${i}`}
-            >
-              <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-              <span className="text-sm text-muted-foreground mt-1 font-medium">{stat.label}</span>
-            </div>
-          ))}
         </div>
       </div>
     </section>
@@ -512,8 +370,6 @@ function CTASection() {
 export default function Home() {
   return (
     <PublicLayout>
-      <HeroSection />
-      <StatsSection />
       <LanguageSection />
       <FeaturesSection />
       <HowItWorksSection />

@@ -482,47 +482,6 @@ export default function PublicLessonPage() {
         ) : null}
 
         <div className="px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
-          <div className="space-y-2">
-            <h1 className="text-xl md:text-2xl font-bold" data-testid="text-lesson-title">
-              {lesson.title}
-            </h1>
-            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-              <Badge variant="outline" className={levelColors[lesson.level] || ""} data-testid="badge-level">
-                {levelLabels[lesson.level] || lesson.level}
-              </Badge>
-              {lesson.isFeatured && (
-                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" data-testid="badge-featured">
-                  <Star className="w-3 h-3 mr-1 fill-current" /> Tavsiya etilgan
-                </Badge>
-              )}
-              {lesson.categoryName && (
-                <Badge variant="secondary" data-testid="badge-category">
-                  <FolderOpen className="w-3 h-3 mr-1" /> {lesson.categoryName}
-                </Badge>
-              )}
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <User className="w-3 h-3" /> {lesson.creatorName}
-              </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <BookOpen className="w-3 h-3" /> {sentences.length} gap
-              </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Languages className="w-3 h-3" /> {vocabulary.length} so'z
-              </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Brain className="w-3 h-3" /> {quizzes.length} test
-              </span>
-            </div>
-
-            {lesson.summaryShort && (
-              <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-summary-short">
-                {lesson.summaryShort}
-              </p>
-            )}
-          </div>
-
-          <Separator />
-
           <Tabs defaultValue="matn" className="w-full">
             <TabsList className="w-full flex overflow-x-auto scrollbar-none gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-public-lesson">
               <TabsTrigger value="matn" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-matn">

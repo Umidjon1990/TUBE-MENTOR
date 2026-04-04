@@ -153,6 +153,13 @@ export default function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabu
         return i;
       }
     }
+    for (let i = subtitles.length - 1; i >= 0; i--) {
+      if (currentTime >= subtitles[i].endTime) {
+        const nextStart = i + 1 < subtitles.length ? subtitles[i + 1].startTime : Infinity;
+        if (currentTime < nextStart) return i;
+        break;
+      }
+    }
     return -1;
   }, [currentTime, subtitles]);
 

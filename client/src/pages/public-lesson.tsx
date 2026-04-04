@@ -462,6 +462,7 @@ export default function PublicLessonPage() {
             initialSeekTime={initialTime}
             readOnly
             targetLanguage={lesson.targetLanguage || "ar"}
+            fullScreenLayout
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">

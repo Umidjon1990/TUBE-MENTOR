@@ -116,13 +116,14 @@ interface SubtitlePlayerProps {
   seekNonce?: number;
   readOnly?: boolean;
   targetLanguage?: string;
+  fullScreenLayout?: boolean;
 }
 
 export interface SubtitlePlayerHandle {
   playWordSegment: (start: number, end: number) => void;
 }
 
-const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }, ref) {
+const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar", fullScreenLayout = false }, ref) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -633,16 +634,16 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   const hasSubtitles = subtitles.length > 0;
 
   return (
-    <div className={`${className}`}>
-      <div className="sticky top-0 z-20 bg-background pb-0 md:pb-1 space-y-0 md:space-y-1">
+    <div className={`${className} ${fullScreenLayout ? "flex flex-col" : ""}`} style={fullScreenLayout ? { height: "calc(100dvh - 100px)" } : undefined}>
+      <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
         <div className="relative overflow-hidden bg-black">
-          <div className="relative aspect-video">
+          <div className="relative" style={fullScreenLayout ? { paddingBottom: "min(56.25%, 35vh)" } : { paddingBottom: "56.25%" }}>
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
           </div>
         </div>
 
         {activeSubtitle && (
-          <div className="bg-black/95 px-3 md:px-6 py-2 md:py-3" data-testid="subtitle-overlay">
+          <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
             <div
               className="max-w-full"
               style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center top" }}
@@ -801,10 +802,10 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
 
       {hasSubtitles && (
         <div
-          className="md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1"
+          className={`${fullScreenLayout ? "flex-1 min-h-0 flex flex-col" : ""} md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1`}
           data-testid="subtitle-panel"
         >
-          <div className="flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30">
+          <div className="shrink-0 flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30">
             <div className="flex items-center gap-1.5">
               <Subtitles className="w-3.5 h-3.5 text-primary" />
               <span className="text-[10px] md:text-xs font-medium">Subtitlelar</span>
@@ -818,7 +819,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
 
           <div
             ref={panelRef}
-            className="h-[45vh] md:h-[50vh] overflow-y-auto scroll-smooth"
+            className={`${fullScreenLayout ? "flex-1 min-h-0" : "max-h-[50vh] md:max-h-[60vh]"} overflow-y-auto scroll-smooth`}
             style={{ fontSize: `${14 * subtitleZoom}px` }}
           >
             <div className="p-1.5 md:p-2 space-y-1">

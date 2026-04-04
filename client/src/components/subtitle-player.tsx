@@ -148,6 +148,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   useImperativeHandle(ref, () => ({
     playWordSegment: (start: number, end: number) => {
       if (!playerRef.current || !isReady) return;
+      playerRef.current.pauseVideo();
       wordPlaybackEndRef.current = end + 0.3;
       playerRef.current.seekTo(start, true);
       playerRef.current.playVideo();
@@ -233,6 +234,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     if (!playerRef.current || !isReady) return;
     const timing = findWordTiming(word, subtitleStartTime);
     if (!timing) return;
+    playerRef.current.pauseVideo();
     wordPlaybackEndRef.current = timing.end + 0.3;
     playerRef.current.seekTo(timing.start, true);
     playerRef.current.playVideo();

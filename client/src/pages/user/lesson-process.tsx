@@ -752,13 +752,22 @@ function buildChatGptPrompt(
   }
 
   const hasTiming = timedLines.length > 0;
+  const isWhisperSegments = !!(subtitlesJson && subtitlesJson.length > 0);
 
   const arabTimedSection = hasTiming
     ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!\n\nVAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i + 1}. [${l.time}] ${l.text}`).join("\n")}\n`
     : "";
 
   const englishTimedSection = hasTiming
-    ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni KETMA-KET GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
+    ? (isWhisperSegments
+      ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!
+- Har bir qator uchun alohida sentenceAnalysis yozilishi SHART
+- "lineIndices" maydoniga shu qatorning raqamini yoz (0 dan boshlab)
+- "translation" maydoni AYNAN shu gapdagi mazmunni tarjima qilsin
+- wordMap: gapdagi HAR BIR so'z tahlili
+
+VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`
+      : `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. Sen bu qatorlarni KETMA-KET GAPLARGA BIRLASHTIRIB tahlil qilishing kerak.
 - Qisqa qatorlarni bitta gapga birlashtirib yoz — LEKIN asl matnni O'ZGARTIRMA, faqat ketma-ket qatorlarni ulashtirib yoz!
 - NOTO'G'RI: Mazmunni qayta yozish, so'zlarni almashtirish, boshqa qatordagi mazmunni qo'shish
 - TO'G'RI: Qatorlarni AYNAN asl holatida birlashtirish (masalan: qator 3 matni + " " + qator 4 matni)
@@ -768,7 +777,7 @@ function buildChatGptPrompt(
 - HECH QACHON 20 so'zdan uzun gap yaratma!
 - "translation" maydoni AYNAN shu birlashtirilgan gapdagi mazmunni tarjima qilsin — BOSHQA gaplar mazmunini qo'shma!
 
-VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`
+VAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i}. [${l.time}] ${l.text}`).join("\n")}\n`)
     : "";
 
   if (targetLanguage === "en") {
@@ -827,8 +836,8 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "ketma-ket qatorlar matnini AYNAN asl holatida birlashtirgan gap (QAYTA YOZMA!)",
-      "translation": "O'ZBEKCHA tarjima — AYNAN shu gap mazmunini tarjima qil",${hasTiming ? '\n      "lineIndices": [0, 1, 2],' : ""}
+      "sentence": "${isWhisperSegments ? "AYNAN vaqtli ro'yxatdagi matn — o'zgartirma!" : "ketma-ket qatorlar matnini AYNAN asl holatida birlashtirgan gap (QAYTA YOZMA!)"}",
+      "translation": "O'ZBEKCHA tarjima — AYNAN shu gap mazmunini tarjima qil",${hasTiming ? '\n      "lineIndices": ' + (isWhisperSegments ? '[0],' : '[0, 1, 2],') : ""}
       "wordMap": [
         {
           "word": "inglizcha so'z",
@@ -857,7 +866,14 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - flashcards: 8-12 ta karta
 - sentenceAnalysis: BARCHA transkript qatorlari qamrab olinishi kerak — HECH BIRINI TASHLAB KETMA!
 
-## 4. SENTENCEANALYSIS — ENG MUHIM
+${isWhisperSegments ? `## 4. SENTENCEANALYSIS — ENG MUHIM
+- Har bir vaqtli qator uchun ALOHIDA sentenceAnalysis yozilishi SHART
+- "sentence" maydoni AYNAN vaqtli ro'yxatdagi matn bo'lishi kerak — O'ZGARTIRMA, BIRLASHTIRMA, BO'LMA!
+- Har bir gap uchun TO'LIQ O'ZBEKCHA tarjima yoz
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
+- "lineIndices": bu gap qaysi vaqtli qator raqamiga mos kelishini ko'rsatadi (0 dan boshlab). Har bir gap faqat BITTA lineIndex ga ega bo'ladi.
+- BARCHA qatorlar qamrab olinishi SHART — BIRONTASINI HAM TASHLAB KETMA!` : `## 4. SENTENCEANALYSIS — ENG MUHIM
 - Transkriptdagi qisqa qatorlarni gaplarga BIRLASHTIR
 - MUHIM: Gapni QAYTA YOZMA! Asl qatorlardagi so'zlarni AYNAN shu tartibda birlashtir!
 - NOTO'G'RI: "She bakes a perfect soufflé, or I could go with Mr. Taylor." (2 ta qatordan mazmun aralashtirilgan!)
@@ -869,7 +885,7 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - Har bir birlashtirilgan gap uchun TO'LIQ O'ZBEKCHA tarjima yoz — tarjima AYNAN shu gapdagi mazmunni tarjima qilsin!
 - wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
 - Har bir so'z uchun faqat 3 ta maydon: word (asl shakl), normalized (asosiy shakl), translationUz (o'zbekcha)
-${hasTiming ? '- "lineIndices": bu gap qaysi vaqtli qator raqamlarini o\'z ichiga olishini ko\'rsatadi (0 dan boshlab). BARCHA qatorlar qamrab olinishi SHART!' : ""}
+${hasTiming ? '- "lineIndices": bu gap qaysi vaqtli qator raqamlarini o\'z ichiga olishini ko\'rsatadi (0 dan boshlab). BARCHA qatorlar qamrab olinishi SHART!' : ""}`}
 
 ## 5. TEXNIK
 - correctIndex: 0 dan boshlanadi (0-3)

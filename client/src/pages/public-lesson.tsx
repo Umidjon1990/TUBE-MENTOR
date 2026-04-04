@@ -117,6 +117,7 @@ export default function PublicLessonPage() {
   });
 
   const [exportOpen, setExportOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("matn");
   const [isExporting, setIsExporting] = useState(false);
 
   const sentences: SentenceAnalysis[] = useMemo(() =>
@@ -419,8 +420,11 @@ export default function PublicLessonPage() {
             size="sm"
             className="h-8 gap-1.5 shrink-0 border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
             onClick={() => {
-              const el = document.getElementById("shadowing-section");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
+              setActiveTab("shadowing");
+              setTimeout(() => {
+                const el = document.getElementById("shadowing-section");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }, 100);
             }}
             data-testid="button-audiosi"
           >
@@ -484,7 +488,7 @@ export default function PublicLessonPage() {
         ) : null}
 
         <div className="px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
-          <Tabs defaultValue="matn" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full flex overflow-x-auto scrollbar-none gap-1 glass border border-border/50 h-auto p-1" data-testid="tabs-public-lesson">
               <TabsTrigger value="matn" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-matn">
                 <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Matn

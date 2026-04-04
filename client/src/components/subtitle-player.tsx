@@ -484,6 +484,31 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     return "future";
   }, [subtitleWordTimings, currentTime]);
 
+  const activeKaraokeTranslation = useMemo(() => {
+    if (activeIndex < 0) return null;
+    const sub = subtitles[activeIndex];
+    if (!sub) return null;
+    const timings = subtitleWordTimings.get(sub.id);
+    if (!timings || !timings.length) return null;
+    const tokens = tokenizeText(sub.originalText).filter(t => t.word);
+    for (let i = 0; i < tokens.length && i < timings.length; i++) {
+      const wt = timings[i];
+      if (currentTime >= wt.start && currentTime < wt.end) {
+        const word = tokens[i].word;
+        const normalized = normalizeArabic(word.toLowerCase());
+        for (const si of sub.sentenceIndices || [sub.sentenceIndex]) {
+          const map = wordMapLookup.get(si);
+          if (map) {
+            const entry = map.get(normalized) || map.get(stripArabicDiacritics(word).toLowerCase());
+            if (entry) return entry.translationUz.toLowerCase();
+          }
+        }
+        break;
+      }
+    }
+    return null;
+  }, [activeIndex, subtitles, subtitleWordTimings, currentTime, wordMapLookup, normalizeArabic, stripArabicDiacritics]);
+
   const renderClickableWords = useCallback((text: string, subtitle: SubtitleItem, isOverlay: boolean) => {
     const tokens = tokenizeText(text);
     const textIsArabic = isArabic(text);
@@ -540,8 +565,41 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     );
   }, [handleWordClick, subtitleWordTimings, activeIndex, subtitles, currentTime, getWordKaraokeState]);
 
-  const renderTranslationText = useCallback((text: string, isOverlayCtx: boolean) => {
+  const renderTranslationText = useCallback((text: string, isOverlayCtx: boolean, isActiveSubtitle?: boolean) => {
     const textIsArabic = isArabic(text);
+    const shouldHighlight = isActiveSubtitle && activeKaraokeTranslation;
+
+    if (shouldHighlight) {
+      const tokens = tokenizeText(text);
+      return (
+        <span
+          dir={textIsArabic ? "rtl" : "ltr"}
+          className="block break-words"
+          style={{
+            textAlign: isOverlayCtx ? "center" : textIsArabic ? "right" : "left",
+            fontFamily: textIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+            lineHeight: textIsArabic ? "1.8" : "1.5",
+          }}
+        >
+          {tokens.map((t, i) => {
+            const wordLower = t.word?.toLowerCase() || "";
+            const isMatch = wordLower && activeKaraokeTranslation && wordLower === activeKaraokeTranslation;
+            return (
+              <span key={i}>
+                {t.prefix && <span>{t.prefix}</span>}
+                {t.word && (
+                  <span className={isMatch ? "text-primary bg-primary/20 rounded px-0.5 shadow-[0_0_8px_hsl(var(--primary)/0.3)] font-semibold transition-all duration-100" : "transition-all duration-100"}>
+                    {t.word}
+                  </span>
+                )}
+                {t.suffix && <span>{t.suffix}</span>}
+              </span>
+            );
+          })}
+        </span>
+      );
+    }
+
     return (
       <span
         dir={textIsArabic ? "rtl" : "ltr"}
@@ -555,7 +613,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
         {text}
       </span>
     );
-  }, []);
+  }, [activeKaraokeTranslation]);
 
   const getAdaptiveFontSize = useCallback((text: string, isTranslation?: boolean) => {
     const len = text.length;
@@ -895,7 +953,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
                             style={{ fontSize: "0.88em" }}
                             onClick={() => seekTo(item.startTime)}
                           >
-                            {renderTranslationText(translation, false)}
+                            {renderTranslationText(translation, false, isActive)}
                           </div>
                         )}
                         {displayMode === "translation" && !translation && (

@@ -414,19 +414,17 @@ export default function PublicLessonPage() {
               <Search className="w-4 h-4" />
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 shrink-0 border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
-            onClick={() => {
-              const el = document.getElementById("shadowing-section");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-            data-testid="button-audiosi"
-          >
-            <Headphones className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs">Audiosi</span>
-          </Button>
+          <Link href={`/lessons/${lesson.id}/shadowing`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 shrink-0 border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
+              data-testid="button-audiosi"
+            >
+              <Headphones className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs">Audiosi</span>
+            </Button>
+          </Link>
           {lesson.downloadEnabled !== false && (
             <Button
               variant="outline"

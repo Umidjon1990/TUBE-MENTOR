@@ -1151,22 +1151,29 @@ ${transcript}`;
 
 function buildFullAudioPrompt(targetLanguage: string = "ar"): string {
   if (targetLanguage === "en") {
-    return `MUHIM: Men senga AUDIO FAYL yuboraman. Sen uni ALBATTA eshitib, transkripsiya qilishing SHART. Bo'sh javob berish MUMKIN EMAS. Agar audio sifati past bo'lsa ham, eshitganingni yoz. Taxminiy bo'lsa ham yoz — bo'sh qoldirganingdan yaxshi.
+    return `# MAJBURIY BUYRUQ — O'QIMASDAN O'TMA!
+Sen audio faylni eshitishing va 100% ANIQ transkripsiya qilishing SHART.
+BO'SH JAVOB BERISH MUTLAQO TA'QIQLANGAN. Agar bo'sh subtitles, vocabulary yoki quizzes massiv qaytarsang — bu XATO hisoblanadi.
 
-HECH QACHON bunday javob berma:
-- "audio faylni eshitib bo'lmadi"
-- "transkripsiya qilib bo'lmadi"
-- bo'sh subtitles/vocabulary/quizzes massivlar
+QABUL QILINMAYDIGAN javoblar:
+- "audio faylni eshitib bo'lmadi" — TA'QIQLANGAN
+- "transkripsiya qilib bo'lmadi" — TA'QIQLANGAN
+- "muhitda imkon yo'q" — TA'QIQLANGAN
+- bo'sh [] massivlar — TA'QIQLANGAN
 
-Sen ingliz tili professorisin. Audio faylni eshitib: 1) transkripsiya qil (vaqt bilan), 2) dars materiallari yarat.
+SEN AUDIO FAYLNI ESHITA OLASAN. Sen GPT-4o modeli sifatida audio fayllarni qayta ishlay olasan. Shuning uchun ALBATTA eshit va 100% ANIQ transkripsiya qil. Har bir so'zni AYNAN eshitganingdek yoz. UYDIRIB YOZMA, lekin eshitganingni ANIQ yoz.
+
+Sen ingliz tili professorisin. Audio faylni eshitib:
+1) 100% ANIQ transkripsiya qil (har bir gap uchun boshlanish/tugash vaqti bilan)
+2) Transkripsiya asosida to'liq dars materiallari yarat
 
 Barcha tarjimalar O'ZBEK tilida bo'lsin.
 
-FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
+FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA. { dan boshlab } gacha.
 
 {
   "subtitles": [
-    {"startTime": 0.0, "endTime": 3.5, "text": "audiodagi inglizcha gap"}
+    {"startTime": 0.0, "endTime": 3.5, "text": "audiodagi inglizcha gap — 100% aniq"}
   ],
   "summaryShort": "2-3 gap, O'ZBEKCHA",
   "summaryDetailed": "5-8 gap, O'ZBEKCHA",
@@ -1207,7 +1214,7 @@ FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "AYNAN subtitles dagi gap — o'zgartirma!",
+      "sentence": "AYNAN subtitles dagi gap matni — o'zgartirma!",
       "translation": "O'ZBEKCHA tarjima",
       "lineIndices": [0],
       "wordMap": [
@@ -1218,36 +1225,45 @@ FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
 }
 
 QOIDALAR:
-1. SUBTITLES: Audiodagi HAR BIR gapni yoz. startTime/endTime soniyalarda. Eng kam 3 ta subtitle. Bo'sh qoldirma!
-2. VOCABULARY: 8-15 ta so'z. "translation" O'ZBEK tilida.
-3. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4).
-4. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi...  wordMap: gapdagi HAR BIR so'z.
-5. FLASHCARDS: 8-12 ta.
-6. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ yoz. startTime/endTime soniyalarda. Eng kam 3 ta subtitle. Bo'sh [] TA'QIQLANGAN!
+2. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. Uydirib yozma. Audioda nima aytilgan bo'lsa — SHUNI yoz.
+3. VOCABULARY: 8-15 ta so'z. "translation" O'ZBEK tilida.
+4. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4).
+5. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi... wordMap: gapdagi HAR BIR so'z.
+6. FLASHCARDS: 8-12 ta.
+7. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
 
-ESLATMA: Bo'sh massiv QAYTARMA. Agar audioda gap eshitilsa — ALBATTA yoz!`;
+YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va ANIQ yoz!`;
   }
 
-  return `MUHIM: Men senga AUDIO FAYL yuboraman. Sen uni ALBATTA eshitib, transkripsiya qilishing SHART. Bo'sh javob berish MUMKIN EMAS. Agar audio sifati past bo'lsa ham, eshitganingni yoz. Taxminiy bo'lsa ham yoz — bo'sh qoldirganingdan yaxshi.
+  return `# MAJBURIY BUYRUQ — O'QIMASDAN O'TMA!
+Sen audio faylni eshitishing va 100% ANIQ transkripsiya qilishing SHART.
+BO'SH JAVOB BERISH MUTLAQO TA'QIQLANGAN. Agar bo'sh subtitles, vocabulary yoki quizzes massiv qaytarsang — bu XATO hisoblanadi.
 
-HECH QACHON bunday javob berma:
-- "audio faylni eshitib bo'lmadi"
-- "transkripsiya qilib bo'lmadi"
-- bo'sh subtitles/vocabulary/quizzes massivlar
+QABUL QILINMAYDIGAN javoblar:
+- "audio faylni eshitib bo'lmadi" — TA'QIQLANGAN
+- "transkripsiya qilib bo'lmadi" — TA'QIQLANGAN
+- "muhitda imkon yo'q" — TA'QIQLANGAN
+- bo'sh [] massivlar — TA'QIQLANGAN
+- "noto'g'ri transcript uydirib bermaslik uchun" — TA'QIQLANGAN
 
-Sen arab tili professorisin. Audio faylni eshitib: 1) transkripsiya qil (vaqt bilan, TO'LIQ HARAKAT bilan), 2) dars materiallari yarat.
+SEN AUDIO FAYLNI ESHITA OLASAN. Sen GPT-4o modeli sifatida audio fayllarni qayta ishlay olasan. Shuning uchun ALBATTA eshit va 100% ANIQ transkripsiya qil. Har bir so'zni AYNAN eshitganingdek yoz. UYDIRIB YOZMA, lekin eshitganingni ANIQ yoz.
 
-HARAKAT QOIDASI: BARCHA arabcha so'zlar TO'LIQ HARAKAT bilan.
+Sen arab tili professorisin. Audio faylni eshitib:
+1) 100% ANIQ transkripsiya qil (har bir gap uchun vaqt belgilari bilan, TO'LIQ HARAKAT bilan)
+2) Transkripsiya asosida to'liq dars materiallari yarat
+
+HARAKAT QOIDASI — QAT'IY: BARCHA arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART.
 TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
 NOTO'G'RI: ذهب الولد الى المدرسة
 
 Barcha tarjimalar O'ZBEK tilida. "translationAr" — arabcha izoh HARAKAT bilan.
 
-FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
+FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA. { dan boshlab } gacha.
 
 {
   "subtitles": [
-    {"startTime": 0.0, "endTime": 3.5, "text": "الْجُمْلَةُ بِالتَّشْكِيلِ الْكَامِلِ"}
+    {"startTime": 0.0, "endTime": 3.5, "text": "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ — 100% ANIQ"}
   ],
   "summaryShort": "2-3 gap, O'ZBEKCHA",
   "summaryDetailed": "5-8 gap, O'ZBEKCHA",
@@ -1291,7 +1307,7 @@ FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
   ],
   "sentenceAnalysis": [
     {
-      "sentence": "AYNAN subtitles dagi gap — o'zgartirma!",
+      "sentence": "AYNAN subtitles dagi gap matni — o'zgartirma!",
       "translation": "O'ZBEKCHA tarjima",
       "translationAr": "بِالتَّشْكِيلِ",
       "lineIndices": [0],
@@ -1303,14 +1319,16 @@ FAQAT JSON formatda javob ber — boshqa matn yozma. { dan boshlab } gacha.
 }
 
 QOIDALAR:
-1. SUBTITLES: Audiodagi HAR BIR gapni TO'LIQ HARAKAT bilan yoz. startTime/endTime soniyalarda. Eng kam 3 ta. Bo'sh qoldirma!
-2. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
-3. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4, arabcha so'z HARAKAT bilan).
-4. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi...  wordMap: gapdagi HAR BIR so'z HARAKAT bilan.
-5. FLASHCARDS: 8-12 ta. HARAKAT bilan.
-6. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ, TO'LIQ HARAKAT bilan yoz. startTime/endTime soniyalarda. Eng kam 3 ta. Bo'sh [] TA'QIQLANGAN!
+2. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. UYDIRIB YOZMA. Audioda nima aytilgan bo'lsa — SHUNI yoz. 100% aniqlik SHART.
+3. HARAKAT: BARCHA arabcha so'zlarda TO'LIQ harakat bo'lishi SHART. Harakatsiz so'z QABUL QILINMAYDI.
+4. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
+5. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4, arabcha so'z HARAKAT bilan).
+6. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi... wordMap: gapdagi HAR BIR so'z HARAKAT bilan.
+7. FLASHCARDS: 8-12 ta. HARAKAT bilan.
+8. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
 
-ESLATMA: Bo'sh massiv QAYTARMA. Agar audioda gap eshitilsa — ALBATTA yoz! 100% aniq bo'lmasa ham yozganingiz yaxshi.`;
+YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va 100% ANIQ yoz! Buni qila olmasang — sen GPT-4o EMASSAN.`;
 }
 
 function ChatGptWorkflowState({
@@ -1418,7 +1436,7 @@ function ChatGptWorkflowState({
 
           <div className="mt-2 rounded-md bg-yellow-500/5 border border-yellow-500/20 px-3 py-2">
             <p className="text-[10px] text-yellow-400/80">
-              <strong>Maslahat:</strong> Agar ChatGPT bo'sh javob bersa yoki "transkripsiya qilib bo'lmadi" desa — <strong>yangi chat</strong> oching va qaytadan yuboring. GPT-4o modelini tanlang. Audio fayl 25MB dan kichik bo'lishi kerak.
+              <strong>Maslahat:</strong> Agar ChatGPT bo'sh javob bersa — <strong>yangi chat</strong> oching, <strong>GPT-4o</strong> modelini tanlang va qaytadan yuboring. Audio fayl 25MB dan kichik bo'lishi kerak. Prompt 100% aniq transkripsiya talab qiladi — ChatGPT eshitganini AYNAN yozishi kerak.
             </p>
           </div>
         </div>

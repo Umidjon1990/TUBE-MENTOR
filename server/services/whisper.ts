@@ -34,9 +34,9 @@ export async function ensureLatestYtDlp(): Promise<void> {
     return;
   } catch {}
   try {
-    console.log("[Whisper] Downloading latest yt-dlp...");
+    console.log("[Whisper] Downloading latest yt-dlp standalone binary...");
     execSync(
-      `curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ${YT_DLP_LOCAL} && chmod +x ${YT_DLP_LOCAL}`,
+      `curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o ${YT_DLP_LOCAL} && chmod +x ${YT_DLP_LOCAL}`,
       { timeout: 30000 }
     );
     const ver = execSync(`${YT_DLP_LOCAL} --version`, { encoding: "utf-8" }).trim();

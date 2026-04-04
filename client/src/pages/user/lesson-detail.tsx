@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import UserLayout from "@/components/layouts/user-layout";
-import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type VocabLookup, type SentenceWordMap, parseWordTimestamps } from "@/components/subtitle-player";
 import ShadowingPlayer from "@/components/shadowing-player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -666,7 +666,7 @@ export default function LessonDetailPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
-            wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
+            wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
             className="w-full"
             initialSeekTime={seekTime}
             seekNonce={seekNonce}
@@ -771,7 +771,7 @@ export default function LessonDetailPage() {
                 lessonId={lesson.id}
                 vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
                 sentenceWordMaps={sentenceWordMaps}
-                wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
+                wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
                 className="w-full"
                 targetLanguage={lesson.targetLanguage || "ar"}
               />

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link, useSearch } from "wouter";
 import PublicLayout from "@/components/layouts/public-layout";
-import SubtitlePlayer, { type SubtitleItem, type SentenceWordMap } from "@/components/subtitle-player";
+import SubtitlePlayer, { type SubtitleItem, type SentenceWordMap, parseWordTimestamps } from "@/components/subtitle-player";
 import ShadowingPlayer from "@/components/shadowing-player";
 import { ExportStudio } from "@/components/export-studio";
 import { buildExportData } from "@/lib/export-transform";
@@ -457,7 +457,7 @@ export default function PublicLessonPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
-            wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
+            wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
             className=""
             initialSeekTime={initialTime}
             readOnly
@@ -575,7 +575,7 @@ export default function PublicLessonPage() {
                   lessonId={lesson.id}
                   vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
                   sentenceWordMaps={sentenceWordMaps}
-                  wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
+                  wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
                   className="w-full"
                   readOnly
                   targetLanguage={lesson.targetLanguage || "ar"}

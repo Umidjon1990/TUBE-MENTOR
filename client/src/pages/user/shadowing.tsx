@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import UserLayout from "@/components/layouts/user-layout";
 import ShadowingPlayer from "@/components/shadowing-player";
-import type { SubtitleItem, SentenceWordMap } from "@/components/subtitle-player";
+import { type SubtitleItem, type SentenceWordMap, parseWordTimestamps } from "@/components/subtitle-player";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, AlertCircle, Headphones, BookOpen } from "lucide-react";
@@ -204,7 +204,7 @@ export default function ShadowingPage() {
             lessonId={lesson.id}
             vocabulary={vocabulary.map(v => ({ word: v.word, translation: v.translation, translationAr: v.translationAr, example: v.example, difficulty: v.difficulty }))}
             sentenceWordMaps={sentenceWordMaps}
-            wordTimestamps={(lesson.wordTimestampsJson as any[]) || []}
+            wordTimestamps={parseWordTimestamps(lesson.wordTimestampsJson)}
             className="w-full"
             targetLanguage={lesson.targetLanguage || "ar"}
           />

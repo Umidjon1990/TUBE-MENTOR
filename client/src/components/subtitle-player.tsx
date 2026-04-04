@@ -91,6 +91,17 @@ export interface WordTimestampItem {
   end: number;
 }
 
+export function parseWordTimestamps(json: unknown): WordTimestampItem[] {
+  if (!Array.isArray(json)) return [];
+  return json.filter(
+    (item): item is WordTimestampItem =>
+      typeof item === "object" && item !== null &&
+      typeof item.word === "string" &&
+      typeof item.start === "number" &&
+      typeof item.end === "number"
+  );
+}
+
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 interface SubtitlePlayerProps {

@@ -25,7 +25,7 @@ import {
   Check, X, ArrowLeft, RotateCcw, Plus, Trash2, Pin, PinOff,
   Edit2, Save, Lightbulb, Volume2, AlertCircle, Sparkles,
   ChevronDown, ChevronUp, Eye, EyeOff, BookmarkPlus, Globe,
-  Download, Headphones, Search, Pencil, RefreshCw, XCircle, AudioWaveform, Loader2
+  Download, Headphones, Search, Pencil, RefreshCw, XCircle, AudioWaveform, Loader2, Upload
 } from "lucide-react";
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
@@ -180,6 +180,47 @@ export default function LessonDetailPage() {
       toast({ title: "Whisper xatolik", description: err?.message || "Qayta urinib ko'ring", variant: "destructive" });
     },
   });
+
+  const audioUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("audio", file);
+      const res = await fetch(`/api/user/lessons/${lessonId}/whisper-audio-upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ message: "Xatolik yuz berdi" }));
+        throw new Error(errData.message || `Server xatolik: ${res.status}`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      toast({ title: "Audio transkripsiya tayyor!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Audio transkripsiya xatolik", description: err?.message || "Qayta urinib ko'ring", variant: "destructive" });
+    },
+  });
+
+  function handleAudioUploadDetail() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*,.mp3,.wav,.ogg,.m4a,.mp4";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (file.size > 50 * 1024 * 1024) {
+          toast({ title: "Fayl juda katta", description: "Maksimal hajm 50MB", variant: "destructive" });
+          return;
+        }
+        audioUploadMutation.mutate(file);
+      }
+    };
+    input.click();
+  }
 
   const sentences: SentenceAnalysis[] = useMemo(() =>
     (lesson?.sentenceAnalysisJson as SentenceAnalysis[] || []), [lesson?.sentenceAnalysisJson]);
@@ -567,23 +608,43 @@ export default function LessonDetailPage() {
               <span className="hidden sm:inline">{unpublishMutation.isPending ? "..." : "E'londan olish"}</span>
             </Button>
           )}
-          {lesson.youtubeUrl && !(Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0) && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50"
-                  onClick={() => whisperMutation.mutate()}
-                  disabled={whisperMutation.isPending}
-                  data-testid="button-whisper-transcribe"
-                >
-                  {whisperMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AudioWaveform className="w-3.5 h-3.5" />}
-                  <span className="hidden sm:inline">Whisper</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>So'zma-so'z vaqt belgilari olish (karaoke rejim)</TooltipContent>
-            </Tooltip>
+          {!(Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0) && (
+            <>
+              {lesson.youtubeUrl && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50"
+                      onClick={() => whisperMutation.mutate()}
+                      disabled={whisperMutation.isPending || audioUploadMutation.isPending}
+                      data-testid="button-whisper-transcribe"
+                    >
+                      {whisperMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AudioWaveform className="w-3.5 h-3.5" />}
+                      <span className="hidden sm:inline">Whisper</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>YouTube'dan audio yuklab Whisper bilan tahlil qilish</TooltipContent>
+                </Tooltip>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1 text-xs border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                    onClick={handleAudioUploadDetail}
+                    disabled={whisperMutation.isPending || audioUploadMutation.isPending}
+                    data-testid="button-audio-upload-detail"
+                  >
+                    {audioUploadMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    <span className="hidden sm:inline">Audio yuklash</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Audio fayl yuklash orqali Whisper transkripsiya (bot himoyasi bo'lmaydi)</TooltipContent>
+              </Tooltip>
+            </>
           )}
           {Array.isArray(lesson.wordTimestampsJson) && lesson.wordTimestampsJson.length > 0 && (
             <Tooltip>

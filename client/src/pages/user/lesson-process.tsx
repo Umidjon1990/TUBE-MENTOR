@@ -181,9 +181,62 @@ export default function LessonProcessPage() {
     },
   });
 
+  const audioUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("audio", file);
+      const res = await fetch(`/api/user/lessons/${lessonId}/whisper-audio-upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ message: "Xatolik yuz berdi" }));
+        throw new Error(errData.message || `Server xatolik: ${res.status}`);
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.transcript) {
+        setTranscriptPreview(data.transcript);
+        setTranscriptSource("whisper");
+        setSentenceCount(0);
+        if (data.lesson?.subtitlesJson && Array.isArray(data.lesson.subtitlesJson)) {
+          setWhisperSubtitles(data.lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[]);
+        }
+        setStep("transcript-ready");
+        queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
+        toast({ title: "Audio transkripsiya tayyor!", description: `${data.wordCount} ta so'z aniqlandi` });
+      } else {
+        toast({ title: "Xatolik", description: "Whisper natija bermadi", variant: "destructive" });
+      }
+    },
+    onError: (error: Error) => {
+      toast({ title: "Audio transkripsiya xatolik", description: error.message, variant: "destructive" });
+    },
+  });
+
   function attemptWhisper() {
     setStep("extracting");
     whisperMutation.mutate();
+  }
+
+  function handleAudioUpload() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*,.mp3,.wav,.ogg,.m4a,.mp4";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (file.size > 50 * 1024 * 1024) {
+          toast({ title: "Fayl juda katta", description: "Maksimal hajm 50MB", variant: "destructive" });
+          return;
+        }
+        setStep("extracting");
+        audioUploadMutation.mutate(file);
+      }
+    };
+    input.click();
   }
 
   function startGeneration() {
@@ -229,15 +282,17 @@ export default function LessonProcessPage() {
           </div>
         )}
 
-        {step === "extracting" && <ExtractingState isWhisper={whisperMutation.isPending} />}
+        {step === "extracting" && <ExtractingState isWhisper={whisperMutation.isPending || audioUploadMutation.isPending} />}
         {step === "no-transcript" && (
           <NoTranscriptState
             onRetry={attemptAutoExtract}
             onManual={() => setStep("manual-input")}
             onDemo={useDemo}
             onWhisper={attemptWhisper}
+            onAudioUpload={handleAudioUpload}
             isRetrying={transcriptMutation.isPending}
             isWhispering={whisperMutation.isPending}
+            isUploadingAudio={audioUploadMutation.isPending}
           />
         )}
         {step === "manual-input" && (
@@ -361,15 +416,19 @@ function NoTranscriptState({
   onManual,
   onDemo,
   onWhisper,
+  onAudioUpload,
   isRetrying,
   isWhispering,
+  isUploadingAudio,
 }: {
   onRetry: () => void;
   onManual: () => void;
   onDemo: () => void;
   onWhisper: () => void;
+  onAudioUpload: () => void;
   isRetrying: boolean;
   isWhispering: boolean;
+  isUploadingAudio: boolean;
 }) {
   return (
     <Card className="glass border-orange-500/20" data-testid="card-no-transcript">
@@ -405,7 +464,7 @@ function NoTranscriptState({
             variant="outline"
             className="w-full justify-start gap-3 h-auto py-4 px-4 border-amber-500/20 hover:border-amber-500/40"
             onClick={onWhisper}
-            disabled={isWhispering}
+            disabled={isWhispering || isUploadingAudio}
             data-testid="button-whisper-transcript"
           >
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
@@ -413,7 +472,23 @@ function NoTranscriptState({
             </div>
             <div className="text-left">
               <p className="text-sm font-medium">Whisper AI bilan transkripsiya</p>
-              <p className="text-xs text-muted-foreground">Audio'dan so'zma-so'z matn olish (1-3 daqiqa)</p>
+              <p className="text-xs text-muted-foreground">YouTube'dan audio yuklab Whisper tahlil qiladi</p>
+            </div>
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-auto py-4 px-4 border-emerald-500/20 hover:border-emerald-500/40"
+            onClick={onAudioUpload}
+            disabled={isWhispering || isUploadingAudio}
+            data-testid="button-audio-upload"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              {isUploadingAudio ? <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" /> : <Upload className="w-5 h-5 text-emerald-400" />}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium">Audio fayl yuklash (tavsiya)</p>
+              <p className="text-xs text-muted-foreground">YouTube'dan o'zingiz yuklab olgan audio faylni yuklang (MP3, WAV, M4A)</p>
             </div>
           </Button>
 

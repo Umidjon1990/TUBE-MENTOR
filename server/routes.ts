@@ -9,7 +9,7 @@ import { verifyPassword, requireAdmin, requireAuth, hashPassword } from "./auth"
 import { z } from "zod";
 import { tryExtractTranscript, processManualTranscript, getDemoTranscript } from "./services/transcript";
 import { generateLessonContent } from "./services/ai-generator";
-import { transcribeYouTubeVideo } from "./services/whisper";
+import { transcribeYouTubeVideo, transcribeWithWhisper } from "./services/whisper";
 import fs from "fs";
 
 function computeLineIndices(sents: any[], subs: { startTime: number; endTime: number; text: string }[]) {
@@ -93,6 +93,16 @@ const upload = multer({
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (allowed.includes(file.mimetype)) cb(null, true);
     else cb(new Error("Faqat rasm fayllari (JPEG, PNG, WebP, GIF) qabul qilinadi"));
+  },
+});
+
+const audioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/m4a", "video/mp4", "audio/webm"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("Faqat audio fayllari (MP3, WAV, OGG, M4A, MP4) qabul qilinadi"));
   },
 });
 
@@ -842,6 +852,59 @@ export async function registerRoutes(
       });
     } catch (err: any) {
       console.error(`[Whisper] Dars #${id}: xatolik:`, err?.message || err);
+      res.status(500).json({ message: `Whisper xatolik: ${err?.message || "Noma'lum xatolik"}` });
+    }
+  });
+
+  app.post("/api/user/lessons/:id/whisper-audio-upload", requireAuth, audioUpload.single("audio"), async (req, res) => {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+    const lesson = await storage.getLessonById(id);
+    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "Audio fayl yuklanmadi" });
+
+    try {
+      const lang = (lesson.targetLanguage || "ar") === "ar" ? "ar" : undefined;
+      const result = await transcribeWithWhisper(file.buffer, lang);
+
+      const wordTimestamps = result.words.map(w => ({
+        word: w.word,
+        start: Math.round(w.start * 1000) / 1000,
+        end: Math.round(w.end * 1000) / 1000,
+      }));
+
+      const subtitlesFromWhisper = result.segments.map(seg => ({
+        startTime: Math.round(seg.start * 1000) / 1000,
+        endTime: Math.round(seg.end * 1000) / 1000,
+        text: seg.text.trim(),
+      }));
+
+      const updateData: Record<string, any> = {
+        wordTimestampsJson: wordTimestamps,
+        transcriptSource: "whisper",
+      };
+
+      if (!lesson.transcript && result.text) {
+        updateData.transcript = result.text;
+      }
+      if ((!lesson.subtitlesJson || (Array.isArray(lesson.subtitlesJson) && lesson.subtitlesJson.length === 0)) && subtitlesFromWhisper.length > 0) {
+        updateData.subtitlesJson = subtitlesFromWhisper;
+      }
+
+      const updated = await storage.updateLesson(id, updateData);
+
+      res.json({
+        success: true,
+        wordCount: wordTimestamps.length,
+        language: result.language,
+        transcript: result.text,
+        lesson: updated,
+      });
+    } catch (err: any) {
+      console.error(`[Whisper Audio Upload] Dars #${id}: xatolik:`, err?.message || err);
       res.status(500).json({ message: `Whisper xatolik: ${err?.message || "Noma'lum xatolik"}` });
     }
   });

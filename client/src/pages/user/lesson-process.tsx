@@ -50,6 +50,7 @@ export default function LessonProcessPage() {
   const [transcriptPreview, setTranscriptPreview] = useState("");
   const [transcriptSource, setTranscriptSource] = useState("");
   const [sentenceCount, setSentenceCount] = useState(0);
+  const [whisperSubtitles, setWhisperSubtitles] = useState<{ startTime: number; endTime: number; text: string }[] | null>(null);
 
   const { data: lesson, isLoading, refetch } = useQuery<Lesson>({
     queryKey: ["/api/user/lessons", lessonId],
@@ -165,6 +166,9 @@ export default function LessonProcessPage() {
         setTranscriptPreview(data.transcript);
         setTranscriptSource("whisper");
         setSentenceCount(0);
+        if (data.lesson?.subtitlesJson && Array.isArray(data.lesson.subtitlesJson)) {
+          setWhisperSubtitles(data.lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[]);
+        }
         setStep("transcript-ready");
         queryClient.invalidateQueries({ queryKey: ["/api/user/lessons", lessonId] });
         toast({ title: "Whisper transkripsiya tayyor!", description: `${data.wordCount} ta so'z aniqlandi` });
@@ -252,6 +256,9 @@ export default function LessonProcessPage() {
             sentenceCount={sentenceCount}
             onGenerate={startGeneration}
             onJsonImport={() => setStep("json-import")}
+            subtitlesJson={whisperSubtitles || lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null}
+            targetLanguage={lesson.targetLanguage || "ar"}
+            manualTranscript={lesson.manualTranscript || ""}
           />
         )}
         {step === "json-import" && (
@@ -264,6 +271,7 @@ export default function LessonProcessPage() {
             transcript={transcriptPreview}
             manualTranscript={lesson.manualTranscript || ""}
             targetLanguage={lesson.targetLanguage || "ar"}
+            subtitlesJson={whisperSubtitles || lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null}
           />
         )}
         {step === "generating" && <GeneratingState />}
@@ -551,18 +559,47 @@ function TranscriptReadyState({
   sentenceCount,
   onGenerate,
   onJsonImport,
+  subtitlesJson,
+  targetLanguage,
+  manualTranscript,
 }: {
   preview: string;
   source: string;
   sentenceCount: number;
   onGenerate: () => void;
   onJsonImport: () => void;
+  subtitlesJson?: { startTime: number; endTime: number; text: string }[] | null;
+  targetLanguage: string;
+  manualTranscript: string;
 }) {
+  const [copied, setCopied] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+
   const sourceLabels: Record<string, string> = {
     auto: "Avtomatik",
     manual: "Qo'lda kiritilgan",
     demo: "Demo matn",
+    whisper: "Whisper AI",
   };
+
+  const isWhisperSource = source === "whisper";
+  const chatGptPrompt = buildChatGptPrompt(preview, manualTranscript, targetLanguage, subtitlesJson);
+
+  function copyPrompt() {
+    navigator.clipboard.writeText(chatGptPrompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = chatGptPrompt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   return (
     <Card className="glass border-emerald-500/20" data-testid="card-transcript-ready">
@@ -573,9 +610,13 @@ function TranscriptReadyState({
           </div>
           <div className="flex-1">
             <h3 className="text-base font-semibold">Transkript tayyor</h3>
-            <p className="text-xs text-muted-foreground">Generatsiya uchun tayyor</p>
+            <p className="text-xs text-muted-foreground">
+              {isWhisperSource ? "Whisper AI orqali aniqlangan" : "Generatsiya uchun tayyor"}
+            </p>
           </div>
-          <Badge variant="outline" className="text-xs">{sourceLabels[source] || source}</Badge>
+          <Badge variant="outline" className={`text-xs ${isWhisperSource ? "border-amber-500/30 text-amber-400" : ""}`}>
+            {sourceLabels[source] || source}
+          </Badge>
         </div>
 
         <div className="rounded-lg bg-muted/20 border border-border/30 p-4 max-h-48 overflow-y-auto">
@@ -588,29 +629,80 @@ function TranscriptReadyState({
           <span>{preview.length} belgi</span>
           <span>·</span>
           <span>{sentenceCount > 0 ? sentenceCount : preview.split(/[.!?]+/).filter(Boolean).length} gap</span>
+          {subtitlesJson && subtitlesJson.length > 0 && (
+            <>
+              <span>·</span>
+              <span>{subtitlesJson.length} segment</span>
+            </>
+          )}
         </div>
+
+        {isWhisperSource && (
+          <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 p-3 space-y-2">
+            <p className="text-xs font-medium text-amber-400">Tavsiya etiladigan usul:</p>
+            <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Quyidagi prompt ni nusxalang</li>
+              <li>ChatGPT (chat.openai.com) ga oching va joylashtiring</li>
+              <li>ChatGPT javobidagi JSON ni ko'chiring</li>
+              <li>"ChatGPT natijasini import qilish" tugmasini bosing</li>
+            </ol>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Button
-            className="w-full gap-2"
+            variant={isWhisperSource ? "outline" : "default"}
+            className={`w-full gap-2 ${isWhisperSource ? "border-amber-500/30 text-amber-400 hover:bg-amber-500/10" : ""}`}
             size="lg"
-            onClick={onGenerate}
-            data-testid="button-generate-ai"
+            onClick={() => setShowPrompt(!showPrompt)}
+            data-testid="button-show-prompt"
           >
-            <Wand2 className="w-4 h-4" /> Dars yaratish
+            <FileText className="w-4 h-4" />
+            {showPrompt ? "Prompt ni yashirish" : "ChatGPT uchun prompt ko'rish"}
           </Button>
+
+          {showPrompt && (
+            <div className="space-y-2">
+              <div className="rounded-lg bg-muted/30 border border-border/50 p-3 max-h-60 overflow-y-auto">
+                <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{chatGptPrompt}</pre>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full gap-1.5 text-xs"
+                onClick={copyPrompt}
+                data-testid="button-copy-prompt"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copied ? "Nusxalandi!" : "Prompt ni nusxalash"}
+              </Button>
+            </div>
+          )}
+
           <Button
             className="w-full gap-2"
             size="lg"
-            variant="outline"
+            variant={isWhisperSource ? "default" : "outline"}
             onClick={onJsonImport}
             data-testid="button-json-import"
           >
             <ClipboardPaste className="w-4 h-4" /> ChatGPT natijasini import qilish
           </Button>
+
+          <Button
+            className="w-full gap-2"
+            size="lg"
+            variant={isWhisperSource ? "outline" : "default"}
+            onClick={onGenerate}
+            data-testid="button-generate-ai"
+          >
+            <Wand2 className="w-4 h-4" /> {isWhisperSource ? "AI bilan dars yaratish (coin sarflaydi)" : "Dars yaratish"}
+          </Button>
         </div>
         <p className="text-[10px] text-muted-foreground text-center">
-          Xarajatni tejash uchun ChatGPT da tayyor shablon bilan ishlang
+          {isWhisperSource
+            ? "ChatGPT Plus dan foydalaning — xarajat tejaysiz va sifat yaxshiroq"
+            : "Xarajatni tejash uchun ChatGPT da tayyor shablon bilan ishlang"}
         </p>
       </CardContent>
     </Card>
@@ -636,8 +728,29 @@ function extractTimedLines(manualTranscript: string): { time: string; text: stri
   return result;
 }
 
-function buildChatGptPrompt(transcript: string, manualTranscript: string, targetLanguage: string = "ar"): string {
-  const timedLines = manualTranscript ? extractTimedLines(manualTranscript) : [];
+function formatSecondsToTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function buildChatGptPrompt(
+  transcript: string,
+  manualTranscript: string,
+  targetLanguage: string = "ar",
+  subtitlesJson?: { startTime: number; endTime: number; text: string }[] | null,
+): string {
+  let timedLines: { time: string; text: string }[] = [];
+
+  if (subtitlesJson && subtitlesJson.length > 0) {
+    timedLines = subtitlesJson.map(s => ({
+      time: `${formatSecondsToTime(s.startTime)}-${formatSecondsToTime(s.endTime)}`,
+      text: s.text,
+    }));
+  } else if (manualTranscript) {
+    timedLines = extractTimedLines(manualTranscript);
+  }
+
   const hasTiming = timedLines.length > 0;
 
   const arabTimedSection = hasTiming
@@ -904,6 +1017,7 @@ function JsonImportState({
   transcript,
   manualTranscript,
   targetLanguage,
+  subtitlesJson,
 }: {
   jsonText: string;
   onJsonChange: (v: string) => void;
@@ -913,11 +1027,12 @@ function JsonImportState({
   transcript: string;
   manualTranscript: string;
   targetLanguage: string;
+  subtitlesJson?: { startTime: number; endTime: number; text: string }[] | null;
 }) {
   const [showTemplate, setShowTemplate] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript, targetLanguage);
+  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript, targetLanguage, subtitlesJson);
 
   function copyTemplate() {
     navigator.clipboard.writeText(chatGptPrompt).then(() => {

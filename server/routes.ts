@@ -1030,7 +1030,7 @@ export async function registerRoutes(
         options: Array.isArray(q.options) ? q.options : [],
         correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : 0,
         explanation: q.explanation || "",
-        type: q.type === "fill_blank" ? "fill_blank" : "multiple_choice",
+        type: ["fill_blank", "sentence_completion", "word_translation", "multiple_choice"].includes(q.type) ? q.type : "multiple_choice",
       }));
 
       const flashcardsJson = (content.flashcards || []).map((f: any) => ({

@@ -177,6 +177,7 @@ export default function LessonProcessPage() {
       }
     },
     onError: (error: Error) => {
+      setStep("no-transcript");
       toast({ title: "Whisper xatolik", description: parseError(error), variant: "destructive" });
     },
   });
@@ -212,6 +213,7 @@ export default function LessonProcessPage() {
       }
     },
     onError: (error: Error) => {
+      setStep("no-transcript");
       toast({ title: "Audio transkripsiya xatolik", description: error.message, variant: "destructive" });
     },
   });

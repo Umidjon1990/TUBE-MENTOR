@@ -272,6 +272,7 @@ export default function LessonProcessPage() {
             manualTranscript={lesson.manualTranscript || ""}
             targetLanguage={lesson.targetLanguage || "ar"}
             subtitlesJson={whisperSubtitles || lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null}
+            transcriptSource={transcriptSource}
           />
         )}
         {step === "generating" && <GeneratingState />}
@@ -583,7 +584,7 @@ function TranscriptReadyState({
   };
 
   const isWhisperSource = source === "whisper";
-  const chatGptPrompt = buildChatGptPrompt(preview, manualTranscript, targetLanguage, subtitlesJson);
+  const chatGptPrompt = buildChatGptPrompt(preview, manualTranscript, targetLanguage, subtitlesJson, isWhisperSource);
 
   function copyPrompt() {
     navigator.clipboard.writeText(chatGptPrompt).then(() => {
@@ -739,10 +740,11 @@ function buildChatGptPrompt(
   manualTranscript: string,
   targetLanguage: string = "ar",
   subtitlesJson?: { startTime: number; endTime: number; text: string }[] | null,
+  isWhisperSource: boolean = false,
 ): string {
   let timedLines: { time: string; text: string }[] = [];
 
-  if (subtitlesJson && subtitlesJson.length > 0) {
+  if (isWhisperSource && subtitlesJson && subtitlesJson.length > 0) {
     timedLines = subtitlesJson.map(s => ({
       time: `${formatSecondsToTime(s.startTime)}-${formatSecondsToTime(s.endTime)}`,
       text: s.text,
@@ -752,7 +754,7 @@ function buildChatGptPrompt(
   }
 
   const hasTiming = timedLines.length > 0;
-  const isWhisperSegments = !!(subtitlesJson && subtitlesJson.length > 0);
+  const isWhisperSegments = isWhisperSource && !!(subtitlesJson && subtitlesJson.length > 0);
 
   const arabTimedSection = hasTiming
     ? `\nMUHIM: Quyida har bir qator VAQT bilan berilgan. sentenceAnalysis da "sentence" maydoni AYNAN shu qatordagi matnni o'z ichiga olishi SHART. Gaplarni birlashtirma, bo'lma — har bir vaqtli qatorni alohida tahlil qil!\n\nVAQTLI GAPLAR RO'YXATI:\n${timedLines.map((l, i) => `${i + 1}. [${l.time}] ${l.text}`).join("\n")}\n`
@@ -1034,6 +1036,7 @@ function JsonImportState({
   manualTranscript,
   targetLanguage,
   subtitlesJson,
+  transcriptSource,
 }: {
   jsonText: string;
   onJsonChange: (v: string) => void;
@@ -1044,11 +1047,12 @@ function JsonImportState({
   manualTranscript: string;
   targetLanguage: string;
   subtitlesJson?: { startTime: number; endTime: number; text: string }[] | null;
+  transcriptSource: string;
 }) {
   const [showTemplate, setShowTemplate] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript, targetLanguage, subtitlesJson);
+  const chatGptPrompt = buildChatGptPrompt(transcript, manualTranscript, targetLanguage, subtitlesJson, transcriptSource === "whisper");
 
   function copyTemplate() {
     navigator.clipboard.writeText(chatGptPrompt).then(() => {

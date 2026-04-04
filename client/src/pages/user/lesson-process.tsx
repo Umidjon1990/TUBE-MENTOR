@@ -1169,6 +1169,38 @@ Sen ingliz tili professorisin. Audio faylni eshitib:
 
 Barcha tarjimalar O'ZBEK tilida bo'lsin.
 
+═══════════════════════════════════════════════════════════
+⏱️ TIMING ANIQLIGI — ENG MUHIM QISM! BU QISMNI DIQQAT BILAN O'QI!
+═══════════════════════════════════════════════════════════
+
+TIMING 100% TO'G'RI BO'LISHI SHART. Bu bizning asosiy muammomiz — agar timing noto'g'ri bo'lsa, BUTUN DARS YAROQSIZ bo'ladi.
+
+TIMING QOIDALARI (QAT'IY):
+1. Har bir subtitle uchun startTime = AYNAN o'sha gap BOSHLANGANIDAGI ANIQ soniya.
+2. endTime = AYNAN o'sha gap TUGAGANIDAGI ANIQ soniya.
+3. Audioni DIQQAT BILAN eshit — har bir gap qachon boshlanadi va qachon tugashini ANIQ belgilab yoz.
+4. TAXMINIY VAQT YOZMA! Agar gap 0:45 da boshlansa — startTime: 45.0 yoz, 47 yoki 43 yozma!
+5. Gaplar orasidagi jimlik (pauza) ni hisobga ol — agar gap 0:45 da tugab, keyingi gap 0:48 da boshlansa, birinchi subtitle endTime: 45.0, ikkinchisi startTime: 48.0 bo'lishi kerak.
+6. Musiqa yoki jimlik qismlarini ham subtitle qilib yoz: {"startTime": 24.0, "endTime": 26.0, "text": "[Music]"}
+7. HECH QACHON bir xil teng oraliqlar bilan yozma (masalan, har 10 soniyada). Har bir gap o'z REAL vaqtida bo'lsin!
+
+TIMING TEKSHIRISH USULI:
+- Audio 3 daqiqa (180 sek) bo'lsa — oxirgi subtitle endTime taxminan 175-180 atrofida bo'lishi kerak.
+- Agar audio 3 daqiqa, lekin oxirgi endTime 120 sek bo'lsa — TIMING NOTO'G'RI! Qaytadan eshit va to'g'rila.
+- Subtitle lar orasida katta bo'shliqlar bo'lmasligi kerak (5+ soniya gap faqat uzun jimlik/musiqa bo'lsa mumkin).
+
+MISOL (NOTO'G'RI — teng oraliqlar):
+❌ {"startTime": 0, "endTime": 10, "text": "..."}
+❌ {"startTime": 10, "endTime": 20, "text": "..."}
+❌ {"startTime": 20, "endTime": 30, "text": "..."}
+
+MISOL (TO'G'RI — real vaqtlar):
+✅ {"startTime": 0.0, "endTime": 4.2, "text": "Hello everyone, welcome to today's lesson."}
+✅ {"startTime": 4.2, "endTime": 6.8, "text": "Today we will learn about grammar."}
+✅ {"startTime": 7.5, "endTime": 12.3, "text": "First, let's look at the present tense."}
+
+═══════════════════════════════════════════════════════════
+
 FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA. { dan boshlab } gacha.
 
 {
@@ -1225,15 +1257,17 @@ FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA.
 }
 
 QOIDALAR:
-1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ yoz. startTime/endTime soniyalarda. Eng kam 3 ta subtitle. Bo'sh [] TA'QIQLANGAN!
-2. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. Uydirib yozma. Audioda nima aytilgan bo'lsa — SHUNI yoz.
-3. VOCABULARY: 8-15 ta so'z. "translation" O'ZBEK tilida.
-4. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4).
-5. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi... wordMap: gapdagi HAR BIR so'z.
-6. FLASHCARDS: 8-12 ta.
-7. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ yoz. startTime/endTime soniyalarda — REAL vaqtlar! Eng kam 3 ta subtitle. Bo'sh [] TA'QIQLANGAN!
+2. TIMING: Har bir gapning BOSHLANISH va TUGASH vaqtini ANIQ eshitib yoz. TAXMINIY VAQT TA'QIQLANGAN! Agar gap audioda 1:23 da boshlansa, startTime: 83.0 yoz. TENG ORALIQLAR TA'QIQLANGAN!
+3. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. Uydirib yozma. Audioda nima aytilgan bo'lsa — SHUNI yoz.
+4. VOCABULARY: 8-15 ta so'z. "translation" O'ZBEK tilida.
+5. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4).
+6. SENTENCEANALYSIS: HAR BIR subtitle uchun BITTA alohida element. "sentence" = subtitles dagi AYNAN o'sha matn (harfma-harf bir xil!). lineIndices = [idx] — faqat O'Z RAQAMI (0, 1, 2...). wordMap: gapdagi HAR BIR so'z.
+7. FLASHCARDS: 8-12 ta.
+8. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+9. lineIndices QOIDASI: Har bir sentenceAnalysis elementi faqat BITTA lineIndex ga ega bo'lsin! sentenceAnalysis[0].lineIndices = [0], sentenceAnalysis[1].lineIndices = [1], sentenceAnalysis[2].lineIndices = [2]... OVERLAP TA'QIQLANGAN!
 
-YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va ANIQ yoz!`;
+YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va ANIQ yoz! Timing noto'g'ri bo'lsa — QAYTADAN ESHIT!`;
   }
 
   return `# MAJBURIY BUYRUQ — O'QIMASDAN O'TMA!
@@ -1258,6 +1292,44 @@ TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
 NOTO'G'RI: ذهب الولد الى المدرسة
 
 Barcha tarjimalar O'ZBEK tilida. "translationAr" — arabcha izoh HARAKAT bilan.
+
+═══════════════════════════════════════════════════════════
+⏱️ TIMING ANIQLIGI — ENG MUHIM QISM! BU QISMNI DIQQAT BILAN O'QI!
+═══════════════════════════════════════════════════════════
+
+TIMING 100% TO'G'RI BO'LISHI SHART. Bu bizning asosiy muammomiz — agar timing noto'g'ri bo'lsa, BUTUN DARS YAROQSIZ bo'ladi. Subtitle videodagi audioga sinxronlanishi SHART — 1-2 soniya ham farq bo'lmasligi kerak!
+
+TIMING QOIDALARI (QAT'IY):
+1. Har bir subtitle uchun startTime = AYNAN o'sha gap BOSHLANGANIDAGI ANIQ soniya. Gap aytila boshlaganida — SHU PAYTNING vaqtini yoz.
+2. endTime = AYNAN o'sha gap TUGAGANIDAGI ANIQ soniya. Oxirgi so'z aytilgandan keyin — SHU PAYTNING vaqtini yoz.
+3. Audioni DIQQAT BILAN eshit — har bir gap qachon boshlanadi va qachon tugashini ANIQ belgilab yoz.
+4. TAXMINIY VAQT YOZMA! Agar gap 0:45 da boshlansa — startTime: 45.0 yoz, 47 yoki 43 yozma!
+5. Gaplar orasidagi jimlik (pauza) ni hisobga ol — agar gap 0:45 da tugab, keyingi gap 0:48 da boshlansa, birinchi subtitle endTime: 45.0, ikkinchisi startTime: 48.0 bo'lishi kerak.
+6. Musiqa yoki jimlik qismlarini ham subtitle qilib yoz: {"startTime": 24.0, "endTime": 26.0, "text": "[مُوسِيقَى]"}
+7. HECH QACHON bir xil teng oraliqlar bilan yozma (masalan, har 10 soniyada bitta subtitle). Har bir gap o'z REAL vaqtida bo'lsin!
+8. O'NLIK KASRLAR ishlat — masalan 45.3 yoki 112.7 — bu aniqlikni oshiradi.
+
+TIMING TEKSHIRISH USULI (ALBATTA TEKSHIR!):
+- Audio uzunligini eshitib taxmin qil. Agar audio 3 daqiqa (180 sek) bo'lsa — oxirgi subtitle endTime taxminan 175-180 atrofida bo'lishi kerak.
+- Agar audio 3 daqiqa, lekin oxirgi endTime 120 sek bo'lsa — TIMING NOTO'G'RI! Bu shunday bo'ladiki, agar gaplarni tezroq belgilagan bo'lsang. Qaytadan eshit va to'g'rila.
+- Subtitle lar orasida katta bo'shliqlar bo'lmasligi kerak (5+ soniya gap faqat uzun jimlik/musiqa bo'lsa mumkin).
+- Audio davomiyligi bilan oxirgi endTime orasidagi farq 10 soniyadan oshmasin!
+
+MISOL (NOTO'G'RI — teng oraliqlar, BUNDAY QILMA!):
+❌ {"startTime": 0, "endTime": 10, "text": "..."}
+❌ {"startTime": 10, "endTime": 20, "text": "..."}
+❌ {"startTime": 20, "endTime": 30, "text": "..."}
+
+MISOL (NOTO'G'RI — timing sekin, audioni oxirigacha qamrab olmagan):
+❌ Audio 200 soniya, lekin oxirgi endTime 130 soniya — 70 soniya subtitle yo'q!
+
+MISOL (TO'G'RI — real vaqtlar, o'nlik kasrlar bilan):
+✅ {"startTime": 0.0, "endTime": 5.3, "text": "مَا أَصْعَبَ أَنْ تَكُونَ حِمَارًا."}
+✅ {"startTime": 5.3, "endTime": 9.8, "text": "مَا أَجْمَلَ السَّمَاءَ!"}
+✅ {"startTime": 10.5, "endTime": 12.0, "text": "[مُوسِيقَى]"}
+✅ {"startTime": 12.0, "endTime": 18.7, "text": "مَرْحَبًا بِكَ فِي كَوْكَبِ عَبْقَرَ."}
+
+═══════════════════════════════════════════════════════════
 
 FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA. { dan boshlab } gacha.
 
@@ -1319,16 +1391,18 @@ FAQAT JSON formatda javob ber — hech qanday boshqa matn, izoh, markdown YOZMA.
 }
 
 QOIDALAR:
-1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ, TO'LIQ HARAKAT bilan yoz. startTime/endTime soniyalarda. Eng kam 3 ta. Bo'sh [] TA'QIQLANGAN!
-2. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. UYDIRIB YOZMA. Audioda nima aytilgan bo'lsa — SHUNI yoz. 100% aniqlik SHART.
-3. HARAKAT: BARCHA arabcha so'zlarda TO'LIQ harakat bo'lishi SHART. Harakatsiz so'z QABUL QILINMAYDI.
-4. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
-5. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4, arabcha so'z HARAKAT bilan).
-6. SENTENCEANALYSIS: HAR BIR subtitle uchun alohida. "sentence" = subtitles dagi AYNAN o'sha matn. lineIndices: [0] birinchi, [1] ikkinchi... wordMap: gapdagi HAR BIR so'z HARAKAT bilan.
-7. FLASHCARDS: 8-12 ta. HARAKAT bilan.
-8. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+1. SUBTITLES: Audiodagi HAR BIR gapni 100% ANIQ, TO'LIQ HARAKAT bilan yoz. startTime/endTime soniyalarda — REAL vaqtlar! Eng kam 3 ta. Bo'sh [] TA'QIQLANGAN!
+2. ⏱️ TIMING: Har bir gapning BOSHLANISH va TUGASH vaqtini audiodni DIQQAT BILAN eshitib ANIQ yoz. TAXMINIY VAQT TA'QIQLANGAN! Agar gap audioda 1:23 da boshlansa, startTime: 83.0 yoz. TENG ORALIQLAR TA'QIQLANGAN! O'nlik kasrlar ishlat (masalan 45.3, 112.7).
+3. ANIQLIK: Har bir so'zni AYNAN eshitganingdek yoz. UYDIRIB YOZMA. Audioda nima aytilgan bo'lsa — SHUNI yoz. 100% aniqlik SHART.
+4. HARAKAT: BARCHA arabcha so'zlarda TO'LIQ harakat bo'lishi SHART. Harakatsiz so'z QABUL QILINMAYDI.
+5. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
+6. QUIZZES: 10-12 ta. 3 tur aralash: multiple_choice (4-5), sentence_completion (3-4, gap o'rtasida _____), word_translation (3-4, arabcha so'z HARAKAT bilan).
+7. SENTENCEANALYSIS: HAR BIR subtitle uchun BITTA alohida element. "sentence" = subtitles dagi AYNAN o'sha matn (harfma-harf bir xil!). lineIndices = [idx] — faqat O'Z RAQAMI (0, 1, 2...). wordMap: gapdagi HAR BIR so'z HARAKAT bilan.
+8. FLASHCARDS: 8-12 ta. HARAKAT bilan.
+9. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+10. lineIndices QOIDASI: Har bir sentenceAnalysis elementi faqat BITTA lineIndex ga ega bo'lsin! sentenceAnalysis[0].lineIndices = [0], sentenceAnalysis[1].lineIndices = [1], sentenceAnalysis[2].lineIndices = [2]... OVERLAP TA'QIQLANGAN! Bir nechta raqam yozma!
 
-YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va 100% ANIQ yoz! Buni qila olmasang — sen GPT-4o EMASSAN.`;
+YAKUNIY OGOHLANTIRISH: Bo'sh massiv QAYTARMA! Sen audio eshita olasan — ESHIT va 100% ANIQ yoz! Timing noto'g'ri bo'lsa — QAYTADAN ESHIT va TO'G'RILA! Buni qila olmasang — sen GPT-4o EMASSAN.`;
 }
 
 function ChatGptWorkflowState({

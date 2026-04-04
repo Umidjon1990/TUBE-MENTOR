@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Subtitles, Languages,
   Monitor, Play, Pause, SkipBack, SkipForward,
-  Repeat, RotateCcw,
+  Repeat, RotateCcw, ChevronDown, ChevronUp,
   Minus, Plus, ZoomIn, ZoomOut, Type
 } from "lucide-react";
 import WordInspector, { type WordInfo } from "./word-inspector";
@@ -116,14 +116,13 @@ interface SubtitlePlayerProps {
   seekNonce?: number;
   readOnly?: boolean;
   targetLanguage?: string;
-  fullScreenLayout?: boolean;
 }
 
 export interface SubtitlePlayerHandle {
   playWordSegment: (start: number, end: number) => void;
 }
 
-const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar", fullScreenLayout = false }, ref) {
+const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(function SubtitlePlayer({ youtubeUrl, subtitles, lessonId, vocabulary = [], sentenceWordMaps = [], wordTimestamps = [], className = "", initialSeekTime, seekNonce, readOnly = false, targetLanguage = "ar" }, ref) {
   const videoId = useMemo(() => extractVideoId(youtubeUrl), [youtubeUrl]);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -143,6 +142,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   const [isMobile, setIsMobile] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(() => window.innerWidth < 768);
   const [subtitleZoom, setSubtitleZoom] = useState(1);
 
   useImperativeHandle(ref, () => ({
@@ -387,7 +387,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   }, [currentTime, isLooping, activeIndex, subtitles, isReady]);
 
   useEffect(() => {
-    if (panelMode !== "auto" || activeIndex < 0 || !panelRef.current) return;
+    if (panelMode !== "auto" || activeIndex < 0 || !panelRef.current || panelCollapsed) return;
     const el = panelRef.current.querySelector(`[data-subtitle-idx="${activeIndex}"]`) as HTMLElement | null;
     if (el && panelRef.current) {
       const panel = panelRef.current;
@@ -397,7 +397,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
       const scrollTarget = elTop - (panelHeight / 2) + (elHeight / 2);
       panel.scrollTo({ top: scrollTarget, behavior: "smooth" });
     }
-  }, [activeIndex, panelMode]);
+  }, [activeIndex, panelMode, panelCollapsed]);
 
   const seekTo = useCallback((time: number) => {
     if (playerRef.current && isReady) {
@@ -634,16 +634,16 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   const hasSubtitles = subtitles.length > 0;
 
   return (
-    <div className={`${className} ${fullScreenLayout ? "flex flex-col" : ""}`} style={fullScreenLayout ? { height: "calc(100dvh - 100px)" } : undefined}>
-      <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
+    <div className={`${className}`}>
+      <div className="sticky top-0 z-20 bg-background pb-0 md:pb-1 space-y-0 md:space-y-1">
         <div className="relative overflow-hidden bg-black">
-          <div className="relative" style={fullScreenLayout ? { paddingBottom: "min(56.25%, 35vh)" } : { paddingBottom: "56.25%" }}>
+          <div className="relative aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
           </div>
         </div>
 
         {activeSubtitle && (
-          <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
+          <div className="bg-black/95 px-3 md:px-6 py-2 md:py-3" data-testid="subtitle-overlay">
             <div
               className="max-w-full"
               style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center top" }}
@@ -802,10 +802,14 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
 
       {hasSubtitles && (
         <div
-          className={`${fullScreenLayout ? "flex-1 min-h-0 flex flex-col" : ""} md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1`}
+          className="md:rounded-lg glass border-y md:border border-border/50 overflow-hidden transition-all duration-300 mt-1"
           data-testid="subtitle-panel"
         >
-          <div className="shrink-0 flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30">
+          <div
+            className="flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30 hover:bg-white/5 transition-colors cursor-pointer"
+            onClick={() => setPanelCollapsed(!panelCollapsed)}
+            data-testid="button-toggle-panel"
+          >
             <div className="flex items-center gap-1.5">
               <Subtitles className="w-3.5 h-3.5 text-primary" />
               <span className="text-[10px] md:text-xs font-medium">Subtitlelar</span>
@@ -815,118 +819,124 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
                 </span>
               )}
             </div>
-          </div>
-
-          <div
-            ref={panelRef}
-            className={`${fullScreenLayout ? "flex-1 min-h-0" : "max-h-[50vh] md:max-h-[60vh]"} overflow-y-auto scroll-smooth`}
-            style={{ fontSize: `${14 * subtitleZoom}px` }}
-          >
-            <div className="p-1.5 md:p-2 space-y-1">
-              {subtitles.map((item, idx) => {
-                const isActive = idx === activeIndex;
-                const translation = getTranslation(item);
-                const originalIsArabic = isArabic(item.originalText);
-
-                return (
-                  <div
-                    key={item.id}
-                    data-subtitle-idx={idx}
-                    className={`w-full rounded-lg px-2.5 md:px-3 py-2.5 md:py-3 transition-all duration-300
-                      ${isActive
-                        ? "bg-primary/15 border border-primary/40 shadow-[0_0_15px_hsl(var(--primary)/0.15)] ring-1 ring-primary/30"
-                        : "hover:bg-white/5 border border-transparent opacity-60 hover:opacity-80"
-                      }`}
-                    data-testid={`button-subtitle-line-${idx}`}
-                  >
-                    <div className="flex items-start gap-2 md:gap-3">
-                      <div className="shrink-0 flex flex-col items-center gap-1 mt-0.5">
-                        <button
-                          className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-colors ${
-                            isActive
-                              ? "bg-primary/20 text-primary hover:bg-primary/30"
-                              : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground/70"
-                          }`}
-                          onClick={() => seekTo(item.startTime)}
-                          data-testid={`button-play-subtitle-${idx}`}
-                        >
-                          <Play className="w-3 h-3 ml-0.5" />
-                        </button>
-                        <span
-                          className={`font-mono text-center transition-colors ${
-                            isActive ? "text-primary font-bold" : "text-muted-foreground"
-                          }`}
-                          style={{ fontSize: "0.6em" }}
-                        >
-                          {formatTime(item.startTime)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {(displayMode === "original" || displayMode === "both") && (
-                          <div className={`leading-relaxed transition-colors ${
-                            isActive ? "text-foreground font-medium" : "text-foreground/70"
-                          }`}>
-                            {isActive ? (
-                              <div style={{ fontSize: originalIsArabic ? "1.15em" : "0.95em" }}>
-                                {renderClickableWords(item.originalText, item, false)}
-                              </div>
-                            ) : (
-                              <p
-                                className="cursor-pointer break-words"
-                                dir={originalIsArabic ? "rtl" : "ltr"}
-                                style={{
-                                  textAlign: originalIsArabic ? "right" : "left",
-                                  fontFamily: originalIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
-                                  lineHeight: originalIsArabic ? "2" : "1.6",
-                                  fontSize: originalIsArabic ? "1.05em" : "0.95em",
-                                }}
-                                onClick={() => seekTo(item.startTime)}
-                              >
-                                {item.originalText}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        {(displayMode === "translation" || displayMode === "both") && translation && (
-                          <div
-                            className={`leading-relaxed transition-colors cursor-pointer break-words ${
-                              displayMode === "both" ? "mt-1.5" : ""
-                            } ${isActive ? "text-primary/80" : "text-muted-foreground"}`}
-                            style={{ fontSize: "0.88em" }}
-                            onClick={() => seekTo(item.startTime)}
-                          >
-                            {renderTranslationText(translation, false)}
-                          </div>
-                        )}
-                        {displayMode === "translation" && !translation && (
-                          <p
-                            className={`leading-relaxed cursor-pointer break-words ${
-                              isActive ? "text-foreground font-medium" : "text-foreground/70"
-                            }`}
-                            style={{
-                              textAlign: "left",
-                              fontSize: originalIsArabic ? "1.05em" : "0.95em",
-                            }}
-                            onClick={() => seekTo(item.startTime)}
-                          >
-                            {item.originalText}
-                          </p>
-                        )}
-                      </div>
-                      <div className="shrink-0 flex items-center gap-1">
-                        {isActive && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        )}
-                        <span className="text-[9px] font-mono text-muted-foreground/60">
-                          {idx + 1}/{subtitles.length}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex items-center gap-1">
+              {panelCollapsed ? <ChevronDown className="w-3 h-3 text-muted-foreground" /> : <ChevronUp className="w-3 h-3 text-muted-foreground" />}
             </div>
           </div>
+
+          {!panelCollapsed && (
+            <div
+              ref={panelRef}
+              className="max-h-[50vh] md:max-h-[60vh] overflow-y-auto scroll-smooth"
+              style={{ fontSize: `${14 * subtitleZoom}px` }}
+            >
+              <div className="p-1.5 md:p-2 divide-y divide-border/20">
+                {subtitles.map((item, idx) => {
+                  const isActive = idx === activeIndex;
+                  const translation = getTranslation(item);
+                  const originalIsArabic = isArabic(item.originalText);
+
+                  return (
+                    <div
+                      key={item.id}
+                      data-subtitle-idx={idx}
+                      className={`w-full rounded-lg px-2.5 md:px-3 py-2.5 md:py-3 transition-all duration-200 group
+                        ${isActive
+                          ? "bg-primary/10 border border-primary/30 shadow-sm shadow-primary/5 ring-1 ring-primary/20"
+                          : "hover:bg-white/5 border border-transparent"
+                        }
+                        ${idx > 0 && !isActive ? "mt-0.5" : ""}`}
+                      data-testid={`button-subtitle-line-${idx}`}
+                    >
+                      <div className="flex items-start gap-2 md:gap-3">
+                        <div className="shrink-0 flex flex-col items-center gap-1 mt-0.5">
+                          <button
+                            className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-colors ${
+                              isActive
+                                ? "bg-primary/20 text-primary hover:bg-primary/30"
+                                : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground/70"
+                            }`}
+                            onClick={() => seekTo(item.startTime)}
+                            data-testid={`button-play-subtitle-${idx}`}
+                          >
+                            <Play className="w-3 h-3 ml-0.5" />
+                          </button>
+                          <span
+                            className={`font-mono text-center transition-colors ${
+                              isActive ? "text-primary font-bold" : "text-muted-foreground"
+                            }`}
+                            style={{ fontSize: "0.6em" }}
+                          >
+                            {formatTime(item.startTime)}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {(displayMode === "original" || displayMode === "both") && (
+                            <div className={`leading-relaxed transition-colors ${
+                              isActive ? "text-foreground font-medium" : "text-foreground/70"
+                            }`}>
+                              {isActive ? (
+                                <div style={{ fontSize: originalIsArabic ? "1.15em" : "0.95em" }}>
+                                  {renderClickableWords(item.originalText, item, false)}
+                                </div>
+                              ) : (
+                                <p
+                                  className="cursor-pointer break-words"
+                                  dir={originalIsArabic ? "rtl" : "ltr"}
+                                  style={{
+                                    textAlign: originalIsArabic ? "right" : "left",
+                                    fontFamily: originalIsArabic ? "'Noto Naskh Arabic', 'Amiri', serif" : "inherit",
+                                    lineHeight: originalIsArabic ? "2" : "1.6",
+                                    fontSize: originalIsArabic ? "1.05em" : "0.95em",
+                                  }}
+                                  onClick={() => seekTo(item.startTime)}
+                                >
+                                  {item.originalText}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {(displayMode === "translation" || displayMode === "both") && translation && (
+                            <div
+                              className={`leading-relaxed transition-colors cursor-pointer break-words ${
+                                displayMode === "both" ? "mt-1.5" : ""
+                              } ${isActive ? "text-primary/80" : "text-muted-foreground"}`}
+                              style={{ fontSize: "0.88em" }}
+                              onClick={() => seekTo(item.startTime)}
+                            >
+                              {renderTranslationText(translation, false)}
+                            </div>
+                          )}
+                          {displayMode === "translation" && !translation && (
+                            <p
+                              className={`leading-relaxed cursor-pointer break-words ${
+                                isActive ? "text-foreground font-medium" : "text-foreground/70"
+                              }`}
+                              style={{
+                                textAlign: "left",
+                                fontSize: originalIsArabic ? "1.05em" : "0.95em",
+                              }}
+                              onClick={() => seekTo(item.startTime)}
+                            >
+                              {item.originalText}
+                            </p>
+                          )}
+                        </div>
+                        <div className="shrink-0 flex items-center gap-1">
+                          {isActive && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                          )}
+                          <span className="text-[9px] font-mono text-muted-foreground/60">
+                            {idx + 1}/{subtitles.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

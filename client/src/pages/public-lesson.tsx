@@ -462,7 +462,6 @@ export default function PublicLessonPage() {
             initialSeekTime={initialTime}
             readOnly
             targetLanguage={lesson.targetLanguage || "ar"}
-            fullScreenLayout
           />
         ) : lesson.thumbnailUrl ? (
           <div className="relative rounded-lg overflow-hidden aspect-video max-w-xl">
@@ -483,11 +482,12 @@ export default function PublicLessonPage() {
           </div>
         ) : null}
 
-        <div className="px-3 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
-          <div className="space-y-2">
+        <div className="px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
+          <div className="space-y-3">
             <h1 className="text-xl md:text-2xl font-bold" data-testid="text-lesson-title">
               {lesson.title}
             </h1>
+
             <div className="flex items-center gap-2 md:gap-3 flex-wrap">
               <Badge variant="outline" className={levelColors[lesson.level] || ""} data-testid="badge-level">
                 {levelLabels[lesson.level] || lesson.level}

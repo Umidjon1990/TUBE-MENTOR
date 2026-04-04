@@ -775,6 +775,7 @@ export async function registerRoutes(
 
       const updated = await storage.updateLesson(id, {
         wordTimestampsJson: wordTimestamps,
+        transcriptSource: "whisper",
       });
 
       res.json({

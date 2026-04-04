@@ -637,7 +637,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     <div className={`${className} ${fullScreenLayout ? "flex flex-col" : ""}`} style={fullScreenLayout ? { height: "calc(100dvh - 100px)" } : undefined}>
       <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
         <div className="relative overflow-hidden bg-black">
-          <div className="relative" style={fullScreenLayout ? { paddingBottom: "min(56.25%, 35vh)" } : { paddingBottom: "56.25%" }}>
+          <div className="relative" style={fullScreenLayout ? { paddingBottom: "min(56.25%, 42vh)" } : { paddingBottom: "56.25%" }}>
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
           </div>
         </div>

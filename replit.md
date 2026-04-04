@@ -95,6 +95,7 @@ shared/
 - **Arabic RTL support**: dir="rtl", textAlign, fontFamily `'Noto Naskh Arabic', 'Amiri', serif` (loaded via Google Fonts), lineHeight 1.8 for Arabic
 - **Clickable words**: Active subtitle words are tokenized and clickable (overlay + panel), with active/hover states
 - **Word Inspector**: Desktop popup near clicked word; mobile bottom sheet with safe-area padding
+- **Subtitle persistence**: When a subtitle ends, it stays visible on screen until the next subtitle starts (no gap/flash between subtitles)
 - **Edge cases**: No-subtitles empty state, translation fallback, break-words overflow prevention, loop end-time handling
 - **Whisper karaoke mode**: When `wordTimestamps` prop is provided (from Whisper transcription), words highlight in real-time — active word = neon cyan glow + scale, past words = dimmed, future words = normal. Pre-computed per-subtitle timing map with fallback to proportional interpolation when Whisper timestamps don't align perfectly.
 - Props: `youtubeUrl`, `subtitles`, `lessonId`, `vocabulary`, `phrases`, `sentenceWordMaps`, `wordTimestamps`
@@ -172,8 +173,13 @@ shared/
 - `server/services/ai-generator.ts` with `detectLanguage()` for Arabic/English/mixed transcripts
 - OpenAI GPT-4o-mini (user's own API key prioritized) with explicit O'ZBEK translation requirements (SHART markers)
 - AI prompt sends all sentences as numbered list + instructs "BARCHA gaplarni tahlil qil" for complete analysis
+- **Whisper + ChatGPT two-step workflow** (recommended):
+  - Step 1: Upload audio → Whisper transcription (accurate word-level timing saved to DB)
+  - Step 2: `buildWhisperAnalysisPrompt()` generates text-only prompt with Whisper subtitles → user pastes into ChatGPT → ChatGPT returns only analysis (translation/vocabulary/quizzes/sentenceAnalysis, NO subtitles needed)
+  - Frontend: `lesson-process.tsx` ChatGptWorkflowState with 4-step progress (upload → whisper-loading → prompt-ready → import)
+  - Import endpoint merges ChatGPT analysis with existing Whisper subtitles for lineIndices computation
 - **ChatGPT manual import**: Users can bypass API costs by using a built-in ChatGPT prompt template, pasting JSON result into the system
-  - Endpoint: `POST /api/user/lessons/:id/import-content` accepts `{ content: { ... } }` with full lesson JSON
+  - Endpoint: `POST /api/user/lessons/:id/import-content` accepts `{ content: { ... } }` with full lesson JSON — `subtitles` field is optional (uses existing Whisper subtitles if absent)
   - Frontend: `lesson-process.tsx` JsonImportState with template viewer, copy button, JSON validator
   - Provider metadata: `provider: "manual-import"`, `model: "chatgpt-manual"`
   - **JSON auto-repair**: `repairChatGptJson()` fixes unescaped quotes inside string values (common ChatGPT issue), then `jsonrepair` library handles remaining syntax issues

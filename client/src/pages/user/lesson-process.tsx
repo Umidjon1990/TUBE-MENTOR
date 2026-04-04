@@ -11,7 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Loader2, Sparkles, FileText, AlertTriangle,
   CheckCircle2, RefreshCcw, Type, BookOpenCheck,
-  ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste, AudioWaveform
+  ChevronRight, ArrowLeft, Zap, Wand2, Copy, Upload, ClipboardPaste, AudioWaveform,
+  MessageSquareText, ChevronDown, ChevronUp, ExternalLink
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { jsonrepair } from "jsonrepair";
@@ -36,7 +37,7 @@ function repairChatGptJson(raw: string): string {
   return fixed.join("\n");
 }
 
-type ProcessStep = "loading" | "extracting" | "no-transcript" | "manual-input" | "transcript-ready" | "generating" | "json-import" | "done" | "error";
+type ProcessStep = "loading" | "extracting" | "no-transcript" | "manual-input" | "transcript-ready" | "generating" | "json-import" | "chatgpt-workflow" | "done" | "error";
 
 export default function LessonProcessPage() {
   const { toast } = useToast();
@@ -292,9 +293,21 @@ export default function LessonProcessPage() {
             onDemo={useDemo}
             onWhisper={attemptWhisper}
             onAudioUpload={handleAudioUpload}
+            onChatGptWorkflow={() => setStep("chatgpt-workflow")}
             isRetrying={transcriptMutation.isPending}
             isWhispering={whisperMutation.isPending}
             isUploadingAudio={audioUploadMutation.isPending}
+          />
+        )}
+        {step === "chatgpt-workflow" && (
+          <ChatGptWorkflowState
+            targetLanguage={lesson.targetLanguage || "ar"}
+            jsonText={jsonImportText}
+            onJsonChange={setJsonImportText}
+            onSubmit={() => importMutation.mutate()}
+            onBack={() => setStep("no-transcript")}
+            isPending={importMutation.isPending}
+            lessonId={lesson.id}
           />
         )}
         {step === "manual-input" && (
@@ -419,6 +432,7 @@ function NoTranscriptState({
   onDemo,
   onWhisper,
   onAudioUpload,
+  onChatGptWorkflow,
   isRetrying,
   isWhispering,
   isUploadingAudio,
@@ -428,10 +442,13 @@ function NoTranscriptState({
   onDemo: () => void;
   onWhisper: () => void;
   onAudioUpload: () => void;
+  onChatGptWorkflow: () => void;
   isRetrying: boolean;
   isWhispering: boolean;
   isUploadingAudio: boolean;
 }) {
+  const [showMore, setShowMore] = useState(false);
+
   return (
     <Card className="glass border-orange-500/20" data-testid="card-no-transcript">
       <CardContent className="p-8">
@@ -441,11 +458,28 @@ function NoTranscriptState({
           </div>
           <h3 className="text-lg font-semibold mb-2">Bu videoda subtitle topilmadi</h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            Scriptni qo'lda joylashtirib davom etishingiz mumkin
+            Quyidagi usullardan birini tanlang
           </p>
         </div>
 
         <div className="space-y-3">
+          <Button
+            className="w-full justify-start gap-3 h-auto py-5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white border-0"
+            onClick={onChatGptWorkflow}
+            data-testid="button-chatgpt-workflow"
+          >
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <MessageSquareText className="w-6 h-6" />
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold">ChatGPT bilan dars yaratish</p>
+                <Badge className="bg-white/20 text-white text-[9px] px-1.5 py-0 border-0">TAVSIYA</Badge>
+              </div>
+              <p className="text-xs text-white/80 mt-0.5">Bepul va tez — audio + prompt = tayyor dars!</p>
+            </div>
+          </Button>
+
           <Button
             variant="outline"
             className="w-full justify-start gap-3 h-auto py-4 px-4"
@@ -459,38 +493,6 @@ function NoTranscriptState({
             <div className="text-left">
               <p className="text-sm font-medium">Qayta urinib ko'rish</p>
               <p className="text-xs text-muted-foreground">Subtitlerni avtomatik olishga yana urinish</p>
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-3 h-auto py-4 px-4 border-amber-500/20 hover:border-amber-500/40"
-            onClick={onWhisper}
-            disabled={isWhispering || isUploadingAudio}
-            data-testid="button-whisper-transcript"
-          >
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-              {isWhispering ? <Loader2 className="w-5 h-5 text-amber-400 animate-spin" /> : <AudioWaveform className="w-5 h-5 text-amber-400" />}
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium">Whisper AI bilan transkripsiya</p>
-              <p className="text-xs text-muted-foreground">YouTube'dan audio yuklab Whisper tahlil qiladi</p>
-            </div>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-3 h-auto py-4 px-4 border-emerald-500/20 hover:border-emerald-500/40"
-            onClick={onAudioUpload}
-            disabled={isWhispering || isUploadingAudio}
-            data-testid="button-audio-upload"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-              {isUploadingAudio ? <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" /> : <Upload className="w-5 h-5 text-emerald-400" />}
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium">Audio fayl yuklash (tavsiya)</p>
-              <p className="text-xs text-muted-foreground">YouTube'dan o'zingiz yuklab olgan audio faylni yuklang (MP3, WAV, M4A)</p>
             </div>
           </Button>
 
@@ -510,19 +512,64 @@ function NoTranscriptState({
           </Button>
 
           <Button
-            variant="outline"
-            className="w-full justify-start gap-3 h-auto py-4 px-4"
-            onClick={onDemo}
-            data-testid="button-demo-transcript"
+            variant="ghost"
+            className="w-full justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => setShowMore(!showMore)}
+            data-testid="button-show-more-options"
           >
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-              <BookOpenCheck className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium">Demo matndan foydalanish</p>
-              <p className="text-xs text-muted-foreground">Namuna matn bilan dars yaratish</p>
-            </div>
+            {showMore ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {showMore ? "Boshqa usullarni yashirish" : "Boshqa usullar (Whisper, Audio yuklash)"}
           </Button>
+
+          {showMore && (
+            <div className="space-y-3 pt-1">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto py-4 px-4 border-amber-500/20 hover:border-amber-500/40"
+                onClick={onWhisper}
+                disabled={isWhispering || isUploadingAudio}
+                data-testid="button-whisper-transcript"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  {isWhispering ? <Loader2 className="w-5 h-5 text-amber-400 animate-spin" /> : <AudioWaveform className="w-5 h-5 text-amber-400" />}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium">Whisper AI bilan transkripsiya</p>
+                  <p className="text-xs text-muted-foreground">YouTube'dan audio yuklab Whisper tahlil qiladi (API pullik)</p>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto py-4 px-4 border-cyan-500/20 hover:border-cyan-500/40"
+                onClick={onAudioUpload}
+                disabled={isWhispering || isUploadingAudio}
+                data-testid="button-audio-upload"
+              >
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                  {isUploadingAudio ? <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" /> : <Upload className="w-5 h-5 text-cyan-400" />}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium">Audio fayl yuklash</p>
+                  <p className="text-xs text-muted-foreground">O'zingiz yuklab olgan audio faylni Whisper'ga yuborish (API pullik)</p>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-auto py-3 px-4"
+                onClick={onDemo}
+                data-testid="button-demo-transcript"
+              >
+                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+                  <BookOpenCheck className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-medium text-muted-foreground">Demo matndan foydalanish</p>
+                </div>
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -1101,6 +1148,457 @@ ${hasTiming ? '- MUHIM: "sentence" maydoni AYNAN quyidagi vaqtli ro\'yxatdagi ma
 ${arabTimedSection}
 # TRANSKRIPT:
 ${transcript}`;
+}
+
+function buildFullAudioPrompt(targetLanguage: string = "ar"): string {
+  if (targetLanguage === "en") {
+    return `# ROL
+Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. Men senga YouTube videosining AUDIO FAYLINI yuboraman. Sen bu audioni eshitib:
+1) SO'ZMA-SO'Z transkripsiya qilasan (vaqt belgilari bilan)
+2) To'liq dars materiallari yaratasan
+
+## VAZIFA — 2 BOSQICH:
+
+### BOSQICH 1: TRANSKRIPSIYA
+Audiodagi har bir gapni eshitib, aniq vaqt belgilari bilan yoz:
+- Har bir gap uchun boshlanish va tugash vaqtini belgi (soniyalarda)
+- So'zlarni to'g'ri eshitib, aynan yoz
+- Gaplarni tabiiy joylaridan ajrat (pauza, nuqta, gap tugashi)
+
+### BOSQICH 2: DARS MATERIALLARI
+Transkriptsiya asosida to'liq dars materiallari yarat.
+
+## TARJIMA QOIDALARI:
+- "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
+- "explanation": O'ZBEK tilida
+
+# JAVOB FORMATI
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
+
+# JSON STRUKTURASI
+{
+  "subtitles": [
+    {
+      "startTime": 0.0,
+      "endTime": 3.5,
+      "text": "audiodagi gap matni (inglizcha)"
+    }
+  ],
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "vocabulary": [
+    {
+      "word": "inglizcha so'z (masalan: accomplish)",
+      "translation": "O'ZBEKCHA tarjima (SHART o'zbekcha bo'lishi kerak)",
+      "partOfSpeech": "noun/verb/adjective/adverb/preposition",
+      "example": "transkriptdan inglizcha misol gap",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida batafsil tushuntirish",
+      "type": "multiple_choice"
+    },
+    {
+      "question": "I _____ to the store yesterday — bo'sh joyga mos so'zni tanlang",
+      "options": ["go", "went", "gone", "going"],
+      "correctIndex": 1,
+      "explanation": "went — go fe'lining Past Simple shakli",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "accomplish",
+      "options": ["bajarmoq", "o'qimoq", "yozmoq", "bormoq"],
+      "correctIndex": 0,
+      "explanation": "accomplish — bajarmoq, amalga oshirmoq ma'nosida",
+      "type": "word_translation"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "inglizcha so'z yoki ibora",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "type": "vocabulary"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "AYNAN subtitles dagi gap matni — o'zgartirma!",
+      "translation": "O'ZBEKCHA tarjima — AYNAN shu gap mazmunini tarjima qil",
+      "lineIndices": [0],
+      "wordMap": [
+        {
+          "word": "inglizcha so'z",
+          "normalized": "so'zning asosiy shakli (masalan: go)",
+          "translationUz": "O'ZBEKCHA tarjima"
+        }
+      ]
+    }
+  ]
+}
+
+# QOIDALAR
+
+## 1. SUBTITLES — ENG MUHIM
+- Audiodagi HAR BIR gapni aniq eshitib yoz
+- startTime va endTime SONIYALARDA bo'lsin (masalan: 0.0, 3.5, 7.2)
+- Gaplarni tabiiy joylaridan ajrat — pauza bo'lgan joyda yangi gap
+- HECH QANDAY gapni tashlab ketma!
+- Eng kam 1 ta, eng ko'p 50 ta subtitle
+
+## 2. TARJIMA TILI
+- BARCHA "translation", "explanation", "back" maydonlari — O'ZBEK tilida
+- "word", "sentence", "front", "example" maydonlari — INGLIZ tilida
+
+## 3. SENTENCEANALYSIS
+- Har bir subtitle uchun ALOHIDA sentenceAnalysis yozilishi SHART
+- "sentence" maydoni AYNAN subtitles dagi matn bo'lishi kerak — O'ZGARTIRMA!
+- "lineIndices": [0] — birinchi subtitle uchun 0, ikkinchi uchun 1, va h.k.
+- wordMap: gapdagi HAR BIR so'z tahlili — so'z tashlab ketish MUMKIN EMAS
+- BARCHA subtitles qamrab olinishi SHART!
+
+## 4. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta (O'zbek tilida savol, 4 variant)
+- sentence_completion: 3-4 ta (inglizcha gap O'RTASIDA _____ bo'shliq, 4 inglizcha variant)
+- word_translation: 3-4 ta (inglizcha so'z, 4 o'zbekcha variant)
+
+## 5. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: subtitles dagi BARCHA gaplar
+
+## 6. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
+- JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
+  }
+
+  return `# ROL
+Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. Men senga YouTube videosining AUDIO FAYLINI yuboraman. Sen bu audioni eshitib:
+1) SO'ZMA-SO'Z transkripsiya qilasan (vaqt belgilari bilan)
+2) To'liq dars materiallari yaratasan
+
+Sen quyidagi manbalarga tayanasan:
+- كِتَابُ سِيبَوَيْهِ (Sibavayh kitobi — nahv asosi)
+- النَّحْوُ الْوَافِي لِعَبَّاسِ حَسَنٍ (Abbas Hasan — to'liq nahv)
+- أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
+
+## VAZIFA — 2 BOSQICH:
+
+### BOSQICH 1: TRANSKRIPSIYA
+Audiodagi har bir gapni eshitib, aniq vaqt belgilari bilan yoz:
+- Har bir gap uchun boshlanish va tugash vaqtini belgi (soniyalarda)
+- Arabcha so'zlarni TO'LIQ HARAKAT BILAN yoz
+- Gaplarni tabiiy joylaridan ajrat
+
+### BOSQICH 2: DARS MATERIALLARI
+Transkriptsiya asosida to'liq dars materiallari yarat.
+
+## HARAKAT (التَّشْكِيل) QOIDALARI — QAT'IY:
+- BARCHA arabcha so'zlar TO'LIQ HARAKAT bilan yozilsin
+- Har bir harf: فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
+- TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ | NOTO'G'RI: ذهب الولد الى المدرسة
+- Harakatsiz arabcha so'z QABUL QILINMAYDI
+
+## TARJIMA QOIDALARI:
+- "translation" maydoni: O'ZBEK tilida tarjima (SHART)
+- "translationAr": arabcha so'zning arabcha izohi (HARAKAT bilan)
+- "explanation": O'ZBEK tilida
+
+# JAVOB FORMATI
+Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
+
+# JSON STRUKTURASI
+{
+  "subtitles": [
+    {
+      "startTime": 0.0,
+      "endTime": 3.5,
+      "text": "الْجُمْلَةُ الْعَرَبِيَّةُ بِالتَّشْكِيلِ الْكَامِلِ"
+    }
+  ],
+  "summaryShort": "Videoning qisqacha mazmuni (2-3 gap, O'ZBEK tilida)",
+  "summaryDetailed": "Videoning batafsil mazmuni (5-8 gap, O'ZBEK tilida)",
+  "summaryShortAr": "مُلَخَّصٌ قَصِيرٌ لِلْفِيدِيُو بِالتَّشْكِيلِ",
+  "summaryDetailedAr": "مُلَخَّصٌ تَفْصِيلِيٌّ لِلْفِيدِيُو بِالتَّشْكِيلِ",
+  "vocabulary": [
+    {
+      "word": "مُعَلِّمٌ (TO'LIQ HARAKAT BILAN)",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "تَفْسِيرٌ أَوْ مُرَادِفٌ بِالتَّشْكِيلِ",
+      "partOfSpeech": "اِسْمٌ/فِعْلٌ/حَرْفٌ/صِفَةٌ",
+      "example": "transkriptdan misol gap (HARAKAT bilan)",
+      "difficulty": "easy/medium/hard"
+    }
+  ],
+  "quizzes": [
+    {
+      "question": "O'ZBEK tilida savol",
+      "options": ["variant A", "variant B", "variant C", "variant D"],
+      "correctIndex": 0,
+      "explanation": "O'ZBEK tilida tushuntirish",
+      "type": "multiple_choice"
+    },
+    {
+      "question": "هَذَا _____ جَمِيلٌ — bo'sh joyga mos so'zni tanlang",
+      "options": ["بَيْتٌ", "كِتَابٌ", "وَلَدٌ", "سَيَّارَةٌ"],
+      "correctIndex": 0,
+      "explanation": "بَيْتٌ — uy",
+      "type": "sentence_completion"
+    },
+    {
+      "question": "كَتَبَ",
+      "options": ["o'qidi", "yozdi", "bordi", "keldi"],
+      "correctIndex": 1,
+      "explanation": "كَتَبَ — yozmoq fe'li",
+      "type": "word_translation"
+    }
+  ],
+  "flashcards": [
+    {
+      "front": "كَلِمَةٌ بِالتَّشْكِيلِ",
+      "back": "O'ZBEKCHA tarjima va tushuntirish",
+      "backAr": "التَّرْجَمَةُ بِالْعَرَبِيَّةِ مَعَ التَّشْكِيلِ",
+      "type": "vocabulary"
+    }
+  ],
+  "sentenceAnalysis": [
+    {
+      "sentence": "الْجُمْلَةُ بِالتَّشْكِيلِ — AYNAN subtitles dagi matn",
+      "translation": "O'ZBEKCHA tarjima",
+      "translationAr": "الْجُمْلَةُ بِالتَّشْكِيلِ",
+      "lineIndices": [0],
+      "wordMap": [
+        {
+          "word": "كَلِمَةٌ بِالتَّشْكِيلِ",
+          "normalized": "harakat olib tashlangan shakl",
+          "translationUz": "O'ZBEKCHA tarjima",
+          "translationAr": "مُرَادِفٌ بِالتَّشْكِيلِ"
+        }
+      ]
+    }
+  ]
+}
+
+# QOIDALAR
+
+## 1. SUBTITLES — ENG MUHIM
+- Audiodagi HAR BIR gapni eshitib, TO'LIQ HARAKAT bilan yoz
+- startTime va endTime SONIYALARDA (masalan: 0.0, 3.5, 7.2)
+- Gaplarni tabiiy joylaridan ajrat
+- HECH QANDAY gapni tashlab ketma!
+
+## 2. HARAKAT — QAT'IY
+- BARCHA arabcha so'zlarda TO'LIQ harakat bo'lishi SHART
+- Harakatsiz arabcha so'z QABUL QILINMAYDI
+
+## 3. TARJIMA TILI
+- "translation", "explanation", "back" — O'ZBEK tilida
+- "translationAr", "backAr", "summaryShortAr", "summaryDetailedAr" — arab tilida HARAKAT bilan
+
+## 4. SENTENCEANALYSIS
+- Har bir subtitle uchun ALOHIDA sentenceAnalysis yozilishi SHART
+- "sentence" maydoni AYNAN subtitles dagi matn — O'ZGARTIRMA!
+- "lineIndices": [0] — birinchi subtitle uchun 0, ikkinchi uchun 1, va h.k.
+- wordMap: gapdagi HAR BIR so'z tahlili — tashlab ketma!
+
+## 5. QUIZ TURLARI — MAJBURIY:
+- multiple_choice: 4-5 ta
+- sentence_completion: 3-4 ta (gap O'RTASIDA _____, 4 arabcha variant HARAKAT bilan)
+- word_translation: 3-4 ta (arabcha so'z HARAKAT bilan, 4 o'zbekcha variant)
+
+## 6. SON CHEGARALARI
+- vocabulary: 8-15 ta so'z
+- quizzes: 10-12 ta savol (3 tur aralash)
+- flashcards: 8-12 ta karta
+- sentenceAnalysis: BARCHA subtitles qamrab olinsin
+
+## 7. TEXNIK
+- correctIndex: 0 dan boshlanadi (0-3)
+- JSON VALID bo'lishi SHART`;
+}
+
+function ChatGptWorkflowState({
+  targetLanguage,
+  jsonText,
+  onJsonChange,
+  onSubmit,
+  onBack,
+  isPending,
+  lessonId,
+}: {
+  targetLanguage: string;
+  jsonText: string;
+  onJsonChange: (v: string) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+  isPending: boolean;
+  lessonId: number;
+}) {
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const prompt = buildFullAudioPrompt(targetLanguage);
+
+  function copyPrompt() {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = prompt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  let jsonValid = false;
+  let jsonError = "";
+  if (jsonText.trim()) {
+    try {
+      const step1 = repairChatGptJson(jsonText);
+      const repaired = jsonrepair(step1);
+      const parsed = JSON.parse(repaired);
+      const missing: string[] = [];
+      if (!parsed.summaryShort) missing.push("summaryShort");
+      if (!parsed.summaryDetailed) missing.push("summaryDetailed");
+      if (!Array.isArray(parsed.vocabulary) || parsed.vocabulary.length === 0) missing.push("vocabulary");
+      if (!Array.isArray(parsed.sentenceAnalysis) || parsed.sentenceAnalysis.length === 0) missing.push("sentenceAnalysis");
+      if (missing.length > 0) jsonError = `Topilmadi: ${missing.join(", ")}`;
+      else jsonValid = true;
+    } catch {
+      jsonError = "JSON formati noto'g'ri";
+    }
+  }
+
+  return (
+    <Card className="glass border-emerald-500/20" data-testid="card-chatgpt-workflow">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+            <MessageSquareText className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">ChatGPT bilan dars yaratish</h3>
+            <p className="text-xs text-muted-foreground">Bepul — API xarajatisiz to'liq dars yarating</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-4 space-y-3">
+          <p className="text-xs font-semibold text-emerald-400">Qadamlar:</p>
+          <ol className="text-xs text-muted-foreground space-y-2.5 list-none">
+            <li className="flex gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">1</span>
+              <span>YouTube videosidan <strong>audio</strong> yuklab oling (har qanday YouTube to MP3 sayt orqali, masalan: y2mate.com)</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">2</span>
+              <span>Quyidagi <strong>promptni nusxalang</strong> (pastdagi tugma)</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">3</span>
+              <span>
+                <a href="https://chat.openai.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">
+                  chat.openai.com
+                </a>
+                {" "}ga kiring, promptni joylashtiring va <strong>audio faylni biriktiring</strong>
+              </span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">4</span>
+              <span>ChatGPT javobidagi <strong>JSON</strong>ni to'liq nusxalang</span>
+            </li>
+            <li className="flex gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">5</span>
+              <span>Pastdagi maydonga <strong>joylashtiring</strong> va "Import" tugmasini bosing</span>
+            </li>
+          </ol>
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            className="w-full gap-2 text-xs border-emerald-500/20 hover:border-emerald-500/40"
+            onClick={() => setShowPrompt(!showPrompt)}
+            data-testid="button-toggle-audio-prompt"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            {showPrompt ? "Promptni yashirish" : "ChatGPT promptini ko'rish"}
+          </Button>
+
+          {showPrompt && (
+            <div className="space-y-2">
+              <div className="rounded-lg bg-muted/30 border border-border/50 p-3 max-h-60 overflow-y-auto">
+                <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-words leading-relaxed">{prompt}</pre>
+              </div>
+            </div>
+          )}
+
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={copyPrompt}
+            data-testid="button-copy-audio-prompt"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            {copied ? "Nusxalandi!" : "Promptni nusxalash"}
+          </Button>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">ChatGPT javobini bu yerga joylashtiring:</label>
+          <Textarea
+            placeholder='{"subtitles": [...], "summaryShort": "...", "vocabulary": [...], ...}'
+            value={jsonText}
+            onChange={(e) => onJsonChange(e.target.value)}
+            className="min-h-[160px] bg-muted/30 border-border/50 text-xs font-mono"
+            data-testid="textarea-chatgpt-json"
+          />
+        </div>
+
+        {jsonText.trim() && (
+          <div className="flex items-center gap-2">
+            {jsonValid ? (
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] gap-1">
+                <CheckCircle2 className="w-3 h-3" /> JSON to'g'ri
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="text-[10px] gap-1">
+                <AlertTriangle className="w-3 h-3" /> {jsonError}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onBack} className="gap-1.5" data-testid="button-chatgpt-back">
+            <ArrowLeft className="w-4 h-4" /> Orqaga
+          </Button>
+          <Button
+            className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+            disabled={!jsonValid || isPending}
+            onClick={onSubmit}
+            data-testid="button-chatgpt-import"
+          >
+            {isPending ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Yuklanmoqda...</>
+            ) : (
+              <><Upload className="w-4 h-4" /> Import qilish</>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function JsonImportState({

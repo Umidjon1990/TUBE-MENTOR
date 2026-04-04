@@ -1175,12 +1175,6 @@ export async function registerRoutes(
         return result;
       });
 
-      const storedSubtitles = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
-      if (storedSubtitles && storedSubtitles.length > 0) {
-        computeLineIndices(sentenceAnalysisJson, storedSubtitles);
-        console.log(`[import] Dars #${id}: lineIndices avtomatik hisoblandi`);
-      }
-
       const updateData: any = {
         summaryShort: content.summaryShort || "",
         summaryDetailed: content.summaryDetailed || "",
@@ -1201,7 +1195,40 @@ export async function registerRoutes(
         status: "approved",
       };
 
-      if (!lesson.subtitlesJson && lesson.manualTranscript) {
+      let subtitlesForLineIndices: { startTime: number; endTime: number; text: string }[] | null = null;
+
+      if (Array.isArray(content.subtitles) && content.subtitles.length > 0) {
+        const importedSubs = content.subtitles.map((s: any) => ({
+          startTime: typeof s.startTime === "number" ? Math.round(s.startTime * 1000) / 1000 : 0,
+          endTime: typeof s.endTime === "number" ? Math.round(s.endTime * 1000) / 1000 : 0,
+          text: (s.text || "").trim(),
+        })).filter((s: any) => s.text.length > 0);
+
+        if (importedSubs.length > 0) {
+          updateData.subtitlesJson = importedSubs;
+          updateData.transcriptSource = "chatgpt-audio";
+          if (!lesson.transcript) {
+            updateData.transcript = importedSubs.map((s: any) => s.text).join(" ");
+          }
+          subtitlesForLineIndices = importedSubs;
+          console.log(`[import] Dars #${id}: ChatGPT audio subtitles import (${importedSubs.length} ta)`);
+        }
+      }
+
+      if (!subtitlesForLineIndices) {
+        const storedSubtitles = lesson.subtitlesJson as { startTime: number; endTime: number; text: string }[] | null;
+        if (storedSubtitles && storedSubtitles.length > 0) {
+          subtitlesForLineIndices = storedSubtitles;
+        }
+      }
+
+      if (subtitlesForLineIndices) {
+        for (const sa of sentenceAnalysisJson) delete sa.lineIndices;
+        computeLineIndices(sentenceAnalysisJson, subtitlesForLineIndices);
+        console.log(`[import] Dars #${id}: lineIndices hisoblandi (${subtitlesForLineIndices.length} subtitle)`);
+      }
+
+      if (!updateData.subtitlesJson && !lesson.subtitlesJson && lesson.manualTranscript) {
         const manualResult = processManualTranscript(lesson.manualTranscript);
         if (manualResult.timedSubtitles && manualResult.timedSubtitles.length > 0) {
           updateData.subtitlesJson = manualResult.timedSubtitles;

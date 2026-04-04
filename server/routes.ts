@@ -1251,9 +1251,16 @@ export async function registerRoutes(
       }
 
       if (subtitlesForLineIndices) {
-        for (const sa of sentenceAnalysisJson) delete sa.lineIndices;
-        computeLineIndices(sentenceAnalysisJson, subtitlesForLineIndices);
-        console.log(`[import] Dars #${id}: lineIndices hisoblandi (${subtitlesForLineIndices.length} subtitle)`);
+        if (sentenceAnalysisJson.length === subtitlesForLineIndices.length) {
+          for (let i = 0; i < sentenceAnalysisJson.length; i++) {
+            sentenceAnalysisJson[i].lineIndices = [i];
+          }
+          console.log(`[import] Dars #${id}: 1:1 lineIndices (${subtitlesForLineIndices.length} subtitle = ${sentenceAnalysisJson.length} gap)`);
+        } else {
+          for (const sa of sentenceAnalysisJson) delete sa.lineIndices;
+          computeLineIndices(sentenceAnalysisJson, subtitlesForLineIndices);
+          console.log(`[import] Dars #${id}: lineIndices hisoblandi (${subtitlesForLineIndices.length} subtitle, ${sentenceAnalysisJson.length} gap)`);
+        }
       }
 
       if (!updateData.subtitlesJson && !lesson.subtitlesJson && lesson.manualTranscript) {
@@ -1286,11 +1293,18 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Subtitle yoki gap ma'lumoti yo'q" });
       }
 
-      for (const sa of sents) delete sa.lineIndices;
-      computeLineIndices(sents, subs);
+      if (sents.length === subs.length) {
+        for (let i = 0; i < sents.length; i++) {
+          sents[i].lineIndices = [i];
+        }
+        console.log(`[resync] Dars #${id}: 1:1 lineIndices (${subs.length} subtitle = ${sents.length} gap)`);
+      } else {
+        for (const sa of sents) delete sa.lineIndices;
+        computeLineIndices(sents, subs);
+        console.log(`[resync] Dars #${id}: lineIndices qayta hisoblandi (${sents.length} gap, ${subs.length} subtitle)`);
+      }
 
       const updated = await storage.updateLesson(id, { sentenceAnalysisJson: sents });
-      console.log(`[resync] Dars #${id}: lineIndices qayta hisoblandi (${sents.length} gap, ${subs.length} subtitle)`);
       res.json(updated);
     } catch (err: any) {
       console.error(`[resync] Dars #${id}: xatolik:`, err?.message || err);

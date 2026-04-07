@@ -391,10 +391,11 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     const el = panelRef.current.querySelector(`[data-subtitle-idx="${activeIndex}"]`) as HTMLElement | null;
     if (el && panelRef.current) {
       const panel = panelRef.current;
-      const elTop = el.offsetTop - panel.offsetTop;
-      const elHeight = el.offsetHeight;
-      const panelHeight = panel.clientHeight;
-      const scrollTarget = elTop - (panelHeight / 2) + (elHeight / 2);
+      const panelRect = panel.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const currentScroll = panel.scrollTop;
+      const elCenter = elRect.top - panelRect.top + currentScroll + (elRect.height / 2);
+      const scrollTarget = elCenter - (panelRect.height / 2);
       panel.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
     }
   }, [activeIndex, panelMode]);

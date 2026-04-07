@@ -636,7 +636,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   const hasSubtitles = subtitles.length > 0;
 
   return (
-    <div className={`${className} ${fullScreenLayout ? "flex flex-col" : ""}`} style={fullScreenLayout ? { minHeight: "calc(100dvh - 64px)" } : undefined}>
+    <div className={`${className} ${fullScreenLayout ? "flex flex-col" : ""}`} style={fullScreenLayout ? { height: "calc(100dvh - 64px)" } : undefined}>
       <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
         <div className="relative overflow-hidden bg-black">
           <div className="relative aspect-video">
@@ -804,8 +804,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
 
       {hasSubtitles && (
         <div
-          className={`${fullScreenLayout ? "flex-1 flex flex-col" : ""} md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1`}
-          style={fullScreenLayout ? { minHeight: "200px" } : undefined}
+          className={`${fullScreenLayout ? "flex-1 min-h-0 flex flex-col" : ""} md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1`}
           data-testid="subtitle-panel"
         >
           <div className="shrink-0 flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30">

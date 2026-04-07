@@ -788,6 +788,9 @@ export default function LessonDetailPage() {
             <TabsTrigger value="shadowing" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-shadowing">
               <Headphones className="w-3.5 h-3.5 hidden sm:block" /> Audiosi
             </TabsTrigger>
+            <TabsTrigger value="json-editor" className="shrink-0 text-xs md:text-sm py-2 px-3 gap-1" data-testid="tab-json-editor">
+              <FileText className="w-3.5 h-3.5 hidden sm:block" /> JSON
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="matn" className="mt-4">
@@ -863,6 +866,10 @@ export default function LessonDetailPage() {
                 <p className="text-sm">Shadowing uchun video va subtitle kerak</p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="json-editor" className="mt-4">
+            <JsonEditorTab lessonId={lesson.id} />
           </TabsContent>
         </Tabs>
         </div>
@@ -2381,6 +2388,207 @@ function NotesTab({
         </div>
       )}
     </div>
+  );
+}
+
+const JSON_FIELDS = [
+  { key: "sentenceAnalysisJson", label: "Gaplar tahlili", icon: "📝" },
+  { key: "vocabularyJson", label: "Lug'at", icon: "📖" },
+  { key: "quizzesJson", label: "Testlar", icon: "🧠" },
+  { key: "flashcardsJson", label: "Kartochkalar", icon: "🗂" },
+  { key: "phrasesJson", label: "Iboralar", icon: "💬" },
+  { key: "subtitlesJson", label: "Subtitlelar", icon: "🎬" },
+  { key: "wordTimestampsJson", label: "So'z vaqtlari", icon: "⏱" },
+] as const;
+
+function JsonEditorTab({ lessonId }: { lessonId: number }) {
+  const { toast } = useToast();
+  const [selectedField, setSelectedField] = useState<string>("sentenceAnalysisJson");
+  const [jsonText, setJsonText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: jsonData, isLoading, refetch } = useQuery<Record<string, any[]>>({
+    queryKey: ["/api/user/lessons", lessonId, "export-json"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/user/lessons/${lessonId}/export-json`);
+      return res.json();
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async ({ field, data }: { field: string; data: any[] }) => {
+      const res = await apiRequest("PATCH", `/api/user/lessons/${lessonId}/import-json`, { field, data });
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      toast({ title: "Saqlandi", description: `${JSON_FIELDS.find(f => f.key === vars.field)?.label || vars.field} yangilandi` });
+      refetch();
+      queryClient.refetchQueries({ queryKey: ["/api/user/lessons", lessonId] });
+      setIsEditing(false);
+    },
+    onError: (err: any) => {
+      toast({ title: "Xatolik", description: err.message, variant: "destructive" });
+    },
+  });
+
+  useEffect(() => {
+    if (jsonData && selectedField) {
+      const fieldData = jsonData[selectedField] || [];
+      setJsonText(JSON.stringify(fieldData, null, 2));
+      setIsEditing(false);
+    }
+  }, [jsonData, selectedField]);
+
+  function handleDownload() {
+    if (!jsonData) return;
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lesson-${lessonId}-all-json.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleDownloadField() {
+    const blob = new Blob([jsonText], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lesson-${lessonId}-${selectedField}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const text = ev.target?.result as string;
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          setJsonText(JSON.stringify(parsed, null, 2));
+          setIsEditing(true);
+          toast({ title: "Fayl yuklandi", description: `${parsed.length} ta element topildi. Saqlash tugmasini bosing.` });
+        } else if (typeof parsed === "object") {
+          if (parsed[selectedField] && Array.isArray(parsed[selectedField])) {
+            setJsonText(JSON.stringify(parsed[selectedField], null, 2));
+            setIsEditing(true);
+            toast({ title: "Fayl yuklandi", description: `${selectedField} dan ${parsed[selectedField].length} ta element topildi.` });
+          } else {
+            const firstArrayKey = Object.keys(parsed).find(k => Array.isArray(parsed[k]));
+            if (firstArrayKey) {
+              setJsonText(JSON.stringify(parsed[firstArrayKey], null, 2));
+              setIsEditing(true);
+              toast({ title: "Fayl yuklandi", description: `${firstArrayKey} dan ${parsed[firstArrayKey].length} ta element.` });
+            } else {
+              toast({ title: "Xatolik", description: "Faylda massiv topilmadi", variant: "destructive" });
+            }
+          }
+        }
+      } catch {
+        toast({ title: "Xatolik", description: "JSON format noto'g'ri", variant: "destructive" });
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleSave() {
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (!Array.isArray(parsed)) {
+        toast({ title: "Xatolik", description: "JSON massiv bo'lishi kerak [ ... ]", variant: "destructive" });
+        return;
+      }
+      importMutation.mutate({ field: selectedField, data: parsed });
+    } catch {
+      toast({ title: "Xatolik", description: "JSON format noto'g'ri", variant: "destructive" });
+    }
+  }
+
+  const currentCount = jsonData ? (jsonData[selectedField] || []).length : 0;
+
+  return (
+    <Card className="glass border-border/50" data-testid="card-json-editor">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <FileText className="w-5 h-5 text-primary" />
+          JSON tahrirlash
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          ChatGPT dan olingan JSON ni yuklab, tahrirlang yoki almashtirib saqlang
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {JSON_FIELDS.map(f => (
+            <Button
+              key={f.key}
+              variant={selectedField === f.key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedField(f.key)}
+              className="text-xs"
+              data-testid={`btn-json-field-${f.key}`}
+            >
+              <span className="mr-1">{f.icon}</span> {f.label}
+              {jsonData && <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5">{(jsonData[f.key] || []).length}</Badge>}
+            </Button>
+          ))}
+        </div>
+
+        <Separator />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownload} disabled={isLoading} data-testid="btn-download-all-json">
+            <Download className="w-4 h-4 mr-1" /> Hammasini yuklab olish
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadField} disabled={isLoading} data-testid="btn-download-field-json">
+            <Download className="w-4 h-4 mr-1" /> {JSON_FIELDS.find(f => f.key === selectedField)?.label} yuklab olish
+          </Button>
+          <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} data-testid="btn-upload-json">
+            <Upload className="w-4 h-4 mr-1" /> JSON fayl yuklash
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-muted-foreground">
+              {JSON_FIELDS.find(f => f.key === selectedField)?.label} — {currentCount} ta element
+            </span>
+            {isEditing && (
+              <Badge variant="secondary" className="text-amber-500 border-amber-500/30">O'zgartirilgan</Badge>
+            )}
+          </div>
+          <Textarea
+            value={isLoading ? "Yuklanmoqda..." : jsonText}
+            onChange={(e) => { setJsonText(e.target.value); setIsEditing(true); }}
+            className="font-mono text-xs min-h-[400px] bg-black/30 border-border/50"
+            dir="ltr"
+            data-testid="textarea-json-editor"
+          />
+        </div>
+
+        {isEditing && (
+          <div className="flex items-center gap-2">
+            <Button onClick={handleSave} disabled={importMutation.isPending} data-testid="btn-save-json">
+              {importMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+              Saqlash
+            </Button>
+            <Button variant="outline" onClick={() => {
+              if (jsonData) setJsonText(JSON.stringify(jsonData[selectedField] || [], null, 2));
+              setIsEditing(false);
+            }} data-testid="btn-cancel-json">
+              <X className="w-4 h-4 mr-1" /> Bekor qilish
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

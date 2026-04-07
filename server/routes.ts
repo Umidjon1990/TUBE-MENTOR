@@ -802,6 +802,55 @@ export async function registerRoutes(
     res.json(updated);
   });
 
+  app.get("/api/user/lessons/:id/export-json", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+      const lesson = await storage.getLessonById(id);
+      if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+      if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+      const exportData = {
+        sentenceAnalysisJson: lesson.sentenceAnalysisJson || [],
+        vocabularyJson: lesson.vocabularyJson || [],
+        quizzesJson: lesson.quizzesJson || [],
+        flashcardsJson: lesson.flashcardsJson || [],
+        phrasesJson: lesson.phrasesJson || [],
+        subtitlesJson: lesson.subtitlesJson || [],
+        wordTimestampsJson: lesson.wordTimestampsJson || [],
+      };
+      res.json(exportData);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
+  app.patch("/api/user/lessons/:id/import-json", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });
+      const lesson = await storage.getLessonById(id);
+      if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+      if (lesson.createdBy !== req.session.userId) return res.status(403).json({ message: "Ruxsat yo'q" });
+      const { field, data } = req.body;
+      const allowedFields = [
+        "sentenceAnalysisJson", "vocabularyJson", "quizzesJson",
+        "flashcardsJson", "phrasesJson", "subtitlesJson", "wordTimestampsJson"
+      ];
+      if (!field || !allowedFields.includes(field)) {
+        return res.status(400).json({ message: "Noto'g'ri maydon: " + field });
+      }
+      if (!Array.isArray(data)) {
+        return res.status(400).json({ message: "Ma'lumot massiv bo'lishi kerak" });
+      }
+      const updateData: any = { [field]: data };
+      const updated = await storage.updateLesson(id, updateData);
+      console.log(`[json-import] Dars #${id}: ${field} yangilandi (${data.length} element)`);
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ message: e.message });
+    }
+  });
+
   app.post("/api/user/lessons/:id/whisper-transcribe", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri dars ID" });

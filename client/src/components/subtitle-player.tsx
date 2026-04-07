@@ -392,10 +392,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     if (el && panelRef.current) {
       const panel = panelRef.current;
       const elTop = el.offsetTop - panel.offsetTop;
-      const elHeight = el.offsetHeight;
-      const panelHeight = panel.clientHeight;
-      const scrollTarget = elTop - (panelHeight / 2) + (elHeight / 2);
-      panel.scrollTo({ top: scrollTarget, behavior: "smooth" });
+      panel.scrollTo({ top: elTop, behavior: "smooth" });
     }
   }, [activeIndex, panelMode]);
 

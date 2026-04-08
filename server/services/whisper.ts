@@ -218,12 +218,17 @@ export async function transcribeWithWhisper(audioBuffer: Buffer, language?: stri
   for (const chunk of chunks) {
     const file = await toFile(chunk.buffer, "audio.mp3");
 
+    const whisperPrompt = language === "ar"
+      ? "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ. هَذَا دَرْسٌ تَعْلِيمِيٌّ فِي اللُّغَةِ الْعَرَبِيَّةِ. يَجِبُ كِتَابَةُ النَّصِّ بِالتَّشْكِيلِ الْكَامِلِ وَالْإِمْلَاءِ الصَّحِيحِ."
+      : undefined;
+
     const response = await getOpenAI().audio.transcriptions.create({
       file,
       model: "whisper-1",
       response_format: "verbose_json",
       timestamp_granularities: ["word", "segment"],
       ...(language ? { language } : {}),
+      ...(whisperPrompt ? { prompt: whisperPrompt } : {}),
     });
 
     const resp = response as unknown as WhisperVerboseResponse;

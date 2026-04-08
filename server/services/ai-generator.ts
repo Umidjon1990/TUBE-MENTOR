@@ -104,16 +104,49 @@ Sen quyidagi manbalarga tayanasan:
 - أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
 - شَرْحُ ابْنِ عَقِيلٍ (Ibn Aqil sharhi)
 
+## ⚠️ IMLOVIY XATOLAR — MUTLAQO BO'LMASLIGI KERAK:
+1. Arabcha matnda IMLOVIY XATO bo'lishi MUMKIN EMAS:
+   - Har bir so'zni lug'atdan tekshir
+   - Hamza (ء أ إ ؤ ئ) to'g'ri joyda yozilsin
+   - Taa marbuuta (ة) va haa (ه) farqlansin: مَدْرَسَة (maktab), لَهُ (unga)
+   - Alif maqsuura (ى) va yaa (ي) farqlansin: عَلَى (ustida), عَلِيّ (Ali)
+   - Alif wasl (ا) va alif qat' (أ إ) to'g'ri ishlatilsin
+   - Laam shamsiyya va qamariyya to'g'ri bo'lsin: الشَّمْسُ (laam tushadi), الْقَمَرُ (laam saqlanadi)
+2. O'zbekcha tarjimada IMLOVIY XATO bo'lishi MUMKIN EMAS:
+   - O'zbek alifbosi: a,b,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,y,z,o',g',sh,ch,ng
+   - To'g'ri: o'qituvchi, maktab | Noto'g'ri: o'kituvchi, mektab
+
 ## HARAKAT (التَّشْكِيل) QOIDALARI — QAT'IY RIOYA QILING:
-Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART:
-- Har bir harf ustiga/ostiga tegishli harakat qo'yilsin: فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
-- TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ | NOTO'G'RI: ذهب الولد الى المدرسة
-- TO'G'RI: كِتَابٌ جَمِيلٌ | NOTO'G'RI: كتاب جميل
-- Alif-lam (ال) oldidan ham harakat: الْكِتَابُ, الْعِلْمُ
-- Tanvin: indefinite ism oxirida ٌ ٍ ً qo'yilsin (كِتَابٌ, كِتَابًا, كِتَابٍ)
-- Shadda: tashdidli harflarda ّ SHART (مُعَلِّمٌ, شَدَّةٌ)
+Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ va TO'G'RI HARAKAT bilan yozilishi SHART:
+
+### Asosiy harakatlar:
+- فَتْحَة (َ): ochiq tovush (a), harf ustiga qo'yiladi
+- كَسْرَة (ِ): yopiq tovush (i), harf ostiga qo'yiladi
+- ضَمَّة (ُ): dumaloq tovush (u), harf ustiga qo'yiladi
+- سُكُون (ْ): harakatsiz harf, harf ustiga doiracha
+- شَدَّة (ّ): ikkilangan harf, ALBATTA harakat bilan birga: مُعَلِّمٌ (shadda + kasra)
+- تَنْوِين: indefinite ism oxirida ٌ (rafg'), ٍ (jarr), ً (nasb): كِتَابٌ, كِتَابٍ, كِتَابًا
+
+### I'rob qoidalari (oxirgi harakat):
+- مَرْفُوعٌ (ko'tarilgan): ُ yoki ٌ (فَاعِل, مُبْتَدَأٌ, خَبَرٌ)
+- مَنْصُوبٌ (tushirilgan): َ yoki ً (مَفْعُولٌ بِهِ, خَبَرُ إِنَّ)
+- مَجْرُورٌ (tortilgan): ِ yoki ٍ (مُضَافٌ إِلَيْهِ, بَعْدَ حَرْفِ الْجَرِّ)
+- مَجْزُومٌ (kesik): ْ (الْفِعْلُ الْمُضَارِعُ بَعْدَ لَمْ)
+
+### Xatolarga misollar (BUNDAY YOZMA!):
+- ❌ ذهب الولد الى المدرسة → ✅ ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
+- ❌ كتاب جميل → ✅ كِتَابٌ جَمِيلٌ
+- ❌ المعلم كتب → ✅ الْمُعَلِّمُ كَتَبَ
+- ❌ هذا ولد → ✅ هَذَا وَلَدٌ
+- ❌ انّ (xato shadda) → ✅ إِنَّ (to'g'ri hamza + shadda + fatha)
+
+### Harakat qo'yiladigan BARCHA maydonlar:
+"word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr", "summaryShortAr", "summaryDetailedAr"
+
+### QAT'IY TEKSHIRUV:
 - Harakatsiz arabcha so'z QABUL QILINMAYDI
-- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr"
+- Noto'g'ri harakat qo'yilgan so'z QABUL QILINMAYDI
+- Javob berishdan oldin har bir arabcha so'zni ikki marta tekshir: 1) imlo to'g'rimi? 2) harakat to'g'rimi?
 
 ## TARJIMA QOIDALARI:
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
@@ -375,11 +408,16 @@ async function generateWithOpenAI(
   const userPrompt = `# VAZIFA
 Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat.
 
-# MUHIM ESLATMALAR
+# ⚠️ MUHIM ESLATMALAR — QAT'IY RIOYA QILING:
 1. sentenceAnalysis maydonida quyidagi BARCHA ${Math.min(sentences.length, maxSentences)} ta gapni tahlil qil — BIRONTASINI HAM TASHLAB KETMA
 2. Har bir gapdagi HAR BIR so'z wordMap ichida bo'lishi SHART — so'z tashlab ketish MUMKIN EMAS
-3. ${lang === "arabic" ? "BARCHA arabcha so'zlar TO'LIQ HARAKAT (تَشْكِيل كَامِل) bilan yozilsin — harakatsiz so'z QABUL QILINMAYDI" : "Arabcha tarjimalarda harakat qo'yishga harakat qiling"}
+3. ${lang === "arabic" ? `BARCHA arabcha so'zlar TO'LIQ HARAKAT (تَشْكِيل كَامِل) bilan yozilsin:
+   - Har bir harfda harakat: فَتْحَة, كَسْرَة, ضَمَّة, سُكُون, شَدَّة, تَنْوِين
+   - I'rob to'g'ri bo'lsin: فَاعِلٌ (damma), مَفْعُولًا (fatha+tanvin), مَجْرُورٍ (kasra+tanvin)
+   - Harakatsiz so'z QABUL QILINMAYDI` : "Arabcha tarjimalarda harakat qo'yishga harakat qiling"}
 4. Tarjima va tushuntirish FAQAT O'ZBEK tilida bo'lsin
+5. IMLOVIY XATO BO'LMASLIGI KERAK — arabchada ham, o'zbekchada ham
+6. Javob berishdan oldin har bir so'zni tekshir: imlo to'g'rimi? harakat to'g'rimi?
 
 # GAPLAR RO'YXATI (${Math.min(sentences.length, maxSentences)} ta):
 ${sentencesList}
@@ -396,7 +434,7 @@ ${trimmedTranscript}`;
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
-    temperature: 0.7,
+    temperature: 0.3,
     max_tokens: 16384,
     response_format: { type: "json_object" },
   }, { timeout: 120000 });
@@ -436,20 +474,25 @@ ${trimmedTranscript}`;
     type: (["vocabulary", "phrase", "grammar"].includes(f.type) ? f.type : "vocabulary") as "vocabulary" | "phrase" | "grammar",
   }));
 
+  const hasArabic = (t: string) => /[\u0600-\u06FF]/.test(t);
   const hasDiacritics = (t: string) => /[\u064B-\u065F\u0670]/.test(t);
+  const countArabicWithoutDiacritics = (text: string): number => {
+    const arabicWords = text.match(/[\u0600-\u06FF]+/g) || [];
+    return arabicWords.filter(w => !hasDiacritics(w) && w.length > 1).length;
+  };
 
   const sentenceAnalysisJson: SentenceAnalysis[] = (parsed.sentenceAnalysis || []).map((s: any) => {
     const rawSentence = s.sentence || "";
     const wordMapArr = Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
       word: w.word || "",
-      normalized: w.normalized || (w.word || "").toLowerCase(),
+      normalized: w.normalized || (w.word || "").replace(/[\u064B-\u065F\u0670]/g, ""),
       translationUz: w.translationUz || "",
       translationAr: w.translationAr || "",
     })) : [];
 
     let sentence = rawSentence;
-    if (!hasDiacritics(rawSentence) && wordMapArr.length > 0 && wordMapArr.some(w => hasDiacritics(w.word))) {
-      sentence = wordMapArr.map(w => w.word).join(" ");
+    if (!hasDiacritics(rawSentence) && wordMapArr.length > 0 && wordMapArr.some((w: any) => hasDiacritics(w.word))) {
+      sentence = wordMapArr.map((w: any) => w.word).join(" ");
     }
 
     return {
@@ -459,6 +502,22 @@ ${trimmedTranscript}`;
       wordMap: wordMapArr,
     };
   });
+
+  let totalNoDiacritics = 0;
+  sentenceAnalysisJson.forEach(s => {
+    totalNoDiacritics += countArabicWithoutDiacritics(s.sentence);
+    s.wordMap.forEach(w => {
+      if (hasArabic(w.word) && !hasDiacritics(w.word) && w.word.length > 1) totalNoDiacritics++;
+    });
+  });
+  vocabularyJson.forEach(v => {
+    if (hasArabic(v.word) && !hasDiacritics(v.word)) totalNoDiacritics++;
+  });
+  if (totalNoDiacritics > 0) {
+    console.warn(`[AI] ⚠️ HARAKAT OGOHLANTIRISH: ${totalNoDiacritics} ta arabcha so'z harakatsiz topildi!`);
+  } else {
+    console.log(`[AI] ✅ Barcha arabcha so'zlar harakatli`);
+  }
 
   return {
     summaryShort: parsed.summaryShort || "",

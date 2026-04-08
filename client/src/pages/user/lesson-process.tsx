@@ -1030,16 +1030,49 @@ Sen quyidagi manbalarga tayanasan:
 - أَلْفِيَّةُ ابْنِ مَالِكٍ (Ibn Molik alfiyasi — nahv qoidalari)
 - شَرْحُ ابْنِ عَقِيلٍ (Ibn Aqil sharhi)
 
+## ⚠️ IMLOVIY XATOLAR — MUTLAQO BO'LMASLIGI KERAK:
+1. Arabcha matnda IMLOVIY XATO bo'lishi MUMKIN EMAS:
+   - Har bir so'zni lug'atdan tekshir
+   - Hamza (ء أ إ ؤ ئ) to'g'ri joyda yozilsin
+   - Taa marbuuta (ة) va haa (ه) farqlansin: مَدْرَسَة (maktab), لَهُ (unga)
+   - Alif maqsuura (ى) va yaa (ي) farqlansin: عَلَى (ustida), عَلِيّ (Ali)
+   - Alif wasl (ا) va alif qat' (أ إ) to'g'ri ishlatilsin
+   - Laam shamsiyya va qamariyya to'g'ri bo'lsin: الشَّمْسُ (laam tushadi), الْقَمَرُ (laam saqlanadi)
+2. O'zbekcha tarjimada IMLOVIY XATO bo'lishi MUMKIN EMAS:
+   - O'zbek alifbosi: a,b,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,y,z,o',g',sh,ch,ng
+   - To'g'ri: o'qituvchi, maktab | Noto'g'ri: o'kituvchi, mektab
+
 ## HARAKAT (التَّشْكِيل) QOIDALARI — QAT'IY RIOYA QILING:
-Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ HARAKAT bilan yozilishi SHART:
-- Har bir harf ustiga/ostiga tegishli harakat qo'yilsin: فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
-- TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ | NOTO'G'RI: ذهب الولد الى المدرسة
-- TO'G'RI: كِتَابٌ جَمِيلٌ | NOTO'G'RI: كتاب جميل
-- Alif-lam (ال) oldidan ham harakat: الْكِتَابُ, الْعِلْمُ
-- Tanvin: indefinite ism oxirida ٌ ٍ ً qo'yilsin (كِتَابٌ, كِتَابًا, كِتَابٍ)
-- Shadda: tashdidli harflarda ّ SHART (مُعَلِّمٌ, شَدَّةٌ)
+Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ va TO'G'RI HARAKAT bilan yozilishi SHART:
+
+### Asosiy harakatlar:
+- فَتْحَة (َ): ochiq tovush (a), harf ustiga qo'yiladi
+- كَسْرَة (ِ): yopiq tovush (i), harf ostiga qo'yiladi
+- ضَمَّة (ُ): dumaloq tovush (u), harf ustiga qo'yiladi
+- سُكُون (ْ): harakatsiz harf, harf ustiga doiracha
+- شَدَّة (ّ): ikkilangan harf, ALBATTA harakat bilan birga: مُعَلِّمٌ (shadda + kasra)
+- تَنْوِين: indefinite ism oxirida ٌ (raf'), ٍ (jarr), ً (nasb): كِتَابٌ, كِتَابٍ, كِتَابًا
+
+### I'rob qoidalari (oxirgi harakat):
+- مَرْفُوعٌ (ko'tarilgan): ُ yoki ٌ (فَاعِل, مُبْتَدَأٌ, خَبَرٌ)
+- مَنْصُوبٌ (tushirilgan): َ yoki ً (مَفْعُولٌ بِهِ, خَبَرُ إِنَّ)
+- مَجْرُورٌ (tortilgan): ِ yoki ٍ (مُضَافٌ إِلَيْهِ, بَعْدَ حَرْفِ الْجَرِّ)
+- مَجْزُومٌ (kesik): ْ (الْفِعْلُ الْمُضَارِعُ بَعْدَ لَمْ)
+
+### Xatolarga misollar (BUNDAY YOZMA!):
+- ❌ ذهب الولد الى المدرسة → ✅ ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
+- ❌ كتاب جميل → ✅ كِتَابٌ جَمِيلٌ
+- ❌ المعلم كتب → ✅ الْمُعَلِّمُ كَتَبَ
+- ❌ هذا ولد → ✅ هَذَا وَلَدٌ
+- ❌ انّ (xato hamza) → ✅ إِنَّ (to'g'ri hamza + shadda + fatha)
+
+### Harakat qo'yiladigan BARCHA maydonlar:
+"word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr", "summaryShortAr", "summaryDetailedAr"
+
+### QAT'IY TEKSHIRUV:
 - Harakatsiz arabcha so'z QABUL QILINMAYDI
-- Harakat qo'yiladigan maydonlar: "word", "sentence", "translationAr", "front", "question" (arabcha qism), "options" (arabcha variantlar), wordMap."word", wordMap."translationAr"
+- Noto'g'ri harakat qo'yilgan so'z QABUL QILINMAYDI
+- Javob berishdan oldin har bir arabcha so'zni IKKI MARTA tekshir: 1) imlo to'g'rimi? 2) harakat to'g'rimi?
 
 ## TARJIMA QOIDALARI:
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
@@ -1202,13 +1235,28 @@ TRANSKRIPSIYA (${subs.length} ta gap):
 ${subsText}`;
   }
 
-  return `Sen arab tili professorisin. Quyida Whisper orqali transkripsiya qilingan ARABCHA matn berilgan.
+  return `Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. Quyida Whisper orqali transkripsiya qilingan ARABCHA matn berilgan.
 Sening vazifang: FAQAT TAHLIL qilish — tarjima, harakat qo'yish, vocabulary, quizzes, sentenceAnalysis.
 Transkripsiya matnini O'ZGARTIRMA — faqat HARAKAT qo'sh!
 
-HARAKAT QOIDASI — QAT'IY: Transkripsiyadan olingan arabcha so'zlarga TO'LIQ HARAKAT qo'shilishi SHART.
-TO'G'RI: ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
-NOTO'G'RI: ذهب الولد الى المدرسة
+## ⚠️ IMLOVIY XATOLAR — MUTLAQO BO'LMASLIGI KERAK:
+1. Arabcha matnda IMLOVIY XATO bo'lishi MUMKIN EMAS:
+   - Har bir so'zni lug'atdan tekshir
+   - Hamza (ء أ إ ؤ ئ) to'g'ri joyda yozilsin
+   - Taa marbuuta (ة) va haa (ه) farqlansin
+   - Alif maqsuura (ى) va yaa (ي) farqlansin
+   - Alif wasl (ا) va alif qat' (أ إ) to'g'ri ishlatilsin
+2. O'zbekcha tarjimada IMLOVIY XATO bo'lishi MUMKIN EMAS
+
+## HARAKAT QOIDASI — QAT'IY:
+Transkripsiyadan olingan arabcha so'zlarga TO'LIQ va TO'G'RI HARAKAT qo'shilishi SHART:
+- فَتْحَة (َ), كَسْرَة (ِ), ضَمَّة (ُ), سُكُون (ْ), شَدَّة (ّ), تَنْوِين (ً ٍ ٌ)
+- I'rob to'g'ri bo'lsin: فَاعِلٌ (damma), مَفْعُولًا (fatha), مَجْرُورٍ (kasra)
+- ❌ ذهب الولد الى المدرسة → ✅ ذَهَبَ الْوَلَدُ إِلَى الْمَدْرَسَةِ
+- ❌ كتاب جميل → ✅ كِتَابٌ جَمِيلٌ
+- ❌ المعلم كتب → ✅ الْمُعَلِّمُ كَتَبَ
+- Harakatsiz arabcha so'z QABUL QILINMAYDI
+- Javob berishdan oldin har bir so'zni IKKI MARTA tekshir: 1) imlo to'g'rimi? 2) harakat to'g'rimi?
 
 KERAK EMAS (YOZMA!):
 - subtitles — KERAK EMAS (Whisper allaqachon saqlagan)
@@ -1246,12 +1294,13 @@ FAQAT JSON formatda javob ber — hech qanday boshqa matn YOZMA. { dan boshlab }
 
 QOIDALAR:
 1. SENTENCEANALYSIS: HAR BIR transkripsiya gapi uchun BITTA element. "sentence" = transkripsiyadan O'SHA MATN, lekin TO'LIQ HARAKAT bilan. lineIndices = [idx] — faqat O'Z RAQAMI. wordMap: HAR BIR so'z — "word" (HARAKAT bilan), "normalized" (harakatsiz), "translationUz" (O'ZBEKCHA).
-2. HARAKAT: sentenceAnalysis.sentence va wordMap.word da BARCHA arabcha so'zlarga TO'LIQ harakat qo'y!
+2. HARAKAT: sentenceAnalysis.sentence va wordMap.word da BARCHA arabcha so'zlarga TO'LIQ harakat qo'y! Harakatsiz so'z QABUL QILINMAYDI!
 3. VOCABULARY: 8-15 ta. HARAKAT bilan. "translation" O'ZBEK tilida.
 4. QUIZZES: 10-12 ta. 3 tur: multiple_choice (4-5), sentence_completion (3-4), word_translation (3-4).
 5. lineIndices: [0].lineIndices=[0], [1].lineIndices=[1]... OVERLAP TA'QIQLANGAN!
 6. subtitles, flashcards, translationAr YOZMA!
 7. correctIndex: 0 dan boshlanadi. JSON VALID bo'lsin.
+8. IMLOVIY XATO BO'LMASLIGI KERAK — arabchada ham, o'zbekchada ham!
 
 TRANSKRIPSIYA (${subs.length} ta gap):
 ${subsText}`;

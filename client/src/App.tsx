@@ -1,10 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
 import CreateLessonPage from "@/pages/user/create-lesson";
@@ -38,7 +37,7 @@ import { ProtectedRoute } from "@/components/protected-route";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/"><Redirect to="/library?lang=ar" /></Route>
       <Route path="/library" component={PublicLibraryPage} />
       <Route path="/library/category/:id" component={PublicCategoryPage} />
       <Route path="/library/collection/:id" component={PublicCollectionPage} />

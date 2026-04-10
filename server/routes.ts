@@ -998,7 +998,18 @@ export async function registerRoutes(
       }));
     }
 
-    const updated = await storage.updateLesson(id, { sentenceAnalysisJson: sentences });
+    const updateData: any = { sentenceAnalysisJson: sentences };
+
+    if (data.sentence !== undefined && lesson.subtitlesJson) {
+      const subs = lesson.subtitlesJson as any[];
+      const hasLineIndices = sentences.some((s: any) => s.lineIndices && s.lineIndices.length > 0);
+      if (!hasLineIndices && subs.length === sentences.length && subs[index]) {
+        subs[index].text = data.sentence;
+        updateData.subtitlesJson = subs;
+      }
+    }
+
+    const updated = await storage.updateLesson(id, updateData);
     res.json(updated);
   });
 

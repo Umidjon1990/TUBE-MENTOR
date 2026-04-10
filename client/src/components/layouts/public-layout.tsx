@@ -20,11 +20,6 @@ function PublicNavbar() {
           <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Xususiyatlar</a>
         </nav>
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button size="sm" className="bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 font-semibold transition-all duration-300" data-testid="button-login">
-              Kirish
-            </Button>
-          </Link>
         </div>
       </div>
     </header>

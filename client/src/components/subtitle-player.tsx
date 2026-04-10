@@ -643,7 +643,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     <div className={`${className}`}>
       <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
         <div className="relative overflow-hidden bg-black">
-          <div className="relative aspect-video" style={fullScreenLayout ? { maxHeight: "50vh" } : undefined}>
+          <div className="relative w-full aspect-video">
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
           </div>
         </div>

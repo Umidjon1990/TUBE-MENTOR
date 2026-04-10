@@ -988,6 +988,8 @@ export async function registerRoutes(
     if (index >= sentences.length) return res.status(400).json({ message: "Gap indeksi noto'g'ri" });
 
     const data = parsed.data;
+    const oldSentenceText = sentences[index].sentence;
+
     if (data.sentence !== undefined) sentences[index].sentence = data.sentence;
     if (data.translation !== undefined) sentences[index].translation = data.translation;
     if (data.translationAr !== undefined) sentences[index].translationAr = data.translationAr;
@@ -1002,10 +1004,20 @@ export async function registerRoutes(
 
     if (data.sentence !== undefined && lesson.subtitlesJson) {
       const subs = lesson.subtitlesJson as any[];
-      const hasLineIndices = sentences.some((s: any) => s.lineIndices && s.lineIndices.length > 0);
-      if (!hasLineIndices && subs.length === sentences.length && subs[index]) {
+      if (subs.length === sentences.length && subs[index]) {
         subs[index].text = data.sentence;
         updateData.subtitlesJson = subs;
+      } else if (oldSentenceText) {
+        const stripD = (t: string) => t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+        const normOld = stripD(oldSentenceText).replace(/\s+/g, " ").trim();
+        for (let i = 0; i < subs.length; i++) {
+          const normSub = stripD(subs[i].text || "").replace(/\s+/g, " ").trim();
+          if (normSub === normOld || normSub.includes(normOld) || normOld.includes(normSub)) {
+            subs[i].text = data.sentence;
+            updateData.subtitlesJson = subs;
+            break;
+          }
+        }
       }
     }
 

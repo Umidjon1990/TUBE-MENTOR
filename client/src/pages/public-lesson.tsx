@@ -180,13 +180,11 @@ export default function PublicLessonPage() {
       const sentWords = sentNorms.map(n => new Set(n.split(" ").filter(w => w.length > 1)));
 
       let sentCursor = 0;
+      const ratio = sentences.length / timedSubs.length;
       return timedSubs.map((ts, idx) => {
         const tsNorm = normalizeText(ts.text);
         const tsWordSet = new Set(tsNorm.split(" ").filter(w => w.length > 1));
 
-        const matchedSentences: string[] = [];
-        const matchedTranslations: string[] = [];
-        const matchedTranslationsAr: string[] = [];
         const matchedIndices: number[] = [];
         let firstMatchIdx = -1;
         let matchedCharLen = 0;
@@ -201,26 +199,33 @@ export default function PublicLessonPage() {
           if (overlap >= 0.5) {
             if (firstMatchIdx < 0) firstMatchIdx = si;
             matchedIndices.push(si);
-            matchedSentences.push(sentences[si].sentence);
-            matchedTranslations.push(sentences[si].translation);
-            if (sentences[si].translationAr) matchedTranslationsAr.push(sentences[si].translationAr!);
             matchedCharLen += sentNorms[si].length;
             sentCursor = si + 1;
             if (matchedCharLen >= tsLen * 0.8) break;
-          } else if (matchedSentences.length > 0) {
+          } else if (matchedIndices.length > 0) {
             break;
           }
         }
 
+        if (matchedIndices.length === 0) {
+          const fallbackIdx = Math.min(Math.floor(idx * ratio), sentences.length - 1);
+          matchedIndices.push(fallbackIdx);
+          firstMatchIdx = fallbackIdx;
+        }
+
+        const displaySent = matchedIndices.map(i => sentences[i]?.sentence).filter(Boolean).join(" ");
+        const displayUz = matchedIndices.map(i => sentences[i]?.translation).filter(Boolean).join(" ");
+        const displayAr = matchedIndices.map(i => sentences[i]?.translationAr).filter(Boolean).join(" ");
+
         return {
           id: idx,
-          sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : Math.min(sentCursor, sentences.length - 1),
-          sentenceIndices: matchedIndices.length > 0 ? matchedIndices : [Math.min(sentCursor, sentences.length - 1)],
+          sentenceIndex: firstMatchIdx >= 0 ? firstMatchIdx : 0,
+          sentenceIndices: matchedIndices,
           startTime: ts.startTime,
           endTime: ts.endTime,
-          originalText: matchedSentences.length > 0 ? matchedSentences.join(" ") : ts.text,
-          translationUz: matchedTranslations.join(" ") || "",
-          translationAr: matchedTranslationsAr.join(" ") || "",
+          originalText: displaySent || ts.text,
+          translationUz: displayUz,
+          translationAr: displayAr,
         };
       });
     }

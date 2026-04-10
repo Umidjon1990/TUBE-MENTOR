@@ -5,7 +5,7 @@ import {
   Subtitles, Languages,
   Monitor, Play, Pause, SkipBack, SkipForward,
   Repeat, RotateCcw,
-  Minus, Plus, ZoomIn, ZoomOut, Type
+  Minus, Plus, ZoomIn, ZoomOut, Type, ChevronDown
 } from "lucide-react";
 import WordInspector, { type WordInfo } from "./word-inspector";
 
@@ -144,6 +144,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLooping, setIsLooping] = useState(false);
   const [subtitleZoom, setSubtitleZoom] = useState(1);
+  const [showSubtitleList, setShowSubtitleList] = useState(!fullScreenLayout);
 
   useImperativeHandle(ref, () => ({
     playWordSegment: (start: number, end: number) => {
@@ -639,10 +640,32 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
     <div className={`${className}`}>
       <div className={`${fullScreenLayout ? "shrink-0" : "sticky top-0"} z-20 bg-background`}>
         <div className="relative overflow-hidden bg-black">
-          <div className="relative aspect-video" style={fullScreenLayout ? { maxHeight: "55vh" } : undefined}>
+          <div className="relative aspect-video" style={fullScreenLayout ? { maxHeight: "50vh" } : undefined}>
             <div ref={playerContainerRef} className="absolute inset-0 z-0" />
           </div>
         </div>
+
+        {fullScreenLayout && (
+          <div
+            className="relative bg-black/95 overflow-hidden"
+            style={{ minHeight: "3.5rem" }}
+            data-testid="subtitle-overlay-fullscreen"
+          >
+            <div className="relative flex items-center justify-center px-4 md:px-8 py-2 md:py-3">
+              {activeSubtitle ? (
+                <div
+                  key={activeIndex}
+                  className="max-w-full text-center animate-in fade-in slide-in-from-bottom-3 duration-500"
+                  style={{ transform: `scale(${subtitleZoom})`, transformOrigin: "center center" }}
+                >
+                  {renderOverlayText(activeSubtitle)}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground/40">Videoni boshlang...</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {activeSubtitle && !fullScreenLayout && (
           <div className="bg-black/95 px-3 md:px-6 py-1.5 md:py-2" data-testid="subtitle-overlay">
@@ -805,21 +828,30 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
       {hasSubtitles && (
         <div
           className={`flex flex-col md:rounded-lg glass border-y md:border border-border/50 overflow-hidden mt-1`}
-          style={{ height: fullScreenLayout ? "min(50vh, 400px)" : undefined }}
+          style={{ height: fullScreenLayout && showSubtitleList ? "min(40vh, 350px)" : fullScreenLayout ? "auto" : undefined }}
           data-testid="subtitle-panel"
         >
-          <div className="shrink-0 flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30">
+          <div
+            className={`shrink-0 flex items-center justify-between px-2 md:px-3 py-1 border-b border-border/30 ${fullScreenLayout ? "cursor-pointer hover:bg-white/5 transition-colors" : ""}`}
+            onClick={fullScreenLayout ? () => setShowSubtitleList(v => !v) : undefined}
+          >
             <div className="flex items-center gap-1.5">
               <Subtitles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] md:text-xs font-medium">Subtitlelar</span>
+              <span className="text-[10px] md:text-xs font-medium">
+                {fullScreenLayout ? (showSubtitleList ? "Gaplarni yopish" : "Barcha gaplar") : "Subtitlelar"}
+              </span>
               {activeIndex >= 0 && (
                 <span className="text-[9px] text-primary font-mono">
                   {activeIndex + 1}/{subtitles.length}
                 </span>
               )}
             </div>
+            {fullScreenLayout && (
+              <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${showSubtitleList ? "rotate-180" : ""}`} />
+            )}
           </div>
 
+          {(!fullScreenLayout || showSubtitleList) && (
           <div
             ref={panelRef}
             className="flex-1 min-h-0 overflow-y-auto scroll-smooth"
@@ -930,6 +962,7 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
               })}
             </div>
           </div>
+          )}
         </div>
       )}
 

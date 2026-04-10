@@ -399,12 +399,6 @@ export default function PublicLibrary() {
     <PublicLayout>
       <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
         <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-3 gap-1.5 text-muted-foreground hover:text-foreground" data-testid="button-back-home">
-              <ArrowLeft className="w-4 h-4" />
-              Bosh sahifa
-            </Button>
-          </Link>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary" />

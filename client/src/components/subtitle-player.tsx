@@ -249,6 +249,9 @@ const SubtitlePlayer = forwardRef<SubtitlePlayerHandle, SubtitlePlayerProps>(fun
 
     if (!selectedWord) {
       wasPlayingRef.current = isPlaying;
+      if (isPlaying && playerRef.current) {
+        playerRef.current.pauseVideo();
+      }
     }
 
     playWordAudio(cleanWord, subtitle.startTime);

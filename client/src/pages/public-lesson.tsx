@@ -394,7 +394,7 @@ export default function PublicLessonPage() {
 
   return (
     <PublicLayout>
-      <div className="max-w-5xl mx-auto space-y-0">
+      <div className="max-w-7xl mx-auto space-y-0">
         <div className="px-2 md:px-6 py-1.5 md:py-2 flex items-center gap-2">
           <Link href="/library">
             <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-back-library">

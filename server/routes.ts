@@ -2640,7 +2640,7 @@ export async function registerRoutes(
     const lessonsRaw = await Promise.all(
       cls.sort((a, b) => a.orderIndex - b.orderIndex).map(async (cl) => {
         const lesson = await storage.getLessonById(cl.lessonId);
-        if (!lesson || lesson.status !== "published") return null;
+        if (!lesson) return null;
         return { ...lesson, orderIndex: cl.orderIndex };
       })
     );

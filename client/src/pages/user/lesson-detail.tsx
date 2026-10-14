@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute, Link, useSearch } from "wouter";
+import { useParams, Link, useSearch } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -30,9 +30,6 @@ import {
 import type { Lesson, Flashcard, Note, Bookmark as BookmarkType } from "@shared/schema";
 import { ExportStudio } from "@/components/export-studio";
 import { buildExportData } from "@/lib/export-transform";
-import { generatePDF } from "@/lib/export-pdf";
-import { generateDocx } from "@/lib/export-docx";
-import { generateXLSX } from "@/lib/export-xlsx";
 import { saveAs } from "file-saver";
 import type { ExportConfig } from "@/lib/export-types";
 
@@ -65,7 +62,7 @@ interface QuizItem {
   options: string[];
   correctIndex: number;
   explanation: string;
-  type?: "multiple_choice" | "fill_blank" | "true_false";
+  type?: "multiple_choice" | "fill_blank" | "true_false" | "sentence_completion" | "word_translation";
 }
 
 interface FlashcardData {
@@ -87,7 +84,7 @@ const arabicStyle = (text: string) => ({
 });
 
 export default function LessonDetailPage() {
-  const [, params] = useRoute("/lessons/:id");
+  const params = useParams<{id:string}>();
   const lessonId = params?.id;
   const { toast } = useToast();
   const searchString = useSearch();
@@ -526,12 +523,15 @@ export default function LessonDetailPage() {
     try {
       const safeName = exportData.title.replace(/[^a-zA-Z0-9\u0400-\u04FF\u0600-\u06FF]/g, "_").substring(0, 40);
       if (config.format === "pdf") {
+        const { generatePDF }=await import("@/lib/export-pdf");
         const blob = await generatePDF(exportData, config);
         saveAs(blob, `${safeName}_guide.pdf`);
       } else if (config.format === "docx") {
+        const { generateDocx }=await import("@/lib/export-docx");
         const blob = await generateDocx(exportData, config);
         saveAs(blob, `${safeName}_worksheet.docx`);
       } else if (config.format === "xlsx") {
+        const { generateXLSX }=await import("@/lib/export-xlsx");
         const blob = await generateXLSX(exportData, config);
         saveAs(blob, `${safeName}_vocabulary.xlsx`);
       }

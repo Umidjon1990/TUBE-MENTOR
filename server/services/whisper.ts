@@ -1,4 +1,4 @@
-import { spawn, execSync } from "child_process";
+import { spawn, execFileSync } from "child_process";
 import { writeFile, unlink, readFile, stat, access } from "fs/promises";
 import { randomUUID } from "crypto";
 import { tmpdir } from "os";
@@ -19,31 +19,11 @@ async function getCookiesArgs(): Promise<string[]> {
   }
 }
 
-function getYtDlpPath(): string {
-  try {
-    execSync(`test -x ${YT_DLP_LOCAL}`, { stdio: "ignore" });
-    return YT_DLP_LOCAL;
-  } catch {
-    return "yt-dlp";
-  }
-}
-
+function getYtDlpPath(): string { return process.env.YT_DLP_BINARY || "yt-dlp"; }
 export async function ensureLatestYtDlp(): Promise<void> {
-  try {
-    execSync(`test -x ${YT_DLP_LOCAL}`, { stdio: "ignore" });
-    return;
-  } catch {}
-  try {
-    console.log("[Whisper] Downloading latest yt-dlp standalone binary...");
-    execSync(
-      `curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o ${YT_DLP_LOCAL} && chmod +x ${YT_DLP_LOCAL}`,
-      { timeout: 30000 }
-    );
-    const ver = execSync(`${YT_DLP_LOCAL} --version`, { encoding: "utf-8" }).trim();
-    console.log(`[Whisper] yt-dlp updated to ${ver}`);
-  } catch (err: any) {
-    console.warn("[Whisper] Failed to download latest yt-dlp, using system version:", err?.message);
-  }
+  // Install a pinned yt-dlp release in the deployment image; never download/execute a mutable binary at runtime.
+  try { execFileSync(getYtDlpPath(), ["--version"], { stdio: "ignore", timeout: 5000 }); }
+  catch { throw new Error("Serverda yt-dlp o‘rnatilmagan. Audio faylni bevosita yuklash mumkin."); }
 }
 
 let _openai: OpenAI | null = null;
@@ -94,7 +74,6 @@ export async function downloadYouTubeAudio(videoId: string): Promise<Buffer> {
       "--audio-quality", "5",
       "-o", outputPath,
       "--no-playlist",
-      "--no-check-certificates",
       ...cookiesArgs,
       url,
     ];

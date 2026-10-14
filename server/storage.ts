@@ -19,6 +19,7 @@ import { pool } from "./db";
 import { eq, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
+import { publishedLesson, publicationProblems } from "@shared/learning";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -185,8 +186,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLesson(id: number, data: Partial<Lesson>): Promise<Lesson | undefined> {
-    const [l] = await db.update(lessons).set({ ...data, updatedAt: new Date() }).where(eq(lessons.id, id)).returning();
-    return l;
+    return db.transaction(async tx => {
+      const [current] = await tx.select().from(lessons).where(eq(lessons.id, id)).for("update");
+      if (!current) return undefined;
+      const contentFields = ["title", "description", "youtubeUrl", "thumbnailUrl", "targetLanguage", "level", "transcript", "subtitlesJson", "wordTimestampsJson", "sentenceAnalysisJson", "vocabularyJson", "quizzesJson", "flashcardsJson", "phrasesJson", "summaryShort", "summaryDetailed", "summaryShortAr", "summaryDetailedAr", "transcriptSource", "manualTranscript"] as const;
+      const changed = contentFields.some(key => key in data && JSON.stringify(data[key]) !== JSON.stringify(current[key]));
+      const update: Partial<Lesson> = { ...data, updatedAt: new Date() };
+      if (changed) {
+        if (current.status === "published" && !current.publishedSnapshot) {
+          const { publishedSnapshot, ...snapshot } = current;
+          update.publishedSnapshot = snapshot;
+        }
+        update.contentVersion = current.contentVersion + 1;
+        update.contentChecks = {};
+        update.status = "draft"; update.approvedBy = null; update.approvedAt = null;
+      }
+      if (data.status === "approved") {
+        const problems = publicationProblems({ ...current, ...update });
+        if (problems.length) throw Object.assign(new Error(problems.join(". ")), { status: 400 });
+      }
+      if (data.status === "published") {
+        const candidate = { ...current, ...update };
+        const problems = publicationProblems(candidate);
+        if (problems.length) throw Object.assign(new Error(problems.join(". ")), { status: 400 });
+        if (changed || !candidate.approvedBy) throw Object.assign(new Error("Dars admin tekshiruvidan o‘tishi kerak"), { status: 400 });
+        const { publishedSnapshot, ...snapshot } = candidate;
+        update.publishedSnapshot = snapshot;
+      }
+      if (data.publishedAt === null) update.publishedSnapshot = null;
+      const [updated] = await tx.update(lessons).set(update).where(eq(lessons.id, id)).returning(); return updated;
+    });
   }
 
   async deleteLesson(id: number): Promise<void> {

@@ -1,24 +1,132 @@
-import UserLayout from "@/components/layouts/user-layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { StickyNote } from "lucide-react";
-
+import { useState } from "react";
+import { Link } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  LearningShell,
+  Panel,
+  Loading,
+  ErrorState,
+  EmptyState,
+} from "@/components/learning-shell";
+import { request, errorText } from "@/lib/learning-api";
+import type { Note } from "@shared/schema";
 export default function NotesPage() {
+  const q = useQuery<Note[]>({
+    queryKey: ["learning-notes"],
+    queryFn: () => request("GET", "/api/learn/notes"),
+  });
+  const cache = useQueryClient();
+  const [editing, setEditing] = useState<number | null>(null);
+  const [text, setText] = useState("");
+  const edit = useMutation({
+    mutationFn: ({
+      id,
+      content,
+      isPinned,
+    }: {
+      id: number;
+      content?: string;
+      isPinned?: boolean;
+    }) =>
+      request("PATCH", `/api/user/notes/${id}`, {
+        ...(content !== undefined ? { content } : {}),
+        ...(isPinned !== undefined ? { isPinned } : {}),
+      }),
+    onSuccess: () => {
+      setEditing(null);
+      void cache.invalidateQueries({ queryKey: ["learning-notes"] });
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => request("DELETE", `/api/user/notes/${id}`, {}),
+    onSuccess: () =>
+      void cache.invalidateQueries({ queryKey: ["learning-notes"] }),
+  });
   return (
-    <UserLayout title="Eslatmalar" subtitle="Darslar bo'yicha eslatmalaringiz">
-      <Card className="glass border-border/50" data-testid="card-notes">
-        <CardContent className="p-8">
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 flex items-center justify-center mb-6">
-              <StickyNote className="w-10 h-10 text-emerald-500" />
+    <LearningShell title="Eslatmalarim" back="/profile">
+      {q.isLoading ? (
+        <Loading />
+      ) : q.error ? (
+        <ErrorState error={q.error} />
+      ) : q.data?.length ? (
+        q.data.map((n) => (
+          <Panel key={n.id}>
+            <div className="section-heading">
+              <Link href={`/learn/${n.lessonId}`}>Dars #{n.lessonId}</Link>
+              <Button
+                variant="ghost"
+                onClick={() => edit.mutate({ id: n.id, isPinned: !n.isPinned })}
+              >
+                {n.isPinned ? "Belgini olib tashlash" : "Muhim deb belgilash"}
+              </Button>
             </div>
-            <h2 className="text-xl font-semibold mb-2">Eslatmalar</h2>
-            <p className="text-sm text-muted-foreground max-w-md">
-              Darslar davomida yozgan eslatmalaringiz bu yerda saqlanadi.
-              Muhim ma'lumotlarni belgilab qo'ying va tez topishingiz mumkin.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </UserLayout>
+            {editing === n.id ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  edit.mutate({ id: n.id, content: text });
+                }}
+              >
+                <label className="field-label">
+                  Eslatma
+                  <textarea
+                    maxLength={5000}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    required
+                  />
+                </label>
+                <Button type="submit" disabled={edit.isPending}>
+                  Saqlash
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditing(null)}
+                >
+                  Bekor qilish
+                </Button>
+              </form>
+            ) : (
+              <>
+                <p dir="auto" style={{ whiteSpace: "pre-wrap" }}>
+                  {n.content}
+                </p>
+                <div className="editor-actions">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditing(n.id);
+                      setText(n.content);
+                    }}
+                  >
+                    Tahrirlash
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(n.id)}
+                  >
+                    O‘chirish
+                  </Button>
+                </div>
+              </>
+            )}
+          </Panel>
+        ))
+      ) : (
+        <EmptyState
+          title="Eslatmalaringiz shu yerda saqlanadi"
+          description="Darsdagi Tushun bosqichida o‘zingiz uchun izoh yozishingiz mumkin."
+          href="/courses"
+        />
+      )}
+      {(edit.error || remove.error) && (
+        <p role="alert" className="inline-error">
+          {errorText(edit.error || remove.error)}
+        </p>
+      )}
+    </LearningShell>
   );
 }

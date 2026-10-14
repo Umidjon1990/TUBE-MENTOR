@@ -212,9 +212,9 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
       playerContainerRef.current.appendChild(containerDiv);
       playerRef.current = new window.YT.Player(containerDiv.id, {
         videoId,
-        width: "1",
-        height: "1",
-        playerVars: { autoplay: 0, modestbranding: 1, rel: 0, cc_load_policy: 0, iv_load_policy: 3, playsinline: 1 },
+        width: "100%",
+        height: "100%",
+        playerVars: { autoplay: 0, controls:1,origin:window.location.origin, rel: 0, cc_load_policy: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
           onReady: () => setIsReady(true),
           onStateChange: (event: any) => setIsPlaying(event.data === window.YT.PlayerState.PLAYING),
@@ -416,7 +416,7 @@ export default function ShadowingPlayer({ youtubeUrl, subtitles, lessonId, vocab
 
   return (
     <div className={`${className}`}>
-      <div className="absolute w-0 h-0 overflow-hidden" aria-hidden="true">
+      <div className="legacy-visible-video">
         <div ref={playerContainerRef} />
       </div>
 

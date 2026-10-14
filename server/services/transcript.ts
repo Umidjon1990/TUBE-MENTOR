@@ -9,6 +9,7 @@ export interface TimedSubtitle {
   startTime: number;
   endTime: number;
   text: string;
+  timing?: "exact"|"estimated";
 }
 
 export function splitIntoSentences(text: string): string[] {
@@ -186,10 +187,10 @@ export function cleanTimestampedText(raw: string): string {
     .trim();
 }
 
-export async function tryExtractTranscript(videoId: string): Promise<TranscriptResult | null> {
+export async function tryExtractTranscript(videoId: string, language="ar"): Promise<TranscriptResult | null> {
   try {
     const response = await fetch(
-      `https://www.youtube.com/watch?v=${videoId}`
+      `https://www.youtube.com/watch?v=${videoId}`,{signal:AbortSignal.timeout(15000)}
     );
     if (!response.ok) return null;
 
@@ -209,10 +210,10 @@ export async function tryExtractTranscript(videoId: string): Promise<TranscriptR
     const tracks = captionData?.playerCaptionsTracklistRenderer?.captionTracks;
     if (!tracks || tracks.length === 0) return null;
 
-    const track = tracks.find((t: any) => t.languageCode === "en") || tracks[0];
+    const track = tracks.find((t: any) => t.languageCode === language) || tracks[0];
     if (!track?.baseUrl) return null;
 
-    const captionResponse = await fetch(track.baseUrl);
+    const captionResponse = await fetch(track.baseUrl,{signal:AbortSignal.timeout(15000)});
     if (!captionResponse.ok) return null;
 
     const captionXml = await captionResponse.text();
@@ -272,6 +273,16 @@ export function getDemoTranscript(): TranscriptResult {
 }
 
 export function processManualTranscript(raw: string): TranscriptResult {
+  if(raw.length>120000)throw new Error("Transkript 120 000 belgidan oshmasin");
+  const cues:TimedSubtitle[]=[];
+  const cuePattern=/(\d{1,2}:\d{2}:\d{2}[,.]\d{3}|\d{1,2}:\d{2}[,.]\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{3}|\d{1,2}:\d{2}[,.]\d{3})[^\n]*\n([\s\S]*?)(?=\n\s*\n|$)/g;
+  const cueSeconds=(t:string)=>{const parts=t.replace(",",".").split(":").map(Number);return parts.reduce((n,p)=>n*60+p,0);};
+  for(const match of raw.matchAll(cuePattern)){
+    const startTime=cueSeconds(match[1]);const endTime=cueSeconds(match[2]);const text=match[3].replace(/<[^>]*>/g,"").trim();
+    if(text&&endTime>startTime)cues.push({startTime,endTime,text});
+  }
+  if(cues.length)return {text:cues.map(c=>c.text).join("\n"),source:"manual",sentences:cues.map(c=>c.text),timedSubtitles:cues};
+
   if (isTimestampedFormat(raw)) {
     const timedSubs = parseTimestampedTranscript(raw);
     const merged = mergeSubtitlesIntoSentences(timedSubs);
@@ -282,7 +293,7 @@ export function processManualTranscript(raw: string): TranscriptResult {
       text: cleanedText,
       source: "manual",
       sentences,
-      timedSubtitles: merged,
+      timedSubtitles: merged.map(s=>({...s,timing:"estimated" as const})),
     };
   }
 

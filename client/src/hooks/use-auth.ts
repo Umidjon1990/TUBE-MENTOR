@@ -3,7 +3,7 @@ import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { User } from "@shared/schema";
 
-type SafeUser = Omit<User, "passwordHash">;
+type SafeUser = Omit<User, "passwordHash" | "googleId" | "sessionVersion">;
 
 export function useAuth() {
   const [, setLocation] = useLocation();
@@ -22,18 +22,28 @@ export function useAuth() {
       return res.json() as Promise<SafeUser>;
     },
     onSuccess: (user) => {
+      queryClient.clear();
       queryClient.setQueryData(["/api/auth/me"], user);
       if (user.role === "admin") {
         setLocation("/admin");
       } else {
-        setLocation("/dashboard");
+        const next = new URLSearchParams(window.location.search).get("next");
+        setLocation(
+          user.role === "teacher"
+            ? "/studio"
+            : !user.onboardingCompleted
+              ? "/onboarding"
+              : next?.startsWith("/learn/")
+                ? next
+                : "/today",
+        );
       }
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/auth/logout");
+      await apiRequest("POST", "/api/auth/logout", {});
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/auth/me"], null);

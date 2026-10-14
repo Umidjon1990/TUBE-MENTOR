@@ -14,12 +14,21 @@ BotFather bergan **bot tokeni login uchun ishlatilmaydi**. Quyidagi bo‘limdan 
 
 ## 2. Login Widget sozlamalarini oching
 
-BotFather’ning **Mini App** oynasini oching, botingizni tanlang va **Login Widget** bo‘limiga kiring. **Allowed URLs**ga ikkala manzilni ham qo‘shing:
+BotFather’ning **Mini App** oynasini oching, botingizni tanlang va **Login Widget** bo‘limiga kiring. Eski oynada domen maydoni ko‘rinsa, **Switch to OpenID Connect Login** tugmasini bosing. Allowed URLs yangi oynada ikki bo‘limga ajratilgan:
+
+1. **Redirect URIs → Add a Redirect URI**:
+
+```text
+https://www.tubementor.uz/api/auth/telegram/callback
+```
+
+2. **Trusted Origins → Add a Trusted Origin**:
 
 ```text
 https://www.tubementor.uz
-https://www.tubementor.uz/api/auth/telegram/callback
 ```
+
+**Native Login** bo‘limi sayt uchun talab qilinmaydi.
 
 Shu bo‘lim ko‘rsatgan **Client ID** va **Client Secret**ni saqlang. Advanced bo‘limidagi token imzolash algoritmini standart **RS256** holatida qoldiring.
 

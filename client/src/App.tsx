@@ -44,7 +44,22 @@ const Advanced = lazy(() => import("@/pages/user/lesson-detail"));
 const Dictionary = lazy(() => import("@/pages/public-dictionary"));
 const Admin = lazy(() => import("@/pages/admin"));
 const AdminUsers = lazy(() => import("@/pages/admin/users"));
-const AdminLessons = lazy(() => import("@/pages/admin/lessons"));
+const AdminLessons = Studio;
+const commerce = () => import("@/pages/learning/commerce-pages");
+const Wallet = lazy(() => commerce().then(m => ({ default: m.WalletPage })));
+const PaymentOrder = lazy(() => commerce().then(m => ({ default: m.PaymentOrderPage })));
+const MyLessons = lazy(() => commerce().then(m => ({ default: m.MyLessonsPage })));
+const Support = lazy(() => commerce().then(m => ({ default: m.SupportPage })));
+const SupportTicket = lazy(() => commerce().then(m => ({ default: m.SupportTicketPage })));
+const adminCommerce = () => import("@/pages/admin/commerce");
+const CommerceDashboard = lazy(() => adminCommerce().then(m => ({ default: m.AdminCommerceDashboard })));
+const PaymentOrders = lazy(() => adminCommerce().then(m => ({ default: m.AdminPaymentOrders })));
+const AdminPaymentOrder = lazy(() => adminCommerce().then(m => ({ default: m.AdminPaymentOrder })));
+const CoinPackages = lazy(() => adminCommerce().then(m => ({ default: m.AdminCoinPackages })));
+const CommerceSettings = lazy(() => adminCommerce().then(m => ({ default: m.AdminCommerceSettings })));
+const CommerceAudit = lazy(() => adminCommerce().then(m => ({ default: m.AdminCommerceAudit })));
+const AdminSupport = lazy(() => adminCommerce().then(m => ({ default: m.AdminSupportPage })));
+const AdminSupportTicket = lazy(() => adminCommerce().then(m => ({ default: m.AdminSupportTicketPage })));
 const AdminCoins = lazy(() => import("@/pages/admin/coins"));
 const AdminCategories = lazy(() => import("@/pages/admin/categories"));
 const AdminSettings = lazy(() => import("@/pages/admin/settings"));
@@ -73,9 +88,7 @@ function Guard({
         to={
           user.role === "admin"
             ? "/admin"
-            : user.role === "teacher"
-              ? "/studio"
-              : "/today"
+            : "/today"
         }
       />
     );
@@ -91,8 +104,8 @@ function LegacyLesson() {
   ) : (
     <Redirect
       to={
-        user?.role === "teacher" || user?.role === "admin"
-          ? `/studio/lessons/${id}`
+        user?.role === "admin"
+          ? `/admin/lessons/${id}`
           : `/learn/${id}`
       }
     />
@@ -133,6 +146,11 @@ function Router() {
         <Route path="/courses" component={Catalog} />
         <Route path="/courses/:id" component={Course} />
         <Route path="/learn/:id" component={Lesson} />
+        <Route path="/support"><Guard><Support /></Guard></Route>
+        <Route path="/support/:id"><Guard><SupportTicket /></Guard></Route>
+        <Route path="/wallet"><Guard><Wallet /></Guard></Route>
+        <Route path="/payments/:id"><Guard><PaymentOrder /></Guard></Route>
+        <Route path="/my-lessons"><Guard><MyLessons /></Guard></Route>
         <Route path="/words">
           <Guard onboarding>
             <Words />
@@ -149,50 +167,50 @@ function Router() {
           </Guard>
         </Route>
         <Route path="/studio">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <Studio />
           </Guard>
         </Route>
         <Route path="/studio/new">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <Create />
           </Guard>
         </Route>
         <Route path="/studio/lessons/:id">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <Editor />
           </Guard>
         </Route>
         <Route path="/studio/courses">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <StudioCourses />
           </Guard>
         </Route>
         <Route path="/studio/courses/:id">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <StudioCourse />
           </Guard>
         </Route>
         <Route path="/lessons/:id/process">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <Process />
           </Guard>
         </Route>
         <Route path="/lessons/:id/advanced">
-          <Guard roles={["teacher", "admin"]}>
+          <Guard roles={["admin"]}>
             <Advanced />
           </Guard>
         </Route>
         <Route path="/lessons/create">
-          <Redirect to="/studio/new" />
+          <Redirect to="/admin/lessons/new" />
         </Route>
         <Route path="/lessons/:id/shadowing" component={AliasLesson} />
         <Route path="/lessons/:id" component={LegacyLesson} />
         <Route path="/lessons">
-          <Redirect to="/studio" />
+          <Redirect to="/admin/lessons" />
         </Route>
         <Route path="/collections">
-          <Redirect to="/studio/courses" />
+          <Redirect to="/admin/courses" />
         </Route>
         <Route path="/dashboard">
           <Redirect to="/today" />
@@ -228,7 +246,7 @@ function Router() {
         <Route path="/smart-dictionary" component={Dictionary} />
         <Route path="/admin">
           <Guard roles={["admin"]}>
-            <Admin />
+            <CommerceDashboard />
           </Guard>
         </Route>
         <Route path="/admin/users">
@@ -236,6 +254,18 @@ function Router() {
             <AdminUsers />
           </Guard>
         </Route>
+        <Route path="/admin/lessons/new"><Guard roles={["admin"]}><Create /></Guard></Route>
+        <Route path="/admin/lessons/:id"><Guard roles={["admin"]}><Editor /></Guard></Route>
+        <Route path="/admin/courses"><Guard roles={["admin"]}><StudioCourses /></Guard></Route>
+        <Route path="/admin/courses/:id"><Guard roles={["admin"]}><StudioCourse /></Guard></Route>
+        <Route path="/admin/commerce"><Guard roles={["admin"]}><CommerceDashboard /></Guard></Route>
+        <Route path="/admin/support"><Guard roles={["admin"]}><AdminSupport /></Guard></Route>
+        <Route path="/admin/support/:id"><Guard roles={["admin"]}><AdminSupportTicket /></Guard></Route>
+        <Route path="/admin/payments"><Guard roles={["admin"]}><PaymentOrders /></Guard></Route>
+        <Route path="/admin/payments/:id"><Guard roles={["admin"]}><AdminPaymentOrder /></Guard></Route>
+        <Route path="/admin/packages"><Guard roles={["admin"]}><CoinPackages /></Guard></Route>
+        <Route path="/admin/commerce-settings"><Guard roles={["admin"]}><CommerceSettings /></Guard></Route>
+        <Route path="/admin/audit"><Guard roles={["admin"]}><CommerceAudit /></Guard></Route>
         <Route path="/admin/lessons">
           <Guard roles={["admin"]}>
             <AdminLessons />
@@ -258,7 +288,7 @@ function Router() {
         </Route>
         <Route path="/admin/collections">
           <Guard roles={["admin"]}>
-            <AdminCollections />
+            <Redirect to="/admin/courses" />
           </Guard>
         </Route>
         <Route path="/admin/data">

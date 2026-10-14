@@ -13,6 +13,9 @@ import { migrateDatabase } from "./migrate";
 import { apiSecurity, rateLimit } from "./security";
 import { registerAuthRoutes } from "./auth-routes";
 import { registerLearningRoutes } from "./learning-routes";
+import { registerCommerceRoutes } from "./commerce";
+import { registerPaymentBotRoutes } from "./payment-bot";
+import { registerCommerceSupportRoutes } from "./commerce-support";
 import { log } from "./logger";
 import { pool } from "./db";
 import { optionalAuth } from "./auth";
@@ -39,6 +42,7 @@ export async function createApplication(
   const httpServer = createServer(app);
   if (production) app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  app.use("/api/commerce/telegram/webhook", express.json({ limit: "32kb" }));
   app.use(express.json({ limit: "10mb" }));
   const MemoryStore = memorystore(session);
   const PgStore = connectPgSimple(session);
@@ -93,6 +97,9 @@ export async function createApplication(
     await seedDemo();
   }
   await registerAuthRoutes(app);
+  await registerCommerceRoutes(app);
+  registerCommerceSupportRoutes(app);
+  await registerPaymentBotRoutes(app);
   await registerLearningRoutes(app);
   await registerRoutes(httpServer, app);
   app.use("/api", (_req, res) => {
@@ -100,14 +107,15 @@ export async function createApplication(
   });
   app.use((error: any, _req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) return next(error);
+    const databaseCode = error.code || error.cause?.code;
     const status = Number(
       error.status ||
         error.statusCode ||
         (error.name === "ZodError"
           ? 400
-          : error.code === "23505"
+          : databaseCode === "23505"
             ? 409
-            : error.code === "23503"
+            : databaseCode === "23503"
               ? 400
               : error.code === "LIMIT_FILE_SIZE"
                 ? 413
@@ -118,14 +126,17 @@ export async function createApplication(
     console.error("Request failed", {
       status,
       name: error.name,
-      code: error.code,
+      code: databaseCode,
     });
     res.status(status).json({
+      ...(typeof error.code === "string" && (error.name === "CommerceError" || ["LESSON_LOCKED", "LOGIN_REQUIRED", "INSUFFICIENT_BALANCE"].includes(error.code))
+        ? { code: error.code, lessonId: error.lessonId, priceCoins: error.priceCoins, lesson: error.lesson }
+        : {}),
       message:
         status < 500
-          ? error.code === "23505"
+          ? databaseCode === "23505"
             ? "Bu ma’lumot allaqachon mavjud"
-            : error.code === "23503"
+            : databaseCode === "23503"
               ? "Bog‘langan ma’lumot topilmadi"
               : error.code === "LIMIT_FILE_SIZE"
                 ? "Fayl hajmi ruxsat etilgan limitdan oshdi"

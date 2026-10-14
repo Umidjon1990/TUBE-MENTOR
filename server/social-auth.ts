@@ -47,11 +47,9 @@ const saveSession = (req: Request) =>
 function destination(user: User) {
   return user.role === "admin"
     ? "/admin"
-    : user.role === "teacher"
-      ? "/studio"
-      : user.onboardingCompleted
-        ? "/today"
-        : "/onboarding";
+    : user.onboardingCompleted
+      ? "/today"
+      : "/onboarding";
 }
 async function begin(req: Request, provider: Provider, linking = false) {
   const settings = config(provider);
@@ -312,11 +310,9 @@ export function registerSocialAuthRoutes(
       requireAuth,
       async (req, res) => {
         if (!socialProviderEnabled(provider))
-          return res
-            .status(503)
-            .json({
-              message: `${provider === "telegram" ? "Telegram" : "Google"} orqali kirish hali sozlanmagan`,
-            });
+          return res.status(503).json({
+            message: `${provider === "telegram" ? "Telegram" : "Google"} orqali kirish hali sozlanmagan`,
+          });
         res.json({ url: await begin(req, provider, true) });
       },
     );

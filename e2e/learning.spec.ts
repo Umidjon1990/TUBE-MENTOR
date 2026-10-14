@@ -71,11 +71,22 @@ async function login(page: Page, role = "student") {
   );
 }
 async function noOverflow(page: Page) {
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
-    ),
-  ).toBeTruthy();
+  const size = await page.evaluate(() => ({
+    url: location.pathname + location.search,
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    overflowing: Array.from(document.querySelectorAll<HTMLElement>("body *"))
+      .map((element) => ({
+        tag: element.tagName.toLowerCase(),
+        className: typeof element.className === "string" ? element.className : "",
+        right: Math.round(element.getBoundingClientRect().right),
+        width: Math.round(element.getBoundingClientRect().width),
+      }))
+      .filter((element) => element.right > window.innerWidth + 1)
+      .sort((a, b) => b.right - a.right)
+      .slice(0, 15),
+  }));
+  expect(size.document, JSON.stringify(size, null, 2)).toBeLessThanOrEqual(size.viewport + 1);
 }
 
 test("public pages and authenticated learner pages fit 320, 390, 768 and 1280 pixels", async ({
@@ -207,12 +218,12 @@ test("word sheet, recording, stage completion, tests and saved results work toge
     page.getByRole("button", { name: "Javobni ko‘rsatish" }),
   ).toBeVisible();
 });
-test("teacher creates and edits a draft; admin tools and roles remain separated", async ({
+test("admin creates and edits a draft; learner cannot access content management", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await login(page, "teacher");
-  await page.getByRole("link", { name: "Yangi dars" }).click();
+  await login(page, "admin");
+  await page.goto("/admin/lessons/new");
   await page.getByLabel("Dars nomi").fill("Browser sinov darsi");
   await page
     .getByLabel("YouTube havolasi")
@@ -220,7 +231,7 @@ test("teacher creates and edits a draft; admin tools and roles remain separated"
   await page
     .getByRole("button", { name: "Dars yaratish", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/studio\/lessons\/\d+$/);
+  await expect(page).toHaveURL(/\/admin\/lessons\/\d+$/);
   await page
     .getByLabel("Transkript")
     .fill(

@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  LearningShell,
   Panel,
   Loading,
   ErrorState,
@@ -34,6 +33,15 @@ import {
 } from "@shared/learning";
 import type { Lesson, Collection } from "@shared/schema";
 import AdminLayout from "@/components/layouts/admin-layout";
+import "@/admin-content.css";
+function AdminContentShell({ children, title, back }: { children: React.ReactNode; title?: string; back?: string; studio?: boolean }) {
+  return <AdminLayout title={title || "Darslar"} subtitle="Kontentni tayyorlash, tekshirish va nashr qilish">
+    <div className="learning-app admin-learning-content"><main className="learning-main">
+      {back && <Link className="quiet-link admin-content-back" href={back}>← Ortga</Link>}
+      {children}
+    </main></div>
+  </AdminLayout>;
+}
 const labels: Record<string, string> = {
   draft: "Qoralama",
   pending: "Tekshiruvda",
@@ -49,30 +57,37 @@ function Status({ value }: { value: string }) {
 }
 export function StudioPage() {
   const q = useQuery<Lesson[]>({
-    queryKey: ["/api/user/lessons"],
-    queryFn: () => request("GET", "/api/user/lessons"),
+    queryKey: ["/api/admin/lessons"],
+    queryFn: () => request("GET", "/api/admin/lessons"),
   });
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const visible = q.data?.filter(l => l.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!status || l.status === status));
   return (
-    <LearningShell studio title="Darslarim">
+    <AdminContentShell title="Barcha darslar">
       <div className="section-heading">
         <p>
           Matn, tarjima va vaqtlarni tekshiring. So‘ng darsni nashrga yuboring.
         </p>
-        <Link className="primary-link" href="/studio/new">
+        <Link className="primary-link" href="/admin/lessons/new">
           <Plus size={19} />
           Yangi dars
         </Link>
+      </div>
+      <div className="catalog-filters">
+        <label className="field-label">Dars qidirish<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Dars nomi" /></label>
+        <label className="field-label">Holati<select value={status} onChange={e => setStatus(e.target.value)}><option value="">Barcha holatlar</option>{Object.entries(labels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       </div>
       {q.isLoading ? (
         <Loading />
       ) : q.error ? (
         <ErrorState error={q.error} retry={() => q.refetch()} />
-      ) : q.data?.length ? (
+      ) : visible?.length ? (
         <div className="studio-list">
-          {q.data.map((l) => (
+          {visible.map((l) => (
             <Link
               className="studio-card learning-panel"
-              href={`/studio/lessons/${l.id}`}
+              href={`/admin/lessons/${l.id}`}
               key={l.id}
             >
               <div>
@@ -90,13 +105,13 @@ export function StudioPage() {
         </div>
       ) : (
         <EmptyState
-          title="Birinchi darsingizni yarating"
+          title={q.data?.length ? "Mos dars topilmadi" : "Birinchi darsingizni yarating"}
           description="YouTube havolasini qo‘shing, matn va mashqlarni tayyorlang."
-          href="/studio/new"
+          href="/admin/lessons/new"
           action="Dars yaratish"
         />
       )}
-    </LearningShell>
+    </AdminContentShell>
   );
 }
 export function CreateStudioLesson() {
@@ -122,11 +137,11 @@ export function CreateStudioLesson() {
     onSuccess: (l) => {
       void cache.invalidateQueries({ queryKey: ["/api/auth/me"] });
       void cache.invalidateQueries({ queryKey: ["/api/user/lessons"] });
-      navigate(`/studio/lessons/${l.lesson.id}`);
+      navigate(`/admin/lessons/${l.lesson.id}`);
     },
   });
   return (
-    <LearningShell studio title="Yangi dars" back="/studio">
+    <AdminContentShell studio title="Yangi dars" back="/admin/lessons">
       <Panel>
         <h2>YouTube darsini tayyorlash</h2>
         <form
@@ -193,7 +208,7 @@ export function CreateStudioLesson() {
           </Button>
         </form>
       </Panel>
-    </LearningShell>
+    </AdminContentShell>
   );
 }
 interface Review {
@@ -306,10 +321,10 @@ export function StudioEditor() {
     }
   }
   return (
-    <LearningShell
+    <AdminContentShell
       studio
       title={lesson?.title || "Dars muharriri"}
-      back="/studio"
+      back="/admin/lessons"
     >
       {q.isLoading ? (
         <Loading />
@@ -721,7 +736,7 @@ export function StudioEditor() {
           </>
         )
       )}
-    </LearningShell>
+    </AdminContentShell>
   );
 }
 export function ModerationPage() {
@@ -743,7 +758,7 @@ export function ModerationPage() {
               <Link
                 key={l.id}
                 className="studio-card learning-panel"
-                href={`/studio/lessons/${l.id}`}
+                href={`/admin/lessons/${l.id}`}
               >
                 <div>
                   <Status value={l.status} />
@@ -780,11 +795,11 @@ export function StudioCourses() {
       }),
     onSuccess: (c) => {
       void cache.invalidateQueries({ queryKey: ["/api/user/collections"] });
-      navigate(`/studio/courses/${c.id}`);
+      navigate(`/admin/courses/${c.id}`);
     },
   });
   return (
-    <LearningShell studio title="Kurslar">
+    <AdminContentShell studio title="Kurslar">
       <Panel>
         <h2>Yangi kurs</h2>
         <form
@@ -840,7 +855,7 @@ export function StudioCourses() {
         q.data?.map((c) => (
           <Link
             key={c.id}
-            href={`/studio/courses/${c.id}`}
+            href={`/admin/courses/${c.id}`}
             className="studio-card learning-panel"
           >
             <div>
@@ -854,7 +869,7 @@ export function StudioCourses() {
           </Link>
         ))
       )}
-    </LearningShell>
+    </AdminContentShell>
   );
 }
 export function StudioCourseEditor() {
@@ -910,10 +925,10 @@ export function StudioCourseEditor() {
     });
   }
   return (
-    <LearningShell
+    <AdminContentShell
       studio
       title={q.data?.name || "Kurs muharriri"}
-      back="/studio/courses"
+      back="/admin/courses"
     >
       {q.isLoading ? (
         <Loading />
@@ -980,7 +995,7 @@ export function StudioCourseEditor() {
               <h2>Kurs darslari</h2>
               {q.data.lessons.map((l, i) => (
                 <div className="course-editor-row" key={l.id}>
-                  <Link href={`/studio/lessons/${l.id}`}>
+                  <Link href={`/admin/lessons/${l.id}`}>
                     <strong>
                       {i + 1}. {l.title}
                     </strong>
@@ -1064,6 +1079,6 @@ export function StudioCourseEditor() {
           </>
         )
       )}
-    </LearningShell>
+    </AdminContentShell>
   );
 }

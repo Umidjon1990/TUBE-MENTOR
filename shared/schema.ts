@@ -204,8 +204,161 @@ export const coinTransactions = pgTable("coin_transactions", {
   amount: integer("amount").notNull(),
   type: text("type").notNull(),
   description: text("description"),
+  idempotencyKey: text("idempotency_key").unique(),
+  actorId: varchar("actor_id").references(() => users.id),
+  orderId: varchar("order_id"),
+  lessonId: integer("lesson_id").references(() => lessons.id),
+  bankReference: text("bank_reference").unique(),
+  balanceBefore: integer("balance_before"),
+  balanceAfter: integer("balance_after"),
+  metadata: json("metadata")
+    .$type<Record<string, unknown>>()
+    .default({})
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const lessonAccess = pgTable(
+  "lesson_access",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id),
+    lessonId: integer("lesson_id")
+      .notNull()
+      .references(() => lessons.id),
+    source: text("source").notNull(),
+    priceCoins: integer("price_coins").default(0).notNull(),
+    purchaseTransactionId: integer("purchase_transaction_id").references(
+      () => coinTransactions.id,
+    ),
+    grantedBy: varchar("granted_by").references(() => users.id),
+    revokedAt: timestamp("revoked_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("lesson_access_user_lesson_unique").on(t.userId, t.lessonId),
+  ],
+);
+
+export const coinPackages = pgTable("coin_packages", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  coins: integer("coins").notNull(),
+  priceUzs: integer("price_uzs").notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const paymentOrders = pgTable("payment_orders", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  packageId: integer("package_id")
+    .notNull()
+    .references(() => coinPackages.id),
+  packageName: text("package_name").notNull(),
+  coins: integer("coins").notNull(),
+  priceUzs: integer("price_uzs").notNull(),
+  status: text("status").default("awaiting_payment").notNull(),
+  instructions: json("instructions").$type<Record<string, string>>().notNull(),
+  reason: text("reason"),
+  bankReference: text("bank_reference").unique(),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  refundedCoins: integer("refunded_coins").default(0).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const paymentReceipts = pgTable("payment_receipts", {
+  id: serial("id").primaryKey(),
+  orderId: varchar("order_id")
+    .notNull()
+    .references(() => paymentOrders.id),
+  storageKey: text("storage_key").notNull().unique(),
+  mimeType: text("mime_type").notNull(),
+  originalName: text("original_name").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  sha256: text("sha256").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const coinGrants = pgTable("coin_grants", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  source: text("source").notNull(),
+  amount: integer("amount").notNull(),
+  remaining: integer("remaining").notNull(),
+  orderId: varchar("order_id").references(() => paymentOrders.id),
+  transactionId: integer("transaction_id").references(
+    () => coinTransactions.id,
+  ),
+  idempotencyKey: text("idempotency_key").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const commerceAudit = pgTable("commerce_audit", {
+  id: serial("id").primaryKey(),
+  actorId: varchar("actor_id").references(() => users.id),
+  userId: varchar("user_id").references(() => users.id),
+  action: text("action").notNull(),
+  referenceId: text("reference_id"),
+  idempotencyKey: text("idempotency_key").unique(),
+  details: json("details")
+    .$type<Record<string, unknown>>()
+    .default({})
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const telegramBotLinks = pgTable("telegram_bot_links", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id),
+  telegramUserId: text("telegram_user_id").notNull().unique(),
+  chatId: text("chat_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const telegramLinkTokens = pgTable("telegram_link_tokens", {
+  id: serial("id").primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+});
+
+export const notificationOutbox = pgTable(
+  "notification_outbox",
+  {
+    id: serial("id").primaryKey(),
+    kind: text("kind").notNull(),
+    referenceId: text("reference_id").notNull(),
+    payload: json("payload")
+      .$type<Record<string, unknown>>()
+      .default({})
+      .notNull(),
+    state: text("state").default("pending").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at").defaultNow().notNull(),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("notification_outbox_event_unique").on(t.kind, t.referenceId),
+  ],
+);
 
 export const savedWords = pgTable(
   "saved_words",
@@ -659,3 +812,31 @@ export type InsertCollectionLesson = z.infer<
   typeof insertCollectionLessonSchema
 >;
 export type CollectionLesson = typeof collectionLessons.$inferSelect;
+
+export const commerceSupportTickets = pgTable("commerce_support_tickets", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+  category: text("category").notNull(),
+  subject: text("subject").notNull(),
+  status: text("status").default("open").notNull(),
+  orderId: varchar("order_id").references(() => paymentOrders.id),
+  lessonId: integer("lesson_id").references(() => lessons.id),
+  fullNameSnapshot: text("full_name_snapshot").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+export const commerceSupportMessages = pgTable("commerce_support_messages", {
+  id: serial("id").primaryKey(),
+  ticketId: varchar("ticket_id")
+    .notNull()
+    .references(() => commerceSupportTickets.id),
+  authorId: varchar("author_id")
+    .notNull()
+    .references(() => users.id),
+  authorRole: text("author_role").notNull(),
+  authorNameSnapshot: text("author_name_snapshot").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

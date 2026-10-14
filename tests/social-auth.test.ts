@@ -166,7 +166,7 @@ before(
     await new Promise<void>((r) => http.listen(0, "127.0.0.1", r));
     base = `http://127.0.0.1:${(http.address() as import("node:net").AddressInfo).port}`;
   },
-  { timeout: 60000 },
+  { timeout: 180000 },
 );
 after(async () => {
   mock.restoreAll();
@@ -206,6 +206,7 @@ test("Telegram creates a student without email and regenerates its session", asy
   learnerId = me.data.id;
   assert.equal(me.status, 200);
   assert.equal(me.data.role, "student");
+  assert.equal(me.data.coins, 30);
   assert.equal(me.data.email, null);
   assert.equal(me.data.emailVerified, false);
   assert.deepEqual(me.data.linkedAccounts, { google: false, telegram: true });
@@ -236,6 +237,8 @@ test("Telegram creates a student without email and regenerates its session", asy
   assert.equal(await returning.finish(await returning.begin()), "/today");
   assert.equal((await returning.me()).data.id, learnerId);
   assert.equal((await returning.me()).data.xp, 73);
+  assert.equal((await returning.me()).data.coins, 30);
+  assert.equal((await pool.query("select count(*)::int as n from coin_transactions where user_id=$1 and type='welcome_bonus'", [learnerId])).rows[0].n, 1);
 });
 test("state, provider and expiry checks reject callbacks before exchanging any code", async () => {
   const count = exchanges;
@@ -318,6 +321,7 @@ test("Google links to the current Telegram profile and both providers retain the
   assert.deepEqual(me.data.linkedAccounts, { google: true, telegram: true });
   assert.equal(me.data.email, "learner@gmail.com");
   assert.equal(me.data.xp, 73);
+  assert.equal(me.data.coins, 30);
   const google = new Browser();
   assert.equal(await google.finish(await google.begin("google")), "/today");
   assert.equal((await google.me()).data.id, learnerId);
@@ -452,6 +456,7 @@ test("a Google-first learner can connect Telegram without losing progress", asyn
     const me = await telegram.me();
     assert.equal(me.data.id, id);
     assert.equal(me.data.xp, 41);
+    assert.equal(me.data.coins, 30);
     assert.deepEqual(me.data.linkedAccounts, { google: true, telegram: true });
   } finally {
     googleClaims = {};

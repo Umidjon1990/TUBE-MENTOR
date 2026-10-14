@@ -1,4 +1,5 @@
 node_modules
+private-payments/
 dist
 .DS_Store
 .env

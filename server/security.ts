@@ -27,6 +27,7 @@ export function apiSecurity(req: Request, res: Response, next: NextFunction) {
     if (
       !req.path.startsWith("/api/upload/") &&
       !req.path.endsWith("/whisper-audio-upload") &&
+      !/^\/api\/commerce\/orders\/[0-9a-f-]{36}\/receipt$/.test(req.path) &&
       !req.is("application/json")
     ) {
       return res.status(415).json({ message: "JSON so‘rov talab qilinadi" });

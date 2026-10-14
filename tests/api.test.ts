@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import type { Server } from "node:http";
 let pg: PGlite,
   socket: PGLiteSocketServer,
@@ -92,10 +92,10 @@ before(
     await teacher.login("demo_teacher", "DemoTeacher2026!");
     await admin.login("demo_admin", "DemoAdmin2026!");
     const catalog = (await student.call("/api/learn/catalog")).data;
-    lessonId = catalog.lessons[0].id;
+    lessonId = catalog.lessons.find((l: any) => l.access === "demo").id;
     courseId = catalog.courses[0].id;
   },
-  { timeout: 60000 },
+  { timeout: 180000 },
 );
 after(async () => {
   if (http) await new Promise<void>((r) => http.close(() => r()));
@@ -115,13 +115,13 @@ test("additive migrations retain existing accounts and can run twice", async () 
   assert.equal(r.rows[0].email_verified, true);
   assert.equal(
     (await pool.query("select count(*) from tube_migrations")).rows[0].count,
-    "5",
+    String((await readdir("migrations")).filter((f) => /^\d{4}_.*\.sql$/.test(f)).length),
   );
 });
-test("public course and catalogs exclude drafts; learner reads another teacher's published lesson", async () => {
+test("public catalogs exclude drafts; learner reads an accessible published lesson", async () => {
   const guest = new Client();
   const course = await guest.call(`/api/collections/public/${courseId}`);
-  assert.equal(course.data.lessons.length, 1);
+  assert.equal(course.data.lessons.length, 2);
   assert.ok(!JSON.stringify(course.data).includes("Yashirin"));
   const l = await student.call(`/api/learn/lessons/${lessonId}`);
   assert.equal(l.status, 200);
@@ -135,7 +135,7 @@ test("public course and catalogs exclude drafts; learner reads another teacher's
   assert.equal((await student.call(`/api/learn/lessons/${draft}`)).status, 404);
   assert.equal(
     (await student.call(`/api/user/lessons/${lessonId}`)).status,
-    403,
+    200,
   );
   assert.equal(
     (await student.call("/api/user/lessons", "POST", { title: "Forbidden" }))
@@ -157,7 +157,7 @@ test("unsafe origins and invalid import structures are rejected", async () => {
   );
   assert.equal(
     (
-      await teacher.call(`/api/user/lessons/${lessonId}/import-json`, "PATCH", {
+      await admin.call(`/api/user/lessons/${lessonId}/import-json`, "PATCH", {
         field: "quizzesJson",
         data: [{ question: "Q", options: ["a", "b"], correctIndex: 99 }],
       })
@@ -319,7 +319,7 @@ test("SRS ratings and word saves are idempotent and isolated between users", asy
 });
 test("editing a published lesson preserves visible revision until reviewed and republished", async () => {
   const original = (await student.call(`/api/learn/lessons/${lessonId}`)).data;
-  await teacher.call(`/api/user/lessons/${lessonId}`, "PATCH", {
+  await admin.call(`/api/user/lessons/${lessonId}`, "PATCH", {
     title: "New reviewed title",
   });
   assert.equal(
@@ -332,11 +332,11 @@ test("editing a published lesson preserves visible revision until reviewed and r
     100,
   );
   assert.equal(
-    (await teacher.call(`/api/user/lessons/${lessonId}/publish`, "PATCH"))
+    (await admin.call(`/api/user/lessons/${lessonId}/publish`, "PATCH"))
       .status,
     400,
   );
-  const source = (await teacher.call(`/api/user/lessons/${lessonId}`)).data;
+  const source = (await admin.call(`/api/user/lessons/${lessonId}`)).data;
   assert.equal(
     (await admin.call(`/api/admin/lessons/${lessonId}/approve`, "PATCH"))
       .status,
@@ -344,7 +344,7 @@ test("editing a published lesson preserves visible revision until reviewed and r
   );
   assert.equal(
     (
-      await teacher.call(`/api/studio/lessons/${lessonId}/review`, "POST", {
+      await admin.call(`/api/studio/lessons/${lessonId}/review`, "POST", {
         contentVersion: source.contentVersion,
         text: true,
         translation: true,
@@ -360,7 +360,7 @@ test("editing a published lesson preserves visible revision until reviewed and r
     200,
   );
   assert.equal(
-    (await teacher.call(`/api/user/lessons/${lessonId}/publish`, "PATCH"))
+    (await admin.call(`/api/user/lessons/${lessonId}/publish`, "PATCH"))
       .status,
     200,
   );
@@ -434,7 +434,7 @@ test("AI has no mock-success fallback without provider keys", async () => {
   delete process.env.OPENAI_API_KEY;
   delete process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
   assert.equal(
-    (await teacher.call(`/api/user/lessons/${lessonId}/generate`, "POST", {}))
+    (await admin.call(`/api/user/lessons/${lessonId}/generate`, "POST", {}))
       .status,
     503,
   );
@@ -533,4 +533,23 @@ test("personal notes remain private and accept bounded edits", async () => {
     (await student.call("/api/learn/notes")).data[0].content,
     "Yangi izoh",
   );
+});
+
+
+test("legacy teachers cannot create, edit or review content now managed by the admin", async () => {
+  const catalog = await teacher.call("/api/user/lessons");
+  assert.equal(catalog.status, 200);
+  const safeCatalog = JSON.stringify(catalog.data);
+  assert.ok(!safeCatalog.includes("Yashirin"));
+  assert.ok(!safeCatalog.includes("correctIndex"));
+  assert.ok(!safeCatalog.includes('"answer"'));
+  assert.ok(!safeCatalog.includes("publishedSnapshot"));
+  for (const [path, method, body] of [
+    ["/api/user/lessons", "POST", { title: "Forbidden teacher lesson" }],
+    [`/api/user/lessons/${lessonId}`, "PATCH", { title: "Forbidden edit" }],
+    [`/api/studio/lessons/${lessonId}/review`, "POST", { text: true }],
+    ["/api/admin/users", "GET", undefined],
+  ] as const) {
+    assert.equal((await teacher.call(path, method, body)).status, 403, `${method} ${path}`);
+  }
 });

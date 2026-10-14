@@ -15,6 +15,8 @@ import {
   Trophy,
   ArrowRight,
   RotateCcw,
+  LockKeyhole,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,8 +48,15 @@ import {
 } from "@shared/learning";
 import type { LessonProgress } from "@shared/schema";
 import type { LessonCard } from "./learner-pages";
+import {
+  CommerceError,
+  commerceRequest,
+  useWallet,
+  walletKey,
+} from "@/components/commerce-wallet";
 
 interface LessonView extends LessonCard {
+  youtubeUrl: string | null;
   summary: string | null;
   segments: Segment[];
   vocabulary: LessonWord[];
@@ -77,6 +86,145 @@ interface Feedback extends Partial<Completion> {
   score: number | null;
   answered: number;
 }
+function LessonUnlock({
+  lesson,
+  onOpened,
+}: {
+  lesson: LessonCard;
+  onOpened: () => void;
+}) {
+  const { user } = useAuth();
+  const wallet = useWallet();
+  const cache = useQueryClient();
+  const [confirm, setConfirm] = useState(false);
+  const cost = lesson.priceCoins;
+  const insufficient = wallet.data ? wallet.data.balance < cost : false;
+  const purchase = useMutation({
+    mutationFn: () =>
+      commerceRequest<{
+        balance: number;
+        lessonId: number;
+        alreadyOwned: boolean;
+      }>("POST", `/api/commerce/lessons/${lesson.id}/purchase`, {}),
+    onSuccess: () => {
+      for (const queryKey of [
+        walletKey,
+        ["catalog"],
+        ["course"],
+        ["commerce-my-lessons"],
+        ["/api/learn/today"],
+      ])
+        void cache.invalidateQueries({ queryKey });
+      onOpened();
+    },
+  });
+  const purchaseInsufficient =
+    purchase.error instanceof CommerceError &&
+    purchase.error.code === "INSUFFICIENT_COINS";
+  const walletUrl = `/wallet?${new URLSearchParams({ returnTo: `/learn/${lesson.id}` })}`;
+  return (
+    <Panel className="lesson-paywall">
+      {lesson.thumbnailUrl && (
+        <img className="paywall-cover" src={lesson.thumbnailUrl} alt="" />
+      )}
+      <LockKeyhole size={32} />
+      <span className="level-pill">{lesson.level}</span>
+      <h2>{lesson.title}</h2>
+      <p>
+        {lesson.description ||
+          "Video, tarjima, shadowing, mashqlar va dars oxiridagi lug‘at testi."}
+      </p>
+      <strong className="coin-badge">
+        <Coins size={20} /> {cost} coin
+      </strong>
+      <p>
+        Darsni bir marta ochasiz. Keyin qayta ko‘rish va lug‘atni takrorlash
+        uchun coin olinmaydi.
+      </p>
+      {!user ? (
+        <>
+          <p>Hisob oching va ro‘yxatdan o‘tish bonusidan foydalaning.</p>
+          <Link
+            className="primary-link"
+            href={`/login?${new URLSearchParams({ next: `/learn/${lesson.id}` })}`}
+          >
+            Kirish va darsni ochish <ArrowRight size={18} />
+          </Link>
+        </>
+      ) : (
+        <>
+          {wallet.isLoading ? (
+            <Loading />
+          ) : wallet.error ? (
+            <ErrorState error={wallet.error} retry={() => wallet.refetch()} />
+          ) : (
+            <p>
+              Balansingiz: <strong>{wallet.data?.balance} coin</strong>
+            </p>
+          )}
+          {insufficient || purchaseInsufficient ? (
+            <>
+              <p className="commerce-notice" role="status">
+                Bu darsni ochish uchun coin yetarli emas. Coin paketini tanlang.
+              </p>
+              <Link href={walletUrl} className="primary-link">
+                Coin olish <ArrowRight size={18} />
+              </Link>
+            </>
+          ) : confirm ? (
+            <div className="purchase-confirm">
+              <p>
+                Balansingizdan <strong>{cost} coin</strong> yechilib, shu dars
+                ochiladi. Davom etasizmi?
+              </p>
+              <Button
+                disabled={purchase.isPending || !wallet.data}
+                onClick={() => purchase.mutate()}
+              >
+                {purchase.isPending
+                  ? "Dars ochilmoqda…"
+                  : "Tasdiqlash va darsni ochish"}
+              </Button>
+              <Button
+                disabled={purchase.isPending}
+                variant="outline"
+                onClick={() => {
+                  setConfirm(false);
+                  purchase.reset();
+                }}
+              >
+                Hozir emas
+              </Button>
+            </div>
+          ) : (
+            <Button
+              disabled={!wallet.data || purchase.isPending}
+              onClick={() => setConfirm(true)}
+            >
+              {cost} coin bilan ochish <ArrowRight size={18} />
+            </Button>
+          )}
+          {purchase.error && !purchaseInsufficient && (
+            <p className="inline-error" role="alert">
+              {errorText(purchase.error)}
+            </p>
+          )}
+        </>
+      )}
+      <Link href="/courses" className="quiet-link">
+        Boshqa darslarni ko‘rish <ArrowRight size={17} />
+      </Link>
+      {user && (
+        <Link
+          className="quiet-link"
+          href={`/support?${new URLSearchParams({ lessonId: String(lesson.id), category: "lesson" })}`}
+        >
+          Dars bo‘yicha yordam <ArrowRight size={17} />
+        </Link>
+      )}
+    </Panel>
+  );
+}
 export default function LessonPage() {
   const { id } = useParams<{ id: string }>();
   const { user, isLoading: authLoading } = useAuth();
@@ -88,7 +236,7 @@ export default function LessonPage() {
   const q = useQuery<LessonView>({
     queryKey,
     queryFn: () =>
-      request(
+      commerceRequest(
         "GET",
         user
           ? `/api/learn/lessons/${id}${editorPreview ? "?preview=1" : ""}`
@@ -105,6 +253,11 @@ export default function LessonPage() {
   const [spoken, setSpoken] = useState(false);
   const [notice, setNotice] = useState("");
   const [note, setNote] = useState("");
+  const [guestCompleted, setGuestCompleted] = useState<Stage[]>([]);
+  const [guestScores, setGuestScores] = useState<
+    Partial<Record<"practice" | "vocabulary", number>>
+  >({});
+  const [demoTransferAvailable, setDemoTransferAvailable] = useState(false);
   const noteSave = useMutation({
     mutationFn: () =>
       request("POST", `/api/learn/lessons/${id}/notes`, {
@@ -127,9 +280,38 @@ export default function LessonPage() {
     `${user?.id || "guest"}:${id}:${data?.contentVersion || 1}:${segment?.id || "0"}`,
   );
   useEffect(() => {
-    if (data && initialized.current !== id) {
-      initialized.current = id;
+    const initializationKey = `${id}:${user?.id || "guest"}:${data?.contentVersion || 0}`;
+    if (data && initialized.current !== initializationKey) {
+      initialized.current = initializationKey;
       const p = data.progress;
+      let restoredGuestCompleted: Stage[] = [];
+      setDemoTransferAvailable(false);
+      if (!user) {
+        setGuestCompleted([]);
+        setGuestScores({});
+      }
+      try {
+        const saved = JSON.parse(
+          sessionStorage.getItem(`tube-demo:${id}:${data.contentVersion}`) ||
+            "null",
+        );
+        if (saved && Array.isArray(saved.completed)) {
+          if (!user) {
+            restoredGuestCompleted = saved.completed.filter((s: Stage) =>
+              STAGES.includes(s),
+            );
+            setGuestCompleted(restoredGuestCompleted);
+            setGuestScores(saved.scores || {});
+          } else if (data.access === "demo") {
+            setDemoTransferAvailable(
+              typeof saved.scores?.practice === "number" ||
+                typeof saved.scores?.vocabulary === "number",
+            );
+          }
+        }
+      } catch {
+        /* Demo remains usable when browser storage is unavailable. */
+      }
       setSegmentIndex(
         Math.min(p?.segmentIndex || 0, Math.max(0, data.segments.length - 1)),
       );
@@ -138,12 +320,34 @@ export default function LessonPage() {
         Number.isFinite(time) && time > 0 ? time : p?.playbackPosition || 0,
       );
       setStage(
-        p?.completionPercent === 100
-          ? "results"
-          : STAGES.find((s) => !p?.completedStages?.includes(s)) || "listen",
+        !user
+          ? STAGES.find((s) => !restoredGuestCompleted.includes(s)) || "results"
+          : p?.completionPercent === 100
+            ? "results"
+            : STAGES.find((s) => !p?.completedStages?.includes(s)) || "listen",
       );
     }
-  }, [data, id]);
+  }, [data, id, user?.id]);
+  useEffect(() => {
+    if (
+      !user &&
+      data &&
+      initialized.current === `${id}:guest:${data.contentVersion}`
+    ) {
+      try {
+        sessionStorage.setItem(
+          `tube-demo:${id}:${data.contentVersion}`,
+          JSON.stringify({
+            completed: guestCompleted,
+            scores: guestScores,
+            updatedAt: Date.now(),
+          }),
+        );
+      } catch {
+        /* Storage is optional for the sample lesson. */
+      }
+    }
+  }, [guestCompleted, guestScores, user, data, id]);
   function updateProgress(p?: LessonProgress) {
     if (p)
       cache.setQueryData<LessonView>(queryKey, (old) =>
@@ -161,6 +365,34 @@ export default function LessonPage() {
     ])
       void cache.invalidateQueries({ queryKey: key });
   }
+  const transfer = useMutation({
+    mutationFn: () =>
+      commerceRequest<{ imported: boolean; progress?: LessonProgress | null }>(
+        "POST",
+        `/api/learn/preview/${id}/transfer`,
+        {},
+      ),
+    onSuccess: (result) => {
+      if (result.progress) updateProgress(result.progress);
+      for (const key of [
+        ["results", id],
+        ["learning-lesson", id],
+        ["/api/learn/today"],
+      ])
+        void cache.invalidateQueries({ queryKey: key });
+      setDemoTransferAvailable(false);
+      try {
+        sessionStorage.removeItem(`tube-demo:${id}:${data?.contentVersion}`);
+      } catch {
+        /* Optional browser storage. */
+      }
+      setNotice(
+        result.imported
+          ? "Namuna test natijangiz hisobingizga saqlandi."
+          : "Saqlash uchun namuna test natijasi topilmadi. Testni qayta bajarishingiz mumkin.",
+      );
+    },
+  });
   const complete = useMutation({
     mutationFn: async (s: Stage) => {
       await activity.flush();
@@ -214,7 +446,9 @@ export default function LessonPage() {
     setNotice("");
     if (s === "practice" || s === "vocabulary") video.current?.pause();
   }
-  const completed = data?.progress?.completedStages || [];
+  const completed = !user
+    ? guestCompleted
+    : data?.progress?.completedStages || [];
   const arabic = data?.targetLanguage !== "en";
   return (
     <LearningShell
@@ -224,7 +458,17 @@ export default function LessonPage() {
       {authLoading || q.isLoading ? (
         <Loading />
       ) : q.error ? (
-        <ErrorState error={q.error} retry={() => q.refetch()} />
+        q.error instanceof CommerceError &&
+        (q.error.code === "LESSON_LOCKED" ||
+          q.error.code === "LOGIN_REQUIRED") &&
+        q.error.details?.lesson ? (
+          <LessonUnlock
+            lesson={q.error.details.lesson as unknown as LessonCard}
+            onOpened={() => q.refetch()}
+          />
+        ) : (
+          <ErrorState error={q.error} retry={() => q.refetch()} />
+        )
       ) : (
         data && (
           <>
@@ -233,10 +477,22 @@ export default function LessonPage() {
                 {data.level} · {arabic ? "Arab tili" : "Ingliz tili"}
               </span>
               <Meter
-                value={data.progress?.completionPercent || 0}
+                value={
+                  !user
+                    ? Math.round((guestCompleted.length / STAGES.length) * 100)
+                    : data.progress?.completionPercent || 0
+                }
                 label="Dars bajarilishi"
               />
             </div>
+            {user && !editorPreview && (
+              <Link
+                className="quiet-link"
+                href={`/support?${new URLSearchParams({ lessonId: id, category: "lesson" })}`}
+              >
+                Dars bo‘yicha yordam <ArrowRight size={17} />
+              </Link>
+            )}
             {preview && (
               <Panel className="preview-notice">
                 <BookOpen size={21} />
@@ -249,7 +505,7 @@ export default function LessonPage() {
                   <p>
                     {editorPreview
                       ? "Bu ko‘rinishda natija va ball yozilmaydi."
-                      : "Bosqichlarni bajarish va natijalarni saqlash uchun hisobingizga kiring."}
+                      : "Barcha bosqichlarni sinab ko‘ring. Natija shu brauzerda vaqtincha qoladi; hisob ochgach shaxsiy natijalaringiz saqlanadi."}
                   </p>
                   {!user && (
                     <Link
@@ -260,6 +516,28 @@ export default function LessonPage() {
                     </Link>
                   )}
                 </div>
+              </Panel>
+            )}
+            {user && !editorPreview && demoTransferAvailable && (
+              <Panel>
+                <h2>Namuna test natijangiz</h2>
+                <p>
+                  Hisob ochishdan oldin bajargan test natijangizni shaxsiy
+                  kabinetingizga saqlang.
+                </p>
+                <Button
+                  disabled={transfer.isPending}
+                  onClick={() => transfer.mutate()}
+                >
+                  {transfer.isPending
+                    ? "Saqlanmoqda…"
+                    : "Namuna natijasini saqlash"}
+                </Button>
+                {transfer.error && (
+                  <p role="alert" className="inline-error">
+                    {errorText(transfer.error)}
+                  </p>
+                )}
               </Panel>
             )}
             <nav className="lesson-stages" aria-label="Dars bosqichlari">
@@ -280,7 +558,12 @@ export default function LessonPage() {
               ))}
             </nav>
             {stage === "results" ? (
-              <Results lessonId={id} onBack={() => setStage("listen")} />
+              <Results
+                lessonId={id}
+                guestScores={guestScores}
+                guestCompleted={guestCompleted.length}
+                onBack={() => setStage("listen")}
+              />
             ) : (
               <div className="lesson-workspace">
                 <div className="lesson-main">
@@ -469,7 +752,7 @@ export default function LessonPage() {
                           variant={
                             recording.recording ? "destructive" : "default"
                           }
-                          disabled={recording.pending || preview}
+                          disabled={recording.pending || editorPreview}
                           onClick={() => {
                             video.current?.pause();
                             recording.recording
@@ -516,7 +799,7 @@ export default function LessonPage() {
                     </Panel>
                   )}
                   {(stage === "practice" || stage === "vocabulary") &&
-                    (preview ? (
+                    (editorPreview ? (
                       <Panel>
                         <h2>{STAGE_LABELS[stage]}</h2>
                         <p>
@@ -534,11 +817,22 @@ export default function LessonPage() {
                         key={`${id}:${stage}`}
                         lessonId={id}
                         kind={stage}
+                        guest={!user}
                         language={data.targetLanguage}
                         segments={data.segments}
                         seek={(time, end) => video.current?.seek(time, end)}
                         onDone={(r) => {
                           updateProgress(r.progress);
+                          if (!user) {
+                            setGuestCompleted((old) =>
+                              old.includes(stage) ? old : [...old, stage],
+                            );
+                            if (r.score !== null)
+                              setGuestScores((old) => ({
+                                ...old,
+                                [stage]: r.score!,
+                              }));
+                          }
                           setStage(
                             stage === "practice" ? "vocabulary" : "results",
                           );
@@ -551,18 +845,30 @@ export default function LessonPage() {
                     <Button
                       className="complete-stage wide-button"
                       disabled={
-                        preview ||
+                        editorPreview ||
                         complete.isPending ||
                         recording.recording ||
                         (stage === "shadow" &&
                           !recording.hasRecording &&
                           !spoken)
                       }
-                      onClick={() => complete.mutate(stage)}
+                      onClick={() => {
+                        if (!user) {
+                          setGuestCompleted((old) =>
+                            old.includes(stage) ? old : [...old, stage],
+                          );
+                          setStage(
+                            STAGES[STAGES.indexOf(stage) + 1] || "results",
+                          );
+                          video.current?.pause();
+                        } else complete.mutate(stage);
+                      }}
                     >
                       {complete.isPending
                         ? "Saqlanmoqda…"
-                        : "Bosqichni yakunlash"}
+                        : !user
+                          ? "Keyingi bosqich"
+                          : "Bosqichni yakunlash"}
                       <ArrowRight size={18} />
                     </Button>
                   )}
@@ -742,6 +1048,7 @@ function Exercise({
   segments,
   seek,
   onDone,
+  guest = false,
 }: {
   lessonId: string;
   kind: "practice" | "vocabulary";
@@ -749,11 +1056,18 @@ function Exercise({
   segments: Segment[];
   seek: (time: number, end?: number | null) => void;
   onDone: (r: Feedback) => void;
+  guest?: boolean;
 }) {
   const q = useQuery<Attempt>({
-    queryKey: ["attempt", lessonId, kind],
+    queryKey: ["attempt", lessonId, kind, guest],
     queryFn: () =>
-      request("POST", `/api/learn/lessons/${lessonId}/attempts`, { kind }),
+      request(
+        "POST",
+        guest
+          ? `/api/learn/preview/${lessonId}/attempts`
+          : `/api/learn/lessons/${lessonId}/attempts`,
+        { kind },
+      ),
     retry: false,
     staleTime: 0,
     refetchOnWindowFocus: false,
@@ -769,13 +1083,19 @@ function Exercise({
   const question = q.data?.questions[index ?? 0];
   const submit = useMutation({
     mutationFn: () =>
-      request<Feedback>("POST", `/api/learn/attempts/${q.data!.id}/answers`, {
-        questionId: question!.id,
-        answer:
-          question!.type === "order"
-            ? selected.map((i) => question!.tokens![i]).join(" ")
-            : answer,
-      }),
+      request<Feedback>(
+        "POST",
+        guest
+          ? `/api/learn/preview/${lessonId}/attempts/${q.data!.id}/answers`
+          : `/api/learn/attempts/${q.data!.id}/answers`,
+        {
+          questionId: question!.id,
+          answer:
+            question!.type === "order"
+              ? selected.map((i) => question!.tokens![i]).join(" ")
+              : answer,
+        },
+      ),
     onSuccess: (r) => setFeedback(r),
   });
   function next() {
@@ -1009,9 +1329,13 @@ interface TestResult {
 function Results({
   lessonId,
   onBack,
+  guestScores,
+  guestCompleted,
 }: {
   lessonId: string;
   onBack: () => void;
+  guestScores: Partial<Record<"practice" | "vocabulary", number>>;
+  guestCompleted: number;
 }) {
   const { user } = useAuth();
   const q = useQuery<{
@@ -1027,9 +1351,29 @@ function Results({
   if (!user)
     return (
       <Panel>
+        <Trophy size={34} />
+        <h2>Namuna darsdagi natijangiz</h2>
+        <p>
+          {guestCompleted} / {STAGES.length} bosqich bajarildi.
+        </p>
+        <p>
+          Mashqlar:{" "}
+          {guestScores.practice === undefined
+            ? "Hali yakunlanmagan"
+            : `${guestScores.practice}%`}
+        </p>
+        <p>
+          Lug‘at testi:{" "}
+          {guestScores.vocabulary === undefined
+            ? "Hali yakunlanmagan"
+            : `${guestScores.vocabulary}%`}
+        </p>
         <Link className="primary-link" href={`/login?next=/learn/${lessonId}`}>
           Natijalarni saqlash uchun kirish
         </Link>
+        <Button variant="outline" onClick={onBack}>
+          Darsga qaytish
+        </Button>
       </Panel>
     );
   return q.isLoading ? (

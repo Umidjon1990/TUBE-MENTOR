@@ -1,0 +1,8 @@
+.admin-learning-content { min-height: 0; background: transparent; border-radius: 18px; }
+.admin-learning-content .learning-main { padding: 0; margin: 0; max-width: none; width: 100%; min-width: 0; }
+.admin-learning-content .admin-content-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 12px; }
+.admin-learning-content .catalog-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr); gap: 14px; margin-bottom: 18px; }
+.admin-learning-content input, .admin-learning-content select, .admin-learning-content textarea { max-width: 100%; }
+.admin-learning-content .studio-list, .admin-learning-content .editor-grid { min-width: 0; }
+.admin-learning-content .studio-card { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .admin-learning-content .catalog-filters { grid-template-columns: minmax(0, 1fr); } .admin-learning-content .learning-panel { padding: 16px; } }

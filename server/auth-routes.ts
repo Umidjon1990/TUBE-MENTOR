@@ -11,6 +11,7 @@ import {
   hasVerifiedIdentity,
 } from "./auth";
 import { localDay } from "@shared/learning";
+import { grantWelcomeBonus } from "./commerce";
 import { rateLimit } from "./security";
 import { registerSocialAuthRoutes, socialProviderEnabled } from "./social-auth";
 
@@ -113,9 +114,15 @@ async function issueToken(user: User, purpose: "verify" | "reset") {
   });
 }
 export async function establishSession(req: Request, user: User) {
+  const bonus = await grantWelcomeBonus(user.id);
+  user.coins = bonus.balance;
+  const demoAttempts = req.session.demoAttempts
+    ?.filter((attempt) => attempt.expiresAt > Date.now())
+    .slice(-5);
   await new Promise<void>((resolve, reject) =>
     req.session.regenerate((e) => (e ? reject(e) : resolve())),
   );
+  if (demoAttempts?.length) req.session.demoAttempts = demoAttempts;
   req.session.userId = user.id;
   req.session.userRole = user.role;
   req.session.authVersion = user.sessionVersion;

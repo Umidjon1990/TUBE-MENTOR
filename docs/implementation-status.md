@@ -24,6 +24,6 @@
 
 Haqiqiy OAuth/email/AI kalitlari va yakuniy domen bu sessiyada yo‘q. Ular kiritilgach Google callback, Resend email yetkazilishi, YouTube iframe/Whisper hamda haqiqiy Android/iPhone mikrofonini sinash kerak. Avtomatik talaffuz baholash kiritilmagan: ovoz qurilmada saqlanadi va o‘quvchi o‘zi taqqoslaydi.
 
-Mahalliy DB sinovlari PGlite PostgreSQL protocol serverida o‘tdi; GitHub Actions PostgreSQL 16 bilan parallel so‘rovlarni tekshiradi. Mavjud darslarning til bo‘yicha mazmun sifati avtomatik tasdiqlanmaydi: yangi kontent uchun to‘rtta tekshiruv va admin tasdig‘i zarur.
+Mahalliy DB sinovlari PGlite PostgreSQL protocol serverida o‘tdi; GitHub Actions PostgreSQL 16 bilan parallel so‘rovlarni tekshirish uchun sozlangan. GitHub hisobi billing sabab bloklangani uchun remote job boshlanmagan; bu tekshiruv hozircha o‘tgan deb hisoblanmaydi. [GitHub tekshiruv holati](https://github.com/Umidjon1990/TUBE-MENTOR/actions/runs/38536851830). Mavjud darslarning til bo‘yicha mazmun sifati avtomatik tasdiqlanmaydi: yangi kontent uchun to‘rtta tekshiruv va admin tasdig‘i zarur.
 
 Oldingi saqlangan lug‘at yangi takrorlash navbatiga migratsiya qilinadi. Eslatmalar va oldingi kartochkalar profil orqali ochiladi. Kontent yaratgan eski student hisobga tahrir huquqi kerak bo‘lsa, admin unga teacher rolini beradi.

@@ -41,3 +41,7 @@ YouTube’dan Whisper orqali audio olish uchun deploy muhitida `ffmpeg` va boshq
 **Fayllar:** `/app/uploads`ni persistent volume bilan saqlang (konteyner working directory `/app` bo‘lsa). YouTube cookie fayli rootda `youtube_cookies.txt`, vaqtinchalik cookie fayllari `private-uploads`da; ular `/uploads`dan tashqarida va GitHubga kiritilmaydi. Cookie yangilansa mavjud nusxaga xavfsiz huquqlar qo‘llanadi. Bir nechta app instance bo‘lsa rasmlar uchun umumiy persistent storage kerak. PostgreSQL muntazam backup olinsin.
 
 **Rollback:** migratsiyalar qo‘shimcha jadval/ustunlar kiritadi; eski ma’lumotlarni o‘chirmaydi. Kodni oldingi commitga qaytarishdan oldin eski startupdagi `db:push --force` buyrug‘ini ishlatmaslik kerak. Bazani orqaga tushirish zarur bo‘lsa backupdan alohida tiklash rejasini qo‘llang.
+
+## GitHub tekshiruvi
+
+CI Ubuntu 24.04, Node 20 va PostgreSQL 16 bilan sozlangan. Hozir GitHub hisobi billing sabab Actions ishlarini boshlamayapti. Hisobdagi shu cheklov bartaraf etilgach PR tekshiruvini qayta ishga tushirish kerak. Mahalliy sinovlar va production smoke natijalari `implementation-status.md`da keltirilgan.

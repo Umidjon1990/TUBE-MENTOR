@@ -8,3 +8,12 @@ server/public
 vite.config.ts.*
 *.tar.gz
 *.log
+.data/
+private-uploads/
+youtube_cookies.txt
+playwright-report/
+test-results/
+uploads/
+
+.env.*
+!.env.example

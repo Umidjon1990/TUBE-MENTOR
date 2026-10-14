@@ -1,12 +1,28 @@
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
+import type { User } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
     userId: string;
     userRole: string;
+    authVersion: number;
+    socialLogin: {
+      provider: "google" | "telegram";
+      state: string;
+      nonce: string;
+      verifier: string;
+      expires: number;
+      linkUserId?: string;
+      authVersion?: number;
+    };
   }
+}
+
+/** A verified provider identity also authenticates users who have no email. */
+export function hasVerifiedIdentity(user: User): boolean {
+  return user.emailVerified || Boolean(user.googleId || user.telegramId);
 }
 
 export function hashPassword(password: string): string {
@@ -30,30 +46,79 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   }
 }
 
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+/** Public catalogs may carry a session too; remove expired identity before attaching progress. */
+export async function optionalAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (req.session.userId) {
+    const user = await storage.getUser(req.session.userId);
+    if (
+      !user ||
+      !user.isActive ||
+      !hasVerifiedIdentity(user) ||
+      (req.session.authVersion ?? 0) !== user.sessionVersion
+    ) {
+      delete (req.session as Partial<typeof req.session>).userId;
+      delete (req.session as Partial<typeof req.session>).userRole;
+      delete (req.session as Partial<typeof req.session>).authVersion;
+    } else {
+      req.session.userRole = user.role;
+      res.locals.validatedUser = user;
+    }
+  }
+  next();
+}
+
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Avtorizatsiya talab qilinadi" });
   }
 
-  const user = await storage.getUser(req.session.userId);
-  if (!user || !user.isActive) {
+  const user =
+    res.locals.validatedUser || (await storage.getUser(req.session.userId));
+  if (
+    !user ||
+    !user.isActive ||
+    (req.session.authVersion ?? 0) !== user.sessionVersion ||
+    !hasVerifiedIdentity(user)
+  ) {
     req.session.destroy(() => {});
-    return res.status(401).json({ message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi" });
+    return res.status(401).json({
+      message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+    });
   }
 
   req.session.userRole = user.role;
   next();
 }
 
-export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
+export async function requireAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Avtorizatsiya talab qilinadi" });
   }
 
-  const user = await storage.getUser(req.session.userId);
-  if (!user || !user.isActive) {
+  const user =
+    res.locals.validatedUser || (await storage.getUser(req.session.userId));
+  if (
+    !user ||
+    !user.isActive ||
+    (req.session.authVersion ?? 0) !== user.sessionVersion ||
+    !hasVerifiedIdentity(user)
+  ) {
     req.session.destroy(() => {});
-    return res.status(401).json({ message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi" });
+    return res.status(401).json({
+      message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+    });
   }
 
   if (user.role !== "admin") {
@@ -70,10 +135,18 @@ export function requireRole(...roles: string[]) {
       return res.status(401).json({ message: "Avtorizatsiya talab qilinadi" });
     }
 
-    const user = await storage.getUser(req.session.userId);
-    if (!user || !user.isActive) {
+    const user =
+      res.locals.validatedUser || (await storage.getUser(req.session.userId));
+    if (
+      !user ||
+      !user.isActive ||
+      (req.session.authVersion ?? 0) !== user.sessionVersion ||
+      !hasVerifiedIdentity(user)
+    ) {
       req.session.destroy(() => {});
-      return res.status(401).json({ message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi" });
+      return res.status(401).json({
+        message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+      });
     }
 
     if (!roles.includes(user.role)) {

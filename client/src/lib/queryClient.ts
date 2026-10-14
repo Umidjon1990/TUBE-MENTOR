@@ -2,15 +2,10 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    if (res.status === 401) {
+    if (res.status === 401 && !res.url.endsWith("/api/auth/login"))
       queryClient.setQueryData(["/api/auth/me"], null);
-      queryClient.clear();
-      if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
-        window.location.href = "/login";
-      }
-    }
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(body.message || `So‘rov bajarilmadi (${res.status})`);
   }
 }
 
@@ -21,8 +16,13 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers:
+      data !== undefined || !["GET", "HEAD"].includes(method)
+        ? { "Content-Type": "application/json" }
+        : {},
+    body: !["GET", "HEAD"].includes(method)
+      ? JSON.stringify(data ?? {})
+      : undefined,
     credentials: "include",
   });
 

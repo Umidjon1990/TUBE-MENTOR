@@ -1,12 +1,17 @@
 import OpenAI from "openai";
+import { contentSchema } from "@shared/content-validation";
 import { getLanguageConfig } from "@shared/languages";
 
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
   if (!_openai) {
     _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-      ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }),
+      apiKey:
+        process.env.OPENAI_API_KEY ||
+        process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      ...(process.env.OPENAI_API_KEY
+        ? {}
+        : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }),
     });
   }
   return _openai;
@@ -18,7 +23,12 @@ export interface GeneratedLessonContent {
   summaryShortAr: string;
   summaryDetailedAr: string;
   vocabularyJson: VocabularyItem[];
-  phrasesJson: never[];
+  phrasesJson: {
+    phrase: string;
+    translation: string;
+    translationAr: string;
+    context: string;
+  }[];
   quizzesJson: QuizItem[];
   flashcardsJson: FlashcardItem[];
   sentenceAnalysisJson: SentenceAnalysis[];
@@ -39,7 +49,11 @@ export interface QuizItem {
   options: string[];
   correctIndex: number;
   explanation: string;
-  type?: "multiple_choice" | "fill_blank" | "sentence_completion" | "word_translation";
+  type?:
+    | "multiple_choice"
+    | "fill_blank"
+    | "sentence_completion"
+    | "word_translation";
 }
 
 export interface FlashcardItem {
@@ -94,7 +108,11 @@ function detectLanguage(text: string): "arabic" | "english" | "mixed" {
   return "mixed";
 }
 
-function buildArabicSystemPrompt(lang: string, levelLabel: string, difficulty: string): string {
+function buildArabicSystemPrompt(
+  lang: string,
+  levelLabel: string,
+  difficulty: string,
+): string {
   return `# ROL
 Sen arab tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional dars materiallari yaratasan.
 
@@ -152,12 +170,16 @@ Quyidagi BARCHA maydonlarda arabcha so'zlar TO'LIQ va TO'G'RI HARAKAT bilan yozi
 - "translation" maydoni: O'ZBEK tilida tarjima (bu eng muhim — O'ZBEKCHA bo'lishi SHART)
 - "translationAr" maydoni: arabcha so'zning arabcha izohi yoki sinonimi (HARAKAT BILAN)
 - "explanation": O'ZBEK tilida
-${lang === "english" ? `
+${
+  lang === "english"
+    ? `
 ## TIL: INGLIZ TILIDA TRANSKRIPT
 - "word" maydoni: inglizcha so'z
 - "translation" maydoni: O'ZBEK tilida tarjima
 - "translationAr" maydoni: ARAB tilida tarjima (HARAKAT bilan)
-- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin` : ""}
+- Barcha tushuntirish, savol, javob variantlari O'ZBEK tilida bo'lsin`
+    : ""
+}
 
 # JAVOB FORMATI
 Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma — faqat sof JSON: { dan boshlab } gacha.
@@ -260,7 +282,11 @@ Javobni FAQAT JSON formatda ber. Boshqa hech qanday matn, izoh, markdown yozma �
 - JSON VALID bo'lishi SHART — vergul, qavs, qo'shtirnoqlarni tekshir`;
 }
 
-function buildEnglishSystemPrompt(lang: string, levelLabel: string, difficulty: string): string {
+function buildEnglishSystemPrompt(
+  lang: string,
+  levelLabel: string,
+  difficulty: string,
+): string {
   return `# ROL
 Sen ingliz tili bo'yicha tajribali professor va mutaxassisisisan. YouTube video transkriptidan O'ZBEK tilidagi talabalar uchun professional ingliz tili dars materiallari yaratasan.
 
@@ -369,41 +395,95 @@ export async function generateLessonContent(
   transcript: string,
   sentences: string[],
   level: string,
-  targetLanguage: string = "ar"
+  targetLanguage = "ar",
 ): Promise<GeneratedLessonContent> {
-  try {
-    return await generateWithOpenAI(transcript, sentences, level, targetLanguage);
-  } catch (error: any) {
-    const msg = error?.message || String(error);
-    const isTimeout = msg.includes("timeout") || msg.includes("ETIMEDOUT") || msg.includes("abort");
-    console.error(`[AI] OpenAI xatolik (${isTimeout ? "timeout" : "boshqa"}):`, msg);
-    if (isTimeout) {
-      throw new Error("AI so'rovi vaqt chegarasidan oshdi (timeout). Qaytadan urinib ko'ring.");
+  if (
+    !process.env.OPENAI_API_KEY &&
+    !process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+  )
+    throw new Error(
+      "OPENAI_API_KEY sozlanmagan. Kontentni JSON orqali ham import qilish mumkin.",
+    );
+  if (!sentences.length || transcript.length > 120000)
+    throw new Error(
+      "Transkript bo‘sh yoki juda uzun. Videoni kichik darslarga ajrating.",
+    );
+  const chunks: string[][] = [];
+  let chunk: string[] = [];
+  for (const sentence of sentences) {
+    if (sentence.length > 7000)
+      throw new Error("Juda uzun gap topildi. Matnni gaplarga ajrating.");
+    if (chunk.length >= 20 || chunk.join(" ").length + sentence.length > 7000) {
+      chunks.push(chunk);
+      chunk = [];
     }
-    console.log("[AI] Mock fallback ishlatilmoqda...");
-    return generateMockContent(transcript, sentences, level, targetLanguage);
+    chunk.push(sentence);
   }
+  if (chunk.length) chunks.push(chunk);
+  const parts: GeneratedLessonContent[] = [];
+  for (const group of chunks) {
+    const part = await generateWithOpenAI(
+      group.join(" "),
+      group,
+      level,
+      targetLanguage,
+    );
+    if (part.sentenceAnalysisJson.length !== group.length)
+      throw new Error(
+        "AI barcha gaplarni tahlil qilmadi. Qayta urinib ko‘ring yoki JSON import qiling.",
+      );
+    parts.push(part);
+  }
+  const first = parts[0];
+  return {
+    ...first,
+    summaryShort: parts.map((p) => p.summaryShort).join("\n\n"),
+    summaryDetailed: parts.map((p) => p.summaryDetailed).join("\n\n"),
+    summaryShortAr: parts.map((p) => p.summaryShortAr).join("\n\n"),
+    summaryDetailedAr: parts.map((p) => p.summaryDetailedAr).join("\n\n"),
+    vocabularyJson: [
+      ...new Map(
+        parts.flatMap((p) => p.vocabularyJson).map((w) => [w.word, w]),
+      ).values(),
+    ],
+    phrasesJson: [
+      ...new Map(
+        parts.flatMap((p) => p.phrasesJson).map((p) => [p.phrase, p]),
+      ).values(),
+    ],
+    quizzesJson: parts.flatMap((p) => p.quizzesJson),
+    flashcardsJson: parts.flatMap((p) => p.flashcardsJson),
+    sentenceAnalysisJson: parts.flatMap((p) => p.sentenceAnalysisJson),
+    aiMetaJson: {
+      ...first.aiMetaJson,
+      transcriptLength: transcript.length,
+      sentenceCount: sentences.length,
+    },
+  };
 }
 
 async function generateWithOpenAI(
   transcript: string,
   sentences: string[],
   level: string,
-  targetLanguage: string = "ar"
+  targetLanguage: string = "ar",
 ): Promise<GeneratedLessonContent> {
   const levelLabel = LEVEL_LABELS[level] || level;
   const difficulty = DIFFICULTY_MAP[level] || "medium";
-  const trimmedTranscript = transcript.slice(0, 8000);
+  const trimmedTranscript = transcript;
   const lang = detectLanguage(trimmedTranscript);
   const langConfig = getLanguageConfig(targetLanguage);
 
-  const systemPrompt = targetLanguage === "ar"
-    ? buildArabicSystemPrompt(lang, levelLabel, difficulty)
-    : buildEnglishSystemPrompt(lang, levelLabel, difficulty);
+  const systemPrompt =
+    targetLanguage === "ar"
+      ? buildArabicSystemPrompt(lang, levelLabel, difficulty)
+      : buildEnglishSystemPrompt(lang, levelLabel, difficulty);
 
-
-  const maxSentences = 30;
-  const sentencesList = sentences.slice(0, maxSentences).map((s, i) => `${i + 1}. ${s}`).join("\n");
+  const maxSentences = sentences.length;
+  const sentencesList = sentences
+    .slice(0, maxSentences)
+    .map((s, i) => `${i + 1}. ${s}`)
+    .join("\n");
 
   const userPrompt = `# VAZIFA
 Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat.
@@ -411,10 +491,14 @@ Quyidagi video transkriptidan ${levelLabel} darajadagi dars materiallari yarat.
 # ⚠️ MUHIM ESLATMALAR — QAT'IY RIOYA QILING:
 1. sentenceAnalysis maydonida quyidagi BARCHA ${Math.min(sentences.length, maxSentences)} ta gapni tahlil qil — BIRONTASINI HAM TASHLAB KETMA
 2. Har bir gapdagi HAR BIR so'z wordMap ichida bo'lishi SHART — so'z tashlab ketish MUMKIN EMAS
-3. ${lang === "arabic" ? `BARCHA arabcha so'zlar TO'LIQ HARAKAT (تَشْكِيل كَامِل) bilan yozilsin:
+3. ${
+    lang === "arabic"
+      ? `BARCHA arabcha so'zlar TO'LIQ HARAKAT (تَشْكِيل كَامِل) bilan yozilsin:
    - Har bir harfda harakat: فَتْحَة, كَسْرَة, ضَمَّة, سُكُون, شَدَّة, تَنْوِين
    - I'rob to'g'ri bo'lsin: فَاعِلٌ (damma), مَفْعُولًا (fatha+tanvin), مَجْرُورٍ (kasra+tanvin)
-   - Harakatsiz so'z QABUL QILINMAYDI` : "Arabcha tarjimalarda harakat qo'yishga harakat qiling"}
+   - Harakatsiz so'z QABUL QILINMAYDI`
+      : "Arabcha tarjimalarda harakat qo'yishga harakat qiling"
+  }
 4. Tarjima va tushuntirish FAQAT O'ZBEK tilida bo'lsin
 5. IMLOVIY XATO BO'LMASLIGI KERAK — arabchada ham, o'zbekchada ham
 6. Javob berishdan oldin har bir so'zni tekshir: imlo to'g'rimi? harakat to'g'rimi?
@@ -426,76 +510,112 @@ ${sentencesList}
 ${trimmedTranscript}`;
 
   const startTime = Date.now();
-  console.log(`[AI] OpenAI so'rov boshlandi: ${sentences.length} ta gap, ${trimmedTranscript.length} belgi...`);
+  console.log(
+    `[AI] OpenAI so'rov boshlandi: ${sentences.length} ta gap, ${trimmedTranscript.length} belgi...`,
+  );
 
-  const response = await getOpenAI().chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
-    temperature: 0.3,
-    max_tokens: 16384,
-    response_format: { type: "json_object" },
-  }, { timeout: 120000 });
+  const response = await getOpenAI().chat.completions.create(
+    {
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 16384,
+      response_format: { type: "json_object" },
+    },
+    { timeout: 120000 },
+  );
 
-  console.log(`[AI] OpenAI javob keldi: ${((Date.now() - startTime) / 1000).toFixed(1)}s`);
+  console.log(
+    `[AI] OpenAI javob keldi: ${((Date.now() - startTime) / 1000).toFixed(1)}s`,
+  );
 
   const content = response.choices[0]?.message?.content;
   if (!content) {
     throw new Error("OpenAI returned empty response");
   }
 
-  const parsed = JSON.parse(content);
+  const parsed = contentSchema.parse(JSON.parse(content));
 
-  const vocabularyJson: VocabularyItem[] = (parsed.vocabulary || []).map((v: any) => ({
-    word: v.word || "",
-    translation: v.translation || "",
-    translationAr: v.translationAr || "",
-    partOfSpeech: v.partOfSpeech || "noun",
-    example: v.example || "",
-    difficulty: v.difficulty || difficulty,
-  }));
+  const vocabularyJson: VocabularyItem[] = (parsed.vocabulary || []).map(
+    (v: any) => ({
+      ...v,
+      word: v.word || "",
+      translation: v.translation || "",
+      translationAr: v.translationAr || "",
+      partOfSpeech: v.partOfSpeech || "noun",
+      example: v.example || "",
+      difficulty: v.difficulty || difficulty,
+    }),
+  );
 
   const quizzesJson: QuizItem[] = (parsed.quizzes || []).map((q: any) => ({
+    ...q,
     question: q.question || "",
     options: Array.isArray(q.options) ? q.options : [],
     correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : 0,
     explanation: q.explanation || "",
-    type: (["multiple_choice", "fill_blank", "sentence_completion", "word_translation"].includes(q.type)
+    type: ([
+      "multiple_choice",
+      "fill_blank",
+      "sentence_completion",
+      "word_translation",
+    ].includes(q.type)
       ? q.type
-      : "multiple_choice") as "multiple_choice" | "fill_blank" | "sentence_completion" | "word_translation",
+      : "multiple_choice") as
+      | "multiple_choice"
+      | "fill_blank"
+      | "sentence_completion"
+      | "word_translation",
   }));
 
-  const flashcardsJson: FlashcardItem[] = (parsed.flashcards || []).map((f: any) => ({
-    front: f.front || "",
-    back: f.back || "",
-    backAr: f.backAr || "",
-    type: (["vocabulary", "phrase", "grammar"].includes(f.type) ? f.type : "vocabulary") as "vocabulary" | "phrase" | "grammar",
-  }));
+  const flashcardsJson: FlashcardItem[] = (parsed.flashcards || []).map(
+    (f: any) => ({
+      front: f.front || "",
+      back: f.back || "",
+      backAr: f.backAr || "",
+      type: (["vocabulary", "phrase", "grammar"].includes(f.type)
+        ? f.type
+        : "vocabulary") as "vocabulary" | "phrase" | "grammar",
+    }),
+  );
 
   const hasArabic = (t: string) => /[\u0600-\u06FF]/.test(t);
   const hasDiacritics = (t: string) => /[\u064B-\u065F\u0670]/.test(t);
   const countArabicWithoutDiacritics = (text: string): number => {
     const arabicWords = text.match(/[\u0600-\u06FF]+/g) || [];
-    return arabicWords.filter(w => !hasDiacritics(w) && w.length > 1).length;
+    return arabicWords.filter((w) => !hasDiacritics(w) && w.length > 1).length;
   };
 
-  const sentenceAnalysisJson: SentenceAnalysis[] = (parsed.sentenceAnalysis || []).map((s: any) => {
+  const sentenceAnalysisJson: SentenceAnalysis[] = (
+    parsed.sentenceAnalysis || []
+  ).map((s: any) => {
     const rawSentence = s.sentence || "";
-    const wordMapArr = Array.isArray(s.wordMap) ? s.wordMap.map((w: any) => ({
-      word: w.word || "",
-      normalized: w.normalized || (w.word || "").replace(/[\u064B-\u065F\u0670]/g, ""),
-      translationUz: w.translationUz || "",
-      translationAr: w.translationAr || "",
-    })) : [];
+    const wordMapArr = Array.isArray(s.wordMap)
+      ? s.wordMap.map((w: any) => ({
+          ...w,
+          word: w.word || "",
+          normalized:
+            w.normalized ||
+            (w.word || "").replace(/[\u064B-\u065F\u0670]/g, ""),
+          translationUz: w.translationUz || "",
+          translationAr: w.translationAr || "",
+        }))
+      : [];
 
     let sentence = rawSentence;
-    if (!hasDiacritics(rawSentence) && wordMapArr.length > 0 && wordMapArr.some((w: any) => hasDiacritics(w.word))) {
+    if (
+      !hasDiacritics(rawSentence) &&
+      wordMapArr.length > 0 &&
+      wordMapArr.some((w: any) => hasDiacritics(w.word))
+    ) {
       sentence = wordMapArr.map((w: any) => w.word).join(" ");
     }
 
     return {
+      ...s,
       sentence,
       translation: s.translation || "",
       translationAr: s.translationAr || "",
@@ -504,17 +624,20 @@ ${trimmedTranscript}`;
   });
 
   let totalNoDiacritics = 0;
-  sentenceAnalysisJson.forEach(s => {
+  sentenceAnalysisJson.forEach((s) => {
     totalNoDiacritics += countArabicWithoutDiacritics(s.sentence);
-    s.wordMap.forEach(w => {
-      if (hasArabic(w.word) && !hasDiacritics(w.word) && w.word.length > 1) totalNoDiacritics++;
+    s.wordMap.forEach((w) => {
+      if (hasArabic(w.word) && !hasDiacritics(w.word) && w.word.length > 1)
+        totalNoDiacritics++;
     });
   });
-  vocabularyJson.forEach(v => {
+  vocabularyJson.forEach((v) => {
     if (hasArabic(v.word) && !hasDiacritics(v.word)) totalNoDiacritics++;
   });
   if (totalNoDiacritics > 0) {
-    console.warn(`[AI] ⚠️ HARAKAT OGOHLANTIRISH: ${totalNoDiacritics} ta arabcha so'z harakatsiz topildi!`);
+    console.warn(
+      `[AI] ⚠️ HARAKAT OGOHLANTIRISH: ${totalNoDiacritics} ta arabcha so'z harakatsiz topildi!`,
+    );
   } else {
     console.log(`[AI] ✅ Barcha arabcha so'zlar harakatli`);
   }
@@ -525,173 +648,20 @@ ${trimmedTranscript}`;
     summaryShortAr: parsed.summaryShortAr || "",
     summaryDetailedAr: parsed.summaryDetailedAr || "",
     vocabularyJson,
-    phrasesJson: [],
+    phrasesJson: (parsed.phrases || []).map((p: any) => ({
+      ...p,
+      phrase: p.phrase,
+      translation: p.translation || "",
+      translationAr: p.translationAr || "",
+      context: p.context || "",
+    })),
     quizzesJson,
     flashcardsJson,
     sentenceAnalysisJson,
     aiMetaJson: {
       provider: "openai",
-      model: "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       targetLanguage,
-      generatedAt: new Date().toISOString(),
-      transcriptLength: transcript.length,
-      sentenceCount: sentences.length,
-    },
-  };
-}
-
-function extractWords(text: string): string[] {
-  const latinWords = text.match(/\b[a-zA-Z]{3,}\b/g) || [];
-  const arabicWords = text.match(/[\u0600-\u06FF]{2,}/g) || [];
-  const allWords = [...latinWords, ...arabicWords];
-  const unique = [...new Set(allWords.map(w => w.toLowerCase()))];
-  return unique;
-}
-
-const MOCK_UZ_TRANSLATIONS: Record<string, string> = {
-  "بطيخ": "tarvuz",
-  "فاكهه": "meva",
-  "خضروات": "sabzavotlar",
-  "لذيذ": "mazali",
-  "اكل": "yemoq",
-  "شتاء": "qish",
-  "صيف": "yoz",
-  "منزل": "uy",
-  "سكين": "pichoq",
-  "كبير": "katta",
-  "صغير": "kichik",
-  "جميل": "chiroyli",
-  "سلام": "salom",
-  "اصدقاء": "do'stlar",
-  "برتقال": "apelsin",
-  "فيتامين": "vitamin",
-  "طبيه": "tibbiy",
-  "علم": "ilm",
-  "تكنولوجيا": "texnologiya",
-  "ماء": "suv",
-  "ارض": "yer",
-  "programming": "dasturlash",
-  "variable": "o'zgaruvchi",
-  "function": "funksiya",
-  "loop": "tsikl",
-  "array": "massiv",
-  "object": "obyekt",
-  "code": "kod",
-  "program": "dastur",
-  "computer": "kompyuter",
-  "data": "ma'lumot",
-  "error": "xatolik",
-};
-
-function mockUzTranslation(word: string): string {
-  const lower = word.toLowerCase();
-  if (MOCK_UZ_TRANSLATIONS[lower]) return MOCK_UZ_TRANSLATIONS[lower];
-  if (MOCK_UZ_TRANSLATIONS[word]) return MOCK_UZ_TRANSLATIONS[word];
-  const isArabicWord = /[\u0600-\u06FF]/.test(word);
-  if (isArabicWord) return `"${word}" so'zining o'zbekcha tarjimasi`;
-  const genericUz = ["tushuncha", "atama", "so'z", "ibora", "ifoda", "ma'no"];
-  const hash = word.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return `${genericUz[hash % genericUz.length]} (${word})`;
-}
-
-function mockArabicTranslation(text: string): string {
-  const isArabic = /[\u0600-\u06FF]/.test(text);
-  if (isArabic) return text;
-  return `ترجمة: ${text.slice(0, 30)}`;
-}
-
-function generateMockContent(
-  transcript: string,
-  sentences: string[],
-  level: string,
-  targetLanguage: string = "ar"
-): GeneratedLessonContent {
-  const words = extractWords(transcript);
-  const selectedWords = words.slice(0, Math.min(10, words.length));
-  const usableSentences = sentences.filter(s => s.length > 10);
-  const diff = DIFFICULTY_MAP[level] || "medium";
-  const lang = detectLanguage(transcript);
-
-  const vocabularyJson: VocabularyItem[] = selectedWords.map((word, i) => ({
-    word,
-    translation: mockUzTranslation(word),
-    translationAr: mockArabicTranslation(word),
-    partOfSpeech: lang === "arabic"
-      ? ["ism", "fe'l", "sifat", "ravish"][i % 4]
-      : ["noun", "verb", "adjective", "adverb"][i % 4],
-    example: usableSentences[i % Math.max(1, usableSentences.length)] || word,
-    difficulty: diff,
-  }));
-
-  const quizzesJson: QuizItem[] = usableSentences.slice(0, 10).map((s, i) => {
-    const keyword = selectedWords[i % Math.max(1, selectedWords.length)] || "so'z";
-    const isFillBlank = i % 3 === 2;
-    return {
-      question: isFillBlank
-        ? `Quyidagi gapda bo'sh joyni to'ldiring: "${s.slice(0, 40)}..."`
-        : `"${keyword}" so'zining o'zbekcha ma'nosi nima?`,
-      options: isFillBlank
-        ? [keyword, `noto'g'ri 1`, `noto'g'ri 2`, `noto'g'ri 3`]
-        : [
-            mockUzTranslation(keyword),
-            `noto'g'ri variant 1`,
-            `noto'g'ri variant 2`,
-            `noto'g'ri variant 3`,
-          ],
-      correctIndex: 0,
-      explanation: `"${keyword}" so'zi matnda "${s.slice(0, 50)}..." kontekstida ishlatilgan. O'zbekchada "${mockUzTranslation(keyword)}" degan ma'noni bildiradi.`,
-      type: isFillBlank ? "fill_blank" as const : "multiple_choice" as const,
-    };
-  });
-
-  const flashcardsJson: FlashcardItem[] = selectedWords.slice(0, 8).map(w => ({
-    front: w,
-    back: mockUzTranslation(w),
-    backAr: mockArabicTranslation(w),
-    type: "vocabulary" as const,
-  }));
-
-  const sentenceAnalysisJson: SentenceAnalysis[] = usableSentences.map((s) => {
-    const sentenceWords = extractWords(s);
-    const wordMap: WordMapItem[] = sentenceWords.map((w) => ({
-      word: w,
-      normalized: w.toLowerCase(),
-      translationUz: mockUzTranslation(w),
-      translationAr: mockArabicTranslation(w),
-    }));
-    return {
-      sentence: s,
-      translation: `Bu gapda ${sentenceWords.slice(0, 3).map(w => mockUzTranslation(w)).join(", ")} haqida gap ketmoqda`,
-      translationAr: lang === "arabic" ? s : mockArabicTranslation(s),
-      wordMap,
-    };
-  });
-
-  const topKeywords = selectedWords.slice(0, 4).map(w => mockUzTranslation(w)).join(", ");
-  const shortSummary = lang === "arabic"
-    ? `Bu videoda arabcha matn tahlil qilinadi. Asosiy mavzu: ${usableSentences[0]?.slice(0, 60) || "mavjud emas"}...`
-    : `Bu videoda ${topKeywords} kabi mavzular haqida gap ketadi.`;
-  const detailedSummary = lang === "arabic"
-    ? `Bu video darsida quyidagi mavzular ko'rib chiqiladi: ${usableSentences.slice(0, 4).map(s => s.slice(0, 40)).join(", ")}. O'quvchilar yangi so'zlar va iboralarni o'rganadilar.`
-    : `Bu video darsida ${topKeywords} kabi tushunchalar ko'rib chiqiladi. O'quvchilar yangi so'zlar o'rganib, til ko'nikmalarini rivojlantiradilar. Darsda ${vocabularyJson.length} ta yangi so'z tahlil qilinadi.`;
-
-  return {
-    summaryShort: shortSummary.length > 200 ? shortSummary.slice(0, 200) + "..." : shortSummary,
-    summaryDetailed: detailedSummary,
-    summaryShortAr: lang === "arabic"
-      ? `ملخص قصير: ${usableSentences[0]?.slice(0, 80) || "محتوى الفيديو"}`
-      : "ملخص قصير للفيديو التعليمي",
-    summaryDetailedAr: lang === "arabic"
-      ? `ملخص تفصيلي: ${usableSentences.slice(0, 3).join(" ").slice(0, 200)}`
-      : "ملخص تفصيلي للفيديو التعليمي يتضمن شرحاً وافياً للمحتوى والمواضيع الرئيسية المطروحة",
-    vocabularyJson,
-    phrasesJson: [],
-    quizzesJson,
-    flashcardsJson,
-    sentenceAnalysisJson,
-    aiMetaJson: {
-      provider: "mock",
-      model: "mock-v1",
       generatedAt: new Date().toISOString(),
       transcriptLength: transcript.length,
       sentenceCount: sentences.length,

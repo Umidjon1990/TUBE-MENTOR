@@ -59,7 +59,7 @@ interface QuizItem {
   options: string[];
   correctIndex: number;
   explanation: string;
-  type?: "multiple_choice" | "fill_blank" | "true_false";
+  type?: "multiple_choice" | "fill_blank" | "true_false" | "sentence_completion" | "word_translation";
 }
 
 interface FlashcardData {

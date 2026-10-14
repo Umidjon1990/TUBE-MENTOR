@@ -36,6 +36,8 @@ export default defineConfig({
       ALLOW_SIGNUP: "false",
       RESEND_API_KEY: "",
       GOOGLE_CLIENT_ID: "",
+      TELEGRAM_CLIENT_ID: "",
+      TELEGRAM_CLIENT_SECRET: "",
     },
   },
 });

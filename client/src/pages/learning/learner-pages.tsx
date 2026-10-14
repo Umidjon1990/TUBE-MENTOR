@@ -31,6 +31,7 @@ import { request, speak, errorText } from "@/lib/learning-api";
 import { useLearningActivity } from "@/hooks/use-learning-activity";
 import { CEFR_LEVELS } from "@shared/learning";
 import type { SavedWord } from "@shared/schema";
+import { LinkedAccountsPanel } from "@/components/social-auth";
 
 export interface LessonCard {
   id: number;
@@ -780,6 +781,7 @@ export function ProfilePage() {
           </span>
         </div>
       </Panel>
+      <LinkedAccountsPanel />
       <div className="stat-grid">
         <Panel>
           <Flame />

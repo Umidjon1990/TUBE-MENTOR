@@ -1778,3 +1778,70 @@ details summary {
   position: absolute;
   inset: 0;
 }
+
+.social-auth-buttons {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.social-auth-buttons .google-button {
+  margin: 0;
+}
+.telegram-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #fff;
+  background: #167cb8;
+  text-decoration: none;
+  font-weight: 650;
+}
+.telegram-button:hover {
+  background: #116596;
+}
+.social-auth-buttons svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.telegram-button:focus-visible,
+.google-button:focus-visible {
+  outline: 3px solid #79bba6;
+  outline-offset: 3px;
+}
+.linked-accounts .linked-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid #dfe8e3;
+}
+.linked-account-row > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+.linked-account-row svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #167cb8;
+}
+.linked-account-row span {
+  display: grid;
+  gap: 3px;
+}
+.linked-account-row small {
+  color: #61776e;
+  font-size: 12px;
+}
+.linked-account-row button {
+  min-height: 44px;
+  flex-shrink: 0;
+}

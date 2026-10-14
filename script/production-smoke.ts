@@ -24,6 +24,8 @@ const child = spawn(process.execPath, ["dist/index.cjs"], {
     ENABLE_DEMO_SEED: "true",
     RESEND_API_KEY: "",
     GOOGLE_CLIENT_ID: "",
+    TELEGRAM_CLIENT_ID: "",
+    TELEGRAM_CLIENT_SECRET: "",
     OPENAI_API_KEY: "",
   },
   stdio: ["ignore", "pipe", "pipe"],
@@ -58,6 +60,7 @@ try {
     await fetch(`http://127.0.0.1:${port}/api/auth/config`)
   ).json();
   assert.equal(config.signupEnabled, false);
+  assert.equal(config.telegramEnabled, false);
   const users = await database.query<{ count: number }>(
     "select count(*)::int as count from users",
   );

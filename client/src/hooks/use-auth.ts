@@ -3,7 +3,12 @@ import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { User } from "@shared/schema";
 
-type SafeUser = Omit<User, "passwordHash" | "googleId" | "sessionVersion">;
+type SafeUser = Omit<
+  User,
+  "passwordHash" | "googleId" | "telegramId" | "sessionVersion"
+> & {
+  linkedAccounts: { google: boolean; telegram: boolean };
+};
 
 export function useAuth() {
   const [, setLocation] = useLocation();

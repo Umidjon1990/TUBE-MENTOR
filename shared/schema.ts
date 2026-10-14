@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   email: text("email").unique(),
   emailVerified: boolean("email_verified").default(true).notNull(),
   googleId: text("google_id").unique(),
+  telegramId: text("telegram_id").unique(),
   sessionVersion: integer("session_version").default(0).notNull(),
   learningLevel: text("learning_level").default("A1").notNull(),
   targetLanguage: text("target_language").default("ar").notNull(),

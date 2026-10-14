@@ -115,7 +115,7 @@ test("additive migrations retain existing accounts and can run twice", async () 
   assert.equal(r.rows[0].email_verified, true);
   assert.equal(
     (await pool.query("select count(*) from tube_migrations")).rows[0].count,
-    "4",
+    "5",
   );
 });
 test("public course and catalogs exclude drafts; learner reads another teacher's published lesson", async () => {

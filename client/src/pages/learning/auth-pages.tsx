@@ -17,25 +17,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { request, errorText } from "@/lib/learning-api";
 import { queryClient } from "@/lib/queryClient";
 import { CEFR_LEVELS } from "@shared/learning";
+import {
+  SocialAuthButtons,
+  useAuthConfig as useConfig,
+} from "@/components/social-auth";
 
-interface AuthConfig {
-  googleEnabled: boolean;
-  emailEnabled: boolean;
-  signupEnabled: boolean;
-}
-function useConfig() {
-  return useQuery<AuthConfig>({
-    queryKey: ["/api/auth/config"],
-    queryFn: () => request("GET", "/api/auth/config"),
-  });
-}
-function GoogleButton({ config }: { config?: AuthConfig }) {
-  return config?.googleEnabled ? (
-    <a className="google-button" href="/api/auth/google">
-      <span aria-hidden="true">G</span>Google orqali davom etish
-    </a>
-  ) : null;
-}
 function PasswordInput({
   label,
   value,
@@ -218,7 +204,12 @@ export function LoginPage() {
   const errors: Record<string, string> = {
     google_unavailable: "Google orqali kirish hozir mavjud emas",
     google_failed: "Google orqali kirish yakunlanmadi. Qayta urinib ko‘ring.",
-    google_email_link: "Bu hisobga email va parol orqali kiring.",
+    google_email_link:
+      "Mavjud hisobingizga kirib, Profil bo‘limidan Google’ni ulang.",
+    telegram_unavailable: "Telegram orqali kirish hozir mavjud emas",
+    telegram_failed:
+      "Telegram orqali kirish yakunlanmadi. Qayta urinib ko‘ring.",
+    account_in_use: "Bu hisob boshqa profilga ulangan. O‘sha profilga kiring.",
     signup_disabled: "Ro‘yxatdan o‘tish yopilgan",
     blocked: "Hisob bloklangan",
   };
@@ -241,8 +232,10 @@ export function LoginPage() {
       title="Yana xush kelibsiz!"
       subtitle="Darsingizni qolgan joyidan davom ettiring."
     >
-      <GoogleButton config={config.data} />
-      {config.data?.googleEnabled && <div className="form-divider">yoki</div>}
+      <SocialAuthButtons config={config.data} />
+      {(config.data?.googleEnabled || config.data?.telegramEnabled) && (
+        <div className="form-divider">yoki login bilan kiring</div>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -260,9 +253,11 @@ export function LoginPage() {
           />
         </label>
         <PasswordInput label="Parol" value={password} onChange={setPassword} />
-        <Link href="/forgot-password" className="form-link">
-          Parolni unutdingizmi?
-        </Link>
+        {config.data?.emailEnabled && (
+          <Link href="/forgot-password" className="form-link">
+            Parolni unutdingizmi?
+          </Link>
+        )}
         {(login.error || providerError) && (
           <p role="alert" className="inline-error">
             {login.error
@@ -332,13 +327,15 @@ export function RegisterPage() {
         </div>
       ) : (
         <>
-          <GoogleButton config={config.data} />
+          <SocialAuthButtons config={config.data} />
           {config.isLoading ? (
             <Loading />
           ) : !config.data?.signupEnabled ? (
             <p className="notice">
-              Hisob ochish uchun markazga murojaat qiling. Mavjud hisobingiz
-              bilan kirishingiz mumkin.
+              {config.data?.socialSignupEnabled &&
+              (config.data.googleEnabled || config.data.telegramEnabled)
+                ? "Hisobingizni Google yoki Telegram orqali yarating. Sayt uchun alohida parol kerak emas."
+                : "Hisob ochish uchun markazga murojaat qiling. Mavjud hisobingiz bilan kirishingiz mumkin."}
             </p>
           ) : (
             <form onSubmit={submit}>

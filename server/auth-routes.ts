@@ -1,22 +1,31 @@
 import type { Express, Request } from "express";
 import { createHash, randomBytes } from "node:crypto";
-import { OAuth2Client } from "google-auth-library";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import { authTokens, users, type User } from "@shared/schema";
-import { hashPassword, verifyPassword, requireAuth } from "./auth";
+import {
+  hashPassword,
+  verifyPassword,
+  requireAuth,
+  hasVerifiedIdentity,
+} from "./auth";
 import { localDay } from "@shared/learning";
 import { rateLimit } from "./security";
+import { registerSocialAuthRoutes, socialProviderEnabled } from "./social-auth";
 
 export function safeUser(user: User) {
-  const { passwordHash, googleId, sessionVersion, ...safe } = user;
+  const { passwordHash, googleId, telegramId, sessionVersion, ...safe } = user;
   const today = localDay(new Date(), user.timezone);
   const yesterday = new Date(Date.parse(`${today}T12:00:00Z`) - 86400000)
     .toISOString()
     .slice(0, 10);
   return {
     ...safe,
+    linkedAccounts: {
+      google: Boolean(googleId),
+      telegram: Boolean(telegramId),
+    },
     streakDays: [today, yesterday].includes(user.lastStudyDate || "")
       ? user.streakDays
       : 0,
@@ -84,16 +93,14 @@ async function issueToken(user: User, purpose: "verify" | "reset") {
         isNull(authTokens.usedAt),
       ),
     );
-  await db
-    .insert(authTokens)
-    .values({
-      userId: user.id,
-      tokenHash: digest(token),
-      purpose,
-      expiresAt: new Date(
-        Date.now() + (purpose === "verify" ? 86400000 : 3600000),
-      ),
-    });
+  await db.insert(authTokens).values({
+    userId: user.id,
+    tokenHash: digest(token),
+    purpose,
+    expiresAt: new Date(
+      Date.now() + (purpose === "verify" ? 86400000 : 3600000),
+    ),
+  });
   const link = `${process.env.APP_URL!.replace(/\/$/, "")}/${purpose === "verify" ? "verify-email" : "reset-password"}?token=${token}`;
   await sendMail({
     to: user.email!,
@@ -131,11 +138,9 @@ export async function registerAuthRoutes(app: Express) {
   });
   app.get("/api/auth/config", (_req, res) => {
     res.json({
-      googleEnabled: Boolean(
-        process.env.GOOGLE_CLIENT_ID &&
-          process.env.GOOGLE_CLIENT_SECRET &&
-          process.env.APP_URL,
-      ),
+      googleEnabled: socialProviderEnabled("google"),
+      telegramEnabled: socialProviderEnabled("telegram"),
+      socialSignupEnabled: process.env.ALLOW_SIGNUP !== "false",
       emailEnabled: mailEnabled(),
       signupEnabled: process.env.ALLOW_SIGNUP !== "false" && mailEnabled(),
     });
@@ -162,13 +167,11 @@ export async function registerAuthRoutes(app: Express) {
       return res.status(401).json({ message: "Noto‘g‘ri login yoki parol" });
     if (!user.isActive)
       return res.status(403).json({ message: "Hisob bloklangan" });
-    if (!user.emailVerified)
-      return res
-        .status(403)
-        .json({
-          message: "Avval emailingizni tasdiqlang",
-          code: "EMAIL_NOT_VERIFIED",
-        });
+    if (!hasVerifiedIdentity(user))
+      return res.status(403).json({
+        message: "Avval emailingizni tasdiqlang",
+        code: "EMAIL_NOT_VERIFIED",
+      });
     const [updated] = await db
       .update(users)
       .set({ lastLoginAt: new Date() })
@@ -186,12 +189,10 @@ export async function registerAuthRoutes(app: Express) {
   });
   app.post("/api/auth/register", async (req, res) => {
     if (process.env.ALLOW_SIGNUP === "false" || !mailEnabled())
-      return res
-        .status(503)
-        .json({
-          message:
-            "Ro‘yxatdan o‘tish hali yoqilmagan. Markazdan hisob olish mumkin.",
-        });
+      return res.status(503).json({
+        message:
+          "Ro‘yxatdan o‘tish hali yoqilmagan. Markazdan hisob olish mumkin.",
+      });
     const parsed = z
       .object({
         fullName: z.string().trim().min(2).max(100),
@@ -208,12 +209,10 @@ export async function registerAuthRoutes(app: Express) {
       .from(users)
       .where(eq(users.email, email));
     if (existing)
-      return res
-        .status(409)
-        .json({
-          message:
-            "Bu email uchun hisob mavjud. Kirish yoki parolni tiklashni tanlang.",
-        });
+      return res.status(409).json({
+        message:
+          "Bu email uchun hisob mavjud. Kirish yoki parolni tiklashni tanlang.",
+      });
     const [user] = await db
       .insert(users)
       .values({
@@ -274,11 +273,9 @@ export async function registerAuthRoutes(app: Express) {
       return updated;
     });
     if (!user)
-      return res
-        .status(400)
-        .json({
-          message: "Havola eskirgan yoki ishlatilgan. Yangi havola so‘rang.",
-        });
+      return res.status(400).json({
+        message: "Havola eskirgan yoki ishlatilgan. Yangi havola so‘rang.",
+      });
     await establishSession(req, user);
     res.json(safeUser(user));
   });
@@ -287,11 +284,9 @@ export async function registerAuthRoutes(app: Express) {
     if (!parsed.success)
       return res.status(400).json({ message: "To‘g‘ri email kiriting" });
     if (!mailEnabled())
-      return res
-        .status(503)
-        .json({
-          message: "Email xizmati hali sozlanmagan. Markazga murojaat qiling.",
-        });
+      return res.status(503).json({
+        message: "Email xizmati hali sozlanmagan. Markazga murojaat qiling.",
+      });
     const [user] = await db
       .select()
       .from(users)
@@ -344,128 +339,5 @@ export async function registerAuthRoutes(app: Express) {
     res.clearCookie("connect.sid");
     res.json({ message: "Parol yangilandi. Yangi parol bilan kiring." });
   });
-  app.get("/api/auth/google", async (req, res) => {
-    if (
-      !process.env.GOOGLE_CLIENT_ID ||
-      !process.env.GOOGLE_CLIENT_SECRET ||
-      !process.env.APP_URL
-    )
-      return res.redirect("/login?error=google_unavailable");
-    const client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.APP_URL.replace(/\/$/, "")}/api/auth/google/callback`,
-    );
-    const pkce = await client.generateCodeVerifierAsync();
-    req.session.googleLogin = {
-      state: randomBytes(32).toString("base64url"),
-      nonce: randomBytes(32).toString("base64url"),
-      verifier: pkce.codeVerifier,
-      expires: Date.now() + 600000,
-    };
-    await new Promise<void>((resolve, reject) =>
-      req.session.save((e) => (e ? reject(e) : resolve())),
-    );
-    res.redirect(
-      client.generateAuthUrl({
-        scope: ["openid", "email", "profile"],
-        state: req.session.googleLogin.state,
-        nonce: req.session.googleLogin.nonce,
-        code_challenge: pkce.codeChallenge,
-        code_challenge_method: "S256" as any,
-      }),
-    );
-  });
-  app.get("/api/auth/google/callback", async (req, res) => {
-    const pending = req.session.googleLogin;
-    delete req.session.googleLogin;
-    if (
-      !pending ||
-      pending.expires < Date.now() ||
-      req.query.state !== pending.state ||
-      typeof req.query.code !== "string"
-    )
-      return res.redirect("/login?error=google_failed");
-    try {
-      const client = new OAuth2Client(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        `${process.env.APP_URL!.replace(/\/$/, "")}/api/auth/google/callback`,
-      );
-      const { tokens } = await client.getToken({
-        code: req.query.code,
-        codeVerifier: pending.verifier,
-      });
-      const ticket = await client.verifyIdToken({
-        idToken: tokens.id_token!,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      if (
-        !payload?.sub ||
-        !payload.email ||
-        !payload.email_verified ||
-        (payload as unknown as Record<string, unknown>).nonce !== pending.nonce
-      )
-        throw new Error("Invalid Google identity");
-      const email = payload.email.toLowerCase();
-      const authoritative = email.endsWith("@gmail.com") || Boolean(payload.hd);
-      let [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.googleId, payload.sub));
-      if (!user) {
-        const [existing] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email));
-        if (
-          existing &&
-          (!authoritative ||
-            existing.role !== "student" ||
-            (existing.googleId && existing.googleId !== payload.sub))
-        )
-          return res.redirect("/login?error=google_email_link");
-        if (existing)
-          [user] = await db
-            .update(users)
-            .set({ googleId: payload.sub, emailVerified: true })
-            .where(eq(users.id, existing.id))
-            .returning();
-        else {
-          if (process.env.ALLOW_SIGNUP === "false")
-            return res.redirect("/login?error=signup_disabled");
-          [user] = await db
-            .insert(users)
-            .values({
-              googleId: payload.sub,
-              email,
-              emailVerified: authoritative,
-              username: `google_${randomBytes(8).toString("hex")}`,
-              fullName: payload.name?.slice(0, 100) || "O‘quvchi",
-              passwordHash: hashPassword(randomBytes(32).toString("hex")),
-              role: "student",
-            })
-            .returning();
-        }
-      }
-      if (!user.isActive) return res.redirect("/login?error=blocked");
-      if (!user.emailVerified) {
-        await issueToken(user, "verify");
-        return res.redirect("/verify-email?sent=1");
-      }
-      await establishSession(req, user);
-      res.redirect(
-        user.role === "admin"
-          ? "/admin"
-          : user.role === "teacher"
-            ? "/studio"
-            : user.onboardingCompleted
-              ? "/today"
-              : "/onboarding",
-      );
-    } catch {
-      res.redirect("/login?error=google_failed");
-    }
-  });
+  registerSocialAuthRoutes(app, establishSession);
 }

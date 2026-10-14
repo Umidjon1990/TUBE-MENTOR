@@ -16,6 +16,7 @@ export async function migrateDatabase() {
       "0001_mobile_learning.sql",
       "0002_published_revision.sql",
       "0003_runtime.sql",
+      "0004_telegram_login.sql",
     ]) {
       const exists = await client.query(
         "SELECT 1 FROM tube_migrations WHERE name=$1",

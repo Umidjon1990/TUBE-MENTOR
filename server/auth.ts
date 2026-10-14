@@ -1,19 +1,28 @@
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
+import type { User } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
     userId: string;
     userRole: string;
     authVersion: number;
-    googleLogin: {
+    socialLogin: {
+      provider: "google" | "telegram";
       state: string;
       nonce: string;
       verifier: string;
       expires: number;
+      linkUserId?: string;
+      authVersion?: number;
     };
   }
+}
+
+/** A verified provider identity also authenticates users who have no email. */
+export function hasVerifiedIdentity(user: User): boolean {
+  return user.emailVerified || Boolean(user.googleId || user.telegramId);
 }
 
 export function hashPassword(password: string): string {
@@ -48,7 +57,7 @@ export async function optionalAuth(
     if (
       !user ||
       !user.isActive ||
-      !user.emailVerified ||
+      !hasVerifiedIdentity(user) ||
       (req.session.authVersion ?? 0) !== user.sessionVersion
     ) {
       delete (req.session as Partial<typeof req.session>).userId;
@@ -77,14 +86,12 @@ export async function requireAuth(
     !user ||
     !user.isActive ||
     (req.session.authVersion ?? 0) !== user.sessionVersion ||
-    !user.emailVerified
+    !hasVerifiedIdentity(user)
   ) {
     req.session.destroy(() => {});
-    return res
-      .status(401)
-      .json({
-        message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
-      });
+    return res.status(401).json({
+      message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+    });
   }
 
   req.session.userRole = user.role;
@@ -106,14 +113,12 @@ export async function requireAdmin(
     !user ||
     !user.isActive ||
     (req.session.authVersion ?? 0) !== user.sessionVersion ||
-    !user.emailVerified
+    !hasVerifiedIdentity(user)
   ) {
     req.session.destroy(() => {});
-    return res
-      .status(401)
-      .json({
-        message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
-      });
+    return res.status(401).json({
+      message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+    });
   }
 
   if (user.role !== "admin") {
@@ -136,14 +141,12 @@ export function requireRole(...roles: string[]) {
       !user ||
       !user.isActive ||
       (req.session.authVersion ?? 0) !== user.sessionVersion ||
-      !user.emailVerified
+      !hasVerifiedIdentity(user)
     ) {
       req.session.destroy(() => {});
-      return res
-        .status(401)
-        .json({
-          message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
-        });
+      return res.status(401).json({
+        message: user ? "Hisob bloklangan" : "Avtorizatsiya talab qilinadi",
+      });
     }
 
     if (!roles.includes(user.role)) {

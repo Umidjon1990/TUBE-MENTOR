@@ -1,31 +1,35 @@
-# TUBE MENTOR — bajarilgan ishlar
+# TUBE MENTOR 2.1 — bajarilgan ishlar va tekshiruv
 
-## Reja va holat
+## Ishlaydigan jarayon
 
-1. Kod auditi, yangi ma’lumotlar modeli va versiyali migratsiyalar — bajarildi.
-2. Kirish, ro‘yxatdan o‘tish, email tasdiqlash/tiklash, Google/Telegram OAuth, hisoblarni ulash va rollar — bajarildi.
-3. Mobil Bugun, daraja tanlash, kurslar, darslar, lug‘at va profil — bajarildi.
-4. Tingla → Tushun → Takrorla → Mustahkamla → Lug‘at testi → Natija — ulandi.
-5. O‘qituvchi studiyasi, JSON/SRT/VTT import, kontent ko‘rish va admin tasdig‘i — ulandi.
-6. Baza, API, brauzer va production yig‘ilishini tekshirish — natijalar quyida.
-7. Kalitlar ro‘yxati va deploy yo‘riqnomasi — `.env.example`, `docs/deployment.md`.
+Tasdiqlangan o‘quvchi hisobiga bir marta 30 coin → katalogdan dars tanlash → 10 coinni tasdiqlab sarflash → doimiy dars huquqi → barcha o‘quv bosqichlari va yakuniy lug‘at testi. Bitta admin tanlagan namuna dars mehmon uchun ochiq; yopiq darslarning matni, video manzili va javoblari serverda himoyalangan.
 
-## Tekshirilgan natijalar
+Coin yetmaganda paket → saytdagi to‘lov buyurtmasi → karta/rasmiy Payme → yopiq chek → admin bank tushumini tekshiradi → bank reference bilan bir martalik coin qo‘shilishi. Paketlar va haqiqiy rekvizitlarni admin belgilaydi. Telegram admin botida aynan shu tekshiruv bajariladi; bot ishlamasa saytdagi tasdiqlash davom etadi. Avtomatik Payme Merchant API bu relizga kirmaydi.
 
-- TypeScript tekshiruvi va production build muvaffaqiyatli.
-- 32 ta unit/API sinovi (21 mavjud + 11 yangi autentifikatsiya sinovi): eski hisob saqlanishi, qayta migratsiya, haqiqiy pg/Drizzle orqali DB ishlashi, ruxsatlar, private ma’lumotlar, CSRF manbasi, progress, immutable javoblar, XP idempotentligi, SRS, nashr nusxalari, email tokenlari, parol reseti, logout va sessiyaning app instancelar orasida saqlanishi. Telegram uchun haqiqiy RSA imzosi bilan issuer/audience/nonce/expiry, PKCE, state, bir martalik callback, yopiq signup, bloklangan hisoblar, parallel signup va ikki provayderni bitta profilga xavfsiz ulash tekshirildi. Google Gmail bo‘lmagan tasdiqlangan email bilan ham Resendsiz ishlaydi; legacy admin/non-authoritative email hisoblarini avtomatik egallash rad etiladi.
-- Excel lug‘at eksporti dependency yangilanishidan keyin ochib tekshirildi: arabcha va o‘zbekcha kataklar saqlanadi.
-- 70 gapli uzun transkript nazorat qilinadigan lokal provider bilan tekshirildi: barcha gaplar saqlanadi; yetishmagan tahlil xato beradi. Bu haqiqiy OpenAI sifati sinovi emas.
-- 5 ta Chromium brauzer sinovida 320/390/768/1280px ekranlar, Google/Telegram mobil tugmalari va profilga hisob ulash, so‘z dialogi, ovoz yozish, bosqichlar, yakuniy test, reload, o‘qituvchi yaratishi va admin navigatsiyasi tekshirildi. Video API fixture, mikrofon esa sun’iy test qurilmasi bilan ishladi.
-- Yig‘ilgan production server Node 24 va minimal qo‘llab-quvvatlanadigan Node 20.19.5 bilan yangi bazada ishga tushdi: migratsiyalar, health, SPA marshrutlari va productionda demo hisob yo‘qligi tekshirildi.
-- Production dependencies uchun `npm audit --omit=dev`: ma’lum zaifliklar qolmadi. CSS build vositalari alohida dev dependencies sifatida saqlanadi.
+Yagona admin kabineti dars/mavzu yaratish, kontent tekshiruvi va nashri, paket/narx/namuna sozlamalari, to‘lovlar, foydalanuvchi balanslari, kirish huquqlari, qaytarish, murojaatlar, audit va CSV eksportini boshqaradi. Eski teacher hisoblari studentga o‘tadi; ular yaratgan kontent va moliyaviy tarix saqlanadi. Oxirgi faol adminni yo‘qotishdan himoya mavjud.
 
-## Deploydan keyingi tekshiruvlar
+## Tekshiruv natijalari
 
-Railway production servisi va `https://www.tubementor.uz` domeni tekshirildi. Mavjud baza/session/OpenAI kalitlari saqlandi; yangi public sozlamalar kiritildi. Hozir saytda eski 1.0 versiya, yangilangan kod PR #1da. Yangi versiya deploy qilinib, haqiqiy Google/Telegram kalitlari kiritilgach callback va profilga hisob ulashni real hisoblar bilan sinash kerak. Resend yoqilgan bo‘lsa email yetkazilishi ham tekshiriladi. YouTube iframe/Whisper hamda haqiqiy Android/iPhone mikrofon sinovi ham alohida qoladi. Avtomatik talaffuz baholash kiritilmagan: ovoz qurilmada saqlanadi va o‘quvchi o‘zi taqqoslaydi.
+- TypeScript tekshiruvi va yakuniy production build muvaffaqiyatli.
+- 51 ta birlik/API holati tekshirildi: yakuniy umumiy yurishda 50 tasi o‘tdi; qolgan oxirgi-admin xato kodini qaytarish tuzatilib, shu holat alohida muvaffaqiyatli qayta sinandi.
+- 15 ta commerce integratsion holati bonusning bir martalikligi, parallel xarid/ortiqcha sarf, yopiq material, buyurtma snapshotlari, chek turi/hajmi/egasi, takroriy bank reference, bot/web parallel tasdig‘i, kechikkan to‘lov, lotga bog‘langan qaytarish, audit, demo test ko‘chirish, murojaat maxfiyligi va oxirgi admin himoyasini qamraydi.
+- 6 ta Chromium brauzer sinovi o‘tdi: 320/390/768/1280 px ekranlarda sahifalar; 30→20 coin bilan dars ochish va qayta kirish; chek → haqiqiy admin dialogi orqali tasdiq → 120 coin; o‘quvchi/admin murojaat yozishmasi; dars yaratish; lug‘at, mikrofon, bosqich/test/natija; Google/Telegram tugmalari va hisob ulash.
+- Production bundle yangi bazada ishga tushdi: versiyali migratsiyalar, health, SPA manzillari, API 404 va productionda demo hisoblar yaratilmasligi tekshirildi.
+- `npm audit --omit=dev`: 0 vulnerability. `git diff --check`: xato yo‘q.
+- Mahalliy API sinovlari PostgreSQL protokoli orqali PGlite ishlatadi. Brauzer video/mikrofon/provayder sinovlari nazorat qilinadigan fixture ishlatadi; bu haqiqiy bank yoki Telegram xabari yuborilganini anglatmaydi.
 
-Mahalliy DB sinovlari PGlite PostgreSQL protocol serverida o‘tdi; GitHub Actions PostgreSQL 16 bilan parallel so‘rovlarni tekshirish uchun sozlangan. GitHub hisobi billing sabab bloklangani uchun remote job boshlanmagan; bu tekshiruv hozircha o‘tgan deb hisoblanmaydi. [GitHub tekshiruv holati](https://github.com/Umidjon1990/TUBE-MENTOR/actions/runs/38536851830). Mavjud darslarning til bo‘yicha mazmun sifati avtomatik tasdiqlanmaydi: yangi kontent uchun to‘rtta tekshiruv va admin tasdig‘i zarur.
+GitHub Actions oldingi relizda hisob billing cheklovi sabab ishga tushmagan. CI boshlanmaganda mahalliy natijani CI natijasi deb hisoblamang; hisob cheklovi bartaraf etilgach PostgreSQL 16 workflowini qayta ishlating.
 
-Oldingi saqlangan lug‘at yangi takrorlash navbatiga migratsiya qilinadi. Eslatmalar va oldingi kartochkalar profil orqali ochiladi. Kontent yaratgan eski student hisobga tahrir huquqi kerak bo‘lsa, admin unga teacher rolini beradi.
+## Ishga tushirishda egasi kiritadigan ma’lumotlar
 
-Telegram bo‘yicha bosqichma-bosqich sozlash: [telegram-login.md](telegram-login.md). BotFather Login Widget Client ID va Client Secret kerak; bot tokeni login uchun ishlatilmaydi. OIDC Authorization Code + PKCE oqimi qo‘llanadi; faqat `openid profile` so‘raladi. Emaili yo‘q Telegram foydalanuvchisiga mavjud bo‘lmagan email tasdiqlangan deb yozilmaydi: himoyalangan sahifalar provayderning tekshirilgan identifikatorini qabul qiladi.
+[Coin va to‘lov sozlash qo‘llanmasi](coin-payments.md) bo‘yicha admin paketlarning haqiqiy narxi/faolligi, qabul qiluvchi, karta/rasmiy Payme, ish vaqti va namuna darsini belgilaydi. Narx/rekvizitlar bo‘lmaganda to‘lov o‘chirilgan holda turadi.
+
+Telegram bot uchun `TELEGRAM_BOT_TOKEN` va raqamli `TELEGRAM_ADMIN_IDS` zarur. Admin saytdagi **To‘lov sozlamalari → Telegram botini ulash** orqali botni o‘z profiliga bog‘laydi. Loginning mavjud Client ID/Secret qiymatlari saqlanadi. `TELEGRAM_WEBHOOK_SECRET` va `/app/private-payments` persistent volume deploymentda tayyorlanadi.
+
+Haqiqiy bank/Payme tushumi, bot pairing va botdagi chek yetkazilishi shu sozlamalar kiritilgach kichik to‘lov bilan yakuniy domenda tekshiriladi. Google va Telegram orqali kirish avvalgi 2.0 relizda foydalanuvchi tomonidan tekshirilgan.
+
+## Ma’lumotlarni saqlash
+
+0005/0006 migratsiyalari mavjud balans va tarixni saqlaydi; eski o‘qilgan darslardan kirish huquqlarini yaratadi. Coin moliyaviy jurnali va murojaat xabarlari append-only. Qaytarish faqat tegishli to‘lovning sarflanmagan pullik coinidan olinadi; murojaat yaratish pulni avtomatik qaytarmaydi. Arxivlangan dars eski xaridorlarda qoladi, yangi xarid yopiladi. PostgreSQL va receipt volume uchun alohida muntazam backup kerak.
+
+Talaffuz ovozi qurilmada saqlanadi; avtomatik talaffuz balli kiritilmagan. Yangi kontent nusxasida o‘quv bosqichlari yangilanishi mumkin, ammo sotib olingan dars huquqi va tarixiy test/lug‘at saqlanadi.

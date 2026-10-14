@@ -43,7 +43,7 @@ try {
       const r = await fetch(`http://127.0.0.1:${port}/api/health`);
       if (r.ok) {
         const health = await r.json();
-        assert.equal(health.version, "2.0.0");
+        assert.equal(health.version, "2.1.0");
         ready = true;
         break;
       }

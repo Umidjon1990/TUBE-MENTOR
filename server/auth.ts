@@ -130,6 +130,9 @@ export async function requireAdmin(
 }
 
 export function requireRole(...roles: string[]) {
+  // Content and payment operations are administered centrally. Legacy teacher
+  // accounts remain readable accounts without inheriting administrator rights.
+  const activeRoles = roles.filter((role) => role !== "teacher");
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Avtorizatsiya talab qilinadi" });
@@ -149,7 +152,7 @@ export function requireRole(...roles: string[]) {
       });
     }
 
-    if (!roles.includes(user.role)) {
+    if (!activeRoles.includes(user.role)) {
       return res.status(403).json({ message: "Ruxsat berilmagan" });
     }
 

@@ -4,9 +4,11 @@ import {
   lessons,
   collections,
   collectionLessons,
+  systemSettings,
   type Lesson,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { DEFAULT_COMMERCE_SETTINGS } from "@shared/commerce";
 import { hashPassword } from "./auth";
 
 /** Explicit local-only fixtures. Never invoked by production startup. */
@@ -27,7 +29,7 @@ export async function seedDemo() {
         passwordHash: hashPassword("DemoAdmin2026!"),
         role: "admin",
         onboardingCompleted: true,
-        coins: 1000,
+        coins: 0,
       },
       {
         username: "demo_teacher",
@@ -35,7 +37,7 @@ export async function seedDemo() {
         passwordHash: hashPassword("DemoTeacher2026!"),
         role: "teacher",
         onboardingCompleted: true,
-        coins: 1000,
+        coins: 0,
       },
       {
         username: "demo_student",
@@ -57,6 +59,7 @@ export async function seedDemo() {
   const admin = accounts.find((u) => u.role === "admin")!;
   const example = exampleLesson(teacher.id, admin.id);
   const [lesson] = await db.insert(lessons).values(example).returning();
+  const [paidLesson] = await db.insert(lessons).values({ ...exampleLesson(teacher.id, admin.id), title: "Namuna: Coin bilan ochiladigan dars" }).returning();
   const [draft] = await db
     .insert(lessons)
     .values({
@@ -79,9 +82,11 @@ export async function seedDemo() {
       createdBy: teacher.id,
     })
     .returning();
+  await db.insert(systemSettings).values({ key: "commerce", value: JSON.stringify({ ...DEFAULT_COMMERCE_SETTINGS, demoLessonId: lesson.id }) }).onConflictDoUpdate({ target: systemSettings.key, set: { value: JSON.stringify({ ...DEFAULT_COMMERCE_SETTINGS, demoLessonId: lesson.id }) } });
   await db.insert(collectionLessons).values([
     { collectionId: course.id, lessonId: lesson.id, orderIndex: 0 },
-    { collectionId: course.id, lessonId: draft.id, orderIndex: 1 },
+    { collectionId: course.id, lessonId: paidLesson.id, orderIndex: 1 },
+    { collectionId: course.id, lessonId: draft.id, orderIndex: 2 },
   ]);
 }
 export function exampleLesson(

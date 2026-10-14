@@ -1,16 +1,28 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { type Server } from "http";
 import express from "express";
 import path from "path";
 import multer from "multer";
 import { storage } from "./storage";
-import { pool } from "./db";
+import {
+  accessibleLesson,
+  catalogCard,
+  filterLessonItems,
+  learnerLessonContent,
+  readableLessons,
+  archiveLesson,
+} from "./access";
+import { db, pool } from "./db";
+import { and, eq, sql } from "drizzle-orm";
+import { commerceAudit, systemSettings, users } from "@shared/schema";
+import { adjustCoins, grantWelcomeBonus, CommerceError } from "./commerce";
 import {
   verifyPassword,
   requireAdmin,
   requireAuth,
   requireRole,
   hashPassword,
+  hasVerifiedIdentity,
 } from "./auth";
 import { z } from "zod";
 import {
@@ -211,7 +223,7 @@ const createUserSchema = z.object({
     .string()
     .max(128)
     .min(10, "Parol kamida 10 ta belgidan iborat bo'lishi kerak"),
-  role: z.enum(["admin", "teacher", "student"]),
+  role: z.enum(["admin", "student"]),
   coins: z.number().int().min(0).optional(),
 });
 
@@ -222,7 +234,7 @@ const updateUserSchema = z.object({
     .min(3)
     .regex(/^[a-zA-Z0-9_]+$/)
     .optional(),
-  role: z.enum(["admin", "teacher", "student"]).optional(),
+  role: z.enum(["admin", "student"]).optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -233,17 +245,139 @@ const changePasswordSchema = z.object({
     .min(10, "Parol kamida 10 ta belgidan iborat bo'lishi kerak"),
 });
 
-const updateCoinsSchema = z.object({
-  amount: z.number().int().min(1, "Miqdor kamida 1 bo'lishi kerak"),
-  type: z.enum(["add", "remove"]),
-  description: z.string().min(1, "Izoh kiritilishi shart"),
-});
+/** A database row serializes administrator lifecycle changes across instances. */
+async function updateManagedUser(
+  req: Request,
+  id: string,
+  changes: z.output<typeof updateUserSchema>,
+) {
+  return db.transaction(async (tx) => {
+    await tx
+      .insert(systemSettings)
+      .values({ key: "_admin_lifecycle_lock", value: "1" })
+      .onConflictDoNothing();
+    await tx
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, "_admin_lifecycle_lock"))
+      .for("update");
+    const [actor] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, req.session.userId!))
+      .for("update");
+    if (
+      !actor ||
+      actor.role !== "admin" ||
+      !actor.isActive ||
+      !hasVerifiedIdentity(actor) ||
+      actor.sessionVersion !== (req.session.authVersion ?? 0)
+    )
+      throw new CommerceError(
+        403,
+        "ADMIN_ACCESS_CHANGED",
+        "Admin huquqi yangilangan. Hisobingizga qayta kiring",
+      );
+    const [target] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .for("update");
+    if (!target)
+      throw Object.assign(new Error("Foydalanuvchi topilmadi"), {
+        status: 404,
+      });
+    const role = changes.role ?? target.role;
+    const isActive = changes.isActive ?? target.isActive;
+    if (role === "admin" && isActive && !hasVerifiedIdentity(target))
+      throw new CommerceError(
+        409,
+        "ADMIN_IDENTITY_REQUIRED",
+        "Admin qilishdan avval hisobning kirish usulini tasdiqlang",
+      );
+    if (
+      target.role === "admin" &&
+      target.isActive &&
+      hasVerifiedIdentity(target) &&
+      (role !== "admin" || !isActive)
+    ) {
+      const [active] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(
+          and(
+            eq(users.role, "admin"),
+            eq(users.isActive, true),
+            sql`(${users.emailVerified} = true OR ${users.googleId} IS NOT NULL OR ${users.telegramId} IS NOT NULL)`,
+          ),
+        );
+      if (active.count <= 1)
+        throw new CommerceError(
+          409,
+          "LAST_ACTIVE_ADMIN",
+          "Oxirgi faol adminni bloklash yoki o‘quvchiga aylantirish mumkin emas",
+        );
+    }
+    const roleChanged = role !== target.role;
+    const statusChanged = isActive !== target.isActive;
+    const [updated] = await tx
+      .update(users)
+      .set({
+        ...changes,
+        ...(roleChanged || statusChanged
+          ? { sessionVersion: target.sessionVersion + 1 }
+          : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    if (roleChanged)
+      await tx.insert(commerceAudit).values({
+        actorId: actor.id,
+        userId: id,
+        action: "admin_user_role_changed",
+        referenceId: id,
+        details: {
+          previousRole: target.role,
+          role: updated.role,
+          sessionVersion: updated.sessionVersion,
+        },
+      });
+    if (statusChanged)
+      await tx.insert(commerceAudit).values({
+        actorId: actor.id,
+        userId: id,
+        action: "admin_user_status_changed",
+        referenceId: id,
+        details: {
+          previousActive: target.isActive,
+          isActive: updated.isActive,
+          sessionVersion: updated.sessionVersion,
+        },
+      });
+    return updated;
+  });
+}
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express,
 ): Promise<Server> {
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+  // Legacy lesson endpoints cannot bypass the current purchase rules.
+  app.use("/api/user/lessons", requireAuth, async (req, _res, next) => {
+    const raw = req.originalUrl
+      .split("?")[0]
+      .match(/^\/api\/user\/lessons\/([^/]+)/)?.[1];
+    if (!raw) return next();
+    const digits = z
+      .string()
+      .regex(/^[1-9]\d*$/)
+      .parse(raw ? decodeURIComponent(raw) : undefined);
+    const id = z.coerce.number().int().positive().parse(digits);
+    await accessibleLesson(req, id);
+    next();
+  });
 
   app.post(
     "/api/upload/cover",
@@ -348,14 +482,14 @@ export async function registerRoutes(
       res.json({
         status: "ok",
         name: "Tube Mentor AI",
-        version: "2.0.0",
+        version: "2.1.0",
         database: "connected",
       });
     } catch {
       res.status(503).json({
         status: "error",
         name: "Tube Mentor AI",
-        version: "2.0.0",
+        version: "2.1.0",
         database: "disconnected",
       });
     }
@@ -396,17 +530,18 @@ export async function registerRoutes(
       username,
       passwordHash: passwordHashed,
       role,
+      emailVerified: true,
     });
 
     if (coins && coins > 0) {
-      await storage.adjustCoinsAtomically(newUser.id, coins, {
-        userId: newUser.id,
+      await adjustCoins(req.session.userId!, newUser.id, {
         amount: coins,
-        type: "admin_add",
-        description: "Boshlang'ich tanga — admin tomonidan",
+        reason: "Boshlang‘ich coin — admin tomonidan",
+        idempotencyKey: `admin-initial:${newUser.id}`,
       });
     }
 
+    if (role === "student") await grantWelcomeBonus(newUser.id);
     const updatedUser = await storage.getUser(newUser.id);
     const { passwordHash, ...safeUser } = updatedUser!;
     res.status(201).json(safeUser);
@@ -431,7 +566,7 @@ export async function registerRoutes(
       }
     }
 
-    const updated = await storage.updateUser(id, parsed.data);
+    const updated = await updateManagedUser(req, id, parsed.data);
     if (!updated) {
       return res.status(500).json({ message: "Yangilanishda xatolik" });
     }
@@ -449,13 +584,7 @@ export async function registerRoutes(
         .json({ message: "isActive maydoni talab qilinadi" });
     }
 
-    if (id === req.session.userId && !isActive) {
-      return res
-        .status(400)
-        .json({ message: "O'zingizni bloklashning iloji yo'q" });
-    }
-
-    const updated = await storage.updateUser(id, { isActive });
+    const updated = await updateManagedUser(req, id, { isActive });
     if (!updated) {
       return res.status(404).json({ message: "Foydalanuvchi topilmadi" });
     }
@@ -483,40 +612,6 @@ export async function registerRoutes(
       sessionVersion: (user?.sessionVersion || 0) + 1,
     });
     res.json({ message: "Parol muvaffaqiyatli yangilandi" });
-  });
-
-  app.post("/api/admin/users/:id/coins", requireAdmin, async (req, res) => {
-    const id = req.params.id as string;
-    const parsed = updateCoinsSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: parsed.error.errors[0].message });
-    }
-
-    const targetUser = await storage.getUser(id);
-    if (!targetUser) {
-      return res.status(404).json({ message: "Foydalanuvchi topilmadi" });
-    }
-
-    const { amount, type, description } = parsed.data;
-    const coinChange = type === "add" ? amount : -amount;
-
-    try {
-      const updated = await storage.adjustCoinsAtomically(id, coinChange, {
-        userId: id,
-        amount: coinChange,
-        type: type === "add" ? "admin_add" : "admin_remove",
-        description,
-      });
-      const { passwordHash, ...safeUser } = updated;
-      res.json(safeUser);
-    } catch (err: any) {
-      if (err.message === "INSUFFICIENT_BALANCE") {
-        return res.status(400).json({
-          message: `Yetarli tanga mavjud emas. Joriy balans: ${targetUser.coins}`,
-        });
-      }
-      throw err;
-    }
   });
 
   app.get("/api/admin/users/:id/coins", requireAdmin, async (req, res) => {
@@ -667,11 +762,7 @@ export async function registerRoutes(
       if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
       if (!publishedLesson(lesson))
         return res.status(400).json({ message: "Dars nashr qilinmagan" });
-      const updated = await storage.updateLesson(id, {
-        status: "approved",
-        publishedAt: null,
-        publishedBy: null,
-      });
+      const updated = await archiveLesson(id);
       res.json(updated);
     },
   );
@@ -716,13 +807,13 @@ export async function registerRoutes(
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
     const lesson = await storage.getLessonById(id);
     if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
-    await storage.deleteLesson(id);
+    await archiveLesson(id);
     res.json({ success: true });
   });
 
   app.get("/api/user/progress", requireAuth, async (req, res) => {
     const progress = await storage.getProgressByUser(req.session.userId!);
-    res.json(progress);
+    res.json(await filterLessonItems(req, progress));
   });
 
   app.get("/api/user/dashboard", requireAuth, async (req, res) => {
@@ -741,7 +832,7 @@ export async function registerRoutes(
       storage.countFlashcardsByUser(userId),
       req.session.userRole === "admin"
         ? storage.getAllLessons()
-        : storage.getLessonsByUser(userId),
+        : readableLessons(req),
       storage.getProgressByUser(userId),
       storage.getCoinTransactionsByUser(userId),
       storage.getAllCategories(),
@@ -760,16 +851,18 @@ export async function registerRoutes(
       0,
     );
 
-    const recentLessons = userLessons
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      .slice(0, 5)
-      .map((l) => ({
-        ...l,
-        categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
-      }));
+    const recentLessons = await Promise.all(
+      userLessons
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        )
+        .slice(0, 5)
+        .map(async (l) => ({
+          ...(req.session.userRole === "admin" ? l : await catalogCard(req, l)),
+          categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
+        })),
+    );
 
     const recentTransactions = coinTxs
       .sort(
@@ -780,7 +873,7 @@ export async function registerRoutes(
 
     res.json({
       coins: user?.coins ?? 0,
-      lessonCount,
+      lessonCount: userLessons.length,
       flashcardCount,
       pendingCount,
       totalStudyTime,
@@ -793,14 +886,18 @@ export async function registerRoutes(
   app.get("/api/user/lessons", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
     const [userLessons, allCategories] = await Promise.all([
-      storage.getLessonsByUser(userId),
+      req.session.userRole === "admin"
+        ? storage.getAllLessons()
+        : readableLessons(req),
       storage.getAllCategories(),
     ]);
     const catMap = new Map(allCategories.map((c) => [c.id, c.name]));
-    const lessonsWithCategory = userLessons.map((l) => ({
-      ...l,
-      categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
-    }));
+    const lessonsWithCategory = await Promise.all(
+      userLessons.map(async (l) => ({
+        ...(req.session.userRole === "admin" ? l : await catalogCard(req, l)),
+        categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
+      })),
+    );
     res.json(lessonsWithCategory);
   });
 
@@ -917,19 +1014,13 @@ export async function registerRoutes(
   );
 
   app.get("/api/user/lessons/:id", requireAuth, async (req, res) => {
-    const id = parseInt(req.params.id as string);
-    if (isNaN(id))
-      return res.status(400).json({ message: "Noto'g'ri dars ID" });
-
-    const lesson = await storage.getLessonById(id);
-    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
-    if (
-      lesson.createdBy !== req.session.userId &&
-      req.session.userRole !== "admin"
-    )
-      return res.status(403).json({ message: "Ruxsat yo'q" });
-
-    res.json(lesson);
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const lesson = await accessibleLesson(req, id);
+    res.json(
+      req.session.userRole === "admin"
+        ? await storage.getLessonById(id)
+        : await learnerLessonContent(req, lesson),
+    );
   });
 
   app.patch(
@@ -1001,7 +1092,7 @@ export async function registerRoutes(
       )
         return res.status(403).json({ message: "Ruxsat yo'q" });
 
-      await storage.deleteLesson(id);
+      await archiveLesson(id);
       res.json({ success: true });
     },
   );
@@ -1049,11 +1140,7 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Ruxsat yo'q" });
       if (!publishedLesson(lesson))
         return res.status(400).json({ message: "Dars nashr qilinmagan" });
-      const updated = await storage.updateLesson(id, {
-        status: "approved",
-        publishedAt: null,
-        publishedBy: null,
-      });
+      const updated = await archiveLesson(id);
       res.json(updated);
     },
   );
@@ -1082,7 +1169,7 @@ export async function registerRoutes(
 
   app.get(
     "/api/user/lessons/:id/export-json",
-    requireAuth,
+    requireAdmin,
     async (req, res) => {
       try {
         const id = parseInt(req.params.id as string);
@@ -1572,12 +1659,10 @@ export async function registerRoutes(
         !process.env.OPENAI_API_KEY &&
         !process.env.AI_INTEGRATIONS_OPENAI_API_KEY
       )
-        return res
-          .status(503)
-          .json({
-            message:
-              "AI xizmati hali sozlanmagan. Kontentni JSON orqali import qilishingiz mumkin.",
-          });
+        return res.status(503).json({
+          message:
+            "AI xizmati hali sozlanmagan. Kontentni JSON orqali import qilishingiz mumkin.",
+        });
       const genStart = Date.now();
       try {
         const content = await generateLessonContent(
@@ -1949,6 +2034,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const cards = await storage.getFlashcardsByUserAndLesson(
       req.session.userId!,
       lessonId,
@@ -1963,6 +2049,7 @@ export async function registerRoutes(
       const lessonId = parseInt(req.params.id as string);
       if (isNaN(lessonId))
         return res.status(400).json({ message: "Noto'g'ri ID" });
+      await accessibleLesson(req, lessonId);
       const { frontText, backText, type } = req.body;
       if (!frontText || !backText)
         return res
@@ -1985,6 +2072,7 @@ export async function registerRoutes(
     const existing = await storage.getFlashcardsByUser(req.session.userId!);
     const card = existing.find((c) => c.id === id);
     if (!card) return res.status(404).json({ message: "Kartochka topilmadi" });
+    await accessibleLesson(req, card.lessonId);
     const { confidenceLevel, nextReviewAt } = z
       .object({
         confidenceLevel: z.number().int().min(0).max(5).optional(),
@@ -2015,6 +2103,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const items = await storage.getNotesByUserAndLesson(
       req.session.userId!,
       lessonId,
@@ -2026,6 +2115,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const { content, sentenceIndex, isPinned } = req.body;
     if (!content) return res.status(400).json({ message: "Mazmun majburiy" });
     const note = await storage.createNote({
@@ -2044,6 +2134,7 @@ export async function registerRoutes(
     const userNotes = await storage.getNotesByUser(req.session.userId!);
     const note = userNotes.find((n) => n.id === id);
     if (!note) return res.status(404).json({ message: "Eslatma topilmadi" });
+    await accessibleLesson(req, note.lessonId);
     const { content, isPinned } = z
       .object({
         content: z.string().trim().min(1).max(5000).optional(),
@@ -2070,6 +2161,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const items = await storage.getBookmarksByUserAndLesson(
       req.session.userId!,
       lessonId,
@@ -2081,6 +2173,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const { type, sentenceIndex, label } = req.body;
     const bookmark = await storage.createBookmark({
       userId: req.session.userId!,
@@ -2107,6 +2200,7 @@ export async function registerRoutes(
     const lessonId = parseInt(req.params.id as string);
     if (isNaN(lessonId))
       return res.status(400).json({ message: "Noto'g'ri ID" });
+    await accessibleLesson(req, lessonId);
     const progress = await storage.getLessonProgress(
       req.session.userId!,
       lessonId,
@@ -2249,7 +2343,9 @@ export async function registerRoutes(
       const allCategories = await storage.getAllCategories();
       const allLessons = await storage.getAllLessons();
       const publishedLessons = allLessons.flatMap((l) =>
-        publishedLesson(l) ? [publishedLesson(l)!] : [],
+        l.status !== "archived" && publishedLesson(l)
+          ? [publishedLesson(l)!]
+          : [],
       );
       const categoriesWithCount = allCategories
         .map((cat) => {
@@ -2282,7 +2378,11 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Kategoriya topilmadi" });
       const allLessons = await storage.getAllLessons();
       const publishedLessons = allLessons
-        .flatMap((l) => (publishedLesson(l) ? [publishedLesson(l)!] : []))
+        .flatMap((l) =>
+          l.status !== "archived" && publishedLesson(l)
+            ? [publishedLesson(l)!]
+            : [],
+        )
         .filter((l) => l.categoryId === id);
       res.json({
         ...cat,
@@ -2300,7 +2400,9 @@ export async function registerRoutes(
   app.get("/api/lessons/public", async (req, res) => {
     const allLessons = await storage.getAllLessons();
     let publicLessons = allLessons.flatMap((l) =>
-      publishedLesson(l) ? [publishedLesson(l)!] : [],
+      l.status !== "archived" && publishedLesson(l)
+        ? [publishedLesson(l)!]
+        : [],
     );
 
     const {
@@ -2349,10 +2451,12 @@ export async function registerRoutes(
 
     const categories = await storage.getAllCategories();
     const catMap = new Map(categories.map((c) => [c.id, c.name]));
-    const lessonsWithCategory = publicLessons.map((l) => ({
-      ...l,
-      categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
-    }));
+    const lessonsWithCategory = await Promise.all(
+      publicLessons.map(async (l) => ({
+        ...(await catalogCard(req, l)),
+        categoryName: l.categoryId ? catMap.get(l.categoryId) || null : null,
+      })),
+    );
     res.json({ lessons: lessonsWithCategory, categories });
   });
 
@@ -2430,7 +2534,9 @@ export async function registerRoutes(
       (l) => l.status === "pending",
     ).length;
     const publishedLessons = allLessons.flatMap((l) =>
-      publishedLesson(l) ? [publishedLesson(l)!] : [],
+      l.status !== "archived" && publishedLesson(l)
+        ? [publishedLesson(l)!]
+        : [],
     ).length;
     const rejectedLessons = allLessons.filter(
       (l) => l.status === "rejected",
@@ -2479,7 +2585,14 @@ export async function registerRoutes(
     const settings = await storage.getAllSystemSettings();
     const settingsMap: Record<string, string> = {};
     settings.forEach((s) => {
-      if (s.key && s.value !== null) settingsMap[s.key] = s.value!;
+      if (
+        s.key &&
+        s.value !== null &&
+        !s.key.startsWith("_") &&
+        s.key !== "commerce" &&
+        !s.key.startsWith("commerce.")
+      )
+        settingsMap[s.key] = s.value!;
     });
     res.json(settingsMap);
   });
@@ -2488,6 +2601,17 @@ export async function registerRoutes(
     const updates = req.body;
     if (!updates || typeof updates !== "object")
       return res.status(400).json({ message: "Noto'g'ri ma'lumot" });
+    if (
+      Object.keys(updates).some(
+        (key) =>
+          key === "commerce" ||
+          key.startsWith("commerce.") ||
+          key.startsWith("_"),
+      )
+    )
+      return res.status(400).json({
+        message: "Coin sozlamalari maxsus boshqaruv bo‘limida o‘zgartiriladi",
+      });
     const results: Record<string, string> = {};
     for (const [key, value] of Object.entries(updates)) {
       if (typeof value === "string") {
@@ -2505,7 +2629,7 @@ export async function registerRoutes(
     if (!q || q.length < 2) return res.json([]);
 
     try {
-      let userLessons = await storage.getLessonsByUser(userId);
+      let userLessons = await readableLessons(req, true);
       if (langFilter && ["ar", "en"].includes(langFilter)) {
         userLessons = userLessons.filter(
           (l) => (l.targetLanguage || "ar") === langFilter,
@@ -2627,10 +2751,7 @@ export async function registerRoutes(
     if (q.length < 2 || q.length > 100) return res.json([]);
 
     try {
-      const allLessons = await storage.getAllLessons();
-      let publishedLessons = allLessons.flatMap((l) =>
-        publishedLesson(l) ? [publishedLesson(l)!] : [],
-      );
+      let publishedLessons = await readableLessons(req);
       if (langFilter && ["ar", "en"].includes(langFilter)) {
         publishedLessons = publishedLessons.filter(
           (l) => (l.targetLanguage || "ar") === langFilter,
@@ -2751,6 +2872,7 @@ export async function registerRoutes(
       ? parseInt(req.query.lessonId as string)
       : null;
     if (lessonId) {
+      await accessibleLesson(req, lessonId);
       const words = await storage.getSavedWordsByUserAndLesson(
         userId,
         lessonId,
@@ -2758,7 +2880,7 @@ export async function registerRoutes(
       return res.json(words);
     }
     const words = await storage.getSavedWordsByUser(userId);
-    res.json(words);
+    res.json(await filterLessonItems(req, words));
   });
 
   app.patch("/api/user/saved-words/:id", requireAuth, async (req, res) => {
@@ -2768,6 +2890,7 @@ export async function registerRoutes(
     const allWords = await storage.getSavedWordsByUser(userId);
     const word = allWords.find((w) => w.id === id);
     if (!word) return res.status(404).json({ message: "So'z topilmadi" });
+    await accessibleLesson(req, word.lessonId);
     const { isLearned } = z.object({ isLearned: z.boolean() }).parse(req.body);
     const updated = await storage.updateSavedWord(id, { isLearned });
     res.json(updated);
@@ -2817,7 +2940,9 @@ export async function registerRoutes(
     res.json({
       totalLessons: allLessons.length,
       publishedLessons: allLessons.flatMap((l) =>
-        publishedLesson(l) ? [publishedLesson(l)!] : [],
+        l.status !== "archived" && publishedLesson(l)
+          ? [publishedLesson(l)!]
+          : [],
       ).length,
       totalWords,
       uniqueWords: uniqueWordsSet.size,
@@ -3050,9 +3175,7 @@ export async function registerRoutes(
   app.get("/api/lessons/public/:id", async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
-    const original = await storage.getLessonById(id);
-    const lesson = original && publishedLesson(original);
-    if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+    const lesson = await accessibleLesson(req, id);
 
     const creator = lesson.createdBy
       ? await storage.getUser(lesson.createdBy)
@@ -3064,7 +3187,7 @@ export async function registerRoutes(
           .then((cats) => cats.find((c) => c.id === lesson.categoryId))
       : null;
     res.json({
-      ...lesson,
+      ...(await learnerLessonContent(req, lesson)),
       creatorName: creator?.fullName || "Noma'lum",
       tags,
       categoryName: category?.name || null,
@@ -3191,7 +3314,7 @@ export async function registerRoutes(
     },
   );
 
-  app.get("/api/user/collections", requireAuth, async (req, res) => {
+  app.get("/api/user/collections", requireAdmin, async (req, res) => {
     const userId = req.session.userId!;
     const user = await storage.getUser(userId);
     let userCollections;
@@ -3209,7 +3332,7 @@ export async function registerRoutes(
     res.json(withLessons.sort((a, b) => a.sortOrder - b.sortOrder));
   });
 
-  app.get("/api/user/collections/:id", requireAuth, async (req, res) => {
+  app.get("/api/user/collections/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) return res.status(400).json({ message: "Noto'g'ri ID" });
     const collection = await storage.getCollectionById(id);
@@ -3479,9 +3602,15 @@ export async function registerRoutes(
         .sort((a, b) => a.orderIndex - b.orderIndex)
         .map(async (cl) => {
           const original = await storage.getLessonById(cl.lessonId);
-          const lesson = original && publishedLesson(original);
+          const lesson =
+            original?.status !== "archived" &&
+            original &&
+            publishedLesson(original);
           if (!lesson) return null;
-          return { ...lesson, orderIndex: cl.orderIndex };
+          return {
+            ...(await catalogCard(req, lesson)),
+            orderIndex: cl.orderIndex,
+          };
         }),
     );
     const creator = collection.createdBy

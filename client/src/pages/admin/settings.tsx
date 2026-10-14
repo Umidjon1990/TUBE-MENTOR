@@ -39,33 +39,6 @@ interface SettingConfig {
 
 const settingsConfig: SettingConfig[] = [
   {
-    key: "lesson_creation_cost",
-    label: "Dars yaratish narxi",
-    description: "Yangi dars yaratish uchun kerak bo'ladigan coin miqdori",
-    icon: Coins,
-    type: "number",
-    min: 0,
-    max: 1000,
-  },
-  {
-    key: "regenerate_cost",
-    label: "Qayta generatsiya narxi",
-    description: "Kontentni qayta generatsiya qilish uchun coin narxi",
-    icon: RefreshCw,
-    type: "number",
-    min: 0,
-    max: 500,
-  },
-  {
-    key: "export_cost",
-    label: "Eksport narxi",
-    description: "Darsni eksport qilish uchun coin narxi",
-    icon: FileDown,
-    type: "number",
-    min: 0,
-    max: 500,
-  },
-  {
     key: "max_transcript_length",
     label: "Maksimal transkript uzunligi",
     description: "YouTube transkriptning maksimal belgilar soni",

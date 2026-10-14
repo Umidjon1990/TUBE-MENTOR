@@ -16,6 +16,7 @@ import {
   Trophy,
   Settings,
   LogOut,
+  LockKeyhole,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,17 +33,20 @@ import { useLearningActivity } from "@/hooks/use-learning-activity";
 import { CEFR_LEVELS } from "@shared/learning";
 import type { SavedWord } from "@shared/schema";
 import { LinkedAccountsPanel } from "@/components/social-auth";
+import { WalletSummary, DemoResumePrompt } from "@/components/commerce-wallet";
 
 export interface LessonCard {
   id: number;
   title: string;
   description: string | null;
   thumbnailUrl: string | null;
-  youtubeUrl: string | null;
+  youtubeUrl?: string | null;
   level: string;
   targetLanguage: string;
   contentVersion: number;
   completionPercent: number;
+  access: "demo" | "owned" | "locked" | "admin";
+  priceCoins: number;
 }
 interface CourseCard {
   id: number;
@@ -81,6 +85,19 @@ function LessonRow({ lesson }: { lesson: LessonCard }) {
       <div>
         <span className="level-pill">{lesson.level}</span>
         <h3>{lesson.title}</h3>
+        <span className={`lesson-access ${lesson.access}`}>
+          {lesson.access === "locked" ? (
+            <>
+              <LockKeyhole size={13} /> {lesson.priceCoins} coin
+            </>
+          ) : lesson.access === "demo" ? (
+            "Namuna dars"
+          ) : lesson.access === "admin" ? (
+            "Admin ko‘rinishi"
+          ) : (
+            "Ochilgan · davom etish"
+          )}
+        </span>
         {lesson.completionPercent > 0 ? (
           <>
             <Meter value={lesson.completionPercent} label="Dars bajarilishi" />
@@ -141,6 +158,13 @@ export function TodayPage() {
                 label="Kunlik maqsad"
               />
             </Panel>
+            <WalletSummary />
+            <DemoResumePrompt />
+            <Link href="/my-lessons" className="next-row">
+              <BookOpen size={24} />
+              <span>Mening ochilgan darslarim</span>
+              <ArrowRight size={20} />
+            </Link>
             <div className="dashboard-grid">
               <Panel>
                 <div className="section-heading">
@@ -233,6 +257,7 @@ export function CatalogPage() {
   });
   return (
     <LearningShell title="Darslar">
+      <WalletSummary />
       <div className="catalog-controls">
         <label className="search-field">
           <Search size={20} />
@@ -420,14 +445,22 @@ export function CoursePage() {
                   <div>
                     <h3>{l.title}</h3>
                     <small>
-                      {l.completionPercent === 100
-                        ? "Tugallangan"
-                        : l.completionPercent > 0
-                          ? `Davom etmoqda · ${l.completionPercent}%`
-                          : "O‘rganishni boshlash"}
+                      {l.access === "locked"
+                        ? `${l.priceCoins} coin bilan ochish`
+                        : l.access === "demo"
+                          ? "Namuna dars"
+                          : l.completionPercent === 100
+                            ? "Tugallangan"
+                            : l.completionPercent > 0
+                              ? `Davom etmoqda · ${l.completionPercent}%`
+                              : "O‘rganishni boshlash"}
                     </small>
                   </div>
-                  <ArrowRight size={20} />
+                  {l.access === "locked" ? (
+                    <LockKeyhole size={20} />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )}
                 </Link>
               ))}
             </div>
@@ -782,6 +815,12 @@ export function ProfilePage() {
         </div>
       </Panel>
       <LinkedAccountsPanel />
+      <WalletSummary />
+      <Link href="/support" className="next-row">
+        <BookOpen size={22} />
+        <span>Yordam va murojaatlar</span>
+        <ArrowRight size={18} />
+      </Link>
       <div className="stat-grid">
         <Panel>
           <Flame />

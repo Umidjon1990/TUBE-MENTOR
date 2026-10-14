@@ -1,0 +1,330 @@
+.admin-commerce {
+  display: grid;
+  gap: 22px;
+  padding-top: 20px;
+  min-width: 0;
+}
+.admin-commerce * {
+  box-sizing: border-box;
+}
+.commerce-panel {
+  border: 1px solid #dde7e0;
+  border-radius: 18px;
+  padding: 22px;
+  background: #fff;
+  min-width: 0;
+}
+.commerce-panel h2 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.commerce-panel h3 {
+  font-size: 16px;
+  font-weight: 650;
+}
+.commerce-panel p {
+  line-height: 1.6;
+}
+.commerce-muted {
+  color: #65766a;
+  font-size: 14px;
+}
+.commerce-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.commerce-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.commerce-actions > button,
+.commerce-actions > a {
+  min-height: 44px;
+}
+.commerce-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.commerce-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.commerce-stat {
+  border: 1px solid #dde7e0;
+  border-radius: 16px;
+  background: #fff;
+  padding: 20px;
+}
+.commerce-stat strong {
+  display: block;
+  font-size: 27px;
+  color: #1c4a34;
+  overflow-wrap: anywhere;
+  margin: 10px 0 4px;
+}
+.commerce-stat span {
+  font-size: 13px;
+  color: #65766a;
+}
+.commerce-list {
+  display: grid;
+  gap: 12px;
+}
+.commerce-row {
+  border: 1px solid #dde7e0;
+  border-radius: 14px;
+  padding: 17px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.commerce-row > div {
+  min-width: 0;
+}
+.commerce-row strong,
+.commerce-reference {
+  overflow-wrap: anywhere;
+}
+.commerce-row .commerce-muted {
+  margin-top: 5px;
+}
+.commerce-tag {
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  border-radius: 20px;
+  padding: 6px 11px;
+  background: #edf2ef;
+  color: #526358;
+}
+.commerce-tag.approved,
+.commerce-tag.active {
+  background: #e6f6eb;
+  color: #227444;
+}
+.commerce-tag.receipt_submitted,
+.commerce-tag.under_review,
+.commerce-tag.needs_info {
+  background: #fff3d8;
+  color: #806015;
+}
+.commerce-tag.rejected,
+.commerce-tag.cancelled,
+.commerce-tag.refunded {
+  background: #fff0ed;
+  color: #994638;
+}
+.commerce-fields {
+  display: grid;
+  gap: 16px;
+}
+.commerce-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.commerce-field > label {
+  font-size: 13px;
+  font-weight: 650;
+  color: #31463a;
+}
+.commerce-field input,
+.commerce-field select,
+.commerce-field textarea,
+.commerce-filter {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d7e2da;
+  border-radius: 10px;
+  background: #fff;
+  padding: 11px 12px;
+  color: #203c2b;
+  min-height: 44px;
+}
+.commerce-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.commerce-field :focus-visible,
+.commerce-filter:focus-visible {
+  outline: 2px solid #2d9560;
+  outline-offset: 2px;
+}
+.commerce-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.commerce-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  flex-shrink: 0;
+  accent-color: #28794c;
+}
+.commerce-notice {
+  border: 1px solid #e5d8b3;
+  border-radius: 12px;
+  background: #fffbef;
+  padding: 15px;
+  color: #665329;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.commerce-error {
+  border: 1px solid #ebc9c3;
+  background: #fff7f5;
+  color: #943e33;
+  padding: 16px;
+  border-radius: 12px;
+}
+.commerce-empty {
+  padding: 25px 10px;
+  text-align: center;
+  color: #65766a;
+  font-size: 14px;
+}
+.commerce-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.commerce-details dt {
+  font-size: 12px;
+  color: #65766a;
+  margin-bottom: 5px;
+}
+.commerce-details dd {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.commerce-receipts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.commerce-receipts a {
+  display: block;
+  border: 1px solid #dde7e0;
+  border-radius: 12px;
+  padding: 10px;
+  min-width: 0;
+}
+.commerce-receipts img {
+  width: 100%;
+  height: 190px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f4f7f5;
+}
+.commerce-receipts span {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  margin-top: 8px;
+}
+.commerce-audit details {
+  width: 100%;
+  font-size: 12px;
+  color: #65766a;
+}
+.commerce-audit pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  background: #f5f7f6;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.commerce-link {
+  color: #227444;
+  font-weight: 650;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.commerce-modal {
+  width: calc(100vw - 32px);
+  max-width: 480px;
+  max-height: 88dvh;
+  overflow-y: auto;
+  border-radius: 18px;
+}
+.admin-sidebar .nav-item {
+  min-height: 44px;
+}
+.admin-main {
+  min-width: 0;
+}
+.commerce-support-message {
+  border: 1px solid #dde7e0;
+  border-radius: 14px;
+  padding: 17px;
+  min-width: 0;
+}
+.commerce-support-message.admin {
+  background: #f1f8f3;
+  border-color: #cde2d4;
+}
+.commerce-support-message p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: 12px;
+}
+.commerce-support-message strong {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .admin-create-label {
+    display: none;
+  }
+  .admin-app .header-actions .role-link {
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+@media (max-width: 1000px) {
+  .commerce-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .commerce-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .commerce-panel {
+    padding: 17px;
+  }
+  .commerce-stat {
+    padding: 16px;
+  }
+  .commerce-stat strong {
+    font-size: 23px;
+  }
+  .commerce-actions > * {
+    flex: 1 1 auto;
+  }
+  .commerce-details {
+    gap: 14px;
+  }
+}

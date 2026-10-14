@@ -1,11 +1,20 @@
 import type { Express, Request } from "express";
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, isNotNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import { storage } from "./storage";
 import { requireAuth, requireRole } from "./auth";
 import { safeUser } from "./auth-routes";
+import {
+  accessibleLesson,
+  catalogCard,
+  filterLessonItems,
+  readableLessons,
+  lessonAccess,
+} from "./access";
+import { getCommerceSettings } from "./commerce";
+import { rateLimit } from "./security";
 import {
   collections,
   learningEvents,
@@ -41,6 +50,21 @@ import {
 } from "@shared/learning";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type DemoAttempt = {
+  id: string;
+  lessonId: number;
+  contentVersion: number;
+  kind: "practice" | "vocabulary";
+  questions: Question[];
+  answers: { questionId: string; answer: string; correct: boolean }[];
+  expiresAt: number;
+  finishedAt: string | null;
+};
+declare module "express-session" {
+  interface SessionData {
+    demoAttempts: DemoAttempt[];
+  }
+}
 const idSchema = z.coerce.number().int().positive();
 const fail = (status: number, message: string) => {
   throw Object.assign(new Error(message), { status });
@@ -57,32 +81,16 @@ async function currentUser(req: Request): Promise<User> {
   const user = await storage.getUser(req.session.userId!);
   return user || fail(401, "Hisob topilmadi");
 }
-async function accessibleLesson(req: Request, id: number): Promise<Lesson> {
-  const lesson = await storage.getLessonById(id);
-  if (!lesson) return fail(404, "Dars topilmadi");
-  const canEdit =
-    lesson.createdBy === req.session.userId || req.session.userRole === "admin";
-  if (req.query.preview === "1")
-    return canEdit ? lesson : fail(403, "Ko‘rib chiqish huquqi yo‘q");
-  return publishedLesson(lesson) || fail(404, "Dars nashr qilinmagan");
-}
-async function allPublished() {
+async function allPublished(includeArchived = false) {
   return (await storage.getAllLessons())
-    .map(publishedLesson)
+    .filter((lesson) => includeArchived || lesson.status !== "archived")
+    .map((source) => {
+      const published = publishedLesson(source);
+      return published && source.status === "archived"
+        ? { ...published, status: "archived" }
+        : published;
+    })
     .filter((l): l is Lesson => Boolean(l));
-}
-function card(lesson: Lesson, completion = 0) {
-  return {
-    id: lesson.id,
-    title: lesson.title,
-    description: lesson.description,
-    thumbnailUrl: lesson.thumbnailUrl,
-    youtubeUrl: lesson.youtubeUrl,
-    level: cefrLevel(lesson.level),
-    targetLanguage: lesson.targetLanguage,
-    contentVersion: lesson.contentVersion,
-    completionPercent: completion,
-  };
 }
 async function lockedProgress(tx: Tx, userId: string, lesson: Lesson) {
   await tx
@@ -232,7 +240,12 @@ function clientAttempt(attempt: typeof lessonAttempts.$inferSelect) {
 export async function registerLearningRoutes(app: Express) {
   app.get("/api/learn/notes", requireAuth, async (req, res) => {
     res.json(
-      (await storage.getNotesByUser(req.session.userId!)).sort(
+      (
+        await filterLessonItems(
+          req,
+          await storage.getNotesByUser(req.session.userId!),
+        )
+      ).sort(
         (a, b) =>
           Number(b.isPinned) - Number(a.isPinned) ||
           b.createdAt.getTime() - a.createdAt.getTime(),
@@ -240,7 +253,12 @@ export async function registerLearningRoutes(app: Express) {
     );
   });
   app.get("/api/learn/cards", requireAuth, async (req, res) => {
-    res.json(await storage.getFlashcardsByUser(req.session.userId!));
+    res.json(
+      await filterLessonItems(
+        req,
+        await storage.getFlashcardsByUser(req.session.userId!),
+      ),
+    );
   });
   app.post("/api/learn/lessons/:id/notes", requireAuth, async (req, res) => {
     const lesson = await accessibleLesson(req, parse(idSchema, req.params.id));
@@ -265,9 +283,8 @@ export async function registerLearningRoutes(app: Express) {
     "/api/studio/config",
     requireRole("teacher", "admin"),
     async (_req, res) => {
-      const cost = await storage.getSystemSetting("lesson_creation_cost");
       res.json({
-        lessonCreationCost: Math.max(0, Number(cost?.value ?? 10) || 0),
+        lessonCreationCost: 0,
         aiEnabled: Boolean(
           process.env.OPENAI_API_KEY ||
             process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -319,16 +336,32 @@ export async function registerLearningRoutes(app: Express) {
     res.json({ success: true });
   });
   app.get("/api/learn/catalog", async (req, res) => {
-    const language = req.query.language === "en" ? "en" : "ar";
+    const language =
+      req.query.language === "en"
+        ? "en"
+        : req.query.language === "ar"
+          ? "ar"
+          : req.query.owned === "1"
+            ? ""
+            : "ar";
     const level = typeof req.query.level === "string" ? req.query.level : "";
     const q = String(req.query.q || "")
       .slice(0, 100)
       .toLocaleLowerCase();
     const page = Math.max(1, Math.min(10000, Number(req.query.page) || 1));
-    const all = await allPublished();
+    const ownedOnly = req.query.owned === "1";
+    const candidates = await allPublished(ownedOnly);
+    const decisions = ownedOnly
+      ? await Promise.all(
+          candidates.map(async (lesson) =>
+            (await lessonAccess(req, lesson)) === "owned" ? lesson : null,
+          ),
+        )
+      : candidates;
+    const all = decisions.filter((lesson): lesson is Lesson => lesson !== null);
     const matching = all.filter(
       (l) =>
-        l.targetLanguage === language &&
+        (!language || l.targetLanguage === language) &&
         (!level || cefrLevel(l.level) === level) &&
         (!q ||
           `${l.title} ${l.description || ""}`.toLocaleLowerCase().includes(q)),
@@ -346,7 +379,7 @@ export async function registerLearningRoutes(app: Express) {
       (await storage.getPublishedCollections())
         .filter(
           (c) =>
-            c.targetLanguage === language &&
+            (!language || c.targetLanguage === language) &&
             (!level || cefrLevel(c.level) === level),
         )
         .map(async (c) => {
@@ -376,15 +409,17 @@ export async function registerLearningRoutes(app: Express) {
       courses: courseCards.filter(
         (c) => c.lessonCount && (!q || c.name.toLocaleLowerCase().includes(q)),
       ),
-      lessons: matching
-        .slice((page - 1) * 20, page * 20)
-        .map((l) => card(l, completion(l))),
+      lessons: await Promise.all(
+        matching
+          .slice((page - 1) * 20, page * 20)
+          .map((l) => catalogCard(req, l, completion(l))),
+      ),
       total: matching.length,
       page,
       availableLevels: [
         ...new Set(
           all
-            .filter((l) => l.targetLanguage === language)
+            .filter((l) => !language || l.targetLanguage === language)
             .map((l) => cefrLevel(l.level)),
         ),
       ].sort(),
@@ -411,12 +446,16 @@ export async function registerLearningRoutes(app: Express) {
       description: collection.description,
       coverImage: collection.coverImage,
       level: cefrLevel(collection.level),
-      lessons: visible.map((l) =>
-        card(
-          l,
-          progress.find(
-            (p) => p.lessonId === l.id && p.contentVersion === l.contentVersion,
-          )?.completionPercent || 0,
+      lessons: await Promise.all(
+        visible.map((l) =>
+          catalogCard(
+            req,
+            l,
+            progress.find(
+              (p) =>
+                p.lessonId === l.id && p.contentVersion === l.contentVersion,
+            )?.completionPercent || 0,
+          ),
         ),
       ),
     });
@@ -455,7 +494,7 @@ export async function registerLearningRoutes(app: Express) {
   });
   app.get("/api/learn/today", requireAuth, async (req, res) => {
     const user = await currentUser(req);
-    const all = await allPublished();
+    const all = await readableLessons(req);
     const progress = await storage.getProgressByUser(user.id);
     const recent = [...progress]
       .sort((a, b) => Number(b.lastStudiedAt) - Number(a.lastStudiedAt))
@@ -505,7 +544,8 @@ export async function registerLearningRoutes(app: Express) {
       studySeconds: Number(activity.seconds),
       dueWords: Number(due.count),
       continueLesson: next
-        ? card(
+        ? await catalogCard(
+            req,
             next,
             progress.find(
               (p) =>
@@ -559,8 +599,9 @@ export async function registerLearningRoutes(app: Express) {
       ),
     });
   });
-  const lessonDto = (lesson: Lesson) => ({
-    ...card(lesson),
+  const lessonDto = async (req: Request, lesson: Lesson) => ({
+    ...(await catalogCard(req, lesson)),
+    youtubeUrl: lesson.youtubeUrl,
     summary: lesson.summaryShort,
     segments: lessonSegments(lesson),
     vocabulary: lessonVocabulary(lesson),
@@ -568,16 +609,130 @@ export async function registerLearningRoutes(app: Express) {
     vocabularyCount: buildQuestions(lesson, "vocabulary").length,
   });
   app.get("/api/learn/preview/:id", async (req, res) => {
-    const source = await storage.getLessonById(parse(idSchema, req.params.id));
-    const lesson = source && publishedLesson(source);
-    if (!lesson) return fail(404, "Dars nashr qilinmagan");
+    const lesson = await accessibleLesson(req, parse(idSchema, req.params.id));
     res.json({
-      ...lessonDto(lesson),
+      ...(await lessonDto(req, lesson)),
       progress: null,
       preview: true,
       canEdit: false,
     });
   });
+  // The sample lesson is usable without registration; answers stay in a bounded
+  // server-side session and cannot create XP, balances, or persistent progress.
+  app.post(
+    "/api/learn/preview/:id/attempts",
+    rateLimit("demo-attempt", 30, 300),
+    async (req, res) => {
+      const lessonId = parse(idSchema, req.params.id);
+      if ((await getCommerceSettings()).demoLessonId !== lessonId)
+        return fail(403, "Bu dars namuna dars emas");
+      const lesson = await accessibleLesson(req, lessonId);
+      const { kind } = parse(
+        z.object({ kind: z.enum(["practice", "vocabulary"]) }).strict(),
+        req.body,
+      );
+      const attempts = (req.session.demoAttempts || [])
+        .filter((attempt) => attempt.expiresAt > Date.now())
+        .slice(-5);
+      let attempt = attempts.find(
+        (attempt) =>
+          attempt.lessonId === lesson.id &&
+          attempt.contentVersion === lesson.contentVersion &&
+          attempt.kind === kind &&
+          !attempt.finishedAt,
+      );
+      if (!attempt) {
+        const questions = buildQuestions(lesson, kind).slice(0, 100);
+        if (!questions.length)
+          return fail(409, "Bu dars uchun mashqlar hali tayyor emas");
+        attempt = {
+          id: randomUUID(),
+          lessonId: lesson.id,
+          contentVersion: lesson.contentVersion,
+          kind,
+          questions,
+          answers: [],
+          expiresAt: Date.now() + 20 * 60000,
+          finishedAt: null,
+        };
+        attempts.push(attempt);
+      }
+      req.session.demoAttempts = attempts;
+      res.json({
+        id: attempt.id,
+        lessonId: lesson.id,
+        kind,
+        contentVersion: lesson.contentVersion,
+        questions: attempt.questions.map(publicQuestion),
+        answers: attempt.answers,
+        score: null,
+        finishedAt: null,
+      });
+    },
+  );
+  app.post(
+    "/api/learn/preview/:id/attempts/:attemptId/answers",
+    rateLimit("demo-answer", 200, 300),
+    async (req, res) => {
+      const lessonId = parse(idSchema, req.params.id);
+      if ((await getCommerceSettings()).demoLessonId !== lessonId)
+        return fail(403, "Bu dars namuna dars emas");
+      const lesson = await accessibleLesson(req, lessonId);
+      const body = parse(
+        z
+          .object({
+            questionId: z.string().max(100),
+            answer: z.string().max(4000),
+          })
+          .strict(),
+        req.body,
+      );
+      const attempt = req.session.demoAttempts?.find(
+        (attempt) =>
+          attempt.id === req.params.attemptId &&
+          attempt.lessonId === lessonId &&
+          attempt.expiresAt > Date.now(),
+      );
+      if (!attempt) return fail(404, "Namuna testi tugagan. Qayta boshlang");
+      if (attempt.contentVersion !== lesson.contentVersion)
+        return fail(409, "Dars yangilangan. Testni qayta boshlang");
+      const question = attempt.questions.find(
+        (question) => question.id === body.questionId,
+      );
+      if (!question) return fail(400, "Savol topilmadi");
+      const previous = attempt.answers.find(
+        (answer) => answer.questionId === question.id,
+      );
+      if (attempt.finishedAt && !previous) return fail(409, "Test yakunlangan");
+      const correct = previous?.correct ?? gradeAnswer(question, body.answer);
+      if (!previous)
+        attempt.answers.push({
+          questionId: question.id,
+          answer: body.answer,
+          correct,
+        });
+      const done = attempt.answers.length === attempt.questions.length;
+      if (done) attempt.finishedAt ||= new Date().toISOString();
+      const score = done
+        ? Math.round(
+            (attempt.answers.filter((answer) => answer.correct).length /
+              attempt.questions.length) *
+              100,
+          )
+        : null;
+      // Explicitly mark the session dirty after changing a nested array.
+      req.session.demoAttempts = [...req.session.demoAttempts!];
+      res.json({
+        correct,
+        answer: question.answer,
+        explanation: question.explanation,
+        done,
+        score,
+        answered: attempt.answers.length,
+        xp: 0,
+      });
+    },
+  );
   app.get("/api/learn/lessons/:id", requireAuth, async (req, res) => {
     const lesson = await accessibleLesson(req, parse(idSchema, req.params.id));
     const preview = req.query.preview === "1";
@@ -592,13 +747,207 @@ export async function registerLearningRoutes(app: Express) {
           return lockedProgress(tx, req.session.userId!, lesson);
         });
     res.json({
-      ...lessonDto(lesson),
+      ...(await lessonDto(req, lesson)),
       completionPercent: progress?.completionPercent || 0,
       progress,
       preview,
-      canEdit:
-        lesson.createdBy === req.session.userId ||
-        req.session.userRole === "admin",
+      canEdit: req.session.userRole === "admin",
+    });
+  });
+  app.post("/api/learn/preview/:id/transfer", requireAuth, async (req, res) => {
+    parse(z.object({}).strict(), req.body);
+    const lessonId = parse(idSchema, req.params.id);
+    if ((await getCommerceSettings()).demoLessonId !== lessonId)
+      return fail(403, "Faqat namuna dars natijasini saqlash mumkin");
+    const lesson = await accessibleLesson(req, lessonId);
+    const user = await currentUser(req);
+    const completed = (req.session.demoAttempts || [])
+      .filter(
+        (attempt) =>
+          attempt.lessonId === lessonId &&
+          attempt.contentVersion === lesson.contentVersion &&
+          attempt.expiresAt > Date.now() &&
+          attempt.finishedAt &&
+          attempt.questions.length > 0 &&
+          attempt.answers.length === attempt.questions.length,
+      )
+      .map((attempt) => {
+        // Regrade server-owned question snapshots rather than accepting a client score.
+        const answers = attempt.questions.map((question) => {
+          const submitted = attempt.answers.find(
+            (answer) => answer.questionId === question.id,
+          );
+          return {
+            questionId: question.id,
+            answer: submitted?.answer || "",
+            correct:
+              Boolean(submitted) && gradeAnswer(question, submitted!.answer),
+          };
+        });
+        return {
+          ...attempt,
+          answers,
+          score: Math.round(
+            (answers.filter((answer) => answer.correct).length /
+              attempt.questions.length) *
+              100,
+          ),
+        };
+      });
+    const selected = (["practice", "vocabulary"] as const)
+      .map(
+        (kind) =>
+          completed
+            .filter((attempt) => attempt.kind === kind)
+            .sort((a, b) => b.score - a.score)[0],
+      )
+      .filter((attempt): attempt is NonNullable<typeof attempt> =>
+        Boolean(attempt),
+      );
+    const importId = `demo-transfer:${user.id}:${lesson.id}:${lesson.contentVersion}`;
+    const result = await db.transaction(async (tx) => {
+      await tx.select().from(users).where(eq(users.id, user.id)).for("update");
+      const [previous] = await tx
+        .select()
+        .from(learningEvents)
+        .where(eq(learningEvents.id, importId));
+      const progress = await lockedProgress(tx, user.id, lesson);
+      if (previous) return { imported: false, progress };
+      if (!selected.length)
+        return fail(
+          409,
+          "Saqlash uchun avval namuna darsdagi testni yakunlang",
+        );
+      for (const attempt of selected) {
+        const [best] = await tx
+          .select()
+          .from(lessonAttempts)
+          .where(
+            and(
+              eq(lessonAttempts.userId, user.id),
+              eq(lessonAttempts.lessonId, lesson.id),
+              eq(lessonAttempts.contentVersion, lesson.contentVersion),
+              eq(lessonAttempts.kind, attempt.kind),
+              isNotNull(lessonAttempts.finishedAt),
+            ),
+          )
+          .orderBy(desc(lessonAttempts.score))
+          .limit(1);
+        if (best && (best.score || 0) >= attempt.score) continue;
+        await tx.insert(lessonAttempts).values({
+          id: randomUUID(),
+          userId: user.id,
+          lessonId: lesson.id,
+          contentVersion: lesson.contentVersion,
+          kind: attempt.kind,
+          questions: attempt.questions,
+          answers: attempt.answers,
+          score: attempt.score,
+          finishedAt: new Date(attempt.finishedAt!),
+        });
+        for (const question of attempt.questions) {
+          if (!question.word) continue;
+          const word = question.word;
+          const correct =
+            attempt.answers.find((answer) => answer.questionId === question.id)
+              ?.correct || false;
+          const [saved] = await tx
+            .select()
+            .from(savedWords)
+            .where(
+              and(
+                eq(savedWords.userId, user.id),
+                eq(savedWords.lessonId, lesson.id),
+                eq(savedWords.normalized, word.normalized),
+              ),
+            )
+            .limit(1);
+          if (!saved) {
+            await addReview(tx, user.id, lesson.id, word, !correct);
+            await tx.insert(savedWords).values({
+              userId: user.id,
+              lessonId: lesson.id,
+              word: word.word,
+              normalized: word.normalized,
+              translationUz: word.meaning,
+              sourceSentence: word.sourceSentence,
+              subtitleTime: word.subtitleTime,
+              pronunciation: word.pronunciation,
+              partOfSpeech: word.partOfSpeech,
+            });
+          }
+        }
+      }
+      // The same exercise flow is retained after login; importing never awards XP.
+      const through = selected.some((attempt) => attempt.kind === "vocabulary")
+        ? STAGES.length
+        : STAGES.indexOf("practice") + 1;
+      const stages = [
+        ...new Set([
+          ...(progress.completedStages || []),
+          ...STAGES.slice(0, through),
+        ]),
+      ];
+      const vocabulary = selected.find(
+        (attempt) => attempt.kind === "vocabulary",
+      );
+      const [updated] = await tx
+        .update(lessonProgress)
+        .set({
+          completedStages: stages,
+          completionPercent: Math.max(
+            progress.completionPercent || 0,
+            Math.round((stages.length / STAGES.length) * 100),
+          ),
+          accuracy: Math.max(
+            progress.accuracy || 0,
+            ...selected.map((attempt) => attempt.score),
+          ),
+          completedQuizzes: Math.max(
+            progress.completedQuizzes || 0,
+            ...selected.map((attempt) => attempt.questions.length),
+          ),
+          learnedWords: Math.max(
+            progress.learnedWords || 0,
+            vocabulary?.answers.filter((answer) => answer.correct).length || 0,
+          ),
+          lastStudiedAt: new Date(),
+        })
+        .where(eq(lessonProgress.id, progress.id))
+        .returning();
+      await tx.insert(learningEvents).values({
+        id: importId,
+        userId: user.id,
+        lessonId: lesson.id,
+        type: "demo_transfer",
+        details: {
+          contentVersion: lesson.contentVersion,
+          importedKinds: selected.map((attempt) => attempt.kind),
+          xp: 0,
+        },
+      });
+      return { imported: true, progress: updated };
+    });
+    req.session.demoAttempts = (req.session.demoAttempts || []).filter(
+      (attempt) =>
+        attempt.lessonId !== lesson.id ||
+        attempt.contentVersion !== lesson.contentVersion,
+    );
+    res.json({
+      ...result,
+      practice: selected.find((attempt) => attempt.kind === "practice")
+        ? {
+            score: selected.find((attempt) => attempt.kind === "practice")!
+              .score,
+          }
+        : null,
+      vocabulary: selected.find((attempt) => attempt.kind === "vocabulary")
+        ? {
+            score: selected.find((attempt) => attempt.kind === "vocabulary")!
+              .score,
+          }
+        : null,
+      xp: 0,
     });
   });
   app.post("/api/learn/sessions", requireAuth, async (req, res) => {
@@ -835,17 +1184,7 @@ export async function registerLearningRoutes(app: Express) {
         )
         .for("update");
       if (!attempt) return fail(404, "Test topilmadi");
-      const source = await tx
-        .select()
-        .from(lessons)
-        .where(eq(lessons.id, attempt.lessonId));
-      const lesson =
-        source[0] &&
-        (publishedLesson(source[0]) ||
-          (source[0].createdBy === user.id || user.role === "admin"
-            ? source[0]
-            : undefined));
-      if (!lesson) return fail(404, "Dars mavjud emas");
+      const lesson = await accessibleLesson(req, attempt.lessonId, tx);
       if (lesson.contentVersion !== attempt.contentVersion)
         return fail(409, "Dars yangilangan. Testni qayta boshlang");
       const questions = attempt.questions as Question[];
@@ -1064,7 +1403,7 @@ export async function registerLearningRoutes(app: Express) {
       )
       .orderBy(wordReviews.dueAt)
       .limit(100);
-    res.json(cards);
+    res.json(await filterLessonItems(req, cards));
   });
   app.post("/api/learn/reviews/:id", requireAuth, async (req, res) => {
     const id = parse(idSchema, req.params.id);
@@ -1086,13 +1425,14 @@ export async function registerLearningRoutes(app: Express) {
         .where(
           and(eq(reviewAnswers.id, data.id), eq(reviewAnswers.userId, user.id)),
         );
-      if (previous) return { dueAt: previous.dueAt, duplicate: true };
       const [card] = await tx
         .select()
         .from(wordReviews)
         .where(and(eq(wordReviews.id, id), eq(wordReviews.userId, user.id)))
         .for("update");
       if (!card) return fail(404, "Karta topilmadi");
+      await accessibleLesson(req, card.lessonId, tx);
+      if (previous) return { dueAt: previous.dueAt, duplicate: true };
       if (card.dueAt.getTime() > Date.now())
         return fail(409, "Bu karta allaqachon takrorlangan");
       const scheduled = scheduleReview(card, data.rating);

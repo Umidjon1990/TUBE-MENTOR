@@ -12,20 +12,35 @@ import {
   Settings,
   LogOut,
   GraduationCap,
+  Receipt,
+  Package,
+  History,
+  LayoutDashboard,
+  MessageSquare,
 } from "lucide-react";
 import { Brand } from "@/components/learning-shell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import "@/admin-commerce.css";
 const nav = [
-  { href: "/admin", title: "Umumiy", Icon: ShieldCheck },
+  { href: "/admin", title: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/users", title: "Foydalanuvchilar", Icon: Users },
   { href: "/admin/lessons", title: "Darslar", Icon: BookOpen },
   { href: "/admin/moderation", title: "Kontent tekshiruvi", Icon: ShieldCheck },
   { href: "/admin/coins", title: "Coin boshqaruvi", Icon: Wallet },
+  { href: "/admin/payments", title: "To‘lovlar", Icon: Receipt },
+  { href: "/admin/support", title: "Murojaatlar", Icon: MessageSquare },
+  { href: "/admin/packages", title: "Coin paketlari", Icon: Package },
   { href: "/admin/categories", title: "Kategoriyalar", Icon: FolderTree },
-  { href: "/admin/collections", title: "Kurslar", Icon: BookOpen },
+  { href: "/admin/courses", title: "Mavzular", Icon: BookOpen },
   { href: "/admin/data", title: "Ma’lumotlar", Icon: Database },
   { href: "/admin/settings", title: "Sozlamalar", Icon: Settings },
+  {
+    href: "/admin/commerce-settings",
+    title: "To‘lov sozlamalari",
+    Icon: Settings,
+  },
+  { href: "/admin/audit", title: "Amallar tarixi", Icon: History },
 ];
 export default function AdminLayout({
   children,
@@ -44,9 +59,13 @@ export default function AdminLayout({
       <header className="app-header">
         <Brand />
         <div className="header-actions">
-          <Link className="role-link" href="/studio">
+          <Link
+            className="role-link"
+            href="/admin/lessons/new"
+            aria-label="Yangi dars yaratish"
+          >
             <GraduationCap size={18} />
-            Studiya
+            <span className="admin-create-label">Dars yaratish</span>
           </Link>
           <Button
             variant="outline"
@@ -65,11 +84,21 @@ export default function AdminLayout({
       >
         {nav.map(({ href, title, Icon }) => (
           <Link
-            className={location === href ? "nav-item active" : "nav-item"}
+            className={
+              location === href ||
+              (href !== "/admin" && location.startsWith(`${href}/`))
+                ? "nav-item active"
+                : "nav-item"
+            }
             key={href}
             href={href}
             onClick={() => setOpen(false)}
-            aria-current={location === href ? "page" : undefined}
+            aria-current={
+              location === href ||
+              (href !== "/admin" && location.startsWith(`${href}/`))
+                ? "page"
+                : undefined
+            }
           >
             <Icon size={20} />
             {title}

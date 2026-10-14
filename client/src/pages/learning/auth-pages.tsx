@@ -90,6 +90,9 @@ export function LandingPage() {
     queryKey: ["landing-catalog"],
     queryFn: () => request("GET", "/api/learn/catalog?language=ar"),
   });
+  const commerce = useQuery<{ demoLessonId: number | null; welcomeCoins: number }>({
+    queryKey: ["commerce-config"], queryFn: () => request("GET", "/api/commerce/config"),
+  });
   if (isLoading) return <Loading />;
   if (user)
     return (
@@ -97,15 +100,13 @@ export function LandingPage() {
         to={
           user.role === "admin"
             ? "/admin"
-            : user.role === "teacher"
-              ? "/studio"
-              : user.onboardingCompleted
+            : user.onboardingCompleted
                 ? "/today"
                 : "/onboarding"
         }
       />
     );
-  const sample = catalog.data?.lessons?.[0];
+  const sample = catalog.data?.lessons?.find((lesson: { id: number }) => lesson.id === commerce.data?.demoLessonId);
   return (
     <div className="landing-page">
       <header>
@@ -129,13 +130,13 @@ export function LandingPage() {
             video, lug‘at va amaliy mashqlar.
           </p>
           <Link className="primary-link" href="/register">
-            O‘rganishni boshlash <ArrowRight size={20} />
+            30 bonus coin bilan boshlash <ArrowRight size={20} />
           </Link>
           <Link
             className="outline-link"
-            href={sample ? `/learn/${sample.id}` : "/courses"}
+            href={commerce.data?.demoLessonId ? `/learn/${commerce.data.demoLessonId}` : "/courses"}
           >
-            Namunaviy dars <Play size={18} />
+            {commerce.data?.demoLessonId ? "Namuna dars" : "Darslarni ko‘rish"} <Play size={18} />
           </Link>
         </div>
         <div className="landing-preview">
@@ -219,9 +220,7 @@ export function LoginPage() {
         to={
           user.role === "admin"
             ? "/admin"
-            : user.role === "teacher"
-              ? "/studio"
-              : user.onboardingCompleted
+            : user.onboardingCompleted
                 ? "/today"
                 : "/onboarding"
         }

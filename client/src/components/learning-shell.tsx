@@ -10,10 +10,12 @@ import {
   LoaderCircle,
   GraduationCap,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { errorText } from "@/lib/learning-api";
+import { WalletBadge } from "@/components/commerce-wallet";
 
 export function Brand() {
   return (
@@ -31,6 +33,7 @@ const navigation = [
   { href: "/today", title: "Bugun", Icon: Home },
   { href: "/courses", title: "Darslar", Icon: BookOpen },
   { href: "/words", title: "Lug‘atim", Icon: Bookmark },
+  { href: "/wallet", title: "Coin", Icon: Wallet },
   { href: "/profile", title: "Profil", Icon: UserRound },
 ];
 export function LearningShell({
@@ -71,11 +74,7 @@ export function LearningShell({
               <ShieldCheck size={18} /> Admin
             </Link>
           )}
-          {user?.role === "teacher" && !studio && (
-            <Link href="/studio" className="role-link">
-              <GraduationCap size={18} /> Studiya
-            </Link>
-          )}
+          {user && user.role !== "admin" && <WalletBadge />}
           {!user ? (
             <Link href="/login" className="role-link">
               Kirish
@@ -108,6 +107,7 @@ export function LearningShell({
             <Home size={21} /> O‘quvchi ko‘rinishi
           </Link>
         )}
+        {!studio && user && <Link href="/support" className="quiet-link">Yordam va murojaatlar</Link>}
       </aside>
       <main id="main-content" className="learning-main">
         {title && (

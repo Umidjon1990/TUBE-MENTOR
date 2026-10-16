@@ -1,3 +1,4 @@
+import { alignmentProblems, fields } from "./content-validation";
 import type { Lesson } from "./schema";
 
 export const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
@@ -125,6 +126,12 @@ export interface Segment {
   words: LessonWord[];
   grammarNotes: string;
   sentenceType: string;
+  alignment: {
+    sourceStart: number;
+    sourceEnd: number;
+    targetStart: number;
+    targetEnd: number;
+  }[];
 }
 
 /** Canonical mapping for all learner views. Missing timestamps are never replaced by fake 8-second gaps. */
@@ -266,6 +273,7 @@ export function lessonSegments(
         words,
         grammarNotes: str(a.grammarNotes || s.grammarNotes),
         sentenceType: str(a.sentenceType),
+        alignment: Array.isArray(a.alignment) ? a.alignment : [],
       };
     });
 }
@@ -335,13 +343,10 @@ export interface Question {
 export type PublicQuestion = Omit<
   Question,
   "answer" | "alternatives" | "explanation" | "word"
-> & { word?: { normalized: string } };
+>;
 export function publicQuestion(q: Question): PublicQuestion {
   const { answer, alternatives, explanation, word, ...rest } = q;
-  return {
-    ...rest,
-    ...(word ? { word: { normalized: word.normalized } } : {}),
-  };
+  return rest;
 }
 export function buildQuestions(
   lesson: Lesson,
@@ -352,6 +357,7 @@ export function buildQuestions(
   const questions: Question[] = [];
   if (kind === "practice") {
     for (const [i, q] of array(lesson.quizzesJson).entries()) {
+      if (q.kind === "vocabulary") continue;
       if (
         !q.question ||
         !Array.isArray(q.options) ||
@@ -392,6 +398,24 @@ export function buildQuestions(
     }
     return questions.slice(0, 10);
   }
+  const curated = array(lesson.quizzesJson).filter(
+    (q) =>
+      q.kind === "vocabulary" &&
+      q.question &&
+      Array.isArray(q.options) &&
+      Number.isInteger(q.correctIndex) &&
+      q.options[q.correctIndex],
+  );
+  if (curated.length)
+    return curated.map((q, i) => ({
+      id: `vocabulary-quiz-${i}`,
+      type: "choice" as const,
+      prompt: str(q.question),
+      options: q.options.map(str),
+      answer: str(q.options[q.correctIndex]),
+      explanation: str(q.explanation),
+      word: words.find((w) => w.normalized === normalizeAnswer(str(q.word))),
+    }));
   for (const [i, word] of words.slice(0, 8).entries()) {
     if (i % 3 === 0) {
       const others = words
@@ -445,6 +469,11 @@ export function buildQuestions(
   return questions;
 }
 export function gradeAnswer(q: Question, answer: string) {
+  // Choice answers must preserve meaningful vowel marks (عَلَم / عِلْم).
+  if (q.type === "choice")
+    return (
+      answer.normalize("NFKC").trim() === q.answer.normalize("NFKC").trim()
+    );
   const value = normalizeAnswer(answer);
   return (
     Boolean(value) &&
@@ -506,5 +535,36 @@ export function publicationProblems(lesson: Lesson): string[] {
     errors.push("Dars lug‘ati va tarjimalari kerak");
   if (!buildQuestions(lesson, "practice").length)
     errors.push("Kamida bitta tekshiriladigan mashq kerak");
-  return errors;
+  const quizValidation = fields.quizzesJson.safeParse(lesson.quizzesJson || []);
+  if (!quizValidation.success)
+    errors.push("Test variantlari yoki javob kalitini tekshiring");
+  for (const segment of segments) {
+    if (
+      alignmentProblems(segment.text, segment.translation, segment.alignment)
+        .length
+    )
+      errors.push(`${segment.index + 1}-gapning rangli mosliklarini tuzating`);
+  }
+  return [...new Set(errors)];
+}
+
+export function shuffleQuestions(
+  questions: Question[],
+  random = Math.random,
+): Question[] {
+  const shuffle = <T>(items: T[]): T[] => {
+    const result = [...items];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  };
+  return shuffle(
+    questions.map((q) => ({
+      ...q,
+      ...(q.options ? { options: shuffle(q.options) } : {}),
+      ...(q.tokens ? { tokens: shuffle(q.tokens) } : {}),
+    })),
+  );
 }

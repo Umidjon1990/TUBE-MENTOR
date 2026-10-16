@@ -56,10 +56,10 @@ async function login(page: Page, role = "student") {
     .getByLabel("Parol", { exact: true })
     .fill(
       role === "admin"
-        ? "DemoAdmin2026!"
+        ? process.env.TUBE_DEMO_ADMIN_PASSWORD!
         : role === "teacher"
-          ? "DemoTeacher2026!"
-          : "DemoStudent2026!",
+          ? process.env.TUBE_DEMO_TEACHER_PASSWORD!
+          : process.env.TUBE_DEMO_STUDENT_PASSWORD!,
     );
   await page.getByRole("button", { name: "Kirish", exact: true }).click();
   await expect(page).toHaveURL(
@@ -109,6 +109,8 @@ test("public pages and authenticated learner pages fit 320, 390, 768 and 1280 pi
       await page.goto(path);
       await expect(page.locator("h1").first()).toBeVisible();
       await noOverflow(page);
+      if (width === 390 && path === "/") await page.screenshot({path: "test-results/landing-mobile.png", fullPage: true});
+      if (width === 1280 && path === "/") await page.screenshot({path: "test-results/landing-desktop.png", fullPage: true});
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
@@ -232,6 +234,7 @@ test("admin creates and edits a draft; learner cannot access content management"
     .getByRole("button", { name: "Dars yaratish", exact: true })
     .click();
   await expect(page).toHaveURL(/\/admin\/lessons\/\d+$/);
+  await page.getByRole("button", {name: "Matn", exact: true}).click();
   await page
     .getByLabel("Transkript")
     .fill(
@@ -244,7 +247,7 @@ test("admin creates and edits a draft; learner cannot access content management"
   await page.getByRole("button", { name: "Tekshiruv", exact: true }).click();
   await expect(page.locator(".validation-problems")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Tekshiruvga yuborish" }),
+    page.getByRole("button", { name: "Tekshirdim — nashr qilish" }),
   ).toBeDisabled();
   await noOverflow(page);
   await page.context().clearCookies();

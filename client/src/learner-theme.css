@@ -1,0 +1,1800 @@
+/* Public and learner theme only. Admin keeps its existing appearance. */
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-app,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).learning-app,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .auth-page,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).auth-page,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-page,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).landing-page {
+  --primary: 263 83% 58%;
+  --ring: 263 83% 58%;
+  color: #251441;
+  background: #f5f3f8;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .brand,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).brand {
+  color: #251441;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .brand
+  strong,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page).brand
+  strong {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .brand-mark,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).brand-mark {
+  background: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .app-header,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).app-header {
+  border-bottom: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .role-link,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).role-link {
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .user-avatar,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).user-avatar,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .profile-avatar,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).profile-avatar {
+  background: #e6dcf6;
+  color: #340e70;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-main
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-main
+  small {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-panel,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).learning-panel {
+  border: 1px solid #e2dceb;
+  box-shadow: 0 3px 12px #25144104;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-bottom-nav,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).learning-bottom-nav {
+  border-top: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-bottom-nav
+  a,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-bottom-nav
+  a {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-bottom-nav
+  .active,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-bottom-nav
+  .active {
+  color: #340e71;
+  background: #f1ebfa;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .primary-link,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).primary-link {
+  background: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .outline-link,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).outline-link,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .google-button,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).google-button {
+  color: #251441;
+  border: 1px solid #d1c6e3;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .quiet-link,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).quiet-link {
+  color: #360f75;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .icon-action,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).icon-action {
+  border: 1px solid #e2dceb;
+  color: #2e1556;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .icon-action:hover,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).icon-action:hover,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .outline-link:hover,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).outline-link:hover {
+  background: #f1edf9;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .loading-state,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).loading-state {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .empty-state
+  > svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).empty-state
+  > svg {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .empty-state
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).empty-state
+  p,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .error-state
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).error-state
+  p {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .meter,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).meter {
+  background: #e7e2ef;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .meter
+  > span,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page).meter
+  > span {
+  background: #48139d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .level-pill,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).level-pill {
+  background: #e8e0f6;
+  color: #360f75;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .muted,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).muted {
+  color: #655480;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .eyebrow,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).eyebrow {
+  color: #553c7e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .welcome-heading
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).welcome-heading
+  p {
+  color: #655480;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .goal-card,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).goal-card {
+  background: #ebe4f7;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .review-teaser
+  > svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).review-teaser
+  > svg {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .next-row,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).next-row {
+  border: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-cover,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).course-cover {
+  background: #e7def4;
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-row,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).lesson-row {
+  border: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-row
+  > svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-row
+  > svg {
+  color: #5c4580;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .search-field,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).search-field {
+  border: 1px solid #dcd4e8;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .choice,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).choice {
+  border: 1px solid #dcd4e8;
+  color: #453164;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .choice.selected,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).choice.selected {
+  background: #e8dff6;
+  border-color: #42128f;
+  color: #310d6b;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .compact-select
+  select,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).compact-select
+  select {
+  border: 1px solid #dcd4e8;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-card,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).course-card {
+  border: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-card
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).course-card
+  p {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-intro
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).course-intro
+  p {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-lesson,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).course-lesson {
+  border: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-lesson.current,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).course-lesson.current {
+  background: #ece5f8;
+  border-color: #cab9e5;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-number,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).lesson-number {
+  border: 1px solid #c5b5e0;
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .review-banner,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).review-banner {
+  background: #ebe4f7;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .context-sentence,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).context-sentence {
+  background: #f3f0f8;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .review-ratings
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).review-ratings
+  button {
+  border: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .review-ratings
+  .medium,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).review-ratings
+  .medium {
+  background: #f1edf8;
+  color: #351b5e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .review-ratings
+  .easy,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).review-ratings
+  .easy {
+  background: #e3d6f7;
+  color: #340e70;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .stat-grid
+  svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).stat-grid
+  svg {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .stat-grid
+  span,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).stat-grid
+  span {
+  color: #655480;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .week-bar,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).week-bar {
+  background: #4a14a2;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .bar-value,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).bar-value {
+  color: #5f4c7d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  input,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  input,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  select,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  select,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  textarea,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  textarea {
+  border: 1px solid #d1c7e1;
+  color: #251441;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  input:focus,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  input:focus,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  select:focus,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  select:focus,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .field-label
+  textarea:focus,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).field-label
+  textarea:focus {
+  outline: 2px solid #3e1186;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .password-field
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).password-field
+  button {
+  color: #5b457f;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .form-link,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).form-link {
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .auth-switch
+  a,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).auth-switch
+  a {
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .form-divider,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).form-divider {
+  color: #6c5a8a;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .check-label
+  input,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).check-label
+  input {
+  accent-color: #360f75;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .notice,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).notice {
+  background: #ede7f7;
+  color: #412a65;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .success-text,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).success-text {
+  color: #340e70;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .confirmation
+  > svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).confirmation
+  > svg {
+  color: #451396;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .text-action,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).text-action {
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-copy
+  h1
+  em,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-copy
+  h1
+  em {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-copy
+  > p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-copy
+  > p {
+  color: #645380;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-preview,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).landing-preview {
+  border: 1px solid #d8cfe7;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .preview-head,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).preview-head {
+  color: #5f4a81;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-preview
+  > p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-preview
+  > p {
+  color: #61507d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .feature-grid,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).feature-grid {
+  background: #f1edf9;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .feature-grid
+  svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).feature-grid
+  svg {
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .feature-grid
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).feature-grid
+  small {
+  color: #634e85;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-benefits
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-benefits
+  p {
+  color: #645182;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-page
+  footer,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-page
+  footer {
+  color: #614c82;
+  border-top: 1px solid #dfd8eb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-app
+  :focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-app
+  :focus-visible,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .auth-page
+  :focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).auth-page
+  :focus-visible,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .landing-page
+  :focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).landing-page
+  :focus-visible {
+  outline: 3px solid #3a107e;
+}
+@media (min-width: 1100px) {
+  :is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+    .learning-sidebar,
+  :is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-sidebar {
+    border-right: 1px solid #e2dceb;
+  }
+}
+@media (min-width: 1100px) {
+  :is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+    .learning-sidebar
+    > p,
+  :is(
+      .learning-app:not(.admin-learning-content),
+      .auth-page,
+      .landing-page
+    ).learning-sidebar
+    > p {
+    color: #6d5a8c;
+  }
+}
+@media (min-width: 1100px) {
+  :is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+    .nav-item,
+  :is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).nav-item {
+    color: #564177;
+  }
+}
+@media (min-width: 1100px) {
+  :is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+    .nav-item.active,
+  :is(
+      .learning-app:not(.admin-learning-content),
+      .auth-page,
+      .landing-page
+    ).nav-item.active {
+    color: #340e72;
+    background: #eee7f8;
+  }
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-stages
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-stages
+  button,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .editor-tabs
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).editor-tabs
+  button {
+  border: 1px solid #dfd8e9;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-stages
+  button
+  span,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-stages
+  button
+  span {
+  background: #eeebf4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-stages
+  .active,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-stages
+  .active,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .editor-tabs
+  .active,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).editor-tabs
+  .active {
+  background: #e1d6f2;
+  border-color: #7f52c7;
+  color: #290b5a;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-stages
+  .done
+  span,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-stages
+  .done
+  span {
+  background: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-video,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).learning-video {
+  border: 1px solid #e1dcea;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .video-frame,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).video-frame {
+  background: #1e142d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .speed-select
+  select,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).speed-select
+  select {
+  border: 1px solid #dfd8e9;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .sentence-panel,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).sentence-panel {
+  border-top: 3px solid #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .sentence-word,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).sentence-word {
+  border-bottom: 2px dotted #a287ce;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .sentence-word:hover,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).sentence-word:hover,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .sentence-word:focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).sentence-word:focus-visible {
+  background: #e8e0f5;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .sentence-translation,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).sentence-translation {
+  color: #51406d;
+  border-top: 1px solid #e5e1ec;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .grammar-notes,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).grammar-notes {
+  border-top: 1px solid #e2ddeb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-vocabulary
+  > button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-vocabulary
+  > button,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-vocabulary
+  > div,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-vocabulary
+  > div {
+  border-bottom: 1px solid #efecf3;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-vocabulary
+  span:last-child,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-vocabulary
+  span:last-child {
+  color: #56476f;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .word-dialog,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).word-dialog {
+  color: #251441;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .exercise-type,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).exercise-type {
+  color: #6b5a86;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .answer-choices
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).answer-choices
+  button {
+  border: 1px solid #d9d3e4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .answer-choices
+  button
+  > span:first-child,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).answer-choices
+  button
+  > span:first-child {
+  background: #eeebf4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .answer-choices
+  button.selected,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).answer-choices
+  button.selected {
+  background: #e9e1f5;
+  border-color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .token-answer,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).token-answer {
+  background: #f5f3f8;
+  border: 1px dashed #c0b3d4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .token-pool
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).token-pool
+  button,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .token-answer
+  button,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).token-answer
+  button {
+  border: 1px solid #d1c8e0;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .answer-feedback.correct,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).answer-feedback.correct {
+  background: #e7ddf6;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .result-hero
+  svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).result-hero
+  svg {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .score-number,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).score-number {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .result-error,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).result-error {
+  border-bottom: 1px solid #e5e0ec;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .studio-card
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).studio-card
+  p {
+  color: #695884;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .status-pill,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).status-pill {
+  background: #eeebf3;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .status-pill.published,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).status-pill.published {
+  background: #e2d8f3;
+  color: #320e6d;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .learning-app
+  textarea,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).learning-app
+  textarea,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .word-dialog
+  textarea,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).word-dialog
+  textarea {
+  border: 1px solid #d8d1e3;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .content-preview-row,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).content-preview-row {
+  border-bottom: 1px solid #e6e1ed;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .course-editor-row,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).course-editor-row {
+  border-bottom: 1px solid #e6e1ed;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .legacy-tools
+  .glass-card,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).legacy-tools
+  .glass-card {
+  border: 1px solid #e1dcea;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .admin-sidebar,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).admin-sidebar {
+  border-right: 1px solid #e1dcea;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .legacy-visible-video,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).legacy-visible-video {
+  background: #1e1230;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .telegram-button:focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).telegram-button:focus-visible,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .google-button:focus-visible,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).google-button:focus-visible {
+  outline: 3px solid #8f6dc7;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .linked-accounts
+  .linked-account-row,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).linked-accounts
+  .linked-account-row {
+  border-top: 1px solid #e2dceb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .linked-account-row
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).linked-account-row
+  small {
+  color: #665484;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-access.demo,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-access.demo,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-access.owned,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-access.owned,
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-access.admin,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-access.admin {
+  color: #310d6a;
+  background: #e7def6;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .wallet-summary,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).wallet-summary {
+  background: #eae3f5;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .wallet-summary
+  p,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).wallet-summary
+  p {
+  color: #5d4781;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .wallet-balance,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).wallet-balance {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .coin-package,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).coin-package {
+  border: 1px solid #e0d9eb;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .coin-package
+  strong,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).coin-package
+  strong {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .coin-package
+  .package-price,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).coin-package
+  .package-price {
+  color: #251441;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-success,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).commerce-success {
+  background: #eae2f7;
+  color: #340e72;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-details
+  > div,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).commerce-details
+  > div {
+  border-bottom: 1px solid #eeebf4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-details
+  dt,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).commerce-details
+  dt {
+  color: #665385;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-history-row,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).commerce-history-row {
+  border-bottom: 1px solid #e6e1ef;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-history-row
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).commerce-history-row
+  small {
+  color: #695688;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .commerce-history-row
+  .coin-delta,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).commerce-history-row
+  .coin-delta {
+  color: #380f79;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .order-status,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).order-status {
+  background: #f1edf6;
+  color: #503b71;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .order-status.approved,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).order-status.approved {
+  background: #e4d9f6;
+  color: #360f76;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .support-form
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).support-form
+  small {
+  color: #675386;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .support-message,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).support-message {
+  background: #f3f1f7;
+  border: 1px solid #e4dfed;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .support-message.admin,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).support-message.admin {
+  background: #ede7f7;
+  border-color: #d5c7ec;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .support-message
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).support-message
+  small {
+  color: #675386;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .receipt-form
+  input[type="file"],
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).receipt-form
+  input[type="file"] {
+  border: 1px solid #d9d0e7;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .receipt-card,
+:is(
+  .learning-app:not(.admin-learning-content),
+  .auth-page,
+  .landing-page
+).receipt-card {
+  border: 1px solid #e4deee;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .receipt-card
+  small,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).receipt-card
+  small {
+  color: #6b568c;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-paywall
+  > svg,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-paywall
+  > svg {
+  color: #3a107e;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  .lesson-paywall
+  .purchase-confirm,
+:is(
+    .learning-app:not(.admin-learning-content),
+    .auth-page,
+    .landing-page
+  ).lesson-paywall
+  .purchase-confirm {
+  border-top: 1px solid #e2dcec;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page) {
+  --primary: 263 83% 58%;
+  --ring: 263 83% 58%;
+  --accent: 263 80% 96%;
+  --foreground: 264 30% 15%;
+  --muted-foreground: 264 14% 43%;
+  background:
+    radial-gradient(ellipse at top right, #eee5ff 0, transparent 42%), #faf8ff;
+  color: #211735;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  :is(.primary-link, button.bg-primary) {
+  background: linear-gradient(145deg, #9656ff, #7025db);
+  color: white;
+  box-shadow:
+    0 4px 0 #5420a4,
+    0 9px 20px #7c3aed26;
+  border: 1px solid #a56cff;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  :is(.primary-link, button.bg-primary):active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #5420a4;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  :is(.panel, .lesson-card, .course-card, .landing-preview, .auth-card) {
+  border-radius: 24px;
+  border-color: #e8def5;
+  box-shadow: 0 7px 26px #38205c08;
+}
+:is(.learning-app:not(.admin-learning-content), .auth-page, .landing-page)
+  :is(.brand-mark, .feature-grid svg, .wallet-summary > svg) {
+  color: white;
+  background: linear-gradient(145deg, #b78aff, #7227df);
+  border-radius: 12px;
+  padding: 7px;
+  box-sizing: content-box;
+  box-shadow:
+    inset 1px 2px 2px #ffffff77,
+    0 4px 0 #56209f,
+    0 8px 12px #7c3aed22;
+}
+.landing-page .landing-copy h1 {
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  color: #1d102f;
+}
+.landing-page .landing-copy h1 em {
+  color: #7c3aed;
+}
+.landing-page .landing-preview {
+  background: linear-gradient(145deg, #fff, #f0e8ff);
+}
+.hero-art {
+  width: 100%;
+  height: auto;
+  max-height: 245px;
+  object-fit: contain;
+  border-radius: 18px;
+  margin-bottom: 20px;
+}
+.learning-app:not(.admin-learning-content) .bottom-nav {
+  background: #fffc;
+  backdrop-filter: blur(12px);
+  border-top-color: #e8def5;
+}
+.aligned-part {
+  display: inline;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 5px;
+  padding: 2px 3px;
+  margin: 0 1px;
+  font: inherit;
+  cursor: pointer;
+}
+.aligned-part.is-selected {
+  border-bottom-color: currentColor;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.tone-0 {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+.tone-1 {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+.tone-2 {
+  color: #9d174d;
+  background: #fce7f3;
+}
+.tone-3 {
+  color: #854d0e;
+  background: #fef9c3;
+}
+.tone-4 {
+  color: #115e59;
+  background: #ccfbf1;
+}
+.tone-5 {
+  color: #9a3412;
+  background: #ffedd5;
+}
+.aligned-subtitles .sentence-translation {
+  line-height: 2;
+}
+.purchase-celebration {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  top: 24%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.purchase-celebration strong {
+  display: block;
+  white-space: nowrap;
+  padding: 18px 28px;
+  border-radius: 22px;
+  color: white;
+  background: linear-gradient(135deg, #9450fa, #6420c9);
+  box-shadow: 0 12px 45px #5922a54d;
+  font-size: 24px;
+}
+.purchase-celebration i {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 9px;
+  height: 14px;
+  border-radius: 3px;
+  animation: coin-confetti 1.6s ease-out forwards;
+}
+@keyframes coin-confetti {
+  to {
+    transform: translate(var(--x), 55vh) rotate(var(--r));
+    opacity: 0;
+  }
+}
+.package-preview {
+  padding: 18px;
+  margin-block: 16px;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .hero-art {
+    max-height: 190px;
+  }
+  .aligned-part {
+    padding: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .purchase-celebration i {
+    display: none;
+  }
+  :is(.learning-app, .auth-page, .landing-page) *,
+  :is(.learning-app, .auth-page, .landing-page) *::before,
+  :is(.learning-app, .auth-page, .landing-page) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.study-welcome {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(120deg, #fff, #f0e7ff);
+  border: 1px solid #e8def5;
+}
+.study-welcome h2 {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  margin: 12px 0;
+}
+.study-welcome p {
+  color: #766486;
+}
+.study-welcome img {
+  width: 32%;
+  height: auto;
+  border-radius: 20px;
+}
+.study-welcome > div {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 500px) {
+  .study-welcome {
+    padding: 18px;
+    gap: 10px;
+  }
+  .study-welcome img {
+    width: 27%;
+  }
+  .study-welcome h2 {
+    font-size: 22px;
+  }
+  .study-welcome p {
+    font-size: 13px;
+  }
+}

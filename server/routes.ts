@@ -36,7 +36,11 @@ import {
   transcribeWithWhisper,
 } from "./services/whisper";
 import fs from "fs";
-import { contentSchema, validateField } from "@shared/content-validation";
+import {
+  contentSchema,
+  validateField,
+  lessonPackageSchema,
+} from "@shared/content-validation";
 import {
   publishedLesson,
   publicationProblems,
@@ -482,14 +486,14 @@ export async function registerRoutes(
       res.json({
         status: "ok",
         name: "Tube Mentor AI",
-        version: "2.1.0",
+        version: "2.2.0",
         database: "connected",
       });
     } catch {
       res.status(503).json({
         status: "error",
         name: "Tube Mentor AI",
-        version: "2.1.0",
+        version: "2.2.0",
         database: "disconnected",
       });
     }
@@ -1702,6 +1706,58 @@ export async function registerRoutes(
       }
     },
   );
+
+  app.post("/api/admin/lesson-package", requireAdmin, async (req, res) => {
+    const parsed = lessonPackageSchema.safeParse(req.body.package);
+    if (!parsed.success)
+      return res
+        .status(400)
+        .json({
+          message: parsed.error.issues.map((i) => i.message).join("; "),
+          issues: parsed.error.issues,
+        });
+    const { metadata, content } = parsed.data;
+    const values = {
+      ...metadata,
+      status: "draft",
+      summaryShort: content.summaryShort,
+      summaryDetailed: content.summaryDetailed,
+      subtitlesJson: content.subtitles,
+      sentenceAnalysisJson: content.sentenceAnalysis,
+      vocabularyJson: content.vocabulary,
+      quizzesJson: content.quizzes,
+      flashcardsJson: content.flashcards || [],
+      phrasesJson: content.phrases || [],
+      transcript: content.subtitles.map((s: any) => s.text).join("\n"),
+      transcriptSource: "manual-json",
+      thumbnailUrl: `https://img.youtube.com/vi/${new URL(metadata.youtubeUrl).searchParams.get("v") || new URL(metadata.youtubeUrl).pathname.split("/").pop()}/hqdefault.jpg`,
+      aiMetaJson: {
+        provider: "manual-import",
+        schemaVersion: 1,
+        importedAt: new Date().toISOString(),
+      },
+    };
+    if (req.body.lessonId !== undefined) {
+      const id = z.number().int().positive().parse(req.body.lessonId);
+      const lesson = await storage.getLessonById(id);
+      if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
+      if (req.body.contentVersion !== lesson.contentVersion)
+        return res
+          .status(409)
+          .json({ message: "Dars yangilangan. Sahifani yangilang" });
+      return res.json({
+        lesson: await storage.updateLesson(id, values, req.body.contentVersion),
+      });
+    }
+    res
+      .status(201)
+      .json({
+        lesson: await storage.createLesson({
+          ...values,
+          createdBy: req.session.userId,
+        }),
+      });
+  });
 
   // ─── Manual JSON Import (ChatGPT natijasini import qilish) ───
   app.post(

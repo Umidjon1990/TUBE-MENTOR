@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { randomBytes } from "node:crypto";
+// Random per-run demo credentials are shared only with workers and the local server.
+for (const role of ["ADMIN", "TEACHER", "STUDENT"]) {
+  process.env[`TUBE_DEMO_${role}_PASSWORD`] ||= randomBytes(32).toString("hex");
+}
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -32,6 +37,9 @@ export default defineConfig({
       PORT: "5010",
       DEMO_DB_PORT: "55433",
       DEMO_EPHEMERAL: "true",
+      TUBE_DEMO_ADMIN_PASSWORD: process.env.TUBE_DEMO_ADMIN_PASSWORD!,
+      TUBE_DEMO_TEACHER_PASSWORD: process.env.TUBE_DEMO_TEACHER_PASSWORD!,
+      TUBE_DEMO_STUDENT_PASSWORD: process.env.TUBE_DEMO_STUDENT_PASSWORD!,
       APP_URL: "http://127.0.0.1:5010",
       ALLOW_SIGNUP: "false",
       RESEND_API_KEY: "",

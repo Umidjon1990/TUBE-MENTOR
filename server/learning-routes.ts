@@ -32,6 +32,7 @@ import {
 } from "@shared/schema";
 import {
   buildQuestions,
+  shuffleQuestions,
   CEFR_LEVELS,
   cefrLevel,
   gradeAnswer,
@@ -642,7 +643,9 @@ export async function registerLearningRoutes(app: Express) {
           !attempt.finishedAt,
       );
       if (!attempt) {
-        const questions = buildQuestions(lesson, kind).slice(0, 100);
+        const questions = shuffleQuestions(
+          buildQuestions(lesson, kind).slice(0, 100),
+        );
         if (!questions.length)
           return fail(409, "Bu dars uchun mashqlar hali tayyor emas");
         attempt = {
@@ -1142,7 +1145,7 @@ export async function registerLearningRoutes(app: Express) {
         )
         .limit(1);
       if (existing) return existing;
-      const questions = buildQuestions(lesson, kind);
+      const questions = shuffleQuestions(buildQuestions(lesson, kind));
       if (!questions.length)
         return fail(409, "Bu dars uchun mashqlar hali tayyor emas");
       const [created] = await tx
@@ -1527,12 +1530,23 @@ export async function registerLearningRoutes(app: Express) {
       if (problems.length)
         return res.status(400).json({ message: problems.join(". "), problems });
       const { contentVersion, ...checks } = data;
-      const updated = await storage.updateLesson(lesson.id, {
-        contentChecks: checks,
-        status: "pending",
-        moderationNote:
-          "O‘qituvchi matn, tarjima, vaqtlar va mashqlarni tekshirdi.",
-      });
+      const updated = await storage.updateLesson(
+        lesson.id,
+        {
+          contentChecks: checks,
+          status: req.session.userRole === "admin" ? "published" : "pending",
+          ...(req.session.userRole === "admin"
+            ? {
+                publishedAt: new Date(),
+                publishedBy: req.session.userId,
+                approvedAt: new Date(),
+                approvedBy: req.session.userId,
+              }
+            : {}),
+          moderationNote: "Matn, tarjima, vaqtlar va mashqlar tekshirildi.",
+        },
+        contentVersion,
+      );
       res.json(updated);
     },
   );

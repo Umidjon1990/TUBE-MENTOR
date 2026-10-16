@@ -1,10 +1,11 @@
+import { randomInt } from "node:crypto";
 import { test, expect, type Page, type APIRequestContext } from "@playwright/test";
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jhN8AAAAASUVORK5CYII=", "base64");
 async function apiLogin(request: APIRequestContext, username: string, password: string) {
   const response = await request.post("/api/auth/login", { data: { username, password } });
   expect(response.status()).toBe(200);
 }
-async function login(page: Page, username = "demo_other", password = "DemoStudent2026!") {
+async function login(page: Page, username = "demo_other", password = process.env.TUBE_DEMO_STUDENT_PASSWORD!) {
   await page.goto("/login");
   await page.getByLabel("Email yoki foydalanuvchi nomi").fill(username);
   await page.getByLabel("Parol", { exact: true }).fill(password);
@@ -33,7 +34,7 @@ async function noOverflow(page: Page) {
 test("welcome coins open a lesson once and receipt approval adds the purchased package", async ({ page, playwright, browser }) => {
   test.setTimeout(180000);
   const admin = await playwright.request.newContext({ baseURL: "http://127.0.0.1:5010" });
-  await apiLogin(admin, "demo_admin", "DemoAdmin2026!");
+  await apiLogin(admin, "demo_admin", process.env.TUBE_DEMO_ADMIN_PASSWORD!);
   const catalog = await (await page.request.get("/api/learn/catalog")).json();
   const demo = catalog.lessons.find((l: any) => l.access === "demo");
   const paid = catalog.lessons.find((l: any) => l.access === "locked");
@@ -42,7 +43,7 @@ test("welcome coins open a lesson once and receipt approval adds the purchased p
   const newPackage = await admin.post("/api/admin/commerce/packages", { data: { name: "Browser sinov paketi", coins: 100, priceUzs: 100000, isActive: true } });
   expect(newPackage.status()).toBe(201);
   const settings = await admin.put("/api/admin/commerce/settings", { data: {
-    demoLessonId: demo.id, paymentsEnabled: true, recipientName: "Mahalliy sinov", cardNumber: "8600123456789012",
+    demoLessonId: demo.id, paymentsEnabled: true, recipientName: "Mahalliy sinov", cardNumber: `0000${randomInt(0, 1_000_000_000_000).toString().padStart(12, "0")}`,
     paymeUrl: "", paymentInstructions: "Haqiqiy pul yubormang: bu mahalliy test.", reviewHours: "09:00–18:00",
   } });
   expect(settings.status()).toBe(200);
@@ -80,7 +81,7 @@ test("welcome coins open a lesson once and receipt approval adds the purchased p
   await noOverflow(page);
   await page.screenshot({ path: "test-results/payment-order-mobile.png", fullPage: true });
   const adminContext = await browser.newContext({ baseURL: "http://127.0.0.1:5010", viewport: { width: 390, height: 844 } });
-  await apiLogin(adminContext.request, "demo_admin", "DemoAdmin2026!");
+  await apiLogin(adminContext.request, "demo_admin", process.env.TUBE_DEMO_ADMIN_PASSWORD!);
   const adminPage = await adminContext.newPage();
   await adminPage.goto(`/admin/payments/${orderId}`);
   await adminPage.getByRole("button", { name: "Tasdiqlash", exact: true }).click();
@@ -116,7 +117,7 @@ test("welcome coins open a lesson once and receipt approval adds the purchased p
   await adminPage.getByLabel("Javob matni", { exact: true }).fill(adminReply);
   await adminPage.getByLabel("Javobdan keyingi holat", { exact: true }).selectOption("answered");
   await adminPage.getByRole("button", { name: "Javobni saqlash", exact: true }).click();
-  await expect(adminPage.getByText(adminReply, { exact: true })).toBeVisible();
+  await expect(adminPage.getByRole("article").getByText(adminReply, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Javoblarni yangilash", exact: true }).click();
   await expect(page.getByText(adminReply, { exact: true })).toBeVisible();
   await page.getByLabel("Javobingiz", { exact: true }).fill("Rahmat, javobingizni kutaman.");

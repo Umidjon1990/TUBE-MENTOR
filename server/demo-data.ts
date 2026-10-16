@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import {
   users,
@@ -26,7 +27,7 @@ export async function seedDemo() {
       {
         username: "demo_admin",
         fullName: "Demo Administrator",
-        passwordHash: hashPassword("DemoAdmin2026!"),
+        passwordHash: hashPassword(process.env.TUBE_DEMO_ADMIN_PASSWORD || randomBytes(32).toString("hex")),
         role: "admin",
         onboardingCompleted: true,
         coins: 0,
@@ -34,7 +35,7 @@ export async function seedDemo() {
       {
         username: "demo_teacher",
         fullName: "Demo O‘qituvchi",
-        passwordHash: hashPassword("DemoTeacher2026!"),
+        passwordHash: hashPassword(process.env.TUBE_DEMO_TEACHER_PASSWORD || randomBytes(32).toString("hex")),
         role: "teacher",
         onboardingCompleted: true,
         coins: 0,
@@ -42,14 +43,14 @@ export async function seedDemo() {
       {
         username: "demo_student",
         fullName: "Demo O‘quvchi",
-        passwordHash: hashPassword("DemoStudent2026!"),
+        passwordHash: hashPassword(process.env.TUBE_DEMO_STUDENT_PASSWORD || randomBytes(32).toString("hex")),
         role: "student",
         onboardingCompleted: true,
       },
       {
         username: "demo_other",
         fullName: "Boshqa O‘quvchi",
-        passwordHash: hashPassword("DemoStudent2026!"),
+        passwordHash: hashPassword(process.env.TUBE_DEMO_STUDENT_PASSWORD || randomBytes(32).toString("hex")),
         role: "student",
         onboardingCompleted: true,
       },

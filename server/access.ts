@@ -7,7 +7,11 @@ import {
 } from "@shared/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { cefrLevel, publishedLesson } from "@shared/learning";
-import { LESSON_COST } from "@shared/commerce";
+import {
+  LESSON_COST,
+  lessonPrice,
+  type CommerceSettings,
+} from "@shared/commerce";
 import { getCommerceSettings } from "./commerce";
 import { storage } from "./storage";
 import { db } from "./db";
@@ -17,7 +21,11 @@ export type LessonAccess = "demo" | "owned" | "locked" | "admin";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 const requestAccess = new WeakMap<
   Request,
-  Promise<{ demoLessonId: number | null; owned: Set<number> }>
+  Promise<{
+    demoLessonId: number | null;
+    owned: Set<number>;
+    settings: CommerceSettings;
+  }>
 >();
 function accessContext(req: Request) {
   let context = requestAccess.get(req);
@@ -36,6 +44,7 @@ function accessContext(req: Request) {
             )
         : Promise.resolve([]),
     ]).then(([settings, owned]) => ({
+      settings,
       demoLessonId: settings.demoLessonId,
       owned: new Set(owned.map((grant) => grant.lessonId)),
     }));
@@ -49,6 +58,7 @@ export function lessonCard(
   lesson: Lesson,
   access: LessonAccess,
   completion = 0,
+  price = LESSON_COST,
 ) {
   return {
     id: lesson.id,
@@ -62,7 +72,7 @@ export function lessonCard(
     isFeatured: lesson.isFeatured,
     completionPercent: completion,
     access,
-    priceCoins: access === "demo" ? 0 : LESSON_COST,
+    priceCoins: access === "demo" ? 0 : price,
   };
 }
 
@@ -112,7 +122,13 @@ export async function catalogCard(
   lesson: Lesson,
   completion = 0,
 ) {
-  return lessonCard(lesson, await lessonAccess(req, lesson), completion);
+  const { settings } = await accessContext(req);
+  return lessonCard(
+    lesson,
+    await lessonAccess(req, lesson),
+    completion,
+    lessonPrice(settings, lesson.id),
+  );
 }
 
 /** All content routes use the same entitlement check, including legacy routes. */
@@ -158,6 +174,7 @@ export async function accessibleLesson(
     return source.status === "archived"
       ? { ...published, status: "archived" }
       : published;
+  const price = lessonPrice(await getCommerceSettings(tx), id);
   throw Object.assign(
     new Error(
       req.session.userId
@@ -168,8 +185,8 @@ export async function accessibleLesson(
       status: req.session.userId ? 402 : 401,
       code: req.session.userId ? "LESSON_LOCKED" : "LOGIN_REQUIRED",
       lessonId: id,
-      priceCoins: LESSON_COST,
-      lesson: lessonCard(published, "locked"),
+      priceCoins: price,
+      lesson: lessonCard(published, "locked", 0, price),
     },
   );
 }

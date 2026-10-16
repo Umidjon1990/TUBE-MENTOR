@@ -67,7 +67,7 @@ test("profile account linking starts through an authenticated POST and preserves
   );
   await page.goto("/login");
   await page.getByLabel("Email yoki foydalanuvchi nomi").fill("demo_student");
-  await page.getByLabel("Parol", { exact: true }).fill("DemoStudent2026!");
+  await page.getByLabel("Parol", { exact: true }).fill(process.env.TUBE_DEMO_STUDENT_PASSWORD!);
   await page.getByRole("button", { name: "Kirish", exact: true }).click();
   await expect(page).toHaveURL(/\/today$/);
   await page.goto("/profile");

@@ -15,6 +15,9 @@ export const ORDER_STATUSES = [
 ] as const;
 export type PaymentOrderStatus = (typeof ORDER_STATUSES)[number];
 export interface CommerceSettings {
+  welcomeCoins: number;
+  lessonCost: number;
+  lessonPrices: Record<string, number>;
   demoLessonId: number | null;
   paymentsEnabled: boolean;
   recipientName: string;
@@ -24,6 +27,9 @@ export interface CommerceSettings {
   reviewHours: string;
 }
 export const DEFAULT_COMMERCE_SETTINGS: CommerceSettings = {
+  welcomeCoins: WELCOME_COINS,
+  lessonCost: LESSON_COST,
+  lessonPrices: {},
   demoLessonId: null,
   paymentsEnabled: false,
   recipientName: "",
@@ -58,7 +64,14 @@ export interface PaymentOrderDTO {
   createdAt: string;
   expiresAt: string;
   refundedCoins: number;
-  instructions: Omit<CommerceSettings, "demoLessonId" | "paymentsEnabled">;
+  instructions: Pick<
+    CommerceSettings,
+    | "recipientName"
+    | "cardNumber"
+    | "paymeUrl"
+    | "paymentInstructions"
+    | "reviewHours"
+  >;
   receipts: PaymentReceiptDTO[];
   userId?: string;
   fullName?: string;
@@ -114,4 +127,11 @@ export interface SupportMessageDTO {
 export interface SupportThreadDTO {
   ticket: SupportTicketDTO;
   messages: SupportMessageDTO[];
+}
+
+export function lessonPrice(
+  settings: Pick<CommerceSettings, "lessonCost" | "lessonPrices">,
+  id: number,
+) {
+  return settings.lessonPrices[String(id)] ?? settings.lessonCost;
 }

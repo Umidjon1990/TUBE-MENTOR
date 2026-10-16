@@ -133,6 +133,22 @@ export function TodayPage() {
       ) : (
         q.data && (
           <>
+            <section className="study-welcome">
+              <div>
+                <span className="level-pill">Har kuni bir qadam</span>
+                <h2>Tinglang. Tushuning. Gapiring.</h2>
+                <p>
+                  O‘zingizga mos darsni tanlang va o‘rganishni davom ettiring.
+                </p>
+              </div>
+              <img
+                src="/learning-hero.webp"
+                width="300"
+                height="169"
+                alt=""
+                loading="lazy"
+              />
+            </section>
             <div className="welcome-heading">
               <span className="eyebrow">BUGUNGI O‘QUV YO‘LINGIZ</span>
               <h1>Salom, {user?.fullName.split(" ")[0]}!</h1>

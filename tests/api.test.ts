@@ -1,6 +1,6 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { readFile, readdir } from "node:fs/promises";
@@ -13,6 +13,7 @@ let pg: PGlite,
 let student: Client, other: Client, teacher: Client, admin: Client;
 let lessonId: number, courseId: number;
 const mail: { to: string; text: string }[] = [];
+const fixturePasswords = Object.fromEntries(["ADMIN", "TEACHER", "STUDENT", "REGISTER", "RESET", "ANOTHER"].map(role => [role, randomBytes(32).toString("hex")]));
 class Client {
   cookie = "";
   async call(
@@ -80,6 +81,7 @@ before(
     const result = await app.createApplication({ seed: false });
     http = result.httpServer;
     const { seedDemo } = await import("../server/demo-data");
+    for (const role of ["ADMIN", "TEACHER", "STUDENT"]) process.env[`TUBE_DEMO_${role}_PASSWORD`] = fixturePasswords[role];
     await seedDemo();
     await new Promise<void>((resolve) => http.listen(0, "127.0.0.1", resolve));
     base = `http://127.0.0.1:${(http.address() as import("node:net").AddressInfo).port}`;
@@ -87,10 +89,10 @@ before(
     other = new Client();
     teacher = new Client();
     admin = new Client();
-    await student.login("demo_student", "DemoStudent2026!");
-    await other.login("demo_other", "DemoStudent2026!");
-    await teacher.login("demo_teacher", "DemoTeacher2026!");
-    await admin.login("demo_admin", "DemoAdmin2026!");
+    await student.login("demo_student", fixturePasswords.STUDENT);
+    await other.login("demo_other", fixturePasswords.STUDENT);
+    await teacher.login("demo_teacher", fixturePasswords.TEACHER);
+    await admin.login("demo_admin", fixturePasswords.ADMIN);
     const catalog = (await student.call("/api/learn/catalog")).data;
     lessonId = catalog.lessons.find((l: any) => l.access === "demo").id;
     courseId = catalog.courses[0].id;
@@ -376,7 +378,7 @@ test("email registration, one-use verification and password reset invalidate exi
       await c.call("/api/auth/register", "POST", {
         email,
         fullName: "New User",
-        password: "GoodPassword2026!",
+        password: fixturePasswords.REGISTER,
         acceptedTerms: true,
       })
     ).status,
@@ -386,7 +388,7 @@ test("email registration, one-use verification and password reset invalidate exi
     (
       await c.call("/api/auth/login", "POST", {
         username: email,
-        password: "GoodPassword2026!",
+        password: fixturePasswords.REGISTER,
       })
     ).status,
     403,
@@ -411,7 +413,7 @@ test("email registration, one-use verification and password reset invalidate exi
     (
       await c.call("/api/auth/reset-password", "POST", {
         token: reset,
-        password: "NewPassword2026!",
+        password: fixturePasswords.RESET,
       })
     ).status,
     200,
@@ -422,12 +424,12 @@ test("email registration, one-use verification and password reset invalidate exi
     (
       await c.call("/api/auth/reset-password", "POST", {
         token: reset,
-        password: "AnotherPassword!",
+        password: fixturePasswords.ANOTHER,
       })
     ).status,
     400,
   );
-  await c.login(email, "NewPassword2026!");
+  await c.login(email, fixturePasswords.RESET);
   assert.ok(!("passwordHash" in (await c.call("/api/auth/me")).data));
 });
 test("AI has no mock-success fallback without provider keys", async () => {
@@ -465,7 +467,7 @@ test("logout destroys the session and PostgreSQL sessions survive application in
       headers,
       body: JSON.stringify({
         username: "demo_student",
-        password: "DemoStudent2026!",
+        password: fixturePasswords.STUDENT,
       }),
     });
     assert.equal(response.status, 200);

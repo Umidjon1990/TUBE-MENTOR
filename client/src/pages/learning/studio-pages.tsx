@@ -32,15 +32,36 @@ import {
   buildQuestions,
 } from "@shared/learning";
 import type { Lesson, Collection } from "@shared/schema";
+import { LessonPackageImport } from "@/components/lesson-package-import";
 import AdminLayout from "@/components/layouts/admin-layout";
 import "@/admin-content.css";
-function AdminContentShell({ children, title, back }: { children: React.ReactNode; title?: string; back?: string; studio?: boolean }) {
-  return <AdminLayout title={title || "Darslar"} subtitle="Kontentni tayyorlash, tekshirish va nashr qilish">
-    <div className="learning-app admin-learning-content"><main className="learning-main">
-      {back && <Link className="quiet-link admin-content-back" href={back}>← Ortga</Link>}
-      {children}
-    </main></div>
-  </AdminLayout>;
+function AdminContentShell({
+  children,
+  title,
+  back,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  back?: string;
+  studio?: boolean;
+}) {
+  return (
+    <AdminLayout
+      title={title || "Darslar"}
+      subtitle="Kontentni tayyorlash, tekshirish va nashr qilish"
+    >
+      <div className="learning-app admin-learning-content">
+        <main className="learning-main">
+          {back && (
+            <Link className="quiet-link admin-content-back" href={back}>
+              ← Ortga
+            </Link>
+          )}
+          {children}
+        </main>
+      </div>
+    </AdminLayout>
+  );
 }
 const labels: Record<string, string> = {
   draft: "Qoralama",
@@ -62,7 +83,11 @@ export function StudioPage() {
   });
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const visible = q.data?.filter(l => l.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (!status || l.status === status));
+  const visible = q.data?.filter(
+    (l) =>
+      l.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
+      (!status || l.status === status),
+  );
   return (
     <AdminContentShell title="Barcha darslar">
       <div className="section-heading">
@@ -75,8 +100,26 @@ export function StudioPage() {
         </Link>
       </div>
       <div className="catalog-filters">
-        <label className="field-label">Dars qidirish<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Dars nomi" /></label>
-        <label className="field-label">Holati<select value={status} onChange={e => setStatus(e.target.value)}><option value="">Barcha holatlar</option>{Object.entries(labels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <label className="field-label">
+          Dars qidirish
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Dars nomi"
+          />
+        </label>
+        <label className="field-label">
+          Holati
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">Barcha holatlar</option>
+            {Object.entries(labels).map(([value, label]) => (
+              <option value={value} key={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       {q.isLoading ? (
         <Loading />
@@ -105,7 +148,11 @@ export function StudioPage() {
         </div>
       ) : (
         <EmptyState
-          title={q.data?.length ? "Mos dars topilmadi" : "Birinchi darsingizni yarating"}
+          title={
+            q.data?.length
+              ? "Mos dars topilmadi"
+              : "Birinchi darsingizni yarating"
+          }
           description="YouTube havolasini qo‘shing, matn va mashqlarni tayyorlang."
           href="/admin/lessons/new"
           action="Dars yaratish"
@@ -142,8 +189,14 @@ export function CreateStudioLesson() {
   });
   return (
     <AdminContentShell studio title="Yangi dars" back="/admin/lessons">
+      <LessonPackageImport
+        onCreated={(lesson) => {
+          void cache.invalidateQueries({ queryKey: ["/api/user/lessons"] });
+          navigate(`/admin/lessons/${lesson.id}`);
+        }}
+      />
       <Panel>
-        <h2>YouTube darsini tayyorlash</h2>
+        <h2>Qo‘lda bo‘sh dars yaratish</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -221,7 +274,7 @@ export function StudioEditor() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const cache = useQueryClient();
-  const [tab, setTab] = useState("text");
+  const [tab, setTab] = useState("json");
   const [title, setTitle] = useState("");
   const [level, setLevel] = useState("A1");
   const [transcript, setTranscript] = useState("");
@@ -309,6 +362,14 @@ export function StudioEditor() {
   function importJson() {
     try {
       const data = JSON.parse(json);
+      if (data.schemaVersion === 1) {
+        run("/api/admin/lesson-package", {
+          package: data,
+          lessonId: Number(id),
+          contentVersion: lesson?.contentVersion,
+        });
+        return;
+      }
       run(
         `${base}/${jsonField === "content" ? "import-content" : "import-json"}`,
         jsonField === "content"
@@ -446,25 +507,32 @@ export function StudioEditor() {
                   >
                     Subtitr olish
                   </Button>
-                  <Button
-                    variant="outline"
-                    disabled={action.isPending}
-                    onClick={() => run(`${base}/whisper-transcribe`, {})}
-                  >
-                    Whisper bilan olish
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={
-                      action.isPending ||
-                      !lesson.transcript ||
-                      !config.data?.aiEnabled
-                    }
-                    onClick={() => run(`${base}/generate`, {})}
-                  >
-                    <Sparkles size={18} />
-                    AI bilan tayyorlash
-                  </Button>
+                  <details className="optional-ai-tools">
+                    <summary>Ixtiyoriy API xizmatlari</summary>
+                    <p>
+                      Hozirgi JSON ish jarayonida bu xizmatlar kerak emas. Faqat
+                      alohida sozlab ishlatiladi.
+                    </p>
+                    <Button
+                      variant="outline"
+                      disabled={action.isPending || !config.data?.aiEnabled}
+                      onClick={() => run(`${base}/whisper-transcribe`, {})}
+                    >
+                      Whisper bilan olish
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={
+                        action.isPending ||
+                        !lesson.transcript ||
+                        !config.data?.aiEnabled
+                      }
+                      onClick={() => run(`${base}/generate`, {})}
+                    >
+                      <Sparkles size={18} />
+                      AI bilan tayyorlash
+                    </Button>
+                  </details>
                   <Link className="quiet-link" href={`/lessons/${id}/process`}>
                     Audio yuklash va ChatGPT yo‘riqnomasi{" "}
                     <ArrowRight size={16} />
@@ -475,6 +543,16 @@ export function StudioEditor() {
             {tab === "json" && (
               <Panel>
                 <h2>Kontent importi</h2>
+                <p>
+                  Yangi yagona paketni metadata va content bilan qo‘ying.{" "}
+                  <a href="/lesson-package-prompt.txt" download>
+                    ChatGPT yo‘riqnomasi
+                  </a>{" "}
+                  ·{" "}
+                  <a href="/lesson-package-example.json" download>
+                    JSON namuna
+                  </a>
+                </p>
                 <p>
                   To‘liq kontent: summaryShort, summaryDetailed, vocabulary,
                   sentenceAnalysis va quizzes. Alohida maydon uchun JSON massiv
@@ -670,7 +748,9 @@ export function StudioEditor() {
                         }
                       >
                         <Check size={18} />
-                        Tekshiruvga yuborish
+                        {user?.role === "admin"
+                          ? "Tekshirdim — nashr qilish"
+                          : "Tekshiruvga yuborish"}
                       </Button>
                       {user?.role === "admin" &&
                         lesson.status === "pending" && (

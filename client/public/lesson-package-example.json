@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "title": "O‘zimni tanishtiraman",
+    "youtubeUrl": "https://www.youtube.com/watch?v=VIDEO_ID___",
+    "targetLanguage": "ar",
+    "level": "A1"
+  },
+  "content": {
+    "summaryShort": "O‘zini tanishtirish uchun sodda gap.",
+    "summaryDetailed": "أنا olmoshi bilan ismiy gap tuzishni o‘rganamiz. Bu faqat format namunasi; video va vaqtlar haqiqiy dars manbasi bilan almashtiriladi.",
+    "vocabulary": [
+      {
+        "word": "أَنَا",
+        "translationUz": "men",
+        "partOfSpeech": "olmosh"
+      },
+      {
+        "word": "طَالِبٌ",
+        "translationUz": "talaba",
+        "partOfSpeech": "ot"
+      }
+    ],
+    "subtitles": [
+      {
+        "text": "أَنَا طَالِبٌ.",
+        "startTime": 0,
+        "endTime": 2,
+        "timing": "exact"
+      }
+    ],
+    "sentenceAnalysis": [
+      {
+        "sentence": "أَنَا طَالِبٌ.",
+        "translation": "Men talabaman.",
+        "grammarNotes": "أنا — mubtado vazifasidagi kishilik olmoshi; طالبٌ — marfu’ xabar.",
+        "lineIndices": [
+          0
+        ],
+        "wordMap": [
+          {
+            "word": "أَنَا",
+            "translationUz": "men",
+            "grammaticalRole": "mubtado"
+          },
+          {
+            "word": "طَالِبٌ",
+            "translationUz": "talaba",
+            "grammaticalRole": "xabar",
+            "i_rab": "marfu’, alomati zohiriy damma"
+          }
+        ],
+        "alignment": [
+          {
+            "sourceStart": 0,
+            "sourceEnd": 5,
+            "targetStart": 0,
+            "targetEnd": 3
+          },
+          {
+            "sourceStart": 6,
+            "sourceEnd": 13,
+            "targetStart": 4,
+            "targetEnd": 13
+          }
+        ]
+      }
+    ],
+    "quizzes": [
+      {
+        "question": "أَنَا طَالِبٌ gapining ma’nosini tanlang.",
+        "options": [
+          "Men talabaman.",
+          "Sen talabasan.",
+          "U talaba."
+        ],
+        "correctIndex": 0,
+        "explanation": "أنا — men; طالبٌ — talaba. Gap birinchi shaxs haqida.",
+        "skill": "reading",
+        "distractorRationale": [
+          "To‘g‘ri javob",
+          "Birinchi va ikkinchi shaxsni adashtirish",
+          "Birinchi va uchinchi shaxsni adashtirish"
+        ],
+        "kind": "practice"
+      },
+      {
+        "kind": "vocabulary",
+        "question": "طَالِبٌ so‘zining ushbu gapdagi ma’nosi nima?",
+        "options": [
+          "talaba",
+          "o‘qituvchi",
+          "maktab"
+        ],
+        "correctIndex": 0,
+        "explanation": "طالبٌ bu gapda talaba degani.",
+        "skill": "vocabulary",
+        "distractorRationale": [
+          "To‘g‘ri ma’no",
+          "Kasbni adashtirish",
+          "Shaxs va joyni adashtirish"
+        ],
+        "word": "طَالِبٌ"
+      }
+    ],
+    "flashcards": [
+      {
+        "front": "طَالِبٌ",
+        "back": "talaba"
+      }
+    ]
+  }
+}

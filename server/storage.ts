@@ -1,18 +1,43 @@
 import {
-  type User, type InsertUser, users,
-  type Lesson, type InsertLesson, lessons,
-  type Category, type InsertCategory, categories,
-  type Tag, type InsertTag, tags,
-  type LessonTag, lessonTags,
-  type LessonProgress, type InsertLessonProgress, lessonProgress,
-  type Flashcard, type InsertFlashcard, flashcards,
-  type Note, type InsertNote, notes,
-  type Bookmark, type InsertBookmark, bookmarks,
-  type CoinTransaction, type InsertCoinTransaction, coinTransactions,
-  type SavedWord, type InsertSavedWord, savedWords,
-  type SystemSetting, systemSettings,
-  type Collection, type InsertCollection, collections,
-  type CollectionLesson, collectionLessons,
+  type User,
+  type InsertUser,
+  users,
+  type Lesson,
+  type InsertLesson,
+  lessons,
+  type Category,
+  type InsertCategory,
+  categories,
+  type Tag,
+  type InsertTag,
+  tags,
+  type LessonTag,
+  lessonTags,
+  type LessonProgress,
+  type InsertLessonProgress,
+  lessonProgress,
+  type Flashcard,
+  type InsertFlashcard,
+  flashcards,
+  type Note,
+  type InsertNote,
+  notes,
+  type Bookmark,
+  type InsertBookmark,
+  bookmarks,
+  type CoinTransaction,
+  type InsertCoinTransaction,
+  coinTransactions,
+  type SavedWord,
+  type InsertSavedWord,
+  savedWords,
+  type SystemSetting,
+  systemSettings,
+  type Collection,
+  type InsertCollection,
+  collections,
+  type CollectionLesson,
+  collectionLessons,
 } from "@shared/schema";
 import { db } from "./db";
 import { pool } from "./db";
@@ -32,7 +57,10 @@ export interface IStorage {
   getAllCategories(): Promise<Category[]>;
   getCategoryById(id: number): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
-  updateCategory(id: number, data: Partial<InsertCategory>): Promise<Category | undefined>;
+  updateCategory(
+    id: number,
+    data: Partial<InsertCategory>,
+  ): Promise<Category | undefined>;
   deleteCategory(id: number): Promise<void>;
 
   createTag(tag: InsertTag): Promise<Tag>;
@@ -41,7 +69,11 @@ export interface IStorage {
   createLesson(lesson: Partial<Lesson>): Promise<Lesson>;
   getLessonById(id: number): Promise<Lesson | undefined>;
   getAllLessons(): Promise<Lesson[]>;
-  updateLesson(id: number, data: Partial<Lesson>): Promise<Lesson | undefined>;
+  updateLesson(
+    id: number,
+    data: Partial<Lesson>,
+    expectedVersion?: number,
+  ): Promise<Lesson | undefined>;
   deleteLesson(id: number): Promise<void>;
 
   createLessonTag(lessonId: number, tagId: number): Promise<LessonTag>;
@@ -49,14 +81,26 @@ export interface IStorage {
   getTagsByLesson(lessonId: number): Promise<LessonTag[]>;
 
   createLessonProgress(data: InsertLessonProgress): Promise<LessonProgress>;
-  getLessonProgress(userId: string, lessonId: number): Promise<LessonProgress | undefined>;
-  updateLessonProgress(id: number, data: Partial<LessonProgress>): Promise<LessonProgress | undefined>;
+  getLessonProgress(
+    userId: string,
+    lessonId: number,
+  ): Promise<LessonProgress | undefined>;
+  updateLessonProgress(
+    id: number,
+    data: Partial<LessonProgress>,
+  ): Promise<LessonProgress | undefined>;
   getProgressByUser(userId: string): Promise<LessonProgress[]>;
 
   createFlashcard(flashcard: InsertFlashcard): Promise<Flashcard>;
   getFlashcardsByUser(userId: string): Promise<Flashcard[]>;
-  getFlashcardsByUserAndLesson(userId: string, lessonId: number): Promise<Flashcard[]>;
-  updateFlashcard(id: number, data: Partial<Flashcard>): Promise<Flashcard | undefined>;
+  getFlashcardsByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<Flashcard[]>;
+  updateFlashcard(
+    id: number,
+    data: Partial<Flashcard>,
+  ): Promise<Flashcard | undefined>;
   deleteFlashcard(id: number): Promise<void>;
 
   createNote(note: InsertNote): Promise<Note>;
@@ -67,17 +111,30 @@ export interface IStorage {
 
   createBookmark(bookmark: InsertBookmark): Promise<Bookmark>;
   getBookmarksByUser(userId: string): Promise<Bookmark[]>;
-  getBookmarksByUserAndLesson(userId: string, lessonId: number): Promise<Bookmark[]>;
+  getBookmarksByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<Bookmark[]>;
   deleteBookmark(id: number): Promise<void>;
 
   createCoinTransaction(tx: InsertCoinTransaction): Promise<CoinTransaction>;
   getCoinTransactionsByUser(userId: string): Promise<CoinTransaction[]>;
-  adjustCoinsAtomically(userId: string, coinChange: number, tx: InsertCoinTransaction): Promise<User>;
+  adjustCoinsAtomically(
+    userId: string,
+    coinChange: number,
+    tx: InsertCoinTransaction,
+  ): Promise<User>;
 
   getLessonsByUser(userId: string): Promise<Lesson[]>;
   countLessonsByUser(userId: string): Promise<number>;
   countFlashcardsByUser(userId: string): Promise<number>;
-  createLessonWithCoinDeduction(userId: string, coinCost: number, lessonData: Partial<Lesson>, tagIds: number[], txDescription: string): Promise<{ lesson: Lesson; newBalance: number }>;
+  createLessonWithCoinDeduction(
+    userId: string,
+    coinCost: number,
+    lessonData: Partial<Lesson>,
+    tagIds: number[],
+    txDescription: string,
+  ): Promise<{ lesson: Lesson; newBalance: number }>;
 
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(key: string, value: string): Promise<SystemSetting>;
@@ -88,24 +145,46 @@ export interface IStorage {
 
   createSavedWord(data: InsertSavedWord): Promise<SavedWord>;
   getSavedWordsByUser(userId: string): Promise<SavedWord[]>;
-  getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]>;
+  getSavedWordsByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<SavedWord[]>;
   getAllSavedWords(): Promise<SavedWord[]>;
-  updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined>;
+  updateSavedWord(
+    id: number,
+    data: Partial<SavedWord>,
+  ): Promise<SavedWord | undefined>;
   deleteSavedWord(id: number): Promise<void>;
   countSavedWordsByUser(userId: string): Promise<number>;
 
-  createCollection(data: InsertCollection & { createdBy?: string; status?: string }): Promise<Collection>;
+  createCollection(
+    data: InsertCollection & { createdBy?: string; status?: string },
+  ): Promise<Collection>;
   getCollectionById(id: number): Promise<Collection | undefined>;
   getAllCollections(): Promise<Collection[]>;
   getCollectionsByUser(userId: string): Promise<Collection[]>;
   getPublishedCollections(): Promise<Collection[]>;
-  updateCollection(id: number, data: Partial<Collection>): Promise<Collection | undefined>;
+  updateCollection(
+    id: number,
+    data: Partial<Collection>,
+  ): Promise<Collection | undefined>;
   deleteCollection(id: number): Promise<void>;
 
-  addLessonToCollection(collectionId: number, lessonId: number, orderIndex: number): Promise<CollectionLesson>;
-  removeLessonFromCollection(collectionId: number, lessonId: number): Promise<void>;
+  addLessonToCollection(
+    collectionId: number,
+    lessonId: number,
+    orderIndex: number,
+  ): Promise<CollectionLesson>;
+  removeLessonFromCollection(
+    collectionId: number,
+    lessonId: number,
+  ): Promise<void>;
   getCollectionLessons(collectionId: number): Promise<CollectionLesson[]>;
-  updateCollectionLessonOrder(collectionId: number, lessonId: number, orderIndex: number): Promise<void>;
+  updateCollectionLessonOrder(
+    collectionId: number,
+    lessonId: number,
+    orderIndex: number,
+  ): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -115,7 +194,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   }
 
@@ -125,7 +207,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
-    const [user] = await db.update(users).set({ ...data, updatedAt: new Date() }).where(eq(users.id, id)).returning();
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
     return user;
   }
 
@@ -143,22 +229,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCategoryById(id: number): Promise<Category | undefined> {
-    const [cat] = await db.select().from(categories).where(eq(categories.id, id));
+    const [cat] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, id));
     return cat;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const [cat] = await db.select().from(categories).where(eq(categories.slug, slug));
+    const [cat] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.slug, slug));
     return cat;
   }
 
-  async updateCategory(id: number, data: Partial<InsertCategory>): Promise<Category | undefined> {
-    const [cat] = await db.update(categories).set(data).where(eq(categories.id, id)).returning();
+  async updateCategory(
+    id: number,
+    data: Partial<InsertCategory>,
+  ): Promise<Category | undefined> {
+    const [cat] = await db
+      .update(categories)
+      .set(data)
+      .where(eq(categories.id, id))
+      .returning();
     return cat;
   }
 
   async deleteCategory(id: number): Promise<void> {
-    await db.update(lessons).set({ categoryId: null }).where(eq(lessons.categoryId, id));
+    await db
+      .update(lessons)
+      .set({ categoryId: null })
+      .where(eq(lessons.categoryId, id));
     await db.delete(categories).where(eq(categories.id, id));
   }
 
@@ -172,7 +274,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLesson(lesson: Partial<Lesson>): Promise<Lesson> {
-    const [l] = await db.insert(lessons).values(lesson as any).returning();
+    const [l] = await db
+      .insert(lessons)
+      .values(lesson as any)
+      .returning();
     return l;
   }
 
@@ -185,12 +290,52 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(lessons);
   }
 
-  async updateLesson(id: number, data: Partial<Lesson>): Promise<Lesson | undefined> {
-    return db.transaction(async tx => {
-      const [current] = await tx.select().from(lessons).where(eq(lessons.id, id)).for("update");
+  async updateLesson(
+    id: number,
+    data: Partial<Lesson>,
+    expectedVersion?: number,
+  ): Promise<Lesson | undefined> {
+    return db.transaction(async (tx) => {
+      const [current] = await tx
+        .select()
+        .from(lessons)
+        .where(eq(lessons.id, id))
+        .for("update");
       if (!current) return undefined;
-      const contentFields = ["title", "description", "youtubeUrl", "thumbnailUrl", "targetLanguage", "level", "transcript", "subtitlesJson", "wordTimestampsJson", "sentenceAnalysisJson", "vocabularyJson", "quizzesJson", "flashcardsJson", "phrasesJson", "summaryShort", "summaryDetailed", "summaryShortAr", "summaryDetailedAr", "transcriptSource", "manualTranscript"] as const;
-      const changed = contentFields.some(key => key in data && JSON.stringify(data[key]) !== JSON.stringify(current[key]));
+      if (
+        expectedVersion !== undefined &&
+        current.contentVersion !== expectedVersion
+      )
+        throw Object.assign(new Error("Dars yangilangan. Sahifani yangilang"), {
+          status: 409,
+        });
+      const contentFields = [
+        "title",
+        "description",
+        "youtubeUrl",
+        "thumbnailUrl",
+        "targetLanguage",
+        "level",
+        "transcript",
+        "subtitlesJson",
+        "wordTimestampsJson",
+        "sentenceAnalysisJson",
+        "vocabularyJson",
+        "quizzesJson",
+        "flashcardsJson",
+        "phrasesJson",
+        "summaryShort",
+        "summaryDetailed",
+        "summaryShortAr",
+        "summaryDetailedAr",
+        "transcriptSource",
+        "manualTranscript",
+      ] as const;
+      const changed = contentFields.some(
+        (key) =>
+          key in data &&
+          JSON.stringify(data[key]) !== JSON.stringify(current[key]),
+      );
       const update: Partial<Lesson> = { ...data, updatedAt: new Date() };
       if (changed) {
         if (current.status === "published" && !current.publishedSnapshot) {
@@ -199,22 +344,35 @@ export class DatabaseStorage implements IStorage {
         }
         update.contentVersion = current.contentVersion + 1;
         update.contentChecks = {};
-        update.status = "draft"; update.approvedBy = null; update.approvedAt = null;
+        update.status = "draft";
+        update.approvedBy = null;
+        update.approvedAt = null;
       }
       if (data.status === "approved") {
         const problems = publicationProblems({ ...current, ...update });
-        if (problems.length) throw Object.assign(new Error(problems.join(". ")), { status: 400 });
+        if (problems.length)
+          throw Object.assign(new Error(problems.join(". ")), { status: 400 });
       }
       if (data.status === "published") {
         const candidate = { ...current, ...update };
         const problems = publicationProblems(candidate);
-        if (problems.length) throw Object.assign(new Error(problems.join(". ")), { status: 400 });
-        if (changed || !candidate.approvedBy) throw Object.assign(new Error("Dars admin tekshiruvidan o‘tishi kerak"), { status: 400 });
+        if (problems.length)
+          throw Object.assign(new Error(problems.join(". ")), { status: 400 });
+        if (changed || !candidate.approvedBy)
+          throw Object.assign(
+            new Error("Dars admin tekshiruvidan o‘tishi kerak"),
+            { status: 400 },
+          );
         const { publishedSnapshot, ...snapshot } = candidate;
         update.publishedSnapshot = snapshot;
       }
       if (data.publishedAt === null) update.publishedSnapshot = null;
-      const [updated] = await tx.update(lessons).set(update).where(eq(lessons.id, id)).returning(); return updated;
+      const [updated] = await tx
+        .update(lessons)
+        .set(update)
+        .where(eq(lessons.id, id))
+        .returning();
+      return updated;
     });
   }
 
@@ -229,37 +387,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLessonTag(lessonId: number, tagId: number): Promise<LessonTag> {
-    const [lt] = await db.insert(lessonTags).values({ lessonId, tagId }).returning();
+    const [lt] = await db
+      .insert(lessonTags)
+      .values({ lessonId, tagId })
+      .returning();
     return lt;
   }
 
   async deleteLessonTag(lessonId: number, tagId: number): Promise<void> {
-    await db.delete(lessonTags).where(and(eq(lessonTags.lessonId, lessonId), eq(lessonTags.tagId, tagId)));
+    await db
+      .delete(lessonTags)
+      .where(
+        and(eq(lessonTags.lessonId, lessonId), eq(lessonTags.tagId, tagId)),
+      );
   }
 
   async getTagsByLesson(lessonId: number): Promise<LessonTag[]> {
-    return db.select().from(lessonTags).where(eq(lessonTags.lessonId, lessonId));
+    return db
+      .select()
+      .from(lessonTags)
+      .where(eq(lessonTags.lessonId, lessonId));
   }
 
-  async createLessonProgress(data: InsertLessonProgress): Promise<LessonProgress> {
+  async createLessonProgress(
+    data: InsertLessonProgress,
+  ): Promise<LessonProgress> {
     const [lp] = await db.insert(lessonProgress).values(data).returning();
     return lp;
   }
 
-  async getLessonProgress(userId: string, lessonId: number): Promise<LessonProgress | undefined> {
-    const [lp] = await db.select().from(lessonProgress).where(
-      and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, lessonId))
-    );
+  async getLessonProgress(
+    userId: string,
+    lessonId: number,
+  ): Promise<LessonProgress | undefined> {
+    const [lp] = await db
+      .select()
+      .from(lessonProgress)
+      .where(
+        and(
+          eq(lessonProgress.userId, userId),
+          eq(lessonProgress.lessonId, lessonId),
+        ),
+      );
     return lp;
   }
 
-  async updateLessonProgress(id: number, data: Partial<LessonProgress>): Promise<LessonProgress | undefined> {
-    const [lp] = await db.update(lessonProgress).set(data).where(eq(lessonProgress.id, id)).returning();
+  async updateLessonProgress(
+    id: number,
+    data: Partial<LessonProgress>,
+  ): Promise<LessonProgress | undefined> {
+    const [lp] = await db
+      .update(lessonProgress)
+      .set(data)
+      .where(eq(lessonProgress.id, id))
+      .returning();
     return lp;
   }
 
   async getProgressByUser(userId: string): Promise<LessonProgress[]> {
-    return db.select().from(lessonProgress).where(eq(lessonProgress.userId, userId));
+    return db
+      .select()
+      .from(lessonProgress)
+      .where(eq(lessonProgress.userId, userId));
   }
 
   async createFlashcard(flashcard: InsertFlashcard): Promise<Flashcard> {
@@ -271,14 +460,27 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(flashcards).where(eq(flashcards.userId, userId));
   }
 
-  async getFlashcardsByUserAndLesson(userId: string, lessonId: number): Promise<Flashcard[]> {
-    return db.select().from(flashcards).where(
-      and(eq(flashcards.userId, userId), eq(flashcards.lessonId, lessonId))
-    );
+  async getFlashcardsByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<Flashcard[]> {
+    return db
+      .select()
+      .from(flashcards)
+      .where(
+        and(eq(flashcards.userId, userId), eq(flashcards.lessonId, lessonId)),
+      );
   }
 
-  async updateFlashcard(id: number, data: Partial<Flashcard>): Promise<Flashcard | undefined> {
-    const [f] = await db.update(flashcards).set(data).where(eq(flashcards.id, id)).returning();
+  async updateFlashcard(
+    id: number,
+    data: Partial<Flashcard>,
+  ): Promise<Flashcard | undefined> {
+    const [f] = await db
+      .update(flashcards)
+      .set(data)
+      .where(eq(flashcards.id, id))
+      .returning();
     return f;
   }
 
@@ -295,14 +497,22 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(notes).where(eq(notes.userId, userId));
   }
 
-  async getNotesByUserAndLesson(userId: string, lessonId: number): Promise<Note[]> {
-    return db.select().from(notes).where(
-      and(eq(notes.userId, userId), eq(notes.lessonId, lessonId))
-    );
+  async getNotesByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<Note[]> {
+    return db
+      .select()
+      .from(notes)
+      .where(and(eq(notes.userId, userId), eq(notes.lessonId, lessonId)));
   }
 
   async updateNote(id: number, data: Partial<Note>): Promise<Note | undefined> {
-    const [n] = await db.update(notes).set({ ...data, updatedAt: new Date() }).where(eq(notes.id, id)).returning();
+    const [n] = await db
+      .update(notes)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(notes.id, id))
+      .returning();
     return n;
   }
 
@@ -319,24 +529,41 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(bookmarks).where(eq(bookmarks.userId, userId));
   }
 
-  async getBookmarksByUserAndLesson(userId: string, lessonId: number): Promise<Bookmark[]> {
-    return db.select().from(bookmarks).where(and(eq(bookmarks.userId, userId), eq(bookmarks.lessonId, lessonId)));
+  async getBookmarksByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<Bookmark[]> {
+    return db
+      .select()
+      .from(bookmarks)
+      .where(
+        and(eq(bookmarks.userId, userId), eq(bookmarks.lessonId, lessonId)),
+      );
   }
 
   async deleteBookmark(id: number): Promise<void> {
     await db.delete(bookmarks).where(eq(bookmarks.id, id));
   }
 
-  async createCoinTransaction(tx: InsertCoinTransaction): Promise<CoinTransaction> {
+  async createCoinTransaction(
+    tx: InsertCoinTransaction,
+  ): Promise<CoinTransaction> {
     const [ct] = await db.insert(coinTransactions).values(tx).returning();
     return ct;
   }
 
   async getCoinTransactionsByUser(userId: string): Promise<CoinTransaction[]> {
-    return db.select().from(coinTransactions).where(eq(coinTransactions.userId, userId));
+    return db
+      .select()
+      .from(coinTransactions)
+      .where(eq(coinTransactions.userId, userId));
   }
 
-  async adjustCoinsAtomically(userId: string, coinChange: number, txData: InsertCoinTransaction): Promise<User> {
+  async adjustCoinsAtomically(
+    userId: string,
+    coinChange: number,
+    txData: InsertCoinTransaction,
+  ): Promise<User> {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -344,8 +571,13 @@ export class DatabaseStorage implements IStorage {
 
       const [updated] = await txDb
         .update(users)
-        .set({ coins: sql`${users.coins} + ${coinChange}`, updatedAt: new Date() })
-        .where(and(eq(users.id, userId), sql`${users.coins} + ${coinChange} >= 0`))
+        .set({
+          coins: sql`${users.coins} + ${coinChange}`,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(eq(users.id, userId), sql`${users.coins} + ${coinChange} >= 0`),
+        )
         .returning();
 
       if (!updated) {
@@ -369,12 +601,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async countLessonsByUser(userId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)::int` }).from(lessons).where(eq(lessons.createdBy, userId));
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(lessons)
+      .where(eq(lessons.createdBy, userId));
     return result[0]?.count ?? 0;
   }
 
   async countFlashcardsByUser(userId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)::int` }).from(flashcards).where(eq(flashcards.userId, userId));
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(flashcards)
+      .where(eq(flashcards.userId, userId));
     return result[0]?.count ?? 0;
   }
 
@@ -383,7 +621,7 @@ export class DatabaseStorage implements IStorage {
     coinCost: number,
     lessonData: Partial<Lesson>,
     tagIds: number[],
-    txDescription: string
+    txDescription: string,
   ): Promise<{ lesson: Lesson; newBalance: number }> {
     const client = await pool.connect();
     try {
@@ -392,7 +630,10 @@ export class DatabaseStorage implements IStorage {
 
       const [updatedUser] = await txDb
         .update(users)
-        .set({ coins: sql`${users.coins} - ${coinCost}`, updatedAt: new Date() })
+        .set({
+          coins: sql`${users.coins} - ${coinCost}`,
+          updatedAt: new Date(),
+        })
         .where(and(eq(users.id, userId), sql`${users.coins} >= ${coinCost}`))
         .returning();
 
@@ -408,10 +649,15 @@ export class DatabaseStorage implements IStorage {
         description: txDescription,
       });
 
-      const [lesson] = await txDb.insert(lessons).values(lessonData as any).returning();
+      const [lesson] = await txDb
+        .insert(lessons)
+        .values(lessonData as any)
+        .returning();
 
       if (tagIds.length > 0) {
-        await txDb.insert(lessonTags).values(tagIds.map(tagId => ({ lessonId: lesson.id, tagId })));
+        await txDb
+          .insert(lessonTags)
+          .values(tagIds.map((tagId) => ({ lessonId: lesson.id, tagId })));
       }
 
       await client.query("COMMIT");
@@ -425,17 +671,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
-    const [s] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    const [s] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.key, key));
     return s;
   }
 
   async setSystemSetting(key: string, value: string): Promise<SystemSetting> {
     const existing = await this.getSystemSetting(key);
     if (existing) {
-      const [s] = await db.update(systemSettings).set({ value }).where(eq(systemSettings.key, key)).returning();
+      const [s] = await db
+        .update(systemSettings)
+        .set({ value })
+        .where(eq(systemSettings.key, key))
+        .returning();
       return s;
     }
-    const [s] = await db.insert(systemSettings).values({ key, value }).returning();
+    const [s] = await db
+      .insert(systemSettings)
+      .values({ key, value })
+      .returning();
     return s;
   }
 
@@ -447,7 +703,9 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error("User not found");
     const today = new Date().toISOString().split("T")[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
     let newStreak = user.streakDays;
     if (user.lastStudyDate === yesterday) {
       newStreak = user.streakDays + 1;
@@ -457,30 +715,45 @@ export class DatabaseStorage implements IStorage {
     const newXp = user.xp + xpAmount;
     const newLevel = Math.floor(newXp / 100) + 1;
     const newBadges = [...(user.badges || [])];
-    if (newStreak >= 7 && !newBadges.includes("streak_7")) newBadges.push("streak_7");
-    if (newStreak >= 30 && !newBadges.includes("streak_30")) newBadges.push("streak_30");
+    if (newStreak >= 7 && !newBadges.includes("streak_7"))
+      newBadges.push("streak_7");
+    if (newStreak >= 30 && !newBadges.includes("streak_30"))
+      newBadges.push("streak_30");
     if (newXp >= 500 && !newBadges.includes("xp_500")) newBadges.push("xp_500");
-    if (newXp >= 1000 && !newBadges.includes("xp_1000")) newBadges.push("xp_1000");
-    if (newLevel >= 5 && !newBadges.includes("level_5")) newBadges.push("level_5");
-    if (newLevel >= 10 && !newBadges.includes("level_10")) newBadges.push("level_10");
-    const [updated] = await db.update(users).set({
-      xp: newXp,
-      level: newLevel,
-      streakDays: newStreak,
-      lastStudyDate: today,
-      badges: newBadges,
-      updatedAt: new Date(),
-    }).where(eq(users.id, userId)).returning();
+    if (newXp >= 1000 && !newBadges.includes("xp_1000"))
+      newBadges.push("xp_1000");
+    if (newLevel >= 5 && !newBadges.includes("level_5"))
+      newBadges.push("level_5");
+    if (newLevel >= 10 && !newBadges.includes("level_10"))
+      newBadges.push("level_10");
+    const [updated] = await db
+      .update(users)
+      .set({
+        xp: newXp,
+        level: newLevel,
+        streakDays: newStreak,
+        lastStudyDate: today,
+        badges: newBadges,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
     return updated;
   }
 
   async countNotesByUser(userId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)` }).from(notes).where(eq(notes.userId, userId));
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notes)
+      .where(eq(notes.userId, userId));
     return Number(result[0].count);
   }
 
   async countBookmarksByUser(userId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)` }).from(bookmarks).where(eq(bookmarks.userId, userId));
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(bookmarks)
+      .where(eq(bookmarks.userId, userId));
     return Number(result[0].count);
   }
 
@@ -497,14 +770,27 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(savedWords);
   }
 
-  async getSavedWordsByUserAndLesson(userId: string, lessonId: number): Promise<SavedWord[]> {
-    return db.select().from(savedWords).where(
-      and(eq(savedWords.userId, userId), eq(savedWords.lessonId, lessonId))
-    );
+  async getSavedWordsByUserAndLesson(
+    userId: string,
+    lessonId: number,
+  ): Promise<SavedWord[]> {
+    return db
+      .select()
+      .from(savedWords)
+      .where(
+        and(eq(savedWords.userId, userId), eq(savedWords.lessonId, lessonId)),
+      );
   }
 
-  async updateSavedWord(id: number, data: Partial<SavedWord>): Promise<SavedWord | undefined> {
-    const [sw] = await db.update(savedWords).set(data).where(eq(savedWords.id, id)).returning();
+  async updateSavedWord(
+    id: number,
+    data: Partial<SavedWord>,
+  ): Promise<SavedWord | undefined> {
+    const [sw] = await db
+      .update(savedWords)
+      .set(data)
+      .where(eq(savedWords.id, id))
+      .returning();
     return sw;
   }
 
@@ -513,17 +799,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async countSavedWordsByUser(userId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)::int` }).from(savedWords).where(eq(savedWords.userId, userId));
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(savedWords)
+      .where(eq(savedWords.userId, userId));
     return result[0]?.count ?? 0;
   }
 
-  async createCollection(data: InsertCollection & { createdBy?: string; status?: string }): Promise<Collection> {
+  async createCollection(
+    data: InsertCollection & { createdBy?: string; status?: string },
+  ): Promise<Collection> {
     const [c] = await db.insert(collections).values(data).returning();
     return c;
   }
 
   async getCollectionById(id: number): Promise<Collection | undefined> {
-    const [c] = await db.select().from(collections).where(eq(collections.id, id));
+    const [c] = await db
+      .select()
+      .from(collections)
+      .where(eq(collections.id, id));
     return c;
   }
 
@@ -532,42 +826,87 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCollectionsByUser(userId: string): Promise<Collection[]> {
-    return db.select().from(collections).where(eq(collections.createdBy, userId));
+    return db
+      .select()
+      .from(collections)
+      .where(eq(collections.createdBy, userId));
   }
 
   async getPublishedCollections(): Promise<Collection[]> {
-    return db.select().from(collections).where(eq(collections.status, "published"));
+    return db
+      .select()
+      .from(collections)
+      .where(eq(collections.status, "published"));
   }
 
-  async updateCollection(id: number, data: Partial<Collection>): Promise<Collection | undefined> {
-    const [c] = await db.update(collections).set({ ...data, updatedAt: new Date() }).where(eq(collections.id, id)).returning();
+  async updateCollection(
+    id: number,
+    data: Partial<Collection>,
+  ): Promise<Collection | undefined> {
+    const [c] = await db
+      .update(collections)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(collections.id, id))
+      .returning();
     return c;
   }
 
   async deleteCollection(id: number): Promise<void> {
-    await db.delete(collectionLessons).where(eq(collectionLessons.collectionId, id));
+    await db
+      .delete(collectionLessons)
+      .where(eq(collectionLessons.collectionId, id));
     await db.delete(collections).where(eq(collections.id, id));
   }
 
-  async addLessonToCollection(collectionId: number, lessonId: number, orderIndex: number): Promise<CollectionLesson> {
-    const [cl] = await db.insert(collectionLessons).values({ collectionId, lessonId, orderIndex }).returning();
+  async addLessonToCollection(
+    collectionId: number,
+    lessonId: number,
+    orderIndex: number,
+  ): Promise<CollectionLesson> {
+    const [cl] = await db
+      .insert(collectionLessons)
+      .values({ collectionId, lessonId, orderIndex })
+      .returning();
     return cl;
   }
 
-  async removeLessonFromCollection(collectionId: number, lessonId: number): Promise<void> {
-    await db.delete(collectionLessons).where(
-      and(eq(collectionLessons.collectionId, collectionId), eq(collectionLessons.lessonId, lessonId))
-    );
+  async removeLessonFromCollection(
+    collectionId: number,
+    lessonId: number,
+  ): Promise<void> {
+    await db
+      .delete(collectionLessons)
+      .where(
+        and(
+          eq(collectionLessons.collectionId, collectionId),
+          eq(collectionLessons.lessonId, lessonId),
+        ),
+      );
   }
 
-  async getCollectionLessons(collectionId: number): Promise<CollectionLesson[]> {
-    return db.select().from(collectionLessons).where(eq(collectionLessons.collectionId, collectionId));
+  async getCollectionLessons(
+    collectionId: number,
+  ): Promise<CollectionLesson[]> {
+    return db
+      .select()
+      .from(collectionLessons)
+      .where(eq(collectionLessons.collectionId, collectionId));
   }
 
-  async updateCollectionLessonOrder(collectionId: number, lessonId: number, orderIndex: number): Promise<void> {
-    await db.update(collectionLessons).set({ orderIndex }).where(
-      and(eq(collectionLessons.collectionId, collectionId), eq(collectionLessons.lessonId, lessonId))
-    );
+  async updateCollectionLessonOrder(
+    collectionId: number,
+    lessonId: number,
+    orderIndex: number,
+  ): Promise<void> {
+    await db
+      .update(collectionLessons)
+      .set({ orderIndex })
+      .where(
+        and(
+          eq(collectionLessons.collectionId, collectionId),
+          eq(collectionLessons.lessonId, lessonId),
+        ),
+      );
   }
 }
 

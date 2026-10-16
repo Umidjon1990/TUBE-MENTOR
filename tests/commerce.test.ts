@@ -1,6 +1,6 @@
-import { test, before, after, mock } from "node:test";
+import { test, before, beforeEach, after, mock } from "node:test";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes, randomInt } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -12,11 +12,12 @@ let pg: PGlite, socket: PGLiteSocketServer, http: Server, pool: import("pg").Poo
 let base: string, receiptDirectory: string, admin: Client, packageId: number;
 let demoLessonId: number, paidLessonIds: number[] = [], legacyId: string, legacyLessonId: number;
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jhN8AAAAASUVORK5CYII=", "base64");
+const testPassword = randomBytes(32).toString("hex");
 const settings = {
   demoLessonId: null as number | null,
   paymentsEnabled: true,
   recipientName: "Sinov uchun qabul qiluvchi",
-  cardNumber: "8600123456789012",
+  cardNumber: `0000${randomInt(0, 1_000_000_000_000).toString().padStart(12, "0")}`,
   paymeUrl: "",
   paymentInstructions: "Mahalliy sinov: haqiqiy pul yubormang.",
   reviewHours: "09:00–18:00",
@@ -67,9 +68,9 @@ class Client {
 }
 async function learner(name: string = randomUUID(), verified = true) {
   const { hashPassword } = await import("../server/auth");
-  await pool.query("insert into users(full_name,username,password_hash,email_verified,onboarding_completed)values($1,$1,$2,$3,true)", [name, hashPassword("CommercePassword2026!"), verified]);
+  await pool.query("insert into users(full_name,username,password_hash,email_verified,onboarding_completed)values($1,$1,$2,$3,true)", [name, hashPassword(testPassword), verified]);
   const c = new Client();
-  if (verified) await c.login(name, "CommercePassword2026!");
+  if (verified) await c.login(name, testPassword);
   return c;
 }
 async function approve(orderId: string, bankReference: string = randomUUID()) {
@@ -77,6 +78,7 @@ async function approve(orderId: string, bankReference: string = randomUUID()) {
   assert.equal(r.status, 200, JSON.stringify(r.data));
   return r.data;
 }
+beforeEach(async () => { await pool.query("delete from api_rate_limits"); });
 before(async () => {
   pg = new PGlite();
   await pg.waitReady;
@@ -85,7 +87,7 @@ before(async () => {
   process.env.DATABASE_URL = `postgresql://postgres:postgres@${socket.getServerConn()}/postgres`;
   process.env.DB_POOL_MAX = "1";
   process.env.NODE_ENV = "test";
-  process.env.SESSION_SECRET = "commerce-disposable-test-secret-12345";
+  process.env.SESSION_SECRET = randomBytes(32).toString("hex");
   process.env.APP_URL = "http://localhost";
   delete process.env.TELEGRAM_BOT_TOKEN;
   receiptDirectory = await mkdtemp(path.join(tmpdir(), "tube-commerce-receipts-"));
@@ -103,6 +105,7 @@ before(async () => {
   const { createApplication } = await import("../server/app");
   ({ httpServer: http } = await createApplication({ seed: false }));
   const { seedDemo, exampleLesson } = await import("../server/demo-data");
+  process.env.TUBE_DEMO_ADMIN_PASSWORD = testPassword;
   await seedDemo();
   const { db } = await import("../server/db");
   const { lessons } = await import("../shared/schema");
@@ -116,7 +119,7 @@ before(async () => {
   await new Promise<void>((r) => http.listen(0, "127.0.0.1", r));
   base = `http://127.0.0.1:${(http.address() as import("node:net").AddressInfo).port}`;
   admin = new Client();
-  await admin.login("demo_admin", "DemoAdmin2026!");
+  await admin.login("demo_admin", testPassword);
 }, { timeout: 180000 });
 after(async () => {
   if (http) await new Promise<void>((r) => http.close(() => r()));
@@ -151,7 +154,7 @@ test("verified students receive exactly one welcome bonus; unverified login cann
   const wallets = await Promise.all([c.wallet(), c.wallet(), c.wallet()]);
   assert.ok(wallets.every((w) => w.balance === 30 && w.bonusGranted));
   const returning = new Client();
-  await returning.login(name, "CommercePassword2026!");
+  await returning.login(name, testPassword);
   assert.equal((await returning.wallet()).balance, 30);
   const ledger = (await pool.query("select amount,balance_before,balance_after from coin_transactions where user_id=$1", [c.id])).rows;
   assert.deepEqual(ledger.map((x) => [x.amount, x.balance_before, x.balance_after]), [[30, 0, 30]]);
@@ -162,7 +165,7 @@ test("verified students receive exactly one welcome bonus; unverified login cann
   assert.equal((await c.wallet()).balance, 30);
   const unverifiedName = `unverified_${randomUUID()}`;
   await learner(unverifiedName, false);
-  const denied = await new Client().call("/api/auth/login", "POST", { username: unverifiedName, password: "CommercePassword2026!" });
+  const denied = await new Client().call("/api/auth/login", "POST", { username: unverifiedName, password: testPassword });
   assert.equal(denied.status, 403);
   assert.equal((await pool.query("select coins from users where username=$1", [unverifiedName])).rows[0].coins, 0);
 });
@@ -474,7 +477,7 @@ test("a guest can finish the sample test and retain results after login without 
   const newStudent = await learner(name);
   const { content_version } = (await pool.query("select content_version from lessons where id=$1", [demoLessonId])).rows[0];
   await pool.query("insert into lesson_progress(user_id,lesson_id,content_version,accuracy)values($1,$2,$3,90)", [newStudent.id, demoLessonId, content_version]);
-  await guest.login(name, "CommercePassword2026!");
+  await guest.login(name, testPassword);
   assert.equal((await guest.call(`/api/learn/preview/${demoLessonId}/transfer`, "POST", { score: 100, xp: 1000 })).status, 400);
   const imported = await guest.call(`/api/learn/preview/${demoLessonId}/transfer`, "POST");
   assert.equal(imported.status, 200, JSON.stringify(imported.data));
@@ -548,10 +551,10 @@ test("admin lifecycle controls prevent losing the last active admin even during 
   assert.equal((await admin.call(`/api/admin/users/${admin.id}/status`, "PATCH", { isActive: false })).status, 409);
   const { hashPassword } = await import("../server/auth");
   const nameA = `admin_a_${randomUUID()}`, nameB = `admin_b_${randomUUID()}`;
-  await pool.query("insert into users(full_name,username,password_hash,role,email_verified)values('Admin A',$1,$3,'admin',true),('Admin B',$2,$3,'admin',true)", [nameA, nameB, hashPassword("CommercePassword2026!")]);
+  await pool.query("insert into users(full_name,username,password_hash,role,email_verified)values('Admin A',$1,$3,'admin',true),('Admin B',$2,$3,'admin',true)", [nameA, nameB, hashPassword(testPassword)]);
   const a = new Client(), b = new Client();
-  await a.login(nameA, "CommercePassword2026!");
-  await b.login(nameB, "CommercePassword2026!");
+  await a.login(nameA, testPassword);
+  await b.login(nameB, testPassword);
   await pool.query("update users set is_active=false where id=$1", [admin.id]);
   try {
     const results = await Promise.all([
@@ -566,4 +569,41 @@ test("admin lifecycle controls prevent losing the last active admin even during 
     await pool.query("update users set is_active=true where id=$1", [admin.id]);
     await pool.query("update users set role='student',session_version=session_version+1 where id=any($1::varchar[])", [[a.id, b.id]]);
   }
+});
+
+test('admin prices and welcome bonus apply on server while previous grants remain unchanged', async () => {
+  const student = await learner();
+  const before = await student.wallet();
+  const paidId = paidLessonIds[0];
+  try {
+    const saved = await admin.call('/api/admin/commerce/settings','PUT',{...settings,welcomeCoins:45,lessonCost:14,lessonPrices:{[paidId]:17}});
+    assert.equal(saved.status,200,JSON.stringify(saved.data));
+    const fresh = await learner();
+    assert.equal((await fresh.wallet()).balance,45);
+    assert.equal((await student.wallet()).balance,before.balance);
+    const catalog = await fresh.call('/api/learn/catalog');
+    assert.equal(catalog.data.lessons.find((l:any)=>l.id===paidId).priceCoins,17);
+    const results = await Promise.all([fresh.call(`/api/commerce/lessons/${paidId}/purchase`,'POST',{}),fresh.call(`/api/commerce/lessons/${paidId}/purchase`,'POST',{})]);
+    assert.ok(results.every(r=>r.status===200),JSON.stringify(results));
+    assert.equal((await fresh.wallet()).balance,28);
+  } finally {await admin.call('/api/admin/commerce/settings','PUT',settings);}
+});
+
+test('JSON lesson package is admin-only, creates a draft, rejects invalid replacement and publishes in one checked step', async () => {
+  const pkg = JSON.parse(await readFile('client/public/lesson-package-example.json','utf8'));
+  const student = await learner();
+  assert.equal((await student.call('/api/admin/lesson-package','POST',{package:pkg})).status,403);
+  const created = await admin.call('/api/admin/lesson-package','POST',{package:pkg});
+  assert.equal(created.status,201,JSON.stringify(created.data));
+  const lesson = created.data.lesson;
+  assert.equal(lesson.status,'draft');
+  const broken = structuredClone(pkg); broken.content.quizzes[0].correctIndex=999;
+  assert.equal((await admin.call('/api/admin/lesson-package','POST',{package:broken,lessonId:lesson.id,contentVersion:lesson.contentVersion})).status,400);
+  assert.equal((await admin.call(`/api/user/lessons/${lesson.id}`)).data.status,'draft');
+  assert.equal((await admin.call('/api/admin/lesson-package','POST',{package:pkg,lessonId:lesson.id,contentVersion:999})).status,409);
+  const reviewed = await admin.call(`/api/studio/lessons/${lesson.id}/review`,'POST',{text:true,translation:true,timing:true,exercises:true,contentVersion:lesson.contentVersion});
+  assert.equal(reviewed.status,200,JSON.stringify(reviewed.data));
+  assert.equal(reviewed.data.status,'published');
+  assert.equal(reviewed.data.publishedSnapshot.title,pkg.metadata.title);
+  assert.equal((await admin.call(`/api/studio/lessons/${lesson.id}/review`,'POST',{text:true})).status,400);
 });

@@ -43,6 +43,7 @@ export async function createApplication(
   if (production) app.set("trust proxy", 1);
   app.disable("x-powered-by");
   app.use("/api/commerce/telegram/webhook", express.json({ limit: "32kb" }));
+  app.use("/api/admin/lesson-package", express.json({ limit: "2mb" }));
   app.use(express.json({ limit: "10mb" }));
   const MemoryStore = memorystore(session);
   const PgStore = connectPgSimple(session);
@@ -68,7 +69,12 @@ export async function createApplication(
   );
   app.use(apiSecurity);
   app.use("/api", optionalAuth);
-  app.use("/api/auth", rateLimit("auth", 120, 900));
+  const limitAuthentication = rateLimit("auth", 120, 900);
+  app.use("/api/auth", (req, res, next) => {
+    // Reading a session during navigation must not exhaust sign-in attempt limits.
+    if (req.method === "GET" && req.path === "/me") return next();
+    return limitAuthentication(req, res, next);
+  });
   app.use((req, res, next) => {
     if (
       /\/api\/user\/lessons\/\d+\/(generate|whisper-transcribe|whisper-audio-upload)$/.test(
@@ -129,8 +135,17 @@ export async function createApplication(
       code: databaseCode,
     });
     res.status(status).json({
-      ...(typeof error.code === "string" && (error.name === "CommerceError" || ["LESSON_LOCKED", "LOGIN_REQUIRED", "INSUFFICIENT_BALANCE"].includes(error.code))
-        ? { code: error.code, lessonId: error.lessonId, priceCoins: error.priceCoins, lesson: error.lesson }
+      ...(typeof error.code === "string" &&
+      (error.name === "CommerceError" ||
+        ["LESSON_LOCKED", "LOGIN_REQUIRED", "INSUFFICIENT_BALANCE"].includes(
+          error.code,
+        ))
+        ? {
+            code: error.code,
+            lessonId: error.lessonId,
+            priceCoins: error.priceCoins,
+            lesson: error.lesson,
+          }
         : {}),
       message:
         status < 500

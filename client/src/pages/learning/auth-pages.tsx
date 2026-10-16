@@ -90,8 +90,12 @@ export function LandingPage() {
     queryKey: ["landing-catalog"],
     queryFn: () => request("GET", "/api/learn/catalog?language=ar"),
   });
-  const commerce = useQuery<{ demoLessonId: number | null; welcomeCoins: number }>({
-    queryKey: ["commerce-config"], queryFn: () => request("GET", "/api/commerce/config"),
+  const commerce = useQuery<{
+    demoLessonId: number | null;
+    welcomeCoins: number;
+  }>({
+    queryKey: ["commerce-config"],
+    queryFn: () => request("GET", "/api/commerce/config"),
   });
   if (isLoading) return <Loading />;
   if (user)
@@ -101,12 +105,14 @@ export function LandingPage() {
           user.role === "admin"
             ? "/admin"
             : user.onboardingCompleted
-                ? "/today"
-                : "/onboarding"
+              ? "/today"
+              : "/onboarding"
         }
       />
     );
-  const sample = catalog.data?.lessons?.find((lesson: { id: number }) => lesson.id === commerce.data?.demoLessonId);
+  const sample = catalog.data?.lessons?.find(
+    (lesson: { id: number }) => lesson.id === commerce.data?.demoLessonId,
+  );
   return (
     <div className="landing-page">
       <header>
@@ -130,16 +136,30 @@ export function LandingPage() {
             video, lug‘at va amaliy mashqlar.
           </p>
           <Link className="primary-link" href="/register">
-            30 bonus coin bilan boshlash <ArrowRight size={20} />
+            {commerce.data?.welcomeCoins ?? 30} bonus coin bilan boshlash{" "}
+            <ArrowRight size={20} />
           </Link>
           <Link
             className="outline-link"
-            href={commerce.data?.demoLessonId ? `/learn/${commerce.data.demoLessonId}` : "/courses"}
+            href={
+              commerce.data?.demoLessonId
+                ? `/learn/${commerce.data.demoLessonId}`
+                : "/courses"
+            }
           >
-            {commerce.data?.demoLessonId ? "Namuna dars" : "Darslarni ko‘rish"} <Play size={18} />
+            {commerce.data?.demoLessonId ? "Namuna dars" : "Darslarni ko‘rish"}{" "}
+            <Play size={18} />
           </Link>
         </div>
         <div className="landing-preview">
+          <img
+            className="hero-art"
+            src="/learning-hero.webp"
+            width="900"
+            height="506"
+            alt="Video, tinglash va bilim uchun binafsha 3D o‘quv vositalari"
+            fetchPriority="high"
+          />
           <div className="preview-head">
             <span className="level-pill">A2 · Kundalik hayot</span>
             <span>Video bilan o‘rganish</span>
@@ -221,8 +241,8 @@ export function LoginPage() {
           user.role === "admin"
             ? "/admin"
             : user.onboardingCompleted
-                ? "/today"
-                : "/onboarding"
+              ? "/today"
+              : "/onboarding"
         }
       />
     );

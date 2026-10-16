@@ -1,3 +1,5 @@
+import { AlignedSubtitles } from "@/components/aligned-subtitles";
+import { celebratePurchase } from "@/lib/purchase-celebration";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "wouter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -97,6 +99,13 @@ function LessonUnlock({
   const wallet = useWallet();
   const cache = useQueryClient();
   const [confirm, setConfirm] = useState(false);
+  const [sound, setSound] = useState(() => {
+    try {
+      return localStorage.getItem("tube-purchase-sound") === "on";
+    } catch {
+      return false;
+    }
+  });
   const cost = lesson.priceCoins;
   const insufficient = wallet.data ? wallet.data.balance < cost : false;
   const purchase = useMutation({
@@ -106,7 +115,8 @@ function LessonUnlock({
         lessonId: number;
         alreadyOwned: boolean;
       }>("POST", `/api/commerce/lessons/${lesson.id}/purchase`, {}),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result.alreadyOwned) celebratePurchase();
       for (const queryKey of [
         walletKey,
         ["catalog"],
@@ -173,6 +183,22 @@ function LessonUnlock({
             </>
           ) : confirm ? (
             <div className="purchase-confirm">
+              <label className="consent-row">
+                <input
+                  type="checkbox"
+                  checked={sound}
+                  onChange={(e) => {
+                    setSound(e.target.checked);
+                    try {
+                      localStorage.setItem(
+                        "tube-purchase-sound",
+                        e.target.checked ? "on" : "off",
+                      );
+                    } catch {}
+                  }}
+                />
+                Xarid tasdiqlanganda ovoz
+              </label>
               <p>
                 Balansingizdan <strong>{cost} coin</strong> yechilib, shu dars
                 ochiladi. Davom etasizmi?
@@ -608,43 +634,64 @@ export default function LessonPage() {
                             Tarjima
                           </button>
                         </div>
-                        <p
-                          className={arabic ? "sentence arabic" : "sentence"}
-                          dir={arabic ? "rtl" : "ltr"}
-                        >
-                          {segment.text.split(/(\s+)/).map((token, i) => {
-                            const normalized = normalizeAnswer(token);
-                            const entry =
-                              segment.words.find(
-                                (w) => w.normalized === normalized,
-                              ) ||
-                              data.vocabulary.find(
-                                (w) => w.normalized === normalized,
-                              );
-                            return entry ? (
-                              <button
-                                key={i}
-                                className="sentence-word"
-                                onClick={() => {
-                                  openWord({
-                                    ...entry,
-                                    sourceSentence: segment.text,
-                                    subtitleTime: segment.start,
-                                  });
-                                  save.reset();
-                                }}
+                        {segment.alignment.length ? (
+                          <AlignedSubtitles
+                            key={segment.id}
+                            segment={segment}
+                            arabic={arabic}
+                            showTranslation={
+                              translation || stage === "understand"
+                            }
+                            pause={() => video.current?.pause()}
+                          />
+                        ) : (
+                          <>
+                            <p
+                              className={
+                                arabic ? "sentence arabic" : "sentence"
+                              }
+                              dir={arabic ? "rtl" : "ltr"}
+                              onClick={() => video.current?.pause()}
+                            >
+                              {segment.text.split(/(\s+)/).map((token, i) => {
+                                const normalized = normalizeAnswer(token);
+                                const entry =
+                                  segment.words.find(
+                                    (w) => w.normalized === normalized,
+                                  ) ||
+                                  data.vocabulary.find(
+                                    (w) => w.normalized === normalized,
+                                  );
+                                return entry ? (
+                                  <button
+                                    key={i}
+                                    className="sentence-word"
+                                    onClick={() => {
+                                      openWord({
+                                        ...entry,
+                                        sourceSentence: segment.text,
+                                        subtitleTime: segment.start,
+                                      });
+                                      save.reset();
+                                    }}
+                                  >
+                                    {token}
+                                  </button>
+                                ) : (
+                                  <span key={i}>{token}</span>
+                                );
+                              })}
+                            </p>
+                            {(translation || stage === "understand") && (
+                              <p
+                                className="sentence-translation"
+                                onClick={() => video.current?.pause()}
                               >
-                                {token}
-                              </button>
-                            ) : (
-                              <span key={i}>{token}</span>
-                            );
-                          })}
-                        </p>
-                        {(translation || stage === "understand") && (
-                          <p className="sentence-translation">
-                            {segment.translation || "Tarjima tayyorlanmoqda"}
-                          </p>
+                                {segment.translation ||
+                                  "Tarjima tayyorlanmoqda"}
+                              </p>
+                            )}
+                          </>
                         )}
                         {stage === "understand" && segment.grammarNotes && (
                           <details className="grammar-notes">

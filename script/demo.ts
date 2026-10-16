@@ -21,6 +21,6 @@ process.env.NODE_ENV = "development";
 process.env.ENABLE_DEMO_SEED = "true";
 process.env.PORT = process.env.PORT || "5000";
 console.log(
-  "Local demo only: demo_student / DemoStudent2026!, demo_teacher / DemoTeacher2026!, demo_admin / DemoAdmin2026!",
+  "Local demo only. Configure TUBE_DEMO_*_PASSWORD for local sign-in; tests generate disposable credentials.",
 );
 await import("../server/index");

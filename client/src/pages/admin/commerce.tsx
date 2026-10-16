@@ -1095,6 +1095,55 @@ export function AdminCommerceSettings() {
               if (!form.paymentsEnabled || ready) mutation.mutate();
             }}
           >
+            <h2>Coin va dars narxlari</h2>
+            <p>
+              Bonus faqat yangi tasdiqlangan o‘quvchiga bir marta beriladi.
+              Avvalgi xaridlar saqlanadi.
+            </p>
+            <div className="commerce-grid">
+              {(
+                [
+                  ["welcomeCoins", "Ro‘yxatdan o‘tish bonusi"],
+                  ["lessonCost", "Odatiy dars narxi"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key}>
+                  {label}
+                  <input
+                    type="number"
+                    min={1}
+                    max={100000}
+                    required
+                    value={form[key]}
+                    onChange={(e) =>
+                      setForm({ ...form, [key]: Number(e.target.value) })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+            <details>
+              <summary>Alohida dars narxlari</summary>
+              {lessons.data?.map((lesson) => (
+                <label key={lesson.id} className="commerce-field">
+                  {lesson.title}
+                  <input
+                    aria-label={`${lesson.title} narxi`}
+                    type="number"
+                    min={1}
+                    max={100000}
+                    placeholder={String(form.lessonCost)}
+                    value={form.lessonPrices[String(lesson.id)] ?? ""}
+                    onChange={(e) => {
+                      const prices = { ...form.lessonPrices };
+                      if (!e.target.value) delete prices[String(lesson.id)];
+                      else prices[String(lesson.id)] = Number(e.target.value);
+                      setForm({ ...form, lessonPrices: prices });
+                    }}
+                  />
+                </label>
+              ))}
+            </details>
             <h2>O‘quvchi to‘lov sahifasi</h2>
             <div className="commerce-grid">
               {field(

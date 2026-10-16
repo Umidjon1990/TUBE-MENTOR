@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import {
   DEFAULT_COMMERCE_SETTINGS,
+  lessonPrice,
   LESSON_COST,
   WELCOME_COINS,
   type CommerceSettings,
@@ -87,6 +88,14 @@ const packageSchema = z
   .strict();
 const settingsSchema = z
   .object({
+    welcomeCoins: z.number().int().min(1).max(100000).default(WELCOME_COINS),
+    lessonCost: z.number().int().min(1).max(100000).default(LESSON_COST),
+    lessonPrices: z
+      .record(
+        z.string().regex(/^[1-9]\d*$/),
+        z.number().int().min(1).max(100000),
+      )
+      .default({}),
     demoLessonId: z.number().int().positive().nullable(),
     paymentsEnabled: z.boolean(),
     recipientName: z.string().trim().max(150),
@@ -296,11 +305,12 @@ export async function grantWelcomeBonus(
       .from(coinTransactions)
       .where(eq(coinTransactions.idempotencyKey, key));
     if (existing) return { balance: user.coins, granted: false };
+    const bonus = (await getCommerceSettings(tx)).welcomeCoins;
     await reconcileLots(tx, user);
     const result = await applyCredit(
       tx,
       user,
-      WELCOME_COINS,
+      bonus,
       "welcome_bonus",
       key,
       "Ro‘yxatdan o‘tish bonusi",
@@ -311,7 +321,7 @@ export async function grantWelcomeBonus(
       action: "welcome_bonus",
       referenceId: String(result.transaction.id),
       idempotencyKey: key,
-      details: { amount: WELCOME_COINS, balance: result.balance },
+      details: { amount: bonus, balance: result.balance },
     });
     return { balance: result.balance, granted: true };
   });
@@ -395,26 +405,27 @@ export async function purchaseLesson(userId: string, lessonId: number) {
         "ACCESS_REVOKED",
         "Darsga kirish bekor qilingan. Adminga murojaat qiling.",
       );
-    if (user.coins < LESSON_COST)
+    const cost = lessonPrice(settings, lessonId);
+    if (user.coins < cost)
       problem(
         402,
         "INSUFFICIENT_COINS",
         "Balans yetarli emas. Coin paketini tanlang.",
       );
     await reconcileLots(tx, user);
-    const allocations = await consumeLots(tx, userId, LESSON_COST);
+    const allocations = await consumeLots(tx, userId, cost);
     const key = `lesson-purchase:${userId}:${lessonId}`;
     const [transaction] = await tx
       .insert(coinTransactions)
       .values({
         userId,
-        amount: -LESSON_COST,
+        amount: -cost,
         type: "lesson_purchase",
         description: `Dars: ${publishedLesson(lesson)!.title}`,
         lessonId,
         idempotencyKey: key,
         balanceBefore: user.coins,
-        balanceAfter: user.coins - LESSON_COST,
+        balanceAfter: user.coins - cost,
         metadata: { allocations },
       })
       .returning();
@@ -422,21 +433,21 @@ export async function purchaseLesson(userId: string, lessonId: number) {
       userId,
       lessonId,
       source: "purchase",
-      priceCoins: LESSON_COST,
+      priceCoins: cost,
       purchaseTransactionId: transaction.id,
     });
     await tx
       .update(users)
-      .set({ coins: user.coins - LESSON_COST, updatedAt: new Date() })
+      .set({ coins: user.coins - cost, updatedAt: new Date() })
       .where(eq(users.id, userId));
     await audit(tx, {
       userId,
       action: "lesson_purchase",
       referenceId: String(lessonId),
       idempotencyKey: key,
-      details: { amount: LESSON_COST, transactionId: transaction.id },
+      details: { amount: cost, transactionId: transaction.id },
     });
-    return { balance: user.coins - LESSON_COST, lessonId, alreadyOwned: false };
+    return { balance: user.coins - cost, lessonId, alreadyOwned: false };
   });
 }
 
@@ -594,6 +605,9 @@ export async function createPaymentOrder(
     const {
       demoLessonId: _demo,
       paymentsEnabled: _enabled,
+      welcomeCoins: _welcome,
+      lessonCost: _cost,
+      lessonPrices: _prices,
       ...instructions
     } = settings;
     const [created] = await tx
@@ -1120,14 +1134,12 @@ function handle(fn: (req: Request, res: Response) => Promise<unknown>) {
         const bankReference = /bank_reference/.test(
           commerceDatabaseError(error).constraint || "",
         );
-        return res
-          .status(409)
-          .json({
-            message: bankReference
-              ? "Bu bank tranzaksiyasi allaqachon ishlatilgan"
-              : "Operatsiya kaliti takrorlangan",
-            code: bankReference ? "BANK_REFERENCE_USED" : "DUPLICATE_OPERATION",
-          });
+        return res.status(409).json({
+          message: bankReference
+            ? "Bu bank tranzaksiyasi allaqachon ishlatilgan"
+            : "Operatsiya kaliti takrorlangan",
+          code: bankReference ? "BANK_REFERENCE_USED" : "DUPLICATE_OPERATION",
+        });
       }
       console.error("Commerce request failed", {
         name: error instanceof Error ? error.name : "UnknownError",
@@ -1155,8 +1167,8 @@ export function registerCommerceRoutes(app: Express) {
         )
         .orderBy(asc(coinPackages.coins));
       res.json({
-        welcomeCoins: WELCOME_COINS,
-        lessonCost: LESSON_COST,
+        welcomeCoins: settings.welcomeCoins,
+        lessonCost: settings.lessonCost,
         demoLessonId: settings.demoLessonId,
         paymentsEnabled: settings.paymentsEnabled,
         packages: packages.map(({ id, name, coins, priceUzs, isActive }) => ({

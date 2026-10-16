@@ -323,3 +323,5 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+import "@/learner-theme.css";

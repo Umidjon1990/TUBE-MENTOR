@@ -19,6 +19,9 @@ import { registerCommerceSupportRoutes } from "./commerce-support";
 import { log } from "./logger";
 import { pool } from "./db";
 import { optionalAuth } from "./auth";
+import { attachPlatformIdentity, registerPlatformBridge } from "./platform-bridge";
+import { registerMarketplace } from './marketplace';
+import { registerPlatformResources } from './platform-resources';
 
 export async function createApplication(
   options: { production?: boolean; seed?: boolean } = {},
@@ -68,6 +71,7 @@ export async function createApplication(
     }),
   );
   app.use(apiSecurity);
+  app.use('/api', attachPlatformIdentity);
   app.use("/api", optionalAuth);
   const limitAuthentication = rateLimit("auth", 120, 900);
   app.use("/api/auth", (req, res, next) => {
@@ -103,6 +107,9 @@ export async function createApplication(
     await seedDemo();
   }
   await registerAuthRoutes(app);
+  registerPlatformBridge(app);
+  registerMarketplace(app, httpServer);
+  registerPlatformResources(app);
   await registerCommerceRoutes(app);
   registerCommerceSupportRoutes(app);
   await registerPaymentBotRoutes(app);

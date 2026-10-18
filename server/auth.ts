@@ -16,6 +16,7 @@ declare module "express-session" {
       expires: number;
       linkUserId?: string;
       authVersion?: number;
+      platformNonce?: string;
     };
   }
 }

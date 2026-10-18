@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { users, type User } from "@shared/schema";
 import { db } from "./db";
 import { hashPassword, requireAuth } from "./auth";
+import { finishPlatformLogin, platformOrigin } from './platform-bridge';
 
 type Provider = "google" | "telegram";
 type Pending = NonNullable<Request["session"]["socialLogin"]>;
@@ -60,6 +61,7 @@ async function begin(req: Request, provider: Provider, linking = false) {
     nonce: randomBytes(32).toString("base64url"),
     verifier: randomBytes(48).toString("base64url"),
     expires: Date.now() + 600000,
+    ...(!linking && req.session.platformLogin && req.session.platformLogin.expires > Date.now() ? { platformNonce: req.session.platformLogin.nonce } : {}),
     ...(linking
       ? {
           linkUserId: req.session.userId,
@@ -68,6 +70,7 @@ async function begin(req: Request, provider: Provider, linking = false) {
       : {}),
   };
   req.session.socialLogin = pending;
+  delete req.session.platformLogin;
   await saveSession(req);
   const challenge = createHash("sha256")
     .update(pending.verifier)
@@ -339,6 +342,10 @@ export function registerSocialAuthRoutes(
         if (pending.linkUserId)
           return res.redirect(`/profile?linked=${provider}`);
         await establishSession(req, user);
+        if (pending.platformNonce) {
+          const target = await finishPlatformLogin(user, pending.platformNonce);
+          if (target) return res.redirect(target);
+        }
         res.redirect(destination(user));
       } catch (error) {
         const reason =
@@ -347,7 +354,7 @@ export function registerSocialAuthRoutes(
             : (error as { code?: string }).code === "23505"
               ? "account_in_use"
               : `${provider}_failed`;
-        res.redirect(`${failure}${reason}`);
+        res.redirect(pending.platformNonce && platformOrigin() ? platformOrigin() + '/kirish?error=' + encodeURIComponent(reason) : `${failure}${reason}`);
       }
     });
   }

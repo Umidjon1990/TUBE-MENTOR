@@ -5,7 +5,7 @@ import {
   users,
   type Lesson,
 } from "@shared/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, or, gt } from "drizzle-orm";
 import { cefrLevel, publishedLesson } from "@shared/learning";
 import {
   LESSON_COST,
@@ -40,6 +40,7 @@ function accessContext(req: Request) {
               and(
                 eq(grants.userId, req.session.userId),
                 isNull(grants.revokedAt),
+                or(isNull(grants.expiresAt), gt(grants.expiresAt, new Date())),
               ),
             )
         : Promise.resolve([]),
@@ -100,6 +101,7 @@ export async function lessonAccess(
             eq(grants.userId, req.session.userId),
             eq(grants.lessonId, lesson.id),
             isNull(grants.revokedAt),
+            or(isNull(grants.expiresAt), gt(grants.expiresAt, new Date())),
           ),
         );
       if (grant) return "owned";

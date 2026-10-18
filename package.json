@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc --noEmit",
     "db:push": "drizzle-kit push",
-    "test": "node --import tsx --test --test-concurrency=1 tests/*.test.ts",
+    "test": "node --import ./tests/setup-env.mjs --import tsx --test --test-concurrency=1 tests/*.test.ts",
     "demo": "node --import tsx script/demo.ts",
     "db:migrate": "node --import tsx script/migrate.ts",
     "setup:admin": "node --import tsx script/setup-admin.ts",

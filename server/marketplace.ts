@@ -1066,8 +1066,7 @@ export function registerMarketplace(app: Express, http: Server) {
       const products: any[] = [];
       for (const grant of grants) {
         const lesson = sourceLessons.find((s) => s.id === grant.lesson_id);
-        if (!lesson || lesson.status === "archived" || !publishedLesson(lesson))
-          continue;
+        if (!lesson || !publishedLesson(lesson)) continue;
         products.push({
           ...dto(grant),
           owned: true,

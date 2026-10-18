@@ -1,3 +1,4 @@
+import { registerPlatformLinks } from "./platform-links";
 import type { Express } from "express";
 import type { Server } from "node:http";
 import { randomUUID, createHash } from "node:crypto";
@@ -65,7 +66,7 @@ export async function providerRequest(
         : Buffer.isBuffer(body)
           ? body
           : JSON.stringify(body),
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(path.startsWith("users/") ? 3000 : 15000),
     redirect: "error",
   });
   if (!response.ok)
@@ -552,11 +553,33 @@ export async function provisionOrder(id: string) {
       "UPDATE platform_orders SET status='active',source_result=$2,expires_at=$3,locked_until=NULL,error=NULL,updated_at=now() WHERE id=$1 AND status='pending'",
       [id, JSON.stringify(result), result.expiresAt || null],
     );
-  } catch {
+  } catch (error: any) {
     await pool.query(
       "UPDATE platform_orders SET locked_until=NULL,error=$2,next_try_at=now()+interval '1 minute',updated_at=now() WHERE id=$1 AND status='pending'",
       [id, "Manba bilan tasdiqlash kutilmoqda"],
     );
+    if (
+      [400, 403, 404, 409].includes(error?.status) ||
+      order.delivery_attempts >= 15
+    ) {
+      const actionId = randomUUID();
+      const created = (
+        await pool.query(
+          "INSERT INTO platform_admin_actions(id,actor_id,order_id,input) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING id",
+          [
+            actionId,
+            order.user_id,
+            id,
+            JSON.stringify({
+              action: "refund",
+              reason: "Avtomatik: manba xaridni yetkaza olmadi",
+              automatic: true,
+            }),
+          ],
+        )
+      ).rows[0];
+      if (created) await processPlatformAction(created.id);
+    }
   }
 }
 
@@ -641,13 +664,14 @@ export async function queuePlatformAction(
     )
   ).rows[0];
   if (!order) problem(404, "Xarid topilmadi");
+  if (order.policy.legacy && input.action === "refund")
+    problem(
+      409,
+      "Eski manbadagi xarid uchun coin yechilmagan. Coin qaytarish qo‘llanmaydi",
+    );
   if (input.action === "extend" && order.status !== "active")
     problem(409, "Faqat faol xarid uzaytiriladi");
-  if (
-    input.action === "extend" &&
-    order.policy.provider === "tube" &&
-    !order.expires_at
-  )
+  if (input.action === "extend" && !order.expires_at)
     problem(409, "Muddatsiz xaridni uzaytirish talab etilmaydi");
   const created = (
     await pool.query(
@@ -761,11 +785,13 @@ export async function syncProviderCatalog(provider: string) {
     client.release();
   }
 }
-async function ownedOrder(userId: string, id: string) {
+async function ownedOrder(userId: string, id: string, requested?: unknown) {
+  const selected =
+    requested === undefined ? null : z.string().uuid().parse(requested);
   const order = (
     await pool.query(
-      "SELECT * FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status='active' AND (expires_at IS NULL OR expires_at>now()) ORDER BY created_at DESC LIMIT 1",
-      [userId, id],
+      "SELECT * FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status='active' AND (expires_at IS NULL OR expires_at>now()) AND ($3::uuid IS NULL OR id=$3) ORDER BY created_at DESC LIMIT 1",
+      [userId, id, selected],
     )
   ).rows[0];
   if (!order) problem(403, "Mahsulotga faol kirish huquqi kerak");
@@ -773,6 +799,60 @@ async function ownedOrder(userId: string, id: string) {
 }
 
 export function registerMarketplace(app: Express, http: Server) {
+  registerPlatformLinks(app, providerRequest);
+  app.get("/api/platform/results/:id", requireAuth, async (req, res, next) => {
+    try {
+      const orders = (
+        await pool.query(
+          "SELECT * FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status IN('active','revoked','refunded') ORDER BY created_at DESC LIMIT 20",
+          [req.session.userId, req.params.id],
+        )
+      ).rows;
+      if (!orders.length)
+        return res.status(404).json({ message: "Xarid topilmadi" });
+      const outcomes = await Promise.allSettled(
+        orders
+          .filter((o: any) => o.policy.provider !== "tube")
+          .map(async (o: any) =>
+            providerRequest(
+              o.policy.provider,
+              "owned/" + encodeURIComponent(o.policy.sourceId) + "/history",
+              undefined,
+              { userId: o.user_id, orderId: o.id },
+            ),
+          ),
+      );
+      const unique = new Map<string, any>();
+      let unavailable = 0;
+      for (const r of outcomes) {
+        if (r.status === "rejected") {
+          unavailable++;
+          continue;
+        }
+        for (const a of Array.isArray(r.value.attempts) ? r.value.attempts : [])
+          if (typeof a.id === "string") unique.set(a.id, a);
+      }
+      res.json({ attempts: [...unique.values()], unavailable });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.use((req, res, next) => {
+    const match =
+      /^\/api\/platform\/owned\/([a-zA-Z0-9_-]+)\/order\/([0-9a-f-]{36})(?=\/|$)/.exec(
+        req.path,
+      );
+    if (match) {
+      const url = new URL(req.url, "https://local.invalid");
+      url.pathname = url.pathname.replace(
+        match[0],
+        "/api/platform/owned/" + match[1],
+      );
+      url.searchParams.set("order", match[2]);
+      req.url = url.pathname + url.search;
+    }
+    next();
+  });
   app.get("/api/platform/catalog", async (req, res, next) => {
     try {
       await syncTubeProducts();
@@ -936,6 +1016,53 @@ export function registerMarketplace(app: Express, http: Server) {
         )
       ).rows;
       const sourceLessons = await storage.getAllLessons();
+      const liveAttempts = new Map<string, any>();
+      await Promise.all(
+        [
+          ...new Set(
+            orders
+              .filter(
+                (o: any) =>
+                  o.policy.kind === "test" &&
+                  o.policy.provider !== "tube" &&
+                  o.status === "active",
+              )
+              .map((o: any) => o.policy.provider as string),
+          ),
+        ].map(async (provider) => {
+          try {
+            const result = await providerRequest(
+              provider,
+              "users/" + encodeURIComponent(req.session.userId!) + "/library",
+            );
+            for (const g of z
+              .array(
+                z.object({
+                  orderId: z.string().uuid(),
+                  sourceId: z.string(),
+                  attemptsRemaining: z.number().int().min(0).max(1000000),
+                  maxAttempts: z.number().int().min(1).max(1000000).optional(),
+                  expiresAt: z.string().datetime().nullable().optional(),
+                  revoked: z.boolean().optional(),
+                }),
+              )
+              .max(2000)
+              .parse(result.grants)) {
+              if (
+                orders.some(
+                  (o: any) =>
+                    o.id === g.orderId &&
+                    o.policy.sourceId === g.sourceId &&
+                    o.policy.provider === provider,
+                )
+              )
+                liveAttempts.set(g.orderId, g);
+            }
+          } catch {
+            /* A provider outage must not hide the learner's other purchases. */
+          }
+        }),
+      );
       const products: any[] = [];
       for (const grant of grants) {
         const lesson = sourceLessons.find((s) => s.id === grant.lesson_id);
@@ -960,11 +1087,20 @@ export function registerMarketplace(app: Express, http: Server) {
         )
       ).rows;
       const seen = new Set<string>();
-      for (const o of orders.filter(
-        (o) =>
-          o.policy.provider !== "tube" &&
-          ["active", "pending"].includes(o.status),
-      )) {
+      const accessRank = (o: any) =>
+        o.status === "active" &&
+        (!o.expires_at || new Date(o.expires_at) > new Date())
+          ? 0
+          : o.status === "pending"
+            ? 1
+            : 2;
+      for (const o of orders
+        .filter(
+          (o) =>
+            o.policy.provider !== "tube" &&
+            ["active", "pending"].includes(o.status),
+        )
+        .sort((a: any, b: any) => accessRank(a) - accessRank(b))) {
         if (seen.has(o.product_id)) continue;
         seen.add(o.product_id);
         products.push({
@@ -980,6 +1116,11 @@ export function registerMarketplace(app: Express, http: Server) {
           orderStatus: o.status,
           expiresAt: o.expires_at,
           completionPercent: o.source_result?.completionPercent || 0,
+          attemptsRemaining:
+            liveAttempts.get(o.id)?.attemptsRemaining ??
+            o.source_result?.attemptsRemaining,
+          maxAttempts:
+            liveAttempts.get(o.id)?.maxAttempts ?? o.policy.maxAttempts,
         });
       }
       res.json({
@@ -1061,7 +1202,7 @@ export function registerMarketplace(app: Express, http: Server) {
             kind: z
               .enum(["exam", "assignment", "essay", "speaking"])
               .default("exam"),
-            scores: z.record(z.number().int().min(0).max(1000000)),
+            scores: z.record(z.number().min(0).max(1000000)),
             feedback: z.string().trim().min(3).max(10000),
           })
           .strict()
@@ -1096,7 +1237,11 @@ export function registerMarketplace(app: Express, http: Server) {
     requireAuth,
     async (req, res, next) => {
       try {
-        const o = await ownedOrder(req.session.userId!, String(req.params.id));
+        const o = await ownedOrder(
+          req.session.userId!,
+          String(req.params.id),
+          req.query.order,
+        );
         const fileId = z.string().uuid().parse(req.params.fileId);
         const response = await providerRequest(
           o.policy.provider,
@@ -1126,13 +1271,25 @@ export function registerMarketplace(app: Express, http: Server) {
   );
   app.get("/api/platform/owned/:id", requireAuth, async (req, res, next) => {
     try {
-      const o = await ownedOrder(req.session.userId!, String(req.params.id));
+      const o = await ownedOrder(
+        req.session.userId!,
+        String(req.params.id),
+        req.query.order,
+      );
       const view = await providerRequest(
         o.policy.provider,
         "owned/" + encodeURIComponent(o.policy.sourceId) + "/view",
         undefined,
         { userId: o.user_id, orderId: o.id },
       );
+      if (
+        Number.isInteger(view.attemptsRemaining) &&
+        view.attemptsRemaining >= 0
+      )
+        await pool.query(
+          "UPDATE platform_orders SET source_result=COALESCE(source_result,'{}'::jsonb)||$2::jsonb WHERE id=$1",
+          [o.id, JSON.stringify({ attemptsRemaining: view.attemptsRemaining })],
+        );
       if (Number.isFinite(view.completionPercent))
         await pool.query(
           "UPDATE platform_orders SET source_result=COALESCE(source_result,'{}'::jsonb)||$2::jsonb WHERE id=$1",
@@ -1146,6 +1303,17 @@ export function registerMarketplace(app: Express, http: Server) {
             }),
           ],
         );
+      view.accessChoices = (
+        await pool.query(
+          "SELECT id,expires_at,policy->>'legacy' AS legacy FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status='active' AND (expires_at IS NULL OR expires_at>now()) ORDER BY created_at DESC",
+          [req.session.userId, o.product_id],
+        )
+      ).rows.map((r: any) => ({
+        id: r.id,
+        expiresAt: r.expires_at,
+        legacy: r.legacy === "true",
+      }));
+      view.currentOrderId = o.id;
       res.json(view);
     } catch (error) {
       next(error);
@@ -1162,12 +1330,16 @@ export function registerMarketplace(app: Express, http: Server) {
         const raw = (req.params as any).nativePath;
         const path = Array.isArray(raw) ? raw.join("/") : String(raw);
         if (
-          !/^[a-zA-Z0-9_\/-]+$/.test(path) ||
+          !/^[a-zA-Z0-9_:\/-]+$/.test(path) ||
           path.includes("..") ||
           path.includes("//")
         )
           return res.status(400).json({ message: "API yo‘li noto‘g‘ri" });
-        const o = await ownedOrder(req.session.userId!, String(req.params.id));
+        const o = await ownedOrder(
+          req.session.userId!,
+          String(req.params.id),
+          req.query.order,
+        );
         const result = await providerRequest(
           o.policy.provider,
           "native/" + path,
@@ -1181,6 +1353,8 @@ export function registerMarketplace(app: Express, http: Server) {
           /^\/api\/private-files\/[0-9a-f-]{36}$/.test(v)
             ? "/api/platform/core/platform/owned/" +
               o.product_id +
+              "/order/" +
+              o.id +
               "/files/" +
               v.split("/").pop()
             : Array.isArray(v)
@@ -1226,6 +1400,10 @@ export function registerMarketplace(app: Express, http: Server) {
         const p = await product(String(req.params.id));
         if (!p) return res.status(404).json({ message: "Mahsulot topilmadi" });
         const v = offerInput.parse(req.body);
+        if (p.kind === "test" && v.status === "published" && !v.maxAttempts)
+          return res
+            .status(400)
+            .json({ message: "Test uchun urinish limiti kerak" });
         if (
           v.status === "published" &&
           p.source_metadata?.readyForSale === false
@@ -1254,22 +1432,24 @@ export function registerMarketplace(app: Express, http: Server) {
             p.provider,
             "products/" + encodeURIComponent(p.source_id) + "/demo",
           );
+        if (p.provider === "quiz" && v.status === "published")
+          await providerRequest(
+            "quiz",
+            "products/" + encodeURIComponent(p.source_id) + "/sale",
+            { enabled: true },
+          );
         if (p.provider === "tube") {
           const settings = await getCommerceSettings();
           const globalDemo = settings.demoLessonId === Number(p.source_id);
           if (v.priceCoins > 100000 || (!globalDemo && v.priceCoins < 1))
-            return res
-              .status(400)
-              .json({
-                message: "Tube Mentor darsi narxi 1–100000 coin bo‘lishi kerak",
-              });
+            return res.status(400).json({
+              message: "Tube Mentor darsi narxi 1–100000 coin bo‘lishi kerak",
+            });
           if (globalDemo && v.priceCoins !== 0)
-            return res
-              .status(409)
-              .json({
-                message:
-                  "Bu dars umumiy ochiq demo sifatida tanlangan. Avval demo dars sozlamasini almashtiring",
-              });
+            return res.status(409).json({
+              message:
+                "Bu dars umumiy ochiq demo sifatida tanlangan. Avval demo dars sozlamasini almashtiring",
+            });
           if (!globalDemo) {
             settings.lessonPrices[p.source_id] = v.priceCoins;
             // Change only this lesson price; preserve payee settings and simultaneous edits of other lessons.

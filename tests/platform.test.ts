@@ -1,6 +1,6 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import type { Server } from "node:http";
@@ -741,4 +741,246 @@ test("admin lesson-price changes preserve payment settings and concurrent prices
   assert.equal(final.recipientName, "Payment settings invariant");
   assert.equal(final.lessonPrices[String(lessonId)], 11);
   assert.equal(final.lessonPrices[String(another)], 12);
+});
+
+test("verified legacy import never changes coins; qualified native IDs and permanent delivery rollback stay scoped", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { createHash } = await import("node:crypto");
+  const { processPlatformAction, provisionOrder, queuePlatformAction } =
+    await import("../server/marketplace");
+  const username = "linked_" + randomUUID(),
+    loginPassword = "private-fixture-password";
+  const uid = (
+    await pool.query(
+      "INSERT INTO users(full_name,username,password_hash,email_verified) VALUES('Linked fixture',$1,$2,true) RETURNING id",
+      [username, hashPassword(loginPassword)],
+    )
+  ).rows[0].id;
+  const logged = await (
+      await post("/api/platform/auth/password", {
+        username,
+        password: loginPassword,
+      })
+    ).json(),
+    session = { "x-platform-session": logged.token };
+  const legacyOrder = randomUUID(),
+    sourceId = "quiz:legacy",
+    pid =
+      "quiz-" +
+      createHash("sha256").update(sourceId).digest("hex").slice(0, 32);
+  const oldFetch = globalThis.fetch;
+  process.env.PLATFORM_QUIZ_SECRET = randomBytes(32).toString("hex");
+  let revokeDown = true,
+    proxySeen = false;
+  globalThis.fetch = (async (input: any, init: any) => {
+    const url = String(input);
+    if (!url.startsWith("https://web-production-73482.up.railway.app/"))
+      return oldFetch(input, init);
+    const path = new URL(url).pathname,
+      body = init?.body ? JSON.parse(String(init.body)) : {};
+    assert.equal(
+      init?.headers["x-platform-key"],
+      process.env.PLATFORM_QUIZ_SECRET,
+    );
+    if (path.endsWith("/legacy/link")) {
+      if (body.password !== "proof-password")
+        return Response.json({ message: "wrong" }, { status: 401 });
+      assert.equal(body.externalUserId, uid);
+      return Response.json({
+        linked: true,
+        grants: [
+          {
+            orderId: legacyOrder,
+            sourceId,
+            kind: "test",
+            title: "Old assessment",
+            description: "Preserved",
+            sourceVersion: "v1",
+            expiresAt: new Date(Date.now() + 86400000).toISOString(),
+            maxAttempts: 2,
+            attemptsRemaining: 1,
+          },
+        ],
+      });
+    }
+    if (path.includes("/native/course-exams/quiz:legacy/start")) {
+      assert.equal(init.headers["x-platform-order"], legacyOrder);
+      assert.equal(init.headers["x-platform-user"], uid);
+      proxySeen = true;
+      return Response.json({ id: randomUUID(), status: "started" });
+    }
+    if (path.endsWith("/history"))
+      return Response.json({
+        attempts: [
+          {
+            id: "historic-result",
+            status: "submitted",
+            result: { score: 1, totalPoints: 2, percentage: 50 },
+          },
+        ],
+      });
+    if (path.endsWith("/library"))
+      return Response.json({
+        grants: [
+          {
+            orderId: legacyOrder,
+            sourceId,
+            attemptsRemaining: 1,
+            maxAttempts: 2,
+          },
+        ],
+      });
+    if (path.endsWith("/grants"))
+      return Response.json({ message: "changed version" }, { status: 409 });
+    if (path.endsWith("/manage"))
+      return revokeDown
+        ? Response.json({ message: "temporary" }, { status: 503 })
+        : Response.json({
+            orderId: path.split("/").at(-2),
+            active: false,
+            expiresAt: null,
+          });
+    return Response.json({ message: "not found" }, { status: 404 });
+  }) as any;
+  try {
+    const before = (
+      await pool.query("SELECT coins FROM users WHERE id=$1", [uid])
+    ).rows[0].coins;
+    const wrong = await post(
+      "/api/platform/links/quiz",
+      { username: "old", password: "incorrect" },
+      session,
+    );
+    assert.equal(wrong.status, 400);
+    assert.equal(
+      (
+        await fetch(base + "/api/platform/me", {
+          headers: { ...headers, ...session },
+        })
+      ).status,
+      200,
+    );
+    assert.equal(
+      (
+        await post(
+          "/api/platform/links/quiz",
+          {
+            username: "old",
+            password: "proof-password",
+            externalUserId: "forged",
+          },
+          session,
+        )
+      ).status,
+      400,
+    );
+    for (let n = 0; n < 2; n++)
+      assert.equal(
+        (
+          await post(
+            "/api/platform/links/quiz",
+            { username: "old", password: "proof-password" },
+            session,
+          )
+        ).status,
+        200,
+      );
+    assert.equal(
+      (await pool.query("SELECT coins FROM users WHERE id=$1", [uid])).rows[0]
+        .coins,
+      before,
+    );
+    assert.equal(
+      (
+        await pool.query(
+          "SELECT count(*)::int AS n FROM platform_orders WHERE id=$1",
+          [legacyOrder],
+        )
+      ).rows[0].n,
+      1,
+    );
+    const proxied = await post(
+      `/api/platform/owned/${pid}/order/${legacyOrder}/native/course-exams/quiz:legacy/start`,
+      {},
+      session,
+    );
+    assert.equal(proxied.status, 200);
+    assert.equal(proxySeen, true);
+    const history = await fetch(base + `/api/platform/results/${pid}`, {
+      headers: { ...headers, ...session },
+    });
+    assert.equal((await history.json()).attempts[0].id, "historic-result");
+    const walletRows = (
+      await pool.query(
+        "SELECT count(*)::int AS n FROM coin_transactions WHERE user_id=$1",
+        [uid],
+      )
+    ).rows[0].n;
+    assert.equal(walletRows, 1);
+    const admin = (
+      await pool.query(
+        "SELECT id FROM users WHERE username='platform_admin_fixture'",
+      )
+    ).rows[0];
+    await assert.rejects(
+      () =>
+        queuePlatformAction(admin.id, legacyOrder, randomUUID(), {
+          action: "refund",
+          reason: "Not a coin purchase",
+        }),
+      (e: any) => e.status === 409,
+    );
+    await pool.query(
+      "INSERT INTO platform_products(id,provider,source_id,kind,title,price_coins,duration_days,max_attempts,demo_ref,source_version,status) VALUES('version-rollback','quiz','quiz:changed','test','Rollback fixture',5,30,1,'sample','v1','published')",
+    );
+    const purchase = await post(
+      "/api/platform/products/version-rollback/purchase",
+      { requestKey: randomUUID(), expectedPrice: 5 },
+      session,
+    );
+    assert.equal(purchase.status, 200);
+    const order = await purchase.json();
+    assert.equal(order.status, "pending");
+    assert.equal(
+      (await pool.query("SELECT coins FROM users WHERE id=$1", [uid])).rows[0]
+        .coins,
+      before - 5,
+    );
+    const action = (
+      await pool.query(
+        "SELECT * FROM platform_admin_actions WHERE order_id=$1",
+        [order.id],
+      )
+    ).rows[0];
+    assert.equal(action.input.automatic, true);
+    revokeDown = false;
+    await processPlatformAction(action.id);
+    await processPlatformAction(action.id);
+    await provisionOrder(order.id);
+    assert.equal(
+      (
+        await pool.query("SELECT status FROM platform_orders WHERE id=$1", [
+          order.id,
+        ])
+      ).rows[0].status,
+      "refunded",
+    );
+    assert.equal(
+      (await pool.query("SELECT coins FROM users WHERE id=$1", [uid])).rows[0]
+        .coins,
+      before,
+    );
+    assert.equal(
+      (
+        await pool.query(
+          "SELECT count(*)::int AS n FROM coin_transactions WHERE user_id=$1 AND type='product_refund'",
+          [uid],
+        )
+      ).rows[0].n,
+      1,
+    );
+  } finally {
+    globalThis.fetch = oldFetch;
+    delete process.env.PLATFORM_QUIZ_SECRET;
+  }
 });

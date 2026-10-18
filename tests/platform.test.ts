@@ -984,3 +984,44 @@ test("verified legacy import never changes coins; qualified native IDs and perma
     delete process.env.PLATFORM_QUIZ_SECRET;
   }
 });
+
+test("archiving a Tube source hides new sales while keeping the purchaser library and published snapshot", async () => {
+  const { storage } = await import("../server/storage");
+  const source = await storage.getLessonById(lessonId);
+  assert.ok(source);
+  const nativeGrant = (
+    await pool.query(
+      "SELECT * FROM lesson_access WHERE user_id=$1 AND lesson_id=$2 LIMIT 1",
+      [userId, lessonId],
+    )
+  ).rows[0];
+  assert.ok(nativeGrant);
+  await pool.query(
+    "UPDATE lesson_access SET revoked_at=NULL,expires_at=now()+interval '1 day' WHERE id=$1",
+    [nativeGrant.id],
+  );
+  try {
+    await storage.updateLesson(lessonId, { status: "archived" });
+    const h = { ...headers, "x-platform-session": accessToken };
+    const library = await (
+      await fetch(base + "/api/platform/library", { headers: h })
+    ).json();
+    assert.ok(library.products.some((p: any) => p.id === productId));
+    assert.equal(
+      (await fetch(base + "/api/learn/lessons/" + lessonId, { headers: h }))
+        .status,
+      200,
+    );
+    const catalog = await (await fetch(base + "/api/platform/catalog")).json();
+    assert.ok(!catalog.products.some((p: any) => p.id === productId));
+  } finally {
+    await pool.query("UPDATE lessons SET status=$2 WHERE id=$1", [
+      lessonId,
+      source.status,
+    ]);
+    await pool.query(
+      "UPDATE lesson_access SET revoked_at=$2,expires_at=$3 WHERE id=$1",
+      [nativeGrant.id, nativeGrant.revoked_at, nativeGrant.expires_at],
+    );
+  }
+});

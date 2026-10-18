@@ -337,11 +337,16 @@ export class DatabaseStorage implements IStorage {
           JSON.stringify(data[key]) !== JSON.stringify(current[key]),
       );
       const update: Partial<Lesson> = { ...data, updatedAt: new Date() };
+      if (
+        (changed || data.status === "archived") &&
+        current.status === "published" &&
+        !current.publishedSnapshot
+      ) {
+        const { publishedSnapshot, ...snapshot } = current;
+        update.publishedSnapshot = snapshot;
+        update.publishedAt = current.publishedAt || new Date();
+      }
       if (changed) {
-        if (current.status === "published" && !current.publishedSnapshot) {
-          const { publishedSnapshot, ...snapshot } = current;
-          update.publishedSnapshot = snapshot;
-        }
         update.contentVersion = current.contentVersion + 1;
         update.contentChecks = {};
         update.status = "draft";

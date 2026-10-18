@@ -376,7 +376,7 @@ export async function purchaseLesson(userId: string, lessonId: number) {
   await grantWelcomeBonus(userId);
   const settings = await getCommerceSettings();
   const offer = await pool.query("SELECT status,duration_days FROM platform_products WHERE provider='tube' AND source_id=$1", [String(lessonId)]);
-  if (offer.rows[0] && (offer.rows[0].status !== 'published' || offer.rows[0].duration_days !== null))
+  if (offer.rows[0])
     problem(409, 'MARKETPLACE_REQUIRED', 'Xaridni asosiy marketplace orqali yakunlang');
   return db.transaction(async (tx) => {
     const user = await lockUser(tx, userId);
@@ -1096,6 +1096,8 @@ export async function adjustLessonAccess(
         .update(lessonAccess)
         .set({
           revokedAt: parsed.grant ? null : new Date(),
+          revocationType:parsed.grant?null:"admin",
+          ...(parsed.grant?{expiresAt:null,source:"admin",purchaseTransactionId:null}:{}),
           grantedBy: actorId,
         })
         .where(eq(lessonAccess.id, owned.id));
@@ -1106,6 +1108,7 @@ export async function adjustLessonAccess(
         source: "admin",
         grantedBy: actorId,
       });
+    if(!parsed.grant)await tx.execute(sql`UPDATE platform_orders SET status='revoked',updated_at=now() WHERE user_id=${userId} AND product_id=${'tube-'+parsed.lessonId} AND status='active'`);
     await audit(tx, {
       actorId,
       userId,

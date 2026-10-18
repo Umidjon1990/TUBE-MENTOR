@@ -16,7 +16,7 @@ async function main() {
   const stopPaymentMaintenance = startPaymentMaintenance();
   const port = Number(process.env.PORT || 5000);
   httpServer.listen({ port, host: "0.0.0.0" }, () =>
-    log(`serving on port ${port}`),
+    log(`serving on port ${port} (Node ${process.versions.node})`),
   );
   for (const signal of ["SIGTERM", "SIGINT"] as const)
     process.once(signal, () => {

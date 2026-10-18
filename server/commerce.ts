@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { Express, Request, Response } from "express";
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql, or, gt } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { requireAdmin, requireAuth, hasVerifiedIdentity } from "./auth";
 import { rateLimit } from "./security";
 import { publishedLesson } from "@shared/learning";
@@ -180,6 +180,7 @@ export async function hasLessonEntitlement(
         eq(lessonAccess.userId, userId),
         eq(lessonAccess.lessonId, lessonId),
         isNull(lessonAccess.revokedAt),
+        or(isNull(lessonAccess.expiresAt), gt(lessonAccess.expiresAt, new Date())),
       ),
     );
   return Boolean(entry);
@@ -354,7 +355,7 @@ export async function getWallet(userId: string): Promise<WalletDTO> {
       .select({ lessonId: lessonAccess.lessonId })
       .from(lessonAccess)
       .where(
-        and(eq(lessonAccess.userId, userId), isNull(lessonAccess.revokedAt)),
+        and(eq(lessonAccess.userId, userId), isNull(lessonAccess.revokedAt), or(isNull(lessonAccess.expiresAt), gt(lessonAccess.expiresAt, new Date()))),
       );
     const [bonus] = await tx
       .select({ id: coinTransactions.id })
@@ -374,6 +375,9 @@ export async function getWallet(userId: string): Promise<WalletDTO> {
 export async function purchaseLesson(userId: string, lessonId: number) {
   await grantWelcomeBonus(userId);
   const settings = await getCommerceSettings();
+  const offer = await pool.query("SELECT status,duration_days FROM platform_products WHERE provider='tube' AND source_id=$1", [String(lessonId)]);
+  if (offer.rows[0] && (offer.rows[0].status !== 'published' || offer.rows[0].duration_days !== null))
+    problem(409, 'MARKETPLACE_REQUIRED', 'Xaridni asosiy marketplace orqali yakunlang');
   return db.transaction(async (tx) => {
     const user = await lockUser(tx, userId);
     if (!user.isActive || user.role !== "student" || !hasVerifiedIdentity(user))
@@ -388,6 +392,8 @@ export async function purchaseLesson(userId: string, lessonId: number) {
         ),
       )
       .for("update");
+    if (owned?.expiresAt && owned.expiresAt <= new Date())
+      problem(402, 'LESSON_EXPIRED', 'Dars muddati tugagan. Asosiy kabinetdan uzaytiring.');
     if (owned && !owned.revokedAt)
       return { balance: user.coins, lessonId, alreadyOwned: true };
     const [lesson] = await tx

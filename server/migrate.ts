@@ -19,6 +19,9 @@ export async function migrateDatabase() {
       "0004_telegram_login.sql",
       "0005_coin_commerce.sql",
       "0006_commerce_support.sql",
+      "0007_platform_bridge.sql",
+      "0008_marketplace.sql",
+      "0009_platform_resources.sql",
     ]) {
       const exists = await client.query(
         "SELECT 1 FROM tube_migrations WHERE name=$1",

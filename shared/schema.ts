@@ -235,6 +235,7 @@ export const lessonAccess = pgTable(
     ),
     grantedBy: varchar("granted_by").references(() => users.id),
     revokedAt: timestamp("revoked_at"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [

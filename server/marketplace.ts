@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { registerPlatformLinks } from "./platform-links";
 import type { Express } from "express";
 import type { Server } from "node:http";
@@ -39,6 +40,7 @@ export async function providerRequest(
   method?: string,
   contentType?: string,
   raw = false,
+  range?: string,
 ) {
   const config = providerConfig[provider as keyof typeof providerConfig];
   const key = config && process.env[config.env];
@@ -50,6 +52,7 @@ export async function providerRequest(
     method: method || (body === undefined ? "GET" : "POST"),
     headers: {
       "x-platform-key": key,
+      ...(range ? { Range: range } : {}),
       ...(identity
         ? {
             "x-platform-user": identity.userId,
@@ -66,7 +69,13 @@ export async function providerRequest(
         : Buffer.isBuffer(body)
           ? body
           : JSON.stringify(body),
-    signal: AbortSignal.timeout(path.startsWith("users/") ? 3000 : 15000),
+    signal: AbortSignal.timeout(
+      path.includes("pdf") || path.endsWith("demo-file")
+        ? 60000
+        : path.startsWith("users/")
+          ? 3000
+          : 15000,
+    ),
     redirect: "error",
   });
   if (!response.ok)
@@ -605,6 +614,11 @@ export async function processPlatformAction(id: string) {
         "grants/" + order.id + "/manage",
         {
           externalUserId: order.user_id,
+          ...((order.policy.provider === "arabictest" &&
+            order.policy.kind === "course") ||
+          order.policy.kind === "pdf"
+            ? { kind: order.policy.kind, sourceId: order.policy.sourceId }
+            : {}),
           operationId: action.id,
           action: action.input.action === "extend" ? "extend" : "revoke",
           ...(action.input.action === "extend"
@@ -707,7 +721,7 @@ export async function syncProviderCatalog(provider: string) {
     .array(
       z.object({
         sourceId: z.string().min(1).max(200),
-        kind: z.enum(["course", "test"]),
+        kind: z.enum(["course", "test", "pdf"]),
         title: z.string().min(1).max(200),
         description: z.string().max(5000).default(""),
         thumbnailUrl: z.string().nullable().optional(),
@@ -900,13 +914,16 @@ export function registerMarketplace(app: Express, http: Server) {
       const p = await product(String(req.params.id));
       if (!p || p.status !== "published" || !p.demo_ref)
         return res.status(404).json({ message: "Demo mavjud emas" });
-      if (p.provider !== "tube")
-        return res.json(
-          await providerRequest(
-            p.provider,
-            "products/" + encodeURIComponent(p.source_id) + "/demo",
-          ),
+      if (p.provider !== "tube") {
+        const preview = await providerRequest(
+          p.provider,
+          "products/" + encodeURIComponent(p.source_id) + "/demo",
         );
+        if (p.kind === "pdf")
+          preview.pdfUrl =
+            "/api/platform/core/platform/products/" + p.id + "/demo-file";
+        return res.json(preview);
+      }
       const source = await storage.getLessonById(Number(p.source_id));
       const lesson =
         source && source.status !== "archived" && publishedLesson(source);
@@ -1268,6 +1285,77 @@ export function registerMarketplace(app: Express, http: Server) {
       }
     },
   );
+  const streamPdf = async (response: any, res: any) => {
+    res.status(response.status);
+    for (const h of [
+      "content-type",
+      "content-length",
+      "content-range",
+      "accept-ranges",
+      "content-disposition",
+    ]) {
+      const v = response.headers.get(h);
+      if (v) res.set(h, v);
+    }
+    res.set("Cache-Control", "private, no-store, no-transform");
+    if (!response.body) return res.end();
+    const stream = Readable.fromWeb(response.body);
+    res.on("close", () => stream.destroy());
+    stream.on("error", () => res.destroy());
+    stream.pipe(res);
+  };
+  app.get("/api/platform/products/:id/demo-file", async (req, res, next) => {
+    try {
+      const p = await product(String(req.params.id));
+      if (!p || p.status !== "published" || p.kind !== "pdf" || !p.demo_ref)
+        problem(404, "PDF demo topilmadi");
+      await streamPdf(
+        await providerRequest(
+          p.provider,
+          "products/" + encodeURIComponent(p.source_id) + "/demo-file",
+          undefined,
+          undefined,
+          "GET",
+          undefined,
+          true,
+          req.get("range"),
+        ),
+        res,
+      );
+    } catch (e) {
+      next(e);
+    }
+  });
+  app.get(
+    "/api/platform/owned/:id/pdf/:readerId/file",
+    requireAuth,
+    async (req, res, next) => {
+      try {
+        const o = await ownedOrder(
+          req.session.userId!,
+          String(req.params.id),
+          req.query.order,
+        );
+        if (o.policy.kind !== "pdf") problem(404, "PDF topilmadi");
+        const id = z.string().uuid().parse(req.params.readerId);
+        await streamPdf(
+          await providerRequest(
+            o.policy.provider,
+            "native/pdf-sessions/" + id + "/file",
+            undefined,
+            { userId: o.user_id, orderId: o.id },
+            "GET",
+            undefined,
+            true,
+            req.get("range"),
+          ),
+          res,
+        );
+      } catch (e) {
+        next(e);
+      }
+    },
+  );
   app.get("/api/platform/owned/:id", requireAuth, async (req, res, next) => {
     try {
       const o = await ownedOrder(
@@ -1413,7 +1501,8 @@ export function registerMarketplace(app: Express, http: Server) {
               "Tarifning barcha imkoniyatlari hali ulanmagan",
           });
         if (
-          p.provider === "courses" &&
+          (p.provider === "courses" ||
+            (p.provider === "arabictest" && p.kind === "course")) &&
           v.status === "published" &&
           !v.durationDays
         )
@@ -1431,7 +1520,11 @@ export function registerMarketplace(app: Express, http: Server) {
             p.provider,
             "products/" + encodeURIComponent(p.source_id) + "/demo",
           );
-        if (p.provider === "quiz" && v.status === "published")
+        if (
+          p.provider === "quiz" &&
+          p.kind === "test" &&
+          v.status === "published"
+        )
           await providerRequest(
             "quiz",
             "products/" + encodeURIComponent(p.source_id) + "/sale",

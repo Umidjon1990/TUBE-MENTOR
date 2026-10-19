@@ -53,8 +53,19 @@ export async function optionalAuth(
   res: Response,
   next: NextFunction,
 ) {
+  if (
+    (req.session as any).platformEditorHandle &&
+    !req.platformEditor &&
+    !req.get("x-platform-session")
+  ) {
+    delete req.session.userId;
+    delete req.session.userRole;
+    delete req.session.authVersion;
+  }
   if (req.session.userId) {
     const user = await storage.getUser(req.session.userId);
+    if (req.platformEditor && user)
+      req.session.authVersion = user.sessionVersion;
     if (
       !user ||
       !user.isActive ||

@@ -8,7 +8,7 @@ const provider = z.enum(["courses", "arabictest", "quiz"]);
 const legacyGrant = z.object({
   orderId: z.string().uuid(),
   sourceId: z.string().min(1).max(200),
-  kind: z.enum(["test", "course"]),
+  kind: z.enum(["test", "course", "pdf"]),
   title: z.string().min(1).max(200),
   description: z.string().max(5000).default(""),
   sourceVersion: z.string().min(1).max(100),
@@ -148,12 +148,10 @@ export function registerPlatformLinks(
         res.json(await importGrants(req.session.userId!, source, result));
       } catch (error: any) {
         if (error.status === 401)
-          return res
-            .status(400)
-            .json({
-              message:
-                "Eski hisob login yoki paroli noto‘g‘ri, yoxud hisob faol emas",
-            });
+          return res.status(400).json({
+            message:
+              "Eski hisob login yoki paroli noto‘g‘ri, yoxud hisob faol emas",
+          });
         next(error);
       }
     },

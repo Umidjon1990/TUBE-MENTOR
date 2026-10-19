@@ -20,7 +20,11 @@ export function apiSecurity(req: Request, res: Response, next: NextFunction) {
       ? new URL(process.env.APP_URL).origin
       : undefined;
     const local = `${req.protocol}://${req.get("host")}`;
-    if (origin && origin !== (configured || local))
+    if (
+      origin &&
+      origin !== (configured || local) &&
+      !(req.platformEditor && origin === local)
+    )
       return res
         .status(403)
         .json({ message: "So‘rov manbasi ruxsat etilmagan" });
@@ -61,11 +65,9 @@ export function rateLimit(
             windowSeconds - (Math.floor(Date.now() / 1000) % windowSeconds),
           ),
         );
-        return res
-          .status(429)
-          .json({
-            message: "So‘rovlar ko‘paydi. Birozdan so‘ng qayta urinib ko‘ring.",
-          });
+        return res.status(429).json({
+          message: "So‘rovlar ko‘paydi. Birozdan so‘ng qayta urinib ko‘ring.",
+        });
       }
       next();
     } catch (error) {

@@ -19,9 +19,17 @@ import { registerCommerceSupportRoutes } from "./commerce-support";
 import { log } from "./logger";
 import { pool } from "./db";
 import { optionalAuth } from "./auth";
-import { attachPlatformIdentity, registerPlatformBridge } from "./platform-bridge";
-import { registerMarketplace } from './marketplace';
-import { registerPlatformResources } from './platform-resources';
+import {
+  attachPlatformIdentity,
+  registerPlatformBridge,
+} from "./platform-bridge";
+import { tubeEditor } from "./platform-editor";
+import {
+  initializeEditorBroker,
+  registerEditorAuthorization,
+} from "./platform-editors";
+import { registerMarketplace } from "./marketplace";
+import { registerPlatformResources } from "./platform-resources";
 
 export async function createApplication(
   options: { production?: boolean; seed?: boolean } = {},
@@ -70,8 +78,12 @@ export async function createApplication(
       },
     }),
   );
+  const editor = tubeEditor(app);
+  app.use(editor.middleware);
+  editor.routes();
   app.use(apiSecurity);
-  app.use('/api', attachPlatformIdentity);
+  await initializeEditorBroker(app);
+  app.use("/api", attachPlatformIdentity);
   app.use("/api", optionalAuth);
   const limitAuthentication = rateLimit("auth", 120, 900);
   app.use("/api/auth", (req, res, next) => {
@@ -108,6 +120,7 @@ export async function createApplication(
   }
   await registerAuthRoutes(app);
   registerPlatformBridge(app);
+  registerEditorAuthorization(app);
   registerMarketplace(app, httpServer);
   registerPlatformResources(app);
   await registerCommerceRoutes(app);

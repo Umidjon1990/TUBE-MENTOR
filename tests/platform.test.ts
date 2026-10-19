@@ -1025,3 +1025,165 @@ test("archiving a Tube source hides new sales while keeping the purchaser librar
     );
   }
 });
+
+test("PDF offers publish without quiz sale hooks and keep coin delivery, private ranges and manage payload scoped", async () => {
+  const {
+    syncProviderCatalog,
+    provisionOrder,
+    queuePlatformAction,
+    processPlatformAction,
+  } = await import("../server/marketplace");
+  const { finishPlatformLogin } = await import("../server/platform-bridge"),
+    { storage } = await import("../server/storage");
+  const admin = (await storage.getUserByUsername("platform_admin_fixture"))!,
+    nonce = randomBytes(32).toString("base64url"),
+    url = new URL((await finishPlatformLogin(admin, nonce))!),
+    token = (
+      await (
+        await post("/api/platform/auth/exchange", {
+          code: url.searchParams.get("code"),
+          nonce,
+        })
+      ).json()
+    ).token;
+  process.env.PLATFORM_QUIZ_SECRET = randomBytes(32).toString("hex");
+  const native = globalThis.fetch;
+  let saleHook = false,
+    rangeSeen = false,
+    managed = false;
+  const expiresAt = new Date(Date.now() + 86400000).toISOString();
+  globalThis.fetch = (async (input: any, init: any) => {
+    if (
+      !String(input).startsWith("https://web-production-73482.up.railway.app/")
+    )
+      return native(input, init);
+    const p = new URL(String(input)).pathname,
+      b = init?.body ? JSON.parse(String(init.body)) : {};
+    if (p.endsWith("/catalog"))
+      return Response.json({
+        products: [
+          {
+            sourceId: "pdf:contract",
+            kind: "pdf",
+            title: "PDF contract",
+            sourceVersion: "v1",
+            demoRef: "pdf:contract",
+            readyForSale: true,
+            recommendedDurationDays: 30,
+            recommendedMaxAttempts: 2,
+          },
+        ],
+      });
+    if (p.endsWith("/sale")) {
+      saleHook = true;
+      return Response.json({ message: "quiz only" }, { status: 400 });
+    }
+    if (p.endsWith("/demo"))
+      return Response.json({ kind: "pdf", pdfPreview: true, previewPages: 1 });
+    if (p.endsWith("/grants")) {
+      assert.equal(b.kind, "pdf");
+      assert.equal(b.maxAttempts, 2);
+      return Response.json({ orderId: b.orderId, active: true, expiresAt });
+    }
+    if (p.endsWith("/manage")) {
+      assert.equal(b.kind, "pdf");
+      assert.equal(b.sourceId, "pdf:contract");
+      managed = true;
+      return Response.json({
+        orderId: p.split("/").at(-2),
+        active: false,
+        expiresAt,
+      });
+    }
+    if (p.endsWith("/file")) {
+      assert.equal(init.headers["x-platform-user"], userId);
+      assert.equal(init.headers.Range, "bytes=0-4");
+      rangeSeen = true;
+      return new Response("%PDF-", {
+        status: 206,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Range": "bytes 0-4/10",
+          "Content-Length": "5",
+          "Accept-Ranges": "bytes",
+        },
+      });
+    }
+    return Response.json({ message: "no path" }, { status: 404 });
+  }) as typeof fetch;
+  try {
+    assert.equal((await syncProviderCatalog("quiz")).count, 1);
+    const p = (
+      await pool.query(
+        "SELECT * FROM platform_products WHERE source_id='pdf:contract'",
+      )
+    ).rows[0];
+    const patched = await fetch(base + "/api/platform/admin/products/" + p.id, {
+      method: "PATCH",
+      headers: { ...headers, "x-platform-session": token },
+      body: JSON.stringify({
+        title: p.title,
+        description: "PDF",
+        priceCoins: 1,
+        durationDays: 30,
+        maxAttempts: 2,
+        demoRef: p.demo_ref,
+        status: "published",
+      }),
+    });
+    assert.equal(patched.status, 200, await patched.text());
+    assert.equal(saleHook, false);
+    const demo = await (
+      await fetch(base + "/api/platform/products/" + p.id + "/demo")
+    ).json();
+    assert.match(demo.pdfUrl, /demo-file$/);
+    await pool.query("UPDATE users SET coins=GREATEST(coins,5) WHERE id=$1", [
+      userId,
+    ]);
+    const bought = await post(
+      "/api/platform/products/" + p.id + "/purchase",
+      { requestKey: randomUUID(), expectedPrice: 1 },
+      { "x-platform-session": accessToken },
+    );
+    assert.equal(bought.status, 200);
+    const o = await bought.json();
+    await provisionOrder(o.id);
+    assert.equal(
+      (
+        await pool.query("SELECT status FROM platform_orders WHERE id=$1", [
+          o.id,
+        ])
+      ).rows[0].status,
+      "active",
+    );
+    const reader = randomUUID(),
+      file = await fetch(
+        base +
+          "/api/platform/owned/" +
+          p.id +
+          "/order/" +
+          o.id +
+          "/pdf/" +
+          reader +
+          "/file",
+        {
+          headers: {
+            ...headers,
+            "x-platform-session": accessToken,
+            Range: "bytes=0-4",
+          },
+        },
+      );
+    assert.equal(file.status, 206, await file.text());
+    assert.equal(file.headers.get("content-range"), "bytes 0-4/10");
+    assert.equal(rangeSeen, true);
+    const a = await queuePlatformAction(admin.id, o.id, randomUUID(), {
+      action: "revoke",
+      reason: "Contract test",
+    });
+    await processPlatformAction(a.id);
+    assert.equal(managed, true);
+  } finally {
+    globalThis.fetch = native;
+  }
+});

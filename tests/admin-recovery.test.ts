@@ -6,7 +6,7 @@ import { recoverAdministrator } from "../server/admin-recovery";
 test("operator recovery promotes only the exact verified Google identity, revokes sessions and cannot replay", async () => {
   const db = new PGlite();
   await db.waitReady;
-  await db.exec(`CREATE TABLE users(id text PRIMARY KEY,email text,google_id text,email_verified boolean,is_active boolean,role text,session_version int,updated_at timestamptz);CREATE TABLE system_settings(key text PRIMARY KEY,value text);CREATE TABLE platform_sessions(user_id text,revoked_at timestamptz);CREATE TABLE commerce_audit(user_id text,action text,reference_id text,idempotency_key text UNIQUE,details jsonb);
+  await db.exec(`CREATE TABLE users(id varchar PRIMARY KEY,email text,google_id text,email_verified boolean,is_active boolean,role text,session_version int,updated_at timestamptz);CREATE TABLE system_settings(key text PRIMARY KEY,value text);CREATE TABLE platform_sessions(user_id text,revoked_at timestamptz);CREATE TABLE commerce_audit(user_id varchar,action text,reference_id text,idempotency_key text UNIQUE,details jsonb);
  INSERT INTO users VALUES('owner','owner@example.test','verified-google',true,true,'student',3,NULL),('password-account','owner@example.test',NULL,true,true,'student',0,NULL),('unverified','not-verified@example.test','google-unverified',false,true,'student',0,NULL),('other','other@example.test','other-google',true,true,'student',0,NULL);INSERT INTO platform_sessions VALUES('owner',NULL),('other',NULL);`);
   const pool = {
     connect: async () => ({

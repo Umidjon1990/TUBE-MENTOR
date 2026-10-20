@@ -67,8 +67,9 @@ export async function recoverAdministrator(
       );
     }
     await client.query(
-      "INSERT INTO commerce_audit(user_id,action,reference_id,idempotency_key,details) VALUES($1,'operator_admin_recovery',$1,$2,$3)",
+      "INSERT INTO commerce_audit(user_id,action,reference_id,idempotency_key,details) VALUES($1,'operator_admin_recovery',$2,$3,$4)",
       [
+        user.id,
         user.id,
         key,
         JSON.stringify({
@@ -87,6 +88,13 @@ export async function recoverAdministrator(
         appliedAt: new Date().toISOString(),
       }),
     ]);
+    const verified = (
+      await client.query("SELECT role,is_active FROM users WHERE id=$1", [
+        user.id,
+      ])
+    ).rows[0];
+    if (verified?.role !== "admin" || !verified.is_active)
+      throw Error("Administrator recovery read-back failed");
     await client.query("COMMIT");
     return {
       status: "applied",

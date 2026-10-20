@@ -1,3 +1,4 @@
+import { recoverAdministrator } from "./admin-recovery";
 import express, {
   type NextFunction,
   type Request,
@@ -49,6 +50,21 @@ export async function createApplication(
   )
     throw new Error("APP_URL must be an https:// URL in production");
   await migrateDatabase();
+  if (process.env.ADMIN_RECOVERY_EMAIL || process.env.ADMIN_RECOVERY_REQUEST) {
+    try {
+      console.info(
+        "ADMIN_RECOVERY_RESULT",
+        JSON.stringify(
+          await recoverAdministrator(pool, {
+            email: process.env.ADMIN_RECOVERY_EMAIL,
+            requestId: process.env.ADMIN_RECOVERY_REQUEST,
+          }),
+        ),
+      );
+    } catch {
+      console.error("ADMIN_RECOVERY_RESULT recovery_failed_no_changes");
+    }
+  }
   const app = express();
   const httpServer = createServer(app);
   if (production) app.set("trust proxy", 1);

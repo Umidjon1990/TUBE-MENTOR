@@ -118,6 +118,7 @@ function dto(p: any) {
     durationDays: p.duration_days,
     maxAttempts: p.max_attempts,
     hasDemo: !!p.demo_ref,
+    demoRef: p.demo_ref,
     sourceVersion: p.source_version,
     status: p.status,
     offerVersion: offerVersion(p),
@@ -714,6 +715,38 @@ export async function queuePlatformAction(
 }
 
 export async function syncProviderCatalog(provider: string) {
+  try {
+    const result = await performProviderCatalogSync(provider);
+    await pool.query(
+      "INSERT INTO system_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+      [
+        "_catalog_sync_" + provider,
+        JSON.stringify({
+          status: "ok",
+          count: result.count,
+          at: new Date().toISOString(),
+        }),
+      ],
+    );
+    return result;
+  } catch (error: any) {
+    await pool
+      .query(
+        "INSERT INTO system_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        [
+          "_catalog_sync_" + provider,
+          JSON.stringify({
+            status: "error",
+            at: new Date().toISOString(),
+            message: "Manba bilan yangilash amalga oshmadi",
+          }),
+        ],
+      )
+      .catch(() => {});
+    throw error;
+  }
+}
+async function performProviderCatalogSync(provider: string) {
   if (!Object.hasOwn(providerConfig, provider))
     problem(404, "Manba mavjud emas");
   const response = await providerRequest(provider, "catalog");
@@ -1304,6 +1337,68 @@ export function registerMarketplace(app: Express, http: Server) {
     stream.on("error", () => res.destroy());
     stream.pipe(res);
   };
+  app.get(
+    "/api/platform/admin/products/:id/preview",
+    requireAdmin,
+    async (req, res, next) => {
+      try {
+        const p = await product(String(req.params.id));
+        if (!p || !p.demo_ref)
+          return res
+            .status(404)
+            .json({
+              message: "Demo mavjud emas. Manba muharririda demo belgilang.",
+            });
+        if (p.provider === "tube") {
+          const lesson = await storage.getLessonById(Number(p.source_id));
+          if (!lesson)
+            return res.status(404).json({ message: "Dars topilmadi" });
+          return res.json({
+            kind: "video",
+            title: lesson.title,
+            youtubeId: youtubeId(lesson.youtubeUrl),
+            endSeconds: 30,
+          });
+        }
+        const data = await providerRequest(
+          p.provider,
+          "products/" + encodeURIComponent(p.source_id) + "/demo",
+        );
+        if (p.kind === "pdf")
+          data.pdfUrl =
+            "/api/platform/core/platform/admin/products/" + p.id + "/demo-file";
+        res.set("Cache-Control", "private, no-store").json(data);
+      } catch (e) {
+        next(e);
+      }
+    },
+  );
+  app.get(
+    "/api/platform/admin/products/:id/demo-file",
+    requireAdmin,
+    async (req, res, next) => {
+      try {
+        const p = await product(String(req.params.id));
+        if (!p || p.kind !== "pdf" || !p.demo_ref)
+          return res.status(404).json({ message: "PDF demo topilmadi" });
+        await streamPdf(
+          await providerRequest(
+            p.provider,
+            "products/" + encodeURIComponent(p.source_id) + "/demo-file",
+            undefined,
+            undefined,
+            "GET",
+            undefined,
+            true,
+            req.get("range"),
+          ),
+          res,
+        );
+      } catch (e) {
+        next(e);
+      }
+    },
+  );
   app.get("/api/platform/products/:id/demo-file", async (req, res, next) => {
     try {
       const p = await product(String(req.params.id));
@@ -1463,6 +1558,11 @@ export function registerMarketplace(app: Express, http: Server) {
     async (_req, res, next) => {
       try {
         await syncTubeProducts();
+        const syncRows = (
+          await pool.query(
+            "SELECT key,value FROM system_settings WHERE key LIKE '_catalog_sync_%'",
+          )
+        ).rows;
         res.json({
           products: (
             await pool.query(
@@ -1471,7 +1571,11 @@ export function registerMarketplace(app: Express, http: Server) {
           ).rows.map(dto),
           providers: Object.entries(providerConfig).map(([id, p]) => ({
             id,
-            configured: !!process.env[p.env],
+            configured: (process.env[p.env] || "").length >= 32,
+            lastSync: JSON.parse(
+              syncRows.find((r: any) => r.key === "_catalog_sync_" + id)
+                ?.value || "null",
+            ),
           })),
         });
       } catch (error) {
@@ -1599,7 +1703,7 @@ export function registerMarketplace(app: Express, http: Server) {
         res.json(
           (
             await pool.query(
-              "SELECT id,user_id,product_id,status,price_coins,policy,expires_at,error,created_at FROM platform_orders ORDER BY created_at DESC LIMIT 200",
+              "SELECT o.id,o.user_id,u.full_name,u.email,o.product_id,o.status,o.price_coins,o.policy,o.expires_at,o.error,o.created_at FROM platform_orders o JOIN users u ON u.id=o.user_id ORDER BY o.created_at DESC LIMIT 200",
             )
           ).rows,
         );

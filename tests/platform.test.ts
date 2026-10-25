@@ -1095,6 +1095,19 @@ test("PDF offers publish without quiz sale hooks and keep coin delivery, private
         expiresAt,
       });
     }
+    if (p.endsWith("/demo-file")) {
+      assert.equal(init.headers["x-platform-user"], undefined);
+      assert.equal(init.headers.Range, "bytes=0-4");
+      return new Response("%PDF-", {
+        status: 206,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Range": "bytes 0-4/10",
+          "Content-Length": "5",
+          "Accept-Ranges": "bytes",
+        },
+      });
+    }
     if (p.endsWith("/file")) {
       assert.equal(init.headers["x-platform-user"], userId);
       assert.equal(init.headers.Range, "bytes=0-4");
@@ -1118,6 +1131,41 @@ test("PDF offers publish without quiz sale hooks and keep coin delivery, private
         "SELECT * FROM platform_products WHERE source_id='pdf:contract'",
       )
     ).rows[0];
+    const privatePreview = await fetch(
+      base + "/api/platform/admin/products/" + p.id + "/preview",
+      { headers: { ...headers, "x-platform-session": token } },
+    );
+    assert.equal(privatePreview.status, 200);
+    assert.match(
+      (await privatePreview.json()).pdfUrl,
+      /platform\/admin\/products\/.+\/demo-file$/,
+    );
+    const demoFile = await fetch(
+      base + "/api/platform/admin/products/" + p.id + "/demo-file",
+      {
+        headers: {
+          ...headers,
+          "x-platform-session": token,
+          Range: "bytes=0-4",
+        },
+      },
+    );
+    assert.equal(demoFile.status, 206);
+    assert.equal(await demoFile.text(), "%PDF-");
+    assert.match(demoFile.headers.get("cache-control")!, /private.*no-store/);
+    const adminCatalog = await (
+      await fetch(base + "/api/platform/admin/products", {
+        headers: { ...headers, "x-platform-session": token },
+      })
+    ).json();
+    assert.equal(
+      adminCatalog.providers.find((v: any) => v.id === "quiz").lastSync.status,
+      "ok",
+    );
+    assert.equal(
+      adminCatalog.products.find((v: any) => v.id === p.id).demoRef,
+      p.demo_ref,
+    );
     const patched = await fetch(base + "/api/platform/admin/products/" + p.id, {
       method: "PATCH",
       headers: { ...headers, "x-platform-session": token },
@@ -1186,4 +1234,134 @@ test("PDF offers publish without quiz sale hooks and keep coin delivery, private
   } finally {
     globalThis.fetch = native;
   }
+});
+
+test("admin desk reports exact Tashkent date boundaries, keeps UZS separate from coin refunds, and protects private accounts", async () => {
+  const { storage } = await import("../server/storage");
+  const { finishPlatformLogin } = await import("../server/platform-bridge");
+  const admin = (await storage.getUserByUsername("platform_admin_fixture"))!;
+  const nonce = randomBytes(32).toString("base64url"),
+    url = new URL((await finishPlatformLogin(admin, nonce))!);
+  const token = (
+    await (
+      await post("/api/platform/auth/exchange", {
+        code: url.searchParams.get("code"),
+        nonce,
+      })
+    ).json()
+  ).token;
+  const h = { ...headers, "x-platform-session": token };
+  const packageId = (
+    await pool.query(
+      "INSERT INTO coin_packages(name,coins,price_uzs,is_active) VALUES('Report fixture',100,2000000000,false) RETURNING id",
+    )
+  ).rows[0].id;
+  const ids: string[] = [];
+  for (const [status, time] of [
+    ["approved", "2024-01-01 19:00:00"],
+    ["refunded", "2024-01-02 18:59:59.999999"],
+    ["approved", "2024-01-01 18:59:59.999999"],
+    ["approved", "2024-01-02 19:00:00"],
+    ["rejected", "2024-01-02 10:00:00"],
+  ]) {
+    const id = randomUUID();
+    ids.push(id);
+    await pool.query(
+      "INSERT INTO payment_orders(id,user_id,package_id,package_name,coins,price_uzs,status,instructions,reviewed_at,expires_at) VALUES($1,$2,$3,'Report fixture',100,2000000000,$4,'{}',$5,now())",
+      [id, userId, packageId, status, time],
+    );
+  }
+  await pool.query(
+    "INSERT INTO coin_transactions(user_id,amount,type,created_at) VALUES($1,-80,'payment_refund','2024-01-02 10:00:00')",
+    [userId],
+  );
+  const studentHeaders = { ...headers, "x-platform-session": accessToken };
+  for (const path of [
+    "/api/platform/admin/desk/summary",
+    "/api/platform/admin/desk/users",
+    "/api/platform/admin/desk/users/" + userId,
+    "/api/platform/admin/products/" + productId + "/preview",
+  ]) {
+    assert.equal(
+      (await fetch(base + path, { headers: studentHeaders })).status,
+      403,
+      path,
+    );
+  }
+  const r = await fetch(
+    base + "/api/platform/admin/desk/summary?from=2024-01-02&to=2024-01-02",
+    { headers: h },
+  );
+  assert.equal(r.status, 200, await r.clone().text());
+  const report = await r.json();
+  assert.equal(report.payment.gross_uzs, "4000000000");
+  assert.equal(report.payment.issued_coins, "200");
+  assert.equal(
+    report.ledger.find((t: any) => t.type === "payment_refund").amount,
+    "-80",
+  );
+  assert.equal(report.cashRefundsTracked, false);
+  assert.equal(typeof report.counts.students, "number");
+  for (const range of [
+    "from=2024-02-30",
+    "from=2024-01-03&to=2024-01-02",
+    "from=2020-01-01&to=2024-01-01",
+  ])
+    assert.equal(
+      (
+        await fetch(base + "/api/platform/admin/desk/summary?" + range, {
+          headers: h,
+        })
+      ).status,
+      400,
+    );
+  const users = await (
+    await fetch(base + "/api/platform/admin/desk/users?q=platform_test", {
+      headers: h,
+    })
+  ).json();
+  assert.ok(users.users.some((u: any) => u.id === userId));
+  assert.equal(users.users[0].password_hash, undefined);
+  assert.equal(users.users[0].google_id, undefined);
+  const wildcard = await (
+    await fetch(base + "/api/platform/admin/desk/users?q=%25", { headers: h })
+  ).json();
+  assert.equal(wildcard.total, 0);
+  const detail = await fetch(
+    base + "/api/platform/admin/desk/users/" + userId,
+    { headers: h },
+  );
+  assert.equal(detail.status, 200, await detail.clone().text());
+  assert.equal((await detail.json()).user.password_hash, undefined);
+  const invalid = await post(
+    "/api/platform/admin/desk/validate-lesson",
+    { package: {} },
+    { "x-platform-session": token },
+  );
+  assert.equal(invalid.status, 400);
+  assert.ok((await invalid.json()).issues.length);
+  assert.equal(
+    (
+      await post(
+        "/api/platform/admin/desk/validate-lesson",
+        { package: {} },
+        { "x-platform-session": accessToken },
+      )
+    ).status,
+    403,
+  );
+  const preview = await fetch(
+    base + "/api/platform/admin/products/" + productId + "/preview",
+    { headers: h },
+  );
+  assert.equal(preview.status, 200, await preview.clone().text());
+  assert.match((await preview.json()).youtubeId, /^[\w-]{11}$/);
+  await pool.query(
+    "DELETE FROM coin_transactions WHERE user_id=$1 AND created_at='2024-01-02 10:00:00'",
+    [userId],
+  );
+  await pool.query("DELETE FROM payment_orders WHERE id=ANY($1::varchar[])", [
+    ids,
+  ]);
+  await pool.query("DELETE FROM coin_packages WHERE id=$1", [packageId]);
 });

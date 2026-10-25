@@ -1,3 +1,4 @@
+import { registerAdminDesk } from "./admin-desk";
 import { recoverAdministrator } from "./admin-recovery";
 import express, {
   type NextFunction,
@@ -138,6 +139,7 @@ export async function createApplication(
   registerPlatformBridge(app);
   registerEditorAuthorization(app);
   registerMarketplace(app, httpServer);
+  registerAdminDesk(app);
   registerPlatformResources(app);
   await registerCommerceRoutes(app);
   registerCommerceSupportRoutes(app);

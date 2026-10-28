@@ -4209,7 +4209,7 @@
       "lemma": "طَائِرَةٌ",
       "grammar": "كَيْفَ — usulni so‘rash. تَقُودُ — «sen boshqarasan». اشْتَرَكْتَ — «sen qo‘shilding». فِي نَادِي الطَّائِرَاتِ — izofa birikmasi.",
       "root": "ط ي ر",
-      "image": "/learning-assets/parvoz-plane.webp"
+      "image": "/learning-assets/parvoz-plane.png"
     },
     {
       "id": "driving",
@@ -4239,7 +4239,7 @@
       "segmentId": "s6",
       "lemma": "إِشَارَةٌ",
       "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ.",
-      "image": "/learning-assets/parvoz-traffic-light.webp"
+      "image": "/learning-assets/parvoz-traffic-light.png"
     },
     {
       "id": "bridge",
@@ -4249,7 +4249,7 @@
       "segmentId": "s6",
       "lemma": "كُوبْرِي",
       "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ.",
-      "image": "/learning-assets/parvoz-bridge.webp"
+      "image": "/learning-assets/parvoz-bridge.png"
     },
     {
       "id": "fall",
@@ -4269,7 +4269,7 @@
       "segmentId": "s18",
       "lemma": "عُصْفُورٌ",
       "grammar": "حَتَّى — hatto. الْعَصَافِيرُ — qushlar, chumchuqlar; fikr keyingi gapda tugallanadi.",
-      "image": "/learning-assets/parvoz-birds.webp"
+      "image": "/learning-assets/parvoz-birds.png"
     },
     {
       "id": "fly",
@@ -4289,7 +4289,7 @@
       "segmentId": "s30",
       "lemma": "زِرٌّ",
       "grammar": "سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun.",
-      "image": "/learning-assets/parvoz-button.webp"
+      "image": "/learning-assets/parvoz-button.png"
     },
     {
       "id": "try",
@@ -4309,7 +4309,7 @@
       "segmentId": "s52",
       "lemma": "جَنَاحٌ",
       "grammar": "جَنَاحَيْنِ كَبِيرَيْنِ — ikkilik shakli, to‘ldiruvchi. نَفْسَهُ — o‘zini.",
-      "image": "/learning-assets/parvoz-wings.webp"
+      "image": "/learning-assets/parvoz-wings.png"
     },
     {
       "id": "rescue",
@@ -4463,7 +4463,7 @@
         "choiceId": "a"
       },
       "explanation": "الزِّرُّ — tugma. Juha nima qilishini bilmay turib tugmani sinab ko‘radi.",
-      "image": "/learning-assets/parvoz-button.webp"
+      "image": "/learning-assets/parvoz-button.png"
     },
     {
       "id": "p5",
@@ -4719,7 +4719,7 @@
         "choiceId": "a"
       },
       "explanation": "جَنَاحَانِ — ikkita qanot. Videoda to‘ldiruvchi vazifasida جَنَاحَيْنِ كَبِيرَيْنِ ishlatilgan.",
-      "image": "/learning-assets/parvoz-wings.webp"
+      "image": "/learning-assets/parvoz-wings.png"
     },
     {
       "id": "v1",
@@ -4728,7 +4728,7 @@
       "prompt": "«الطَّائِرَةُ» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s1",
       "wordId": "plane",
-      "image": "/learning-assets/parvoz-plane.webp",
+      "image": "/learning-assets/parvoz-plane.png",
       "choices": [
         {
           "id": "a",
@@ -4819,7 +4819,7 @@
       "prompt": "«إِشَارَةُ الْمُرُورِ» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s6",
       "wordId": "traffic",
-      "image": "/learning-assets/parvoz-traffic-light.webp",
+      "image": "/learning-assets/parvoz-traffic-light.png",
       "choices": [
         {
           "id": "a",
@@ -4850,7 +4850,7 @@
       "prompt": "«الْكُوبْرِي» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s6",
       "wordId": "bridge",
-      "image": "/learning-assets/parvoz-bridge.webp",
+      "image": "/learning-assets/parvoz-bridge.png",
       "choices": [
         {
           "id": "a",
@@ -4911,7 +4911,7 @@
       "prompt": "«الْعَصَافِيرُ» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s18",
       "wordId": "birds",
-      "image": "/learning-assets/parvoz-birds.webp",
+      "image": "/learning-assets/parvoz-birds.png",
       "choices": [
         {
           "id": "a",
@@ -4972,7 +4972,7 @@
       "prompt": "«الزِّرُّ» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s30",
       "wordId": "button",
-      "image": "/learning-assets/parvoz-button.webp",
+      "image": "/learning-assets/parvoz-button.png",
       "choices": [
         {
           "id": "a",
@@ -5033,7 +5033,7 @@
       "prompt": "«جَنَاحَيْنِ» darsdagi kontekstda nimani bildiradi?",
       "segmentId": "s52",
       "wordId": "wings",
-      "image": "/learning-assets/parvoz-wings.webp",
+      "image": "/learning-assets/parvoz-wings.png",
       "choices": [
         {
           "id": "a",

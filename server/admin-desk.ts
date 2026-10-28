@@ -50,6 +50,7 @@ export function registerAdminDesk(app: Express) {
           vocabulary: content.vocabulary.length,
           quizzes: content.quizzes.length,
           sentenceAnalysis: content.sentenceAnalysis.length,
+          ...(parsed.data.experience?{experienceQuestions:parsed.data.experience.questions.length,experienceCards:parsed.data.experience.words.length}:{}),
         },
       });
     },

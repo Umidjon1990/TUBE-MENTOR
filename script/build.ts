@@ -42,6 +42,7 @@ async function buildAll() {
   await viteBuild();
 
   await cp("migrations","dist/migrations",{recursive:true});
+  await cp("server/media", "dist/media", {recursive:true});
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
   const allDeps = [

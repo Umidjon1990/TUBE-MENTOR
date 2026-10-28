@@ -1,3 +1,4 @@
+import {registerExperience} from './experience';
 import { registerAdminDesk } from "./admin-desk";
 import { recoverAdministrator } from "./admin-recovery";
 import express, {
@@ -140,6 +141,7 @@ export async function createApplication(
   registerEditorAuthorization(app);
   registerMarketplace(app, httpServer);
   registerAdminDesk(app);
+  registerExperience(app);
   registerPlatformResources(app);
   await registerCommerceRoutes(app);
   registerCommerceSupportRoutes(app);

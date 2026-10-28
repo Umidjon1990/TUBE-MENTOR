@@ -1,3 +1,4 @@
+import {coerceLessonPackage} from '../shared/experience-package';
 import type { Express, Request } from "express";
 import { type Server } from "http";
 import express from "express";
@@ -1708,7 +1709,7 @@ export async function registerRoutes(
   );
 
   app.post("/api/admin/lesson-package", requireAdmin, async (req, res) => {
-    const parsed = lessonPackageSchema.safeParse(req.body.package);
+    const parsed = lessonPackageSchema.safeParse(coerceLessonPackage(req.body.package));
     if (!parsed.success)
       return res
         .status(400)
@@ -1716,7 +1717,7 @@ export async function registerRoutes(
           message: parsed.error.issues.map((i) => i.message).join("; "),
           issues: parsed.error.issues,
         });
-    const { metadata, content } = parsed.data;
+    const { metadata, content, experience } = parsed.data;
     const values = {
       ...metadata,
       status: "draft",
@@ -1733,6 +1734,7 @@ export async function registerRoutes(
       thumbnailUrl: `https://img.youtube.com/vi/${new URL(metadata.youtubeUrl).searchParams.get("v") || new URL(metadata.youtubeUrl).pathname.split("/").pop()}/hqdefault.jpg`,
       aiMetaJson: {
         provider: "manual-import",
+        ...(experience?{experience}:{}),
         schemaVersion: 1,
         importedAt: new Date().toISOString(),
       },
@@ -1746,14 +1748,16 @@ export async function registerRoutes(
           .status(409)
           .json({ message: "Dars yangilangan. Sahifani yangilang" });
       return res.json({
-        lesson: await storage.updateLesson(id, values, req.body.contentVersion),
+        lesson: await storage.updateLesson(id, {...values,aiMetaJson:{...values.aiMetaJson,...(experience?{experience:{...experience,lessonId:id}}:{})}}, req.body.contentVersion),
       });
     }
+    const reservedId=experience?Number((await pool.query("SELECT nextval(pg_get_serial_sequence('lessons','id')) AS id")).rows[0].id):undefined;
     res
       .status(201)
       .json({
         lesson: await storage.createLesson({
           ...values,
+          ...(experience?{id:reservedId,aiMetaJson:{...values.aiMetaJson,experience:{...experience,lessonId:reservedId}}}:{}),
           createdBy: req.session.userId,
         }),
       });
@@ -1904,6 +1908,7 @@ export async function registerRoutes(
           sentenceAnalysisJson,
           aiMetaJson: {
             provider: "manual-import",
+
             model: "chatgpt-manual",
             generatedAt: new Date().toISOString(),
             transcriptLength: lesson.transcript?.length || 0,

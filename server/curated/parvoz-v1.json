@@ -1,0 +1,5091 @@
+{
+  "schemaVersion": 1,
+  "version": "parvoz-v1",
+  "lessonId": 50,
+  "youtubeId": "MDZFbSmIFRM",
+  "title": "Parvoz — avval o‘rgan, keyin bajar",
+  "summary": "Juhaning sarguzashtini tinglang, rangli tarjima bilan tushuning va 12 ta tayanch so‘zni mashqlar bilan eslab qoling. Javoblar tanlash orqali bajariladi.",
+  "duration": 321.1,
+  "segments": [
+    {
+      "id": "s1",
+      "start": 8.01,
+      "end": 13.63,
+      "groups": [
+        {
+          "id": "g1-1",
+          "ar": "كَيْفَ تَقُودُ الطَّائِرَةَ",
+          "uz": "samolyotni qanday boshqarasan?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t1-1",
+              "text": "كَيْفَ",
+              "meaning": "qanday",
+              "partOfSpeech": "so‘roq ravishi"
+            },
+            {
+              "id": "t1-2",
+              "text": "تَقُودُ",
+              "meaning": "boshqarasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "قَادَ",
+              "root": "ق و د"
+            },
+            {
+              "id": "t1-3",
+              "text": "الطَّائِرَةَ",
+              "meaning": "samolyot",
+              "partOfSpeech": "ot",
+              "lemma": "طَائِرَةٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g1-2",
+          "ar": "يَا جُحَا؟",
+          "uz": "Juha,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t1-4",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t1-5",
+              "text": "جُحَا؟",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g1-3",
+          "ar": "لَقَدِ اشْتَرَكْتَ",
+          "uz": "qo‘shilding-ku.",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "t1-6",
+              "text": "لَقَدِ",
+              "meaning": "axir; albatta",
+              "partOfSpeech": "ta’kid yuklamalari"
+            },
+            {
+              "id": "t1-7",
+              "text": "اشْتَرَكْتَ",
+              "meaning": "qo‘shilding; a’zo bo‘lding",
+              "partOfSpeech": "fe’l",
+              "lemma": "اِشْتَرَكَ",
+              "root": "ش ر ك"
+            }
+          ]
+        },
+        {
+          "id": "g1-4",
+          "ar": "فِي نَادِي الطَّائِرَاتِ",
+          "uz": "Axir, samolyotlar klubiga",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t1-8",
+              "text": "فِي",
+              "meaning": "-da; ichida",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t1-9",
+              "text": "نَادِي",
+              "meaning": "klub",
+              "partOfSpeech": "ot",
+              "lemma": "نَادٍ"
+            },
+            {
+              "id": "t1-10",
+              "text": "الطَّائِرَاتِ",
+              "meaning": "samolyotlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "طَائِرَةٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g1-5",
+          "ar": "الْيَوْمَ فَقَطْ.",
+          "uz": "bugungina",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t1-11",
+              "text": "الْيَوْمَ",
+              "meaning": "bugun",
+              "partOfSpeech": "payt ravishi"
+            },
+            {
+              "id": "t1-12",
+              "text": "فَقَطْ.",
+              "meaning": "faqat",
+              "partOfSpeech": "cheklash yuklamasi"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَيْفَ — usulni so‘rash. تَقُودُ — «sen boshqarasan». اشْتَرَكْتَ — «sen qo‘shilding». فِي نَادِي الطَّائِرَاتِ — izofa birikmasi."
+    },
+    {
+      "id": "s2",
+      "start": 13.63,
+      "end": 15.19,
+      "groups": [
+        {
+          "id": "g2-1",
+          "ar": "مَاذَا تَعْنِي",
+          "uz": "nimani nazarda tutyapsan?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t2-1",
+              "text": "مَاذَا",
+              "meaning": "nima",
+              "partOfSpeech": "so‘roq olmoshi"
+            },
+            {
+              "id": "t2-2",
+              "text": "تَعْنِي",
+              "meaning": "nazarda tutasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "عَنَى",
+              "root": "ع ن ي"
+            }
+          ]
+        },
+        {
+          "id": "g2-2",
+          "ar": "بِهَذَا؟",
+          "uz": "Bu bilan",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t2-3",
+              "text": "بِهَذَا؟",
+              "meaning": "bu bilan",
+              "partOfSpeech": "ko‘makchi va ko‘rsatish olmoshi"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَاذَا — nima? بِهَذَا — بِ ko‘makchisi va هَذَا ko‘rsatish olmoshi."
+    },
+    {
+      "id": "s3",
+      "start": 15.19,
+      "end": 18.33,
+      "groups": [
+        {
+          "id": "g3-1",
+          "ar": "أَعْنِي أَنَّكَ",
+          "uz": "Aytmoqchimanki, sen",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t3-1",
+              "text": "أَعْنِي",
+              "meaning": "nazarda tutaman",
+              "partOfSpeech": "fe’l",
+              "lemma": "عَنَى",
+              "root": "ع ن ي"
+            },
+            {
+              "id": "t3-2",
+              "text": "أَنَّكَ",
+              "meaning": "sen … ekaning",
+              "partOfSpeech": "bog‘lovchi va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "g3-2",
+          "ar": "لَمْ تَتَعَلَّمْ بَعْدُ",
+          "uz": "hali o‘rganmagansan.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t3-3",
+              "text": "لَمْ",
+              "meaning": "-madi; o‘tgan zamon inkori",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t3-4",
+              "text": "تَتَعَلَّمْ",
+              "meaning": "o‘rganasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t3-5",
+              "text": "بَعْدُ",
+              "meaning": "hali",
+              "partOfSpeech": "payt ravishi"
+            }
+          ]
+        },
+        {
+          "id": "g3-3",
+          "ar": "قِيَادَةَ الطَّائِرَةِ.",
+          "uz": "samolyotni boshqarishni",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t3-6",
+              "text": "قِيَادَةَ",
+              "meaning": "boshqarish; haydash",
+              "partOfSpeech": "masdar",
+              "lemma": "قِيَادَةٌ",
+              "root": "ق و د"
+            },
+            {
+              "id": "t3-7",
+              "text": "الطَّائِرَةِ.",
+              "meaning": "samolyot",
+              "partOfSpeech": "ot",
+              "lemma": "طَائِرَةٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَمْ — o‘tgan zamon inkori; keyingi fe’l jazmda: لَمْ تَتَعَلَّمْ. قِيَادَةَ الطَّائِرَةِ — izofa."
+    },
+    {
+      "id": "s4",
+      "start": 18.33,
+      "end": 20.67,
+      "groups": [
+        {
+          "id": "g4-1",
+          "ar": "لَا بُدَّ أَنْ",
+          "uz": "kerak.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t4-1",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t4-2",
+              "text": "بُدَّ",
+              "meaning": "لَا بُدَّ tarkibida: zarur",
+              "partOfSpeech": "ot; tayanch birikma qismi"
+            },
+            {
+              "id": "t4-3",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            }
+          ]
+        },
+        {
+          "id": "g4-2",
+          "ar": "تَتَعَلَّمَ",
+          "uz": "o‘rganishing",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t4-4",
+              "text": "تَتَعَلَّمَ",
+              "meaning": "o‘rganasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g4-3",
+          "ar": "أَوَّلًا.",
+          "uz": "Avval",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t4-5",
+              "text": "أَوَّلًا.",
+              "meaning": "avval; birinchi navbatda",
+              "partOfSpeech": "ravish"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَا بُدَّ أَنْ — zarurat birikmasi: «… qilish kerak». أَنْ dan keyingi fe’l mansub."
+    },
+    {
+      "id": "s5",
+      "start": 20.67,
+      "end": 25.39,
+      "groups": [
+        {
+          "id": "g5-1",
+          "ar": "أَلَا تَتَذَكَّرُ",
+          "uz": "esingdami?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t5-1",
+              "text": "أَلَا",
+              "meaning": "… esingda emasmi? kabi eslatish savoli",
+              "partOfSpeech": "so‘roq va inkor yuklamalari"
+            },
+            {
+              "id": "t5-2",
+              "text": "تَتَذَكَّرُ",
+              "meaning": "eslaysan",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَذَكَّرَ",
+              "root": "ذ ك ر"
+            }
+          ]
+        },
+        {
+          "id": "g5-2",
+          "ar": "عِنْدَمَا قُدْتَ السَّيَّارَةَ",
+          "uz": "mashina haydagan payting",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t5-3",
+              "text": "عِنْدَمَا",
+              "meaning": "… paytda",
+              "partOfSpeech": "payt bog‘lovchisi"
+            },
+            {
+              "id": "t5-4",
+              "text": "قُدْتَ",
+              "meaning": "haydading",
+              "partOfSpeech": "fe’l",
+              "lemma": "قَادَ",
+              "root": "ق و د"
+            },
+            {
+              "id": "t5-5",
+              "text": "السَّيَّارَةَ",
+              "meaning": "avtomobil; mashina",
+              "partOfSpeech": "ot",
+              "lemma": "سَيَّارَةٌ",
+              "root": "س ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g5-3",
+          "ar": "بِدُونِ أَنْ تَتَعَلَّمَ الْقِيَادَةَ؟",
+          "uz": "Haydashni o‘rganmasdan",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t5-6",
+              "text": "بِدُونِ",
+              "meaning": "-siz; … qilmasdan",
+              "partOfSpeech": "ko‘makchili birikma"
+            },
+            {
+              "id": "t5-7",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            },
+            {
+              "id": "t5-8",
+              "text": "تَتَعَلَّمَ",
+              "meaning": "o‘rganasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t5-9",
+              "text": "الْقِيَادَةَ؟",
+              "meaning": "boshqarish; haydash",
+              "partOfSpeech": "masdar",
+              "lemma": "قِيَادَةٌ",
+              "root": "ق و د"
+            }
+          ]
+        }
+      ],
+      "grammar": "عِنْدَمَا — … paytda. بِدُونِ أَنْ — … qilmasdan. قُدْتَ — sen haydading."
+    },
+    {
+      "id": "s6",
+      "start": 25.39,
+      "end": 30.03,
+      "groups": [
+        {
+          "id": "g6-1",
+          "ar": "آهْ!",
+          "uz": "Ha-a!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t6-1",
+              "text": "آهْ!",
+              "meaning": "ha-a; voy",
+              "partOfSpeech": "undov"
+            }
+          ]
+        },
+        {
+          "id": "g6-2",
+          "ar": "يَوْمَ",
+          "uz": "O‘sha kuni",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t6-2",
+              "text": "يَوْمَ",
+              "meaning": "kun; o‘sha kuni",
+              "partOfSpeech": "ot; payt holi"
+            }
+          ]
+        },
+        {
+          "id": "g6-3",
+          "ar": "كَسَرْنَا إِشَارَةَ الْمُرُورِ",
+          "uz": "svetoforni sindirgan edik",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t6-3",
+              "text": "كَسَرْنَا",
+              "meaning": "sindirdik",
+              "partOfSpeech": "fe’l",
+              "lemma": "كَسَرَ",
+              "root": "ك س ر"
+            },
+            {
+              "id": "t6-4",
+              "text": "إِشَارَةَ",
+              "meaning": "ishora; bu gapda: svetofor",
+              "partOfSpeech": "ot",
+              "lemma": "إِشَارَةٌ"
+            },
+            {
+              "id": "t6-5",
+              "text": "الْمُرُورِ",
+              "meaning": "yo‘l harakati",
+              "partOfSpeech": "masdar",
+              "lemma": "مُرُورٌ",
+              "root": "م ر ر"
+            }
+          ]
+        },
+        {
+          "id": "g6-4",
+          "ar": "وَ وَقَعْنَا مِنْ عَلَى الْكُوبْرِي.",
+          "uz": "va ko‘prikdan qulagan edik!",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t6-6",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t6-7",
+              "text": "وَقَعْنَا",
+              "meaning": "quladik",
+              "partOfSpeech": "fe’l",
+              "lemma": "وَقَعَ",
+              "root": "و ق ع"
+            },
+            {
+              "id": "t6-8",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t6-9",
+              "text": "عَلَى",
+              "meaning": "ustida; ustiga",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t6-10",
+              "text": "الْكُوبْرِي.",
+              "meaning": "ko‘prik (so‘zlashuv shakli)",
+              "partOfSpeech": "ot",
+              "lemma": "كُوبْرِي"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ."
+    },
+    {
+      "id": "s7",
+      "start": 30.03,
+      "end": 30.95,
+      "groups": [
+        {
+          "id": "g7-1",
+          "ar": "نَعَمْ.",
+          "uz": "Ha.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t7-1",
+              "text": "نَعَمْ.",
+              "meaning": "ha",
+              "partOfSpeech": "tasdiq yuklamasi"
+            }
+          ]
+        }
+      ],
+      "grammar": "نَعَمْ — tasdiq javobi."
+    },
+    {
+      "id": "s8",
+      "start": 30.95,
+      "end": 32.93,
+      "groups": [
+        {
+          "id": "g8-1",
+          "ar": "لَا، لَا،",
+          "uz": "Yo‘q, yo‘q,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t8-1",
+              "text": "لَا،",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t8-2",
+              "text": "لَا،",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            }
+          ]
+        },
+        {
+          "id": "g8-2",
+          "ar": "لَا أَذْكُرُ.",
+          "uz": "eslolmayman.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t8-3",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t8-4",
+              "text": "أَذْكُرُ.",
+              "meaning": "eslayman",
+              "partOfSpeech": "fe’l",
+              "lemma": "ذَكَرَ",
+              "root": "ذ ك ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَا أَذْكُرُ — «eslamayman». Takroriy لَا hissiy ta’kid."
+    },
+    {
+      "id": "s9",
+      "start": 32.93,
+      "end": 36.99,
+      "groups": [
+        {
+          "id": "g9-1",
+          "ar": "ثُمَّ إِنَّ",
+          "uz": "Qolaversa,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t9-1",
+              "text": "ثُمَّ",
+              "meaning": "so‘ng; qolaversa",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t9-2",
+              "text": "إِنَّ",
+              "meaning": "ta’kid: … ekanini",
+              "partOfSpeech": "ta’kid yuklamasi"
+            }
+          ]
+        },
+        {
+          "id": "g9-2",
+          "ar": "السَّمَاءَ",
+          "uz": "osmonda",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t9-3",
+              "text": "السَّمَاءَ",
+              "meaning": "osmon",
+              "partOfSpeech": "ot",
+              "lemma": "سَمَاءٌ"
+            }
+          ]
+        },
+        {
+          "id": "g9-3",
+          "ar": "لَيْسَ بِهَا",
+          "uz": "yo‘q-ku.",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "t9-4",
+              "text": "لَيْسَ",
+              "meaning": "emas; yo‘q",
+              "partOfSpeech": "inkor bildiruvchi yordamchi fe’l"
+            },
+            {
+              "id": "t9-5",
+              "text": "بِهَا",
+              "meaning": "unda",
+              "partOfSpeech": "ko‘makchi va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "g9-4",
+          "ar": "إِشَارَاتُ مُرُورٍ",
+          "uz": "svetofor",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t9-6",
+              "text": "إِشَارَاتُ",
+              "meaning": "ishoralar; bu gapda: svetoforlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "إِشَارَةٌ"
+            },
+            {
+              "id": "t9-7",
+              "text": "مُرُورٍ",
+              "meaning": "yo‘l harakati",
+              "partOfSpeech": "masdar",
+              "lemma": "مُرُورٌ",
+              "root": "م ر ر"
+            }
+          ]
+        },
+        {
+          "id": "g9-5",
+          "ar": "وَ لَا كَبَارِي.",
+          "uz": "va ko‘priklar ham",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t9-8",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t9-9",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t9-10",
+              "text": "كَبَارِي.",
+              "meaning": "ko‘priklar (so‘zlashuv shakli)",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "كُوبْرِي"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَيْسَ … بِهَا — unda … yo‘q. إِشَارَات — إِشَارَة ning ko‘pligi. كَبَارِي — so‘zlashuv shakli."
+    },
+    {
+      "id": "s10",
+      "start": 36.99,
+      "end": 42.05,
+      "groups": [
+        {
+          "id": "g10-1",
+          "ar": "إِذًا",
+          "uz": "Unda",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t10-1",
+              "text": "إِذًا",
+              "meaning": "unda; demak",
+              "partOfSpeech": "bog‘lovchi"
+            }
+          ]
+        },
+        {
+          "id": "g10-2",
+          "ar": "أَتَذْكُرُ",
+          "uz": "esingdami?",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t10-2",
+              "text": "أَتَذْكُرُ",
+              "meaning": "eslaysanmi?",
+              "partOfSpeech": "so‘roq yuklamasi va fe’l",
+              "lemma": "ذَكَرَ",
+              "root": "ذ ك ر"
+            }
+          ]
+        },
+        {
+          "id": "g10-3",
+          "ar": "عِنْدَمَا رَكِبْتَ الْمُوتُوسِيكْلَ",
+          "uz": "mototsikl mingan payting",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t10-3",
+              "text": "عِنْدَمَا",
+              "meaning": "… paytda",
+              "partOfSpeech": "payt bog‘lovchisi"
+            },
+            {
+              "id": "t10-4",
+              "text": "رَكِبْتَ",
+              "meaning": "minding",
+              "partOfSpeech": "fe’l",
+              "lemma": "رَكِبَ",
+              "root": "ر ك ب"
+            },
+            {
+              "id": "t10-5",
+              "text": "الْمُوتُوسِيكْلَ",
+              "meaning": "mototsikl",
+              "partOfSpeech": "ot"
+            }
+          ]
+        },
+        {
+          "id": "g10-4",
+          "ar": "بِدُونِ أَنْ تَتَعَلَّمَ الْقِيَادَةَ؟",
+          "uz": "haydashni o‘rganmasdan",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t10-6",
+              "text": "بِدُونِ",
+              "meaning": "-siz; … qilmasdan",
+              "partOfSpeech": "ko‘makchili birikma"
+            },
+            {
+              "id": "t10-7",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            },
+            {
+              "id": "t10-8",
+              "text": "تَتَعَلَّمَ",
+              "meaning": "o‘rganasan",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t10-9",
+              "text": "الْقِيَادَةَ؟",
+              "meaning": "boshqarish; haydash",
+              "partOfSpeech": "masdar",
+              "lemma": "قِيَادَةٌ",
+              "root": "ق و د"
+            }
+          ]
+        }
+      ],
+      "grammar": "إِذًا — unda, demak. أَتَذْكُرُ — eslaysanmi? رَكِبْتَ — sen minding."
+    },
+    {
+      "id": "s11",
+      "start": 42.05,
+      "end": 47.21,
+      "groups": [
+        {
+          "id": "g11-1",
+          "ar": "آهْ،",
+          "uz": "Ha-a,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t11-1",
+              "text": "آهْ،",
+              "meaning": "ha-a; voy",
+              "partOfSpeech": "undov"
+            }
+          ]
+        },
+        {
+          "id": "g11-2",
+          "ar": "يَوْمَ صَدَمْتُ",
+          "uz": "urib yuborgan kunim!",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t11-2",
+              "text": "يَوْمَ",
+              "meaning": "kun; o‘sha kuni",
+              "partOfSpeech": "ot; payt holi"
+            },
+            {
+              "id": "t11-3",
+              "text": "صَدَمْتُ",
+              "meaning": "urib yubordim",
+              "partOfSpeech": "fe’l",
+              "lemma": "صَدَمَ",
+              "root": "ص د م"
+            }
+          ]
+        },
+        {
+          "id": "g11-3",
+          "ar": "كَلْبَ الْجِيرَانِ",
+          "uz": "qo‘shnilarning itini",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t11-4",
+              "text": "كَلْبَ",
+              "meaning": "it",
+              "partOfSpeech": "ot",
+              "lemma": "كَلْبٌ"
+            },
+            {
+              "id": "t11-5",
+              "text": "الْجِيرَانِ",
+              "meaning": "qo‘shnilar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "جَارٌ"
+            }
+          ]
+        },
+        {
+          "id": "g11-4",
+          "ar": "وَ أَخَذَ يَجْرِي وَرَاءَنَا",
+          "uz": "U ortimizdan yugurib,",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t11-6",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t11-7",
+              "text": "أَخَذَ",
+              "meaning": "boshladi (أَخَذَ يَجْرِي tarkibida)",
+              "partOfSpeech": "fe’l",
+              "lemma": "أَخَذَ",
+              "root": "أ خ ذ"
+            },
+            {
+              "id": "t11-8",
+              "text": "يَجْرِي",
+              "meaning": "yuguradi",
+              "partOfSpeech": "fe’l",
+              "lemma": "جَرَى",
+              "root": "ج ر ي"
+            },
+            {
+              "id": "t11-9",
+              "text": "وَرَاءَنَا",
+              "meaning": "ortimizdan",
+              "partOfSpeech": "joy ravishi va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "g11-5",
+          "ar": "وَ عَضَّنِي مِنْ هُنَا.",
+          "uz": "mana shu yerimdan tishlagan edi.",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "t11-10",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t11-11",
+              "text": "عَضَّنِي",
+              "meaning": "meni tishladi",
+              "partOfSpeech": "fe’l va olmosh",
+              "lemma": "عَضَّ",
+              "root": "ع ض ض"
+            },
+            {
+              "id": "t11-12",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t11-13",
+              "text": "هُنَا.",
+              "meaning": "shu yerda",
+              "partOfSpeech": "o‘rin ravishi"
+            }
+          ]
+        }
+      ],
+      "grammar": "صَدَمْتُ — men urib yubordim. أَخَذَ يَجْرِي — yugura boshladi. عَضَّنِي dagi نِي — meni."
+    },
+    {
+      "id": "s12",
+      "start": 47.21,
+      "end": 48.57,
+      "groups": [
+        {
+          "id": "g12-1",
+          "ar": "نَعَمْ.",
+          "uz": "Ha.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t12-1",
+              "text": "نَعَمْ.",
+              "meaning": "ha",
+              "partOfSpeech": "tasdiq yuklamasi"
+            }
+          ]
+        }
+      ],
+      "grammar": "نَعَمْ — tasdiqlaydi."
+    },
+    {
+      "id": "s13",
+      "start": 48.57,
+      "end": 50.37,
+      "groups": [
+        {
+          "id": "g13-1",
+          "ar": "لَا، لَا،",
+          "uz": "Yo‘q, yo‘q,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t13-1",
+              "text": "لَا،",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t13-2",
+              "text": "لَا،",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            }
+          ]
+        },
+        {
+          "id": "g13-2",
+          "ar": "لَا أَذْكُرُ.",
+          "uz": "eslolmayman.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t13-3",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t13-4",
+              "text": "أَذْكُرُ.",
+              "meaning": "eslayman",
+              "partOfSpeech": "fe’l",
+              "lemma": "ذَكَرَ",
+              "root": "ذ ك ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَا — inkor; أَذْكُرُ — eslayman."
+    },
+    {
+      "id": "s14",
+      "start": 50.37,
+      "end": 53.05,
+      "groups": [
+        {
+          "id": "g14-1",
+          "ar": "وَ عُمُومًا",
+          "uz": "Umuman olganda,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t14-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t14-2",
+              "text": "عُمُومًا",
+              "meaning": "umuman olganda",
+              "partOfSpeech": "ravish"
+            }
+          ]
+        },
+        {
+          "id": "g14-2",
+          "ar": "لَا يُوجَدُ كِلَابٌ",
+          "uz": "itlar yo‘q.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t14-3",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t14-4",
+              "text": "يُوجَدُ",
+              "meaning": "mavjud; bor",
+              "partOfSpeech": "fe’l",
+              "lemma": "وُجِدَ",
+              "root": "و ج د"
+            },
+            {
+              "id": "t14-5",
+              "text": "كِلَابٌ",
+              "meaning": "itlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "كَلْبٌ"
+            }
+          ]
+        },
+        {
+          "id": "g14-3",
+          "ar": "فِي السَّمَاءِ.",
+          "uz": "osmonda",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t14-6",
+              "text": "فِي",
+              "meaning": "-da; ichida",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t14-7",
+              "text": "السَّمَاءِ.",
+              "meaning": "osmon",
+              "partOfSpeech": "ot",
+              "lemma": "سَمَاءٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَا يُوجَدُ — mavjud emas. فِي dan keyingi ism majrur."
+    },
+    {
+      "id": "s15",
+      "start": 53.05,
+      "end": 56.25,
+      "groups": [
+        {
+          "id": "g15-1",
+          "ar": "يَعْنِي",
+          "uz": "Demak,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t15-1",
+              "text": "يَعْنِي",
+              "meaning": "demak; anglatadi",
+              "partOfSpeech": "fe’l; izohlovchi kirish so‘zi",
+              "lemma": "عَنَى",
+              "root": "ع ن ي"
+            }
+          ]
+        },
+        {
+          "id": "g15-2",
+          "ar": "لَا يُوجَدُ أَيُّ مُشْكِلَةٍ",
+          "uz": "hech qanday muammo yo‘q.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t15-2",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t15-3",
+              "text": "يُوجَدُ",
+              "meaning": "mavjud; bor",
+              "partOfSpeech": "fe’l",
+              "lemma": "وُجِدَ",
+              "root": "و ج د"
+            },
+            {
+              "id": "t15-4",
+              "text": "أَيُّ",
+              "meaning": "har qanday; inkor bilan: hech qanday",
+              "partOfSpeech": "umumlashtiruvchi olmosh"
+            },
+            {
+              "id": "t15-5",
+              "text": "مُشْكِلَةٍ",
+              "meaning": "muammo",
+              "partOfSpeech": "ot",
+              "lemma": "مُشْكِلَةٌ"
+            }
+          ]
+        },
+        {
+          "id": "g15-3",
+          "ar": "بِقِيَادَةِ الطَّائِرَةِ.",
+          "uz": "samolyotni boshqarishda",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t15-6",
+              "text": "بِقِيَادَةِ",
+              "meaning": "boshqarishda",
+              "partOfSpeech": "ko‘makchi va masdar",
+              "lemma": "قِيَادَةٌ",
+              "root": "ق و د"
+            },
+            {
+              "id": "t15-7",
+              "text": "الطَّائِرَةِ.",
+              "meaning": "samolyot",
+              "partOfSpeech": "ot",
+              "lemma": "طَائِرَةٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَيُّ مُشْكِلَةٍ — hech qanday muammo. Bu qahramonning xato xulosasi."
+    },
+    {
+      "id": "s16",
+      "start": 56.25,
+      "end": 59.81,
+      "groups": [
+        {
+          "id": "g16-1",
+          "ar": "لَا يَا جُحَا،",
+          "uz": "Yo‘q, Juha,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t16-1",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t16-2",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t16-3",
+              "text": "جُحَا،",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g16-2",
+          "ar": "مَنْ أَرَادَ",
+          "uz": "kim istasa,",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t16-4",
+              "text": "مَنْ",
+              "meaning": "kim; … qilgan kishi",
+              "partOfSpeech": "shart yoki so‘roq olmoshi"
+            },
+            {
+              "id": "t16-5",
+              "text": "أَرَادَ",
+              "meaning": "istadi",
+              "partOfSpeech": "fe’l",
+              "lemma": "أَرَادَ",
+              "root": "ر و د"
+            }
+          ]
+        },
+        {
+          "id": "g16-3",
+          "ar": "أَنْ يَعْمَلَ شَيْئًا،",
+          "uz": "biror ish qilishni",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t16-6",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            },
+            {
+              "id": "t16-7",
+              "text": "يَعْمَلَ",
+              "meaning": "bajaradi",
+              "partOfSpeech": "fe’l",
+              "lemma": "عَمِلَ",
+              "root": "ع م ل"
+            },
+            {
+              "id": "t16-8",
+              "text": "شَيْئًا،",
+              "meaning": "biror narsani; biror ishni",
+              "partOfSpeech": "ot",
+              "lemma": "شَيْءٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَنْ — umumiy shaxsni bildiradi: kim … . أَنْ يَعْمَلَ — ish qilishni."
+    },
+    {
+      "id": "s17",
+      "start": 59.81,
+      "end": 61.81,
+      "groups": [
+        {
+          "id": "g17-1",
+          "ar": "لَا بُدَّ أَنْ",
+          "uz": "kerak.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t17-1",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t17-2",
+              "text": "بُدَّ",
+              "meaning": "لَا بُدَّ tarkibida: zarur",
+              "partOfSpeech": "ot; tayanch birikma qismi"
+            },
+            {
+              "id": "t17-3",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            }
+          ]
+        },
+        {
+          "id": "g17-2",
+          "ar": "يَتَعَلَّمَ",
+          "uz": "o‘rganishi",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t17-4",
+              "text": "يَتَعَلَّمَ",
+              "meaning": "o‘rganadi",
+              "partOfSpeech": "fe’l",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g17-3",
+          "ar": "كَيْفَ يَعْمَلُهُ.",
+          "uz": "uni qanday bajarishni",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t17-5",
+              "text": "كَيْفَ",
+              "meaning": "qanday",
+              "partOfSpeech": "so‘roq ravishi"
+            },
+            {
+              "id": "t17-6",
+              "text": "يَعْمَلُهُ.",
+              "meaning": "uni bajaradi",
+              "partOfSpeech": "fe’l va olmosh",
+              "lemma": "عَمِلَ",
+              "root": "ع م ل"
+            }
+          ]
+        }
+      ],
+      "grammar": "Oldingi gap davom etadi. يَعْمَلُهُ dagi هُ — uni."
+    },
+    {
+      "id": "s18",
+      "start": 61.81,
+      "end": 63.99,
+      "groups": [
+        {
+          "id": "g18-1",
+          "ar": "حَتَّى",
+          "uz": "Hatto",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t18-1",
+              "text": "حَتَّى",
+              "meaning": "hatto",
+              "partOfSpeech": "yuklama"
+            }
+          ]
+        },
+        {
+          "id": "g18-2",
+          "ar": "الْعَصَافِيرُ الصَّغِيرَةُ،",
+          "uz": "kichkina qushlarning ham",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t18-2",
+              "text": "الْعَصَافِيرُ",
+              "meaning": "qushlar; chumchuqlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "عُصْفُورٌ"
+            },
+            {
+              "id": "t18-3",
+              "text": "الصَّغِيرَةُ،",
+              "meaning": "kichkina",
+              "partOfSpeech": "sifat",
+              "lemma": "صَغِيرٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "حَتَّى — hatto. الْعَصَافِيرُ — qushlar, chumchuqlar; fikr keyingi gapda tugallanadi."
+    },
+    {
+      "id": "s19",
+      "start": 63.99,
+      "end": 66.27,
+      "groups": [
+        {
+          "id": "g19-1",
+          "ar": "أُمُّهُمْ",
+          "uz": "onasi",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t19-1",
+              "text": "أُمُّهُمْ",
+              "meaning": "ularning onasi",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "أُمٌّ"
+            }
+          ]
+        },
+        {
+          "id": "g19-2",
+          "ar": "تُعَلِّمُهُمْ",
+          "uz": "o‘rgatadi.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t19-2",
+              "text": "تُعَلِّمُهُمْ",
+              "meaning": "ularga o‘rgatadi",
+              "partOfSpeech": "fe’l va olmosh",
+              "lemma": "عَلَّمَ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g19-3",
+          "ar": "كَيْفَ يَطِيرُونَ.",
+          "uz": "qanday uchishni",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t19-3",
+              "text": "كَيْفَ",
+              "meaning": "qanday",
+              "partOfSpeech": "so‘roq ravishi"
+            },
+            {
+              "id": "t19-4",
+              "text": "يَطِيرُونَ.",
+              "meaning": "ular uchadilar",
+              "partOfSpeech": "fe’l",
+              "lemma": "طَارَ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "تُعَلِّمُ — o‘rgatadi; يَتَعَلَّمُ — o‘rganadi. هُمْ — ular."
+    },
+    {
+      "id": "s20",
+      "start": 66.27,
+      "end": 68.01,
+      "groups": [
+        {
+          "id": "g20-1",
+          "ar": "يَعْنِي",
+          "uz": "Demak,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t20-1",
+              "text": "يَعْنِي",
+              "meaning": "demak; anglatadi",
+              "partOfSpeech": "fe’l; izohlovchi kirish so‘zi",
+              "lemma": "عَنَى",
+              "root": "ع ن ي"
+            }
+          ]
+        },
+        {
+          "id": "g20-2",
+          "ar": "التَّعْلِيمُ",
+          "uz": "ta’lim olish kerak.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t20-2",
+              "text": "التَّعْلِيمُ",
+              "meaning": "ta’lim; o‘rgatish",
+              "partOfSpeech": "masdar",
+              "lemma": "تَعْلِيمٌ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g20-3",
+          "ar": "أَوَّلًا.",
+          "uz": "avval",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t20-3",
+              "text": "أَوَّلًا.",
+              "meaning": "avval; birinchi navbatda",
+              "partOfSpeech": "ravish"
+            }
+          ]
+        }
+      ],
+      "grammar": "التَّعْلِيمُ أَوَّلًا — avval o‘rganish, darsning asosiy xulosasi."
+    },
+    {
+      "id": "s21",
+      "start": 68.01,
+      "end": 69.81,
+      "groups": [
+        {
+          "id": "g21-1",
+          "ar": "أَفَهِمْتَ",
+          "uz": "Tushundingmi,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t21-1",
+              "text": "أَفَهِمْتَ",
+              "meaning": "tushundingmi?",
+              "partOfSpeech": "so‘roq yuklamasi va fe’l",
+              "lemma": "فَهِمَ",
+              "root": "ف ه م"
+            }
+          ]
+        },
+        {
+          "id": "g21-2",
+          "ar": "يَا جُحَا؟",
+          "uz": "Juha?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t21-2",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t21-3",
+              "text": "جُحَا؟",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَ — so‘roq yuklamasi; فَهِمْتَ — sen tushunding."
+    },
+    {
+      "id": "s22",
+      "start": 70.91,
+      "end": 72.24,
+      "groups": [
+        {
+          "id": "g22-1",
+          "ar": "لَا،",
+          "uz": "Yo‘q,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t22-1",
+              "text": "لَا،",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            }
+          ]
+        },
+        {
+          "id": "g22-2",
+          "ar": "لَمْ أَفْهَمْ.",
+          "uz": "tushunmadim.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t22-2",
+              "text": "لَمْ",
+              "meaning": "-madi; o‘tgan zamon inkori",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t22-3",
+              "text": "أَفْهَمْ.",
+              "meaning": "tushunaman",
+              "partOfSpeech": "fe’l",
+              "lemma": "فَهِمَ",
+              "root": "ف ه م"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَمْ أَفْهَمْ — tushunmadim; fe’l jazmda."
+    },
+    {
+      "id": "s23",
+      "start": 72.75,
+      "end": 74.73,
+      "groups": [
+        {
+          "id": "g23-1",
+          "ar": "لَا بُدَّ أَنْ",
+          "uz": "Men albatta",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t23-1",
+              "text": "لَا",
+              "meaning": "yo‘q; emas",
+              "partOfSpeech": "inkor yuklamasi"
+            },
+            {
+              "id": "t23-2",
+              "text": "بُدَّ",
+              "meaning": "لَا بُدَّ tarkibida: zarur",
+              "partOfSpeech": "ot; tayanch birikma qismi"
+            },
+            {
+              "id": "t23-3",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            }
+          ]
+        },
+        {
+          "id": "g23-2",
+          "ar": "أَطِيرَ.",
+          "uz": "uchishim kerak.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t23-4",
+              "text": "أَطِيرَ.",
+              "meaning": "uchaman",
+              "partOfSpeech": "fe’l",
+              "lemma": "طَارَ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَطِيرَ — uchishim. أَنْ fe’lni nasb qiladi."
+    },
+    {
+      "id": "s24",
+      "start": 74.73,
+      "end": 76.25,
+      "groups": [
+        {
+          "id": "g24-1",
+          "ar": "وَدَاعًا",
+          "uz": "Xayr,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t24-1",
+              "text": "وَدَاعًا",
+              "meaning": "xayr",
+              "partOfSpeech": "vidolashish ifodasi"
+            }
+          ]
+        },
+        {
+          "id": "g24-2",
+          "ar": "يَا صَدِيقِي.",
+          "uz": "do‘stim.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t24-2",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t24-3",
+              "text": "صَدِيقِي.",
+              "meaning": "do‘stim",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "صَدِيقٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "وَدَاعًا — xayr. Bu so‘zdagi و bog‘lovchi emas. صَدِيقِي — do‘stim."
+    },
+    {
+      "id": "s25",
+      "start": 82.26,
+      "end": 84.88,
+      "groups": [
+        {
+          "id": "g25-1",
+          "ar": "هَيَّا",
+          "uz": "Qani,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t25-1",
+              "text": "هَيَّا",
+              "meaning": "qani; olg‘a",
+              "partOfSpeech": "undov"
+            }
+          ]
+        },
+        {
+          "id": "g25-2",
+          "ar": "يَا جُحَا",
+          "uz": "Juha,",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t25-2",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t25-3",
+              "text": "جُحَا",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g25-3",
+          "ar": "يَا بَطَلُ!",
+          "uz": "qahramon!",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t25-4",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t25-5",
+              "text": "بَطَلُ!",
+              "meaning": "qahramon",
+              "partOfSpeech": "ot",
+              "lemma": "بَطَلٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "هَيَّا — harakatga da’vat. يَا بَطَلُ — ey qahramon."
+    },
+    {
+      "id": "s26",
+      "start": 84.88,
+      "end": 86.15,
+      "groups": [
+        {
+          "id": "g26-1",
+          "ar": "أَرِهِمُ الْقِيَادَةَ،",
+          "uz": "Ularga boshqarishni ko‘rsat!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t26-1",
+              "text": "أَرِهِمُ",
+              "meaning": "ularga ko‘rsat",
+              "partOfSpeech": "buyruq fe’li va olmosh",
+              "lemma": "أَرَى",
+              "root": "ر أ ي"
+            },
+            {
+              "id": "t26-2",
+              "text": "الْقِيَادَةَ،",
+              "meaning": "boshqarish; haydash",
+              "partOfSpeech": "masdar",
+              "lemma": "قِيَادَةٌ",
+              "root": "ق و د"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَرِ — أَرَى fe’lining buyrug‘i; هُمْ — ularga."
+    },
+    {
+      "id": "s27",
+      "start": 86.84,
+      "end": 88.0,
+      "groups": [
+        {
+          "id": "g27-1",
+          "ar": "وَ",
+          "uz": "Va",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t27-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            }
+          ]
+        },
+        {
+          "id": "g27-2",
+          "ar": "أَثْبِتْ",
+          "uz": "isbotla:",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t27-2",
+              "text": "أَثْبِتْ",
+              "meaning": "isbotla",
+              "partOfSpeech": "buyruq fe’li",
+              "lemma": "أَثْبَتَ",
+              "root": "ث ب ت"
+            }
+          ]
+        },
+        {
+          "id": "g27-3",
+          "ar": "لَهُمَا",
+          "uz": "u ikkoviga",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t27-3",
+              "text": "لَهُمَا",
+              "meaning": "u ikkoviga",
+              "partOfSpeech": "ko‘makchi va ikkilik olmoshi"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَثْبِتْ — isbotla. لَهُمَا — u ikkoviga."
+    },
+    {
+      "id": "s28",
+      "start": 88.0,
+      "end": 90.08,
+      "groups": [
+        {
+          "id": "g28-1",
+          "ar": "أَنَّ التَّعْلِيمَ",
+          "uz": "ta’lim olish",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t28-1",
+              "text": "أَنَّ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            },
+            {
+              "id": "t28-2",
+              "text": "التَّعْلِيمَ",
+              "meaning": "ta’lim; o‘rgatish",
+              "partOfSpeech": "masdar",
+              "lemma": "تَعْلِيمٌ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g28-2",
+          "ar": "لَيْسَ مُهِمًّا.",
+          "uz": "muhim emasligini.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t28-3",
+              "text": "لَيْسَ",
+              "meaning": "emas; yo‘q",
+              "partOfSpeech": "inkor bildiruvchi yordamchi fe’l"
+            },
+            {
+              "id": "t28-4",
+              "text": "مُهِمًّا.",
+              "meaning": "مُهِمًّا: muhim",
+              "partOfSpeech": "sifat",
+              "lemma": "مُهِمٌّ"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَيْسَ مُهِمًّا — muhim emas. Bu qahramonning noto‘g‘ri fikri; oqibati keyin ko‘rsatiladi."
+    },
+    {
+      "id": "s29",
+      "start": 98.74,
+      "end": 102.82,
+      "groups": [
+        {
+          "id": "g29-1",
+          "ar": "آهْ،",
+          "uz": "Voy,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t29-1",
+              "text": "آهْ،",
+              "meaning": "ha-a; voy",
+              "partOfSpeech": "undov"
+            }
+          ]
+        },
+        {
+          "id": "g29-2",
+          "ar": "مَا أَسْهَلَ",
+          "uz": "qanchalar oson ekan!",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t29-2",
+              "text": "مَا",
+              "meaning": "qanchalar (مَا أَسْهَلَ qolipida)",
+              "partOfSpeech": "taajjub yuklamasi"
+            },
+            {
+              "id": "t29-3",
+              "text": "أَسْهَلَ",
+              "meaning": "qanchalar oson (taajjubda)",
+              "partOfSpeech": "taajjub qolipidagi fe’l",
+              "lemma": "سَهُلَ",
+              "root": "س ه ل"
+            }
+          ]
+        },
+        {
+          "id": "g29-3",
+          "ar": "الطَّيَرَانَ",
+          "uz": "uchish",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t29-4",
+              "text": "الطَّيَرَانَ",
+              "meaning": "uchish",
+              "partOfSpeech": "masdar",
+              "lemma": "طَيَرَانٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g29-4",
+          "ar": "بِدُونِ تَعْلِيمٍ أَصْلًا!",
+          "uz": "umuman o‘rganmasdan ham",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t29-5",
+              "text": "بِدُونِ",
+              "meaning": "-siz; … qilmasdan",
+              "partOfSpeech": "ko‘makchili birikma"
+            },
+            {
+              "id": "t29-6",
+              "text": "تَعْلِيمٍ",
+              "meaning": "ta’lim; o‘rgatish",
+              "partOfSpeech": "masdar",
+              "lemma": "تَعْلِيمٌ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t29-7",
+              "text": "أَصْلًا!",
+              "meaning": "aslida; umuman",
+              "partOfSpeech": "ravish"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَا أَسْهَلَ — qanchalar oson! Taajjub qolipi. الطَّيَرَانُ — uchish."
+    },
+    {
+      "id": "s30",
+      "start": 107.75,
+      "end": 110.61,
+      "groups": [
+        {
+          "id": "g30-1",
+          "ar": "سَأُجَرِّبُ",
+          "uz": "sinab ko‘raman.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t30-1",
+              "text": "سَأُجَرِّبُ",
+              "meaning": "sinab ko‘raman",
+              "partOfSpeech": "kelasi zamon fe’li",
+              "lemma": "جَرَّبَ",
+              "root": "ج ر ب"
+            }
+          ]
+        },
+        {
+          "id": "g30-2",
+          "ar": "هَذَا الزِّرَّ",
+          "uz": "mana bu tugmani",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t30-2",
+              "text": "هَذَا",
+              "meaning": "bu",
+              "partOfSpeech": "ko‘rsatish olmoshi"
+            },
+            {
+              "id": "t30-3",
+              "text": "الزِّرَّ",
+              "meaning": "tugma",
+              "partOfSpeech": "ot",
+              "lemma": "زِرٌّ"
+            }
+          ]
+        },
+        {
+          "id": "g30-3",
+          "ar": "لِأَرَى مَاذَا يَفْعَلُ.",
+          "uz": "Nima qilishini bilish uchun",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t30-4",
+              "text": "لِأَرَى",
+              "meaning": "ko‘rish uchun",
+              "partOfSpeech": "maqsad ko‘makchisi va fe’l",
+              "lemma": "رَأَى",
+              "root": "ر أ ي"
+            },
+            {
+              "id": "t30-5",
+              "text": "مَاذَا",
+              "meaning": "nima",
+              "partOfSpeech": "so‘roq olmoshi"
+            },
+            {
+              "id": "t30-6",
+              "text": "يَفْعَلُ.",
+              "meaning": "qiladi",
+              "partOfSpeech": "fe’l",
+              "lemma": "فَعَلَ",
+              "root": "ف ع ل"
+            }
+          ]
+        }
+      ],
+      "grammar": "سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun."
+    },
+    {
+      "id": "s31",
+      "start": 113.57,
+      "end": 117.29,
+      "groups": [
+        {
+          "id": "g31-1",
+          "ar": "سِتْرَكَ يَا رَبِّ،",
+          "uz": "Ey Rabbim, asra!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t31-1",
+              "text": "سِتْرَكَ",
+              "meaning": "Sening panohing; undovda: asra",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "سِتْرٌ",
+              "root": "س ت ر"
+            },
+            {
+              "id": "t31-2",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t31-3",
+              "text": "رَبِّ،",
+              "meaning": "Rabbim",
+              "partOfSpeech": "murojaatdagi ot",
+              "lemma": "رَبٌّ"
+            }
+          ]
+        },
+        {
+          "id": "g31-2",
+          "ar": "سِتْرَكَ يَا رَبِّ!",
+          "uz": "Ey Rabbim, asra!",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t31-4",
+              "text": "سِتْرَكَ",
+              "meaning": "Sening panohing; undovda: asra",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "سِتْرٌ",
+              "root": "س ت ر"
+            },
+            {
+              "id": "t31-5",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t31-6",
+              "text": "رَبِّ!",
+              "meaning": "Rabbim",
+              "partOfSpeech": "murojaatdagi ot",
+              "lemma": "رَبٌّ"
+            }
+          ]
+        },
+        {
+          "id": "g31-3",
+          "ar": "مَاذَا يَحْدُثُ هُنَا؟",
+          "uz": "Bu yerda nima bo‘lyapti?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t31-7",
+              "text": "مَاذَا",
+              "meaning": "nima",
+              "partOfSpeech": "so‘roq olmoshi"
+            },
+            {
+              "id": "t31-8",
+              "text": "يَحْدُثُ",
+              "meaning": "sodir bo‘ladi",
+              "partOfSpeech": "fe’l",
+              "lemma": "حَدَثَ",
+              "root": "ح د ث"
+            },
+            {
+              "id": "t31-9",
+              "text": "هُنَا؟",
+              "meaning": "shu yerda",
+              "partOfSpeech": "o‘rin ravishi"
+            }
+          ]
+        }
+      ],
+      "grammar": "Birinchi bo‘lak audiodagi qo‘rquv undovi. مَاذَا يَحْدُثُ — nima bo‘lyapti?"
+    },
+    {
+      "id": "s32",
+      "start": 122.33,
+      "end": 124.13,
+      "groups": [
+        {
+          "id": "g32-1",
+          "ar": "أَنْزِلُونِي مِنْ هَذَا الشَّيْءِ!",
+          "uz": "Meni bu narsadan tushiringlar!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t32-1",
+              "text": "أَنْزِلُونِي",
+              "meaning": "meni tushiringlar",
+              "partOfSpeech": "buyruq fe’li va olmosh",
+              "lemma": "أَنْزَلَ",
+              "root": "ن ز ل"
+            },
+            {
+              "id": "t32-2",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t32-3",
+              "text": "هَذَا",
+              "meaning": "bu",
+              "partOfSpeech": "ko‘rsatish olmoshi"
+            },
+            {
+              "id": "t32-4",
+              "text": "الشَّيْءِ!",
+              "meaning": "narsa",
+              "partOfSpeech": "ot",
+              "lemma": "شَيْءٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَنْزِلُوا — ko‘plikka buyruq; نِي — meni."
+    },
+    {
+      "id": "s33",
+      "start": 125.52,
+      "end": 126.48,
+      "groups": [
+        {
+          "id": "g33-1",
+          "ar": "أَنْقِذُونِي!",
+          "uz": "Meni qutqaringlar!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t33-1",
+              "text": "أَنْقِذُونِي!",
+              "meaning": "meni qutqaringlar",
+              "partOfSpeech": "buyruq fe’li va olmosh",
+              "lemma": "أَنْقَذَ",
+              "root": "ن ق ذ"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَنْقِذُوا — qutqaringlar; نِي — meni."
+    },
+    {
+      "id": "s34",
+      "start": 126.48,
+      "end": 127.02,
+      "groups": [
+        {
+          "id": "g34-1",
+          "ar": "يَا نَاسُ!",
+          "uz": "Ey odamlar!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t34-1",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t34-2",
+              "text": "نَاسُ!",
+              "meaning": "odamlar",
+              "partOfSpeech": "ot",
+              "lemma": "نَاسٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "يَا — murojaat; نَاس — odamlar."
+    },
+    {
+      "id": "s35",
+      "start": 127.02,
+      "end": 128.0,
+      "groups": [
+        {
+          "id": "g35-1",
+          "ar": "أَنْقِذُونِي!",
+          "uz": "Meni qutqaringlar!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t35-1",
+              "text": "أَنْقِذُونِي!",
+              "meaning": "meni qutqaringlar",
+              "partOfSpeech": "buyruq fe’li va olmosh",
+              "lemma": "أَنْقَذَ",
+              "root": "ن ق ذ"
+            }
+          ]
+        }
+      ],
+      "grammar": "Yordam so‘rash takrorlanmoqda."
+    },
+    {
+      "id": "s36",
+      "start": 130.62,
+      "end": 134.08,
+      "groups": [
+        {
+          "id": "g36-1",
+          "ar": "لَيْتَنِي",
+          "uz": "Koshki",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t36-1",
+              "text": "لَيْتَنِي",
+              "meaning": "koshki men",
+              "partOfSpeech": "istak yuklamasi va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "g36-2",
+          "ar": "سَمِعْتُ كَلَامَكَ",
+          "uz": "gapingga quloq solganimda edi,",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t36-2",
+              "text": "سَمِعْتُ",
+              "meaning": "eshitdim; bu yerda: quloq soldim",
+              "partOfSpeech": "fe’l",
+              "lemma": "سَمِعَ",
+              "root": "س م ع"
+            },
+            {
+              "id": "t36-3",
+              "text": "كَلَامَكَ",
+              "meaning": "sening gaping",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "كَلَامٌ",
+              "root": "ك ل م"
+            }
+          ]
+        },
+        {
+          "id": "g36-3",
+          "ar": "يَا هُومَا!",
+          "uz": "Huma!",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t36-4",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t36-5",
+              "text": "هُومَا!",
+              "meaning": "Huma",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَيْتَنِي — koshki men. كَلَامَكَ — sening gaping."
+    },
+    {
+      "id": "s37",
+      "start": 154.76,
+      "end": 157.0,
+      "groups": [
+        {
+          "id": "g37-1",
+          "ar": "جُحَا،",
+          "uz": "Juha,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t37-1",
+              "text": "جُحَا،",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g37-2",
+          "ar": "أَيْنَ أَنْتَ",
+          "uz": "qayerdasan,",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t37-2",
+              "text": "أَيْنَ",
+              "meaning": "qayerda",
+              "partOfSpeech": "so‘roq ravishi"
+            },
+            {
+              "id": "t37-3",
+              "text": "أَنْتَ",
+              "meaning": "sen",
+              "partOfSpeech": "shaxs olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g37-3",
+          "ar": "يَا جُحَا؟",
+          "uz": "Juha?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t37-4",
+              "text": "يَا",
+              "meaning": "ey; murojaat",
+              "partOfSpeech": "murojaat yuklamasi"
+            },
+            {
+              "id": "t37-5",
+              "text": "جُحَا؟",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَيْنَ — qayerda? أَنْتَ — sen. يَا جُحَا — murojaat."
+    },
+    {
+      "id": "s38",
+      "start": 158.56,
+      "end": 163.02,
+      "groups": [
+        {
+          "id": "g38-1",
+          "ar": "أَنَا هُنَا!",
+          "uz": "Men shu yerdaman!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t38-1",
+              "text": "أَنَا",
+              "meaning": "men",
+              "partOfSpeech": "shaxs olmoshi"
+            },
+            {
+              "id": "t38-2",
+              "text": "هُنَا!",
+              "meaning": "shu yerda",
+              "partOfSpeech": "o‘rin ravishi"
+            }
+          ]
+        },
+        {
+          "id": "g38-2",
+          "ar": "حَسَنًا،",
+          "uz": "Xo‘p,",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t38-3",
+              "text": "حَسَنًا،",
+              "meaning": "xo‘p; yaxshi",
+              "partOfSpeech": "javob ifodasi"
+            }
+          ]
+        },
+        {
+          "id": "g38-3",
+          "ar": "سَأَتَعَلَّمُ",
+          "uz": "o‘rganaman.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t38-4",
+              "text": "سَأَتَعَلَّمُ",
+              "meaning": "o‘rganaman",
+              "partOfSpeech": "kelasi zamon fe’li",
+              "lemma": "تَعَلَّمَ",
+              "root": "ع ل م"
+            }
+          ]
+        },
+        {
+          "id": "g38-4",
+          "ar": "قَبْلَ أَنْ أَفْعَلَ أَيَّ شَيْءٍ.",
+          "uz": "biror ish qilishdan oldin",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t38-5",
+              "text": "قَبْلَ",
+              "meaning": "oldin",
+              "partOfSpeech": "payt ravishi"
+            },
+            {
+              "id": "t38-6",
+              "text": "أَنْ",
+              "meaning": "…ishni",
+              "partOfSpeech": "masdariy yuklama"
+            },
+            {
+              "id": "t38-7",
+              "text": "أَفْعَلَ",
+              "meaning": "qilaman",
+              "partOfSpeech": "fe’l",
+              "lemma": "فَعَلَ",
+              "root": "ف ع ل"
+            },
+            {
+              "id": "t38-8",
+              "text": "أَيَّ",
+              "meaning": "har qanday; inkor bilan: hech qanday",
+              "partOfSpeech": "umumlashtiruvchi olmosh"
+            },
+            {
+              "id": "t38-9",
+              "text": "شَيْءٍ.",
+              "meaning": "narsa; ish",
+              "partOfSpeech": "ot",
+              "lemma": "شَيْءٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "قَبْلَ أَنْ — … qilishdan oldin. سَأَتَعَلَّمُ — men o‘rganaman."
+    },
+    {
+      "id": "s39",
+      "start": 163.02,
+      "end": 165.16,
+      "groups": [
+        {
+          "id": "g39-1",
+          "ar": "مِثْلَ الْعَصَافِيرِ.",
+          "uz": "Qushlar kabi.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t39-1",
+              "text": "مِثْلَ",
+              "meaning": "kabi",
+              "partOfSpeech": "o‘xshatish bildiruvchi ot"
+            },
+            {
+              "id": "t39-2",
+              "text": "الْعَصَافِيرِ.",
+              "meaning": "qushlar; chumchuqlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "عُصْفُورٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "مِثْلَ — kabi; keyingi ism unga bog‘langan."
+    },
+    {
+      "id": "s40",
+      "start": 184.28,
+      "end": 187.16,
+      "groups": [
+        {
+          "id": "g40-1",
+          "ar": "أَهْلًا وَ سَهْلًا بِكُمْ",
+          "uz": "Xush kelibsiz,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t40-1",
+              "text": "أَهْلًا",
+              "meaning": "xush kelibsiz (أَهْلًا وَ سَهْلًا)",
+              "partOfSpeech": "salomlashish ifodasi qismi"
+            },
+            {
+              "id": "t40-2",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t40-3",
+              "text": "سَهْلًا",
+              "meaning": "xush kelibsiz (أَهْلًا وَ سَهْلًا)",
+              "partOfSpeech": "salomlashish ifodasi qismi"
+            },
+            {
+              "id": "t40-4",
+              "text": "بِكُمْ",
+              "meaning": "sizlarga; sizlar bilan",
+              "partOfSpeech": "ko‘makchi va ko‘plik olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g40-2",
+          "ar": "أَعِزَّائِي الْمُشَاهِدِينَ!",
+          "uz": "aziz tomoshabinlar!",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t40-5",
+              "text": "أَعِزَّائِي",
+              "meaning": "azizlarim",
+              "partOfSpeech": "otlashgan sifat va egalik olmoshi"
+            },
+            {
+              "id": "t40-6",
+              "text": "الْمُشَاهِدِينَ!",
+              "meaning": "tomoshabinlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "مُشَاهِدٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَهْلًا وَ سَهْلًا — salomlashish qolipi. بِكُمْ — sizlarga."
+    },
+    {
+      "id": "s41",
+      "start": 187.92,
+      "end": 189.62,
+      "groups": [
+        {
+          "id": "g41-1",
+          "ar": "مَعَ حَلْقَةٍ جَدِيدَةٍ",
+          "uz": "Yangi sonimiz",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t41-1",
+              "text": "مَعَ",
+              "meaning": "bilan",
+              "partOfSpeech": "ko‘makchi vazifasidagi ot"
+            },
+            {
+              "id": "t41-2",
+              "text": "حَلْقَةٍ",
+              "meaning": "dastur soni; epizod",
+              "partOfSpeech": "ot",
+              "lemma": "حَلْقَةٌ"
+            },
+            {
+              "id": "t41-3",
+              "text": "جَدِيدَةٍ",
+              "meaning": "yangi",
+              "partOfSpeech": "sifat",
+              "lemma": "جَدِيدٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "حَلْقَةٍ جَدِيدَةٍ — ism va sifat muannas birlikda. Gap davom etadi."
+    },
+    {
+      "id": "s42",
+      "start": 189.62,
+      "end": 194.62,
+      "groups": [
+        {
+          "id": "g42-1",
+          "ar": "وَ سُؤَالٍ جَدِيدٍ",
+          "uz": "va yana bir yangi savol bilan birgamiz.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t42-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t42-2",
+              "text": "سُؤَالٍ",
+              "meaning": "savol",
+              "partOfSpeech": "ot",
+              "lemma": "سُؤَالٌ"
+            },
+            {
+              "id": "t42-3",
+              "text": "جَدِيدٍ",
+              "meaning": "yangi",
+              "partOfSpeech": "sifat",
+              "lemma": "جَدِيدٌ"
+            }
+          ]
+        },
+        {
+          "id": "g42-2",
+          "ar": "مِنْ بَرْنَامَجِكُمْ",
+          "uz": "dasturingizdan",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t42-4",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t42-5",
+              "text": "بَرْنَامَجِكُمْ",
+              "meaning": "sizlarning dasturingiz",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "بَرْنَامَجٌ"
+            }
+          ]
+        },
+        {
+          "id": "g42-3",
+          "ar": "«فَوَازِيرِ جُحَا».",
+          "uz": "«Juha topishmoqlari»",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t42-6",
+              "text": "«فَوَازِيرِ",
+              "meaning": "topishmoqlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "فَزُّورَةٌ"
+            },
+            {
+              "id": "t42-7",
+              "text": "جُحَا».",
+              "meaning": "Juha",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "سُؤَالٍ جَدِيدٍ — muzakkar ism va sifat. بَرْنَامَجِكُمْ — sizlarning dasturingiz."
+    },
+    {
+      "id": "s43",
+      "start": 196.54,
+      "end": 200.06,
+      "groups": [
+        {
+          "id": "g43-1",
+          "ar": "وَ مَعَنَا الْيَوْمَ",
+          "uz": "Bugun biz bilan",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t43-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t43-2",
+              "text": "مَعَنَا",
+              "meaning": "biz bilan",
+              "partOfSpeech": "ko‘makchi vazifasidagi ot va olmosh"
+            },
+            {
+              "id": "t43-3",
+              "text": "الْيَوْمَ",
+              "meaning": "bugun",
+              "partOfSpeech": "payt ravishi"
+            }
+          ]
+        },
+        {
+          "id": "g43-2",
+          "ar": "مُتَسَابِقٌ جَدِيدٌ بِالْبَرْنَامَجِ.",
+          "uz": "dasturimizning yangi ishtirokchisi bor.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t43-4",
+              "text": "مُتَسَابِقٌ",
+              "meaning": "tanlov ishtirokchisi",
+              "partOfSpeech": "ot",
+              "lemma": "مُتَسَابِقٌ"
+            },
+            {
+              "id": "t43-5",
+              "text": "جَدِيدٌ",
+              "meaning": "yangi",
+              "partOfSpeech": "sifat",
+              "lemma": "جَدِيدٌ"
+            },
+            {
+              "id": "t43-6",
+              "text": "بِالْبَرْنَامَجِ.",
+              "meaning": "dasturda",
+              "partOfSpeech": "ko‘makchi va ot",
+              "lemma": "بَرْنَامَجٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "مُتَسَابِقٌ — tanlov ishtirokchisi. مَعَنَا — biz bilan."
+    },
+    {
+      "id": "s44",
+      "start": 200.06,
+      "end": 203.34,
+      "groups": [
+        {
+          "id": "g44-1",
+          "ar": "وَ هُوَ",
+          "uz": "U —",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t44-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t44-2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g44-2",
+          "ar": "حِمَارِي الْعَزِيزُ",
+          "uz": "mening aziz eshagim",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t44-3",
+              "text": "حِمَارِي",
+              "meaning": "mening eshagim",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "حِمَارٌ"
+            },
+            {
+              "id": "t44-4",
+              "text": "الْعَزِيزُ",
+              "meaning": "aziz; qadrli",
+              "partOfSpeech": "sifat",
+              "lemma": "عَزِيزٌ"
+            }
+          ]
+        },
+        {
+          "id": "g44-3",
+          "ar": "هُومَا.",
+          "uz": "Huma.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t44-5",
+              "text": "هُومَا.",
+              "meaning": "Huma",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "حِمَارِي — eshagim; ي egalikni bildiradi."
+    },
+    {
+      "id": "s45",
+      "start": 203.34,
+      "end": 205.0,
+      "groups": [
+        {
+          "id": "g45-1",
+          "ar": "مَرْحَبًا!",
+          "uz": "Salom!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t45-1",
+              "text": "مَرْحَبًا!",
+              "meaning": "salom",
+              "partOfSpeech": "salomlashish undovi"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَرْحَبًا — salomlashish undovi."
+    },
+    {
+      "id": "s46",
+      "start": 205.58,
+      "end": 207.44,
+      "groups": [
+        {
+          "id": "g46-1",
+          "ar": "هَلْ أَنْتَ مُسْتَعِدٌّ؟",
+          "uz": "Tayyormisan?",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t46-1",
+              "text": "هَلْ",
+              "meaning": "-mi",
+              "partOfSpeech": "so‘roq yuklamasi"
+            },
+            {
+              "id": "t46-2",
+              "text": "أَنْتَ",
+              "meaning": "sen",
+              "partOfSpeech": "shaxs olmoshi"
+            },
+            {
+              "id": "t46-3",
+              "text": "مُسْتَعِدٌّ؟",
+              "meaning": "tayyor",
+              "partOfSpeech": "sifat",
+              "lemma": "مُسْتَعِدٌّ",
+              "root": "ع د د"
+            }
+          ]
+        }
+      ],
+      "grammar": "هَلْ — so‘roq; أَنْتَ — sen; مُسْتَعِدٌّ — tayyor."
+    },
+    {
+      "id": "s47",
+      "start": 207.88,
+      "end": 210.38,
+      "groups": [
+        {
+          "id": "g47-1",
+          "ar": "عَلَى أَتَمِّ اسْتِعْدَادٍ.",
+          "uz": "To‘la tayyorman.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t47-1",
+              "text": "عَلَى",
+              "meaning": "ustida; ustiga",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t47-2",
+              "text": "أَتَمِّ",
+              "meaning": "eng to‘liq; mukammal",
+              "partOfSpeech": "orttirma darajadagi sifat",
+              "lemma": "تَامٌّ",
+              "root": "ت م م"
+            },
+            {
+              "id": "t47-3",
+              "text": "اسْتِعْدَادٍ.",
+              "meaning": "tayyorgarlik",
+              "partOfSpeech": "masdar",
+              "lemma": "اِسْتِعْدَادٌ",
+              "root": "ع د د"
+            }
+          ]
+        }
+      ],
+      "grammar": "عَلَى أَتَمِّ اسْتِعْدَادٍ — to‘la tayyor iborasi."
+    },
+    {
+      "id": "s48",
+      "start": 210.38,
+      "end": 213.84,
+      "groups": [
+        {
+          "id": "g48-1",
+          "ar": "لِكُلِّ اخْتِرَاعٍ حَدِيثٍ",
+          "uz": "har bir zamonaviy ixtironing",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t48-1",
+              "text": "لِكُلِّ",
+              "meaning": "har bir …ning; har biri uchun",
+              "partOfSpeech": "ko‘makchi va umumlashtiruvchi ot"
+            },
+            {
+              "id": "t48-2",
+              "text": "اخْتِرَاعٍ",
+              "meaning": "ixtiro",
+              "partOfSpeech": "masdar",
+              "lemma": "اِخْتِرَاعٌ",
+              "root": "خ ر ع"
+            },
+            {
+              "id": "t48-3",
+              "text": "حَدِيثٍ",
+              "meaning": "zamonaviy; yangi",
+              "partOfSpeech": "sifat",
+              "lemma": "حَدِيثٌ",
+              "root": "ح د ث"
+            }
+          ]
+        },
+        {
+          "id": "g48-2",
+          "ar": "فِي هَذَا الزَّمَانِ،",
+          "uz": "Bu zamondagi",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t48-4",
+              "text": "فِي",
+              "meaning": "-da; ichida",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t48-5",
+              "text": "هَذَا",
+              "meaning": "bu",
+              "partOfSpeech": "ko‘rsatish olmoshi"
+            },
+            {
+              "id": "t48-6",
+              "text": "الزَّمَانِ،",
+              "meaning": "zamon; davr",
+              "partOfSpeech": "ot",
+              "lemma": "زَمَانٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "لِكُلِّ — har bir …ning. حَدِيثٌ bu yerda zamonaviy ma’nosida."
+    },
+    {
+      "id": "s49",
+      "start": 213.84,
+      "end": 217.54,
+      "groups": [
+        {
+          "id": "g49-1",
+          "ar": "أَصْلٌ",
+          "uz": "asosi",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t49-1",
+              "text": "أَصْلٌ",
+              "meaning": "asos; kelib chiqish",
+              "partOfSpeech": "ot",
+              "lemma": "أَصْلٌ"
+            }
+          ]
+        },
+        {
+          "id": "g49-2",
+          "ar": "لِفِكْرَةٍ أَوْ تَجْرِبَةٍ",
+          "uz": "biror g‘oya yoki tajribaga borib taqaladi.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t49-2",
+              "text": "لِفِكْرَةٍ",
+              "meaning": "g‘oyaga; g‘oyaning",
+              "partOfSpeech": "ko‘makchi va ot",
+              "lemma": "فِكْرَةٌ",
+              "root": "ف ك ر"
+            },
+            {
+              "id": "t49-3",
+              "text": "أَوْ",
+              "meaning": "yoki",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t49-4",
+              "text": "تَجْرِبَةٍ",
+              "meaning": "tajriba",
+              "partOfSpeech": "ot",
+              "lemma": "تَجْرِبَةٌ",
+              "root": "ج ر ب"
+            }
+          ]
+        },
+        {
+          "id": "g49-3",
+          "ar": "مِنْ زَمَانِنَا.",
+          "uz": "bizning davrimizdagi",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t49-5",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t49-6",
+              "text": "زَمَانِنَا.",
+              "meaning": "bizning davrimiz",
+              "partOfSpeech": "ot va egalik olmoshi",
+              "lemma": "زَمَانٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَصْلٌ — asos. أَوْ — yoki. Tarixiy ta’rif videodagi bayon sifatida berilmoqda."
+    },
+    {
+      "id": "s50",
+      "start": 217.54,
+      "end": 219.28,
+      "groups": [
+        {
+          "id": "g50-1",
+          "ar": "فَالطَّائِرَةُ",
+          "uz": "samolyot",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t50-1",
+              "text": "فَالطَّائِرَةُ",
+              "meaning": "shunday qilib, samolyot",
+              "partOfSpeech": "bog‘lovchi va ot",
+              "lemma": "طَائِرَةٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g50-2",
+          "ar": "مَثَلًا،",
+          "uz": "Masalan,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t50-2",
+              "text": "مَثَلًا،",
+              "meaning": "masalan",
+              "partOfSpeech": "ravish"
+            }
+          ]
+        }
+      ],
+      "grammar": "فَ — oldingi fikrga bog‘laydi. مَثَلًا — masalan."
+    },
+    {
+      "id": "s51",
+      "start": 219.28,
+      "end": 225.32,
+      "groups": [
+        {
+          "id": "g51-1",
+          "ar": "بَدَأَتْ بِفِكْرَةٍ",
+          "uz": "g‘oyadan boshlangan.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t51-1",
+              "text": "بَدَأَتْ",
+              "meaning": "boshlandi",
+              "partOfSpeech": "fe’l",
+              "lemma": "بَدَأَ",
+              "root": "ب د أ"
+            },
+            {
+              "id": "t51-2",
+              "text": "بِفِكْرَةٍ",
+              "meaning": "g‘oya bilan; g‘oyadan",
+              "partOfSpeech": "ko‘makchi va ot",
+              "lemma": "فِكْرَةٌ",
+              "root": "ف ك ر"
+            }
+          ]
+        },
+        {
+          "id": "g51-2",
+          "ar": "لِعَالِمٍ مُسْلِمٍ",
+          "uz": "bir musulmon olimning",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t51-3",
+              "text": "لِعَالِمٍ",
+              "meaning": "bir olimga tegishli",
+              "partOfSpeech": "ko‘makchi va ot",
+              "lemma": "عَالِمٌ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t51-4",
+              "text": "مُسْلِمٍ",
+              "meaning": "musulmon",
+              "partOfSpeech": "sifat",
+              "lemma": "مُسْلِمٌ"
+            }
+          ]
+        },
+        {
+          "id": "g51-3",
+          "ar": "حَاوَلَ الطَّيَرَانَ",
+          "uz": "uchishga uringan",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t51-5",
+              "text": "حَاوَلَ",
+              "meaning": "urindi",
+              "partOfSpeech": "fe’l",
+              "lemma": "حَاوَلَ",
+              "root": "ح و ل"
+            },
+            {
+              "id": "t51-6",
+              "text": "الطَّيَرَانَ",
+              "meaning": "uchish",
+              "partOfSpeech": "masdar",
+              "lemma": "طَيَرَانٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        },
+        {
+          "id": "g51-4",
+          "ar": "مُنْذُ زَمَنٍ بَعِيدٍ.",
+          "uz": "ancha oldin",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t51-7",
+              "text": "مُنْذُ",
+              "meaning": "-dan beri; … oldin",
+              "partOfSpeech": "payt ko‘makchisi"
+            },
+            {
+              "id": "t51-8",
+              "text": "زَمَنٍ",
+              "meaning": "vaqt; davr",
+              "partOfSpeech": "ot",
+              "lemma": "زَمَنٌ"
+            },
+            {
+              "id": "t51-9",
+              "text": "بَعِيدٍ.",
+              "meaning": "uzoq",
+              "partOfSpeech": "sifat",
+              "lemma": "بَعِيدٌ",
+              "root": "ب ع د"
+            }
+          ]
+        }
+      ],
+      "grammar": "حَاوَلَ — urindi. مُنْذُ زَمَنٍ بَعِيدٍ — ancha vaqt oldin. Bu videoning tarixiy bayoni."
+    },
+    {
+      "id": "s52",
+      "start": 225.32,
+      "end": 229.47,
+      "groups": [
+        {
+          "id": "g52-1",
+          "ar": "فَقَدْ كَسَا نَفْسَهُ الرِّيشَ",
+          "uz": "U o‘zini patlar bilan qoplagan",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t52-1",
+              "text": "فَقَدْ",
+              "meaning": "chunki; darhaqiqat",
+              "partOfSpeech": "bog‘lovchi va ta’kid yuklamasi"
+            },
+            {
+              "id": "t52-2",
+              "text": "كَسَا",
+              "meaning": "qopladi; kiydirdi",
+              "partOfSpeech": "fe’l",
+              "lemma": "كَسَا",
+              "root": "ك س و"
+            },
+            {
+              "id": "t52-3",
+              "text": "نَفْسَهُ",
+              "meaning": "o‘zini",
+              "partOfSpeech": "ot va qaytish ma’nosidagi olmosh",
+              "lemma": "نَفْسٌ"
+            },
+            {
+              "id": "t52-4",
+              "text": "الرِّيشَ",
+              "meaning": "patlar",
+              "partOfSpeech": "jamlovchi ot",
+              "lemma": "رِيشٌ"
+            }
+          ]
+        },
+        {
+          "id": "g52-2",
+          "ar": "وَ صَنَعَ جَنَاحَيْنِ كَبِيرَيْنِ.",
+          "uz": "va ikkita katta qanot yasagan.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t52-5",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            },
+            {
+              "id": "t52-6",
+              "text": "صَنَعَ",
+              "meaning": "yasadi",
+              "partOfSpeech": "fe’l",
+              "lemma": "صَنَعَ",
+              "root": "ص ن ع"
+            },
+            {
+              "id": "t52-7",
+              "text": "جَنَاحَيْنِ",
+              "meaning": "ikki qanotni",
+              "partOfSpeech": "ikkilikdagi ot",
+              "lemma": "جَنَاحٌ"
+            },
+            {
+              "id": "t52-8",
+              "text": "كَبِيرَيْنِ.",
+              "meaning": "ikkita katta",
+              "partOfSpeech": "sifatning ikkilik shakli",
+              "lemma": "كَبِيرٌ",
+              "root": "ك ب ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "جَنَاحَيْنِ كَبِيرَيْنِ — ikkilik shakli, to‘ldiruvchi. نَفْسَهُ — o‘zini."
+    },
+    {
+      "id": "s53",
+      "start": 229.92,
+      "end": 233.42,
+      "groups": [
+        {
+          "id": "g53-1",
+          "ar": "طَارَ بِهِمَا فِي الْجَوِّ مَسَافَةً بَعِيدَةً.",
+          "uz": "Ular bilan havoda ancha uzoq masofaga uchgan.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t53-1",
+              "text": "طَارَ",
+              "meaning": "uchdi",
+              "partOfSpeech": "fe’l",
+              "lemma": "طَارَ",
+              "root": "ط ي ر"
+            },
+            {
+              "id": "t53-2",
+              "text": "بِهِمَا",
+              "meaning": "u ikkovi bilan",
+              "partOfSpeech": "ko‘makchi va ikkilik olmoshi"
+            },
+            {
+              "id": "t53-3",
+              "text": "فِي",
+              "meaning": "-da; ichida",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t53-4",
+              "text": "الْجَوِّ",
+              "meaning": "havo",
+              "partOfSpeech": "ot",
+              "lemma": "جَوٌّ"
+            },
+            {
+              "id": "t53-5",
+              "text": "مَسَافَةً",
+              "meaning": "masofa",
+              "partOfSpeech": "ot",
+              "lemma": "مَسَافَةٌ"
+            },
+            {
+              "id": "t53-6",
+              "text": "بَعِيدَةً.",
+              "meaning": "uzoq",
+              "partOfSpeech": "sifat",
+              "lemma": "بَعِيدٌ",
+              "root": "ب ع د"
+            }
+          ]
+        }
+      ],
+      "grammar": "بِهِمَا — u ikkovi bilan, ya’ni ikki qanot bilan."
+    },
+    {
+      "id": "s54",
+      "start": 233.42,
+      "end": 238.28,
+      "groups": [
+        {
+          "id": "g54-1",
+          "ar": "وَ",
+          "uz": "va",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t54-1",
+              "text": "وَ",
+              "meaning": "va",
+              "partOfSpeech": "bog‘lovchi"
+            }
+          ]
+        },
+        {
+          "id": "g54-2",
+          "ar": "اعْتُبِرَ",
+          "uz": "deb hisoblangan.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t54-2",
+              "text": "اعْتُبِرَ",
+              "meaning": "deb hisoblandi",
+              "partOfSpeech": "majhul nisbatdagi fe’l",
+              "lemma": "اِعْتَبَرَ",
+              "root": "ع ب ر"
+            }
+          ]
+        },
+        {
+          "id": "g54-3",
+          "ar": "بِذَلِكَ",
+          "uz": "shu tariqa",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t54-3",
+              "text": "بِذَلِكَ",
+              "meaning": "shu bilan; shu tariqa",
+              "partOfSpeech": "ko‘makchi va ko‘rsatish olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g54-4",
+          "ar": "أَوَّلَ مَنِ اخْتَرَعَ وَسِيلَةً لِلطَّيَرَانِ.",
+          "uz": "uchish vositasini ixtiro qilgan birinchi kishi",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t54-4",
+              "text": "أَوَّلَ",
+              "meaning": "birinchi",
+              "partOfSpeech": "tartib son ma’nosidagi ot"
+            },
+            {
+              "id": "t54-5",
+              "text": "مَنِ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t54-6",
+              "text": "اخْتَرَعَ",
+              "meaning": "ixtiro qildi",
+              "partOfSpeech": "fe’l",
+              "lemma": "اِخْتَرَعَ",
+              "root": "خ ر ع"
+            },
+            {
+              "id": "t54-7",
+              "text": "وَسِيلَةً",
+              "meaning": "vosita",
+              "partOfSpeech": "ot",
+              "lemma": "وَسِيلَةٌ"
+            },
+            {
+              "id": "t54-8",
+              "text": "لِلطَّيَرَانِ.",
+              "meaning": "uchish uchun",
+              "partOfSpeech": "ko‘makchi va masdar",
+              "lemma": "طَيَرَانٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "اعْتُبِرَ — majhul nisbat: deb hisoblandi. Bu videodagi da’vo; mustaqil tarixiy tasdiq emas."
+    },
+    {
+      "id": "s55",
+      "start": 238.94,
+      "end": 240.42,
+      "groups": [
+        {
+          "id": "g55-1",
+          "ar": "السُّؤَالُ هُوَ:",
+          "uz": "Savol quyidagicha:",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t55-1",
+              "text": "السُّؤَالُ",
+              "meaning": "savol",
+              "partOfSpeech": "ot",
+              "lemma": "سُؤَالٌ"
+            },
+            {
+              "id": "t55-2",
+              "text": "هُوَ:",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            }
+          ]
+        }
+      ],
+      "grammar": "هُوَ — keyingi savolga ishora qiladi."
+    },
+    {
+      "id": "s56",
+      "start": 241.23,
+      "end": 247.24,
+      "groups": [
+        {
+          "id": "g56-1",
+          "ar": "مَنْ هُوَ",
+          "uz": "kim?",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t56-1",
+              "text": "مَنْ",
+              "meaning": "kim; … qilgan kishi",
+              "partOfSpeech": "shart yoki so‘roq olmoshi"
+            },
+            {
+              "id": "t56-2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g56-2",
+          "ar": "الْعَالِمُ الْمُسْلِمُ",
+          "uz": "musulmon olim",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t56-3",
+              "text": "الْعَالِمُ",
+              "meaning": "olim",
+              "partOfSpeech": "ot",
+              "lemma": "عَالِمٌ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t56-4",
+              "text": "الْمُسْلِمُ",
+              "meaning": "musulmon",
+              "partOfSpeech": "sifat",
+              "lemma": "مُسْلِمٌ"
+            }
+          ]
+        },
+        {
+          "id": "g56-3",
+          "ar": "الَّذِي كَانَ أَوَّلَ مَنْ",
+          "uz": "Birinchi bo‘lib",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t56-5",
+              "text": "الَّذِي",
+              "meaning": "…gan; … bo‘lgan",
+              "partOfSpeech": "nisbiy olmosh"
+            },
+            {
+              "id": "t56-6",
+              "text": "كَانَ",
+              "meaning": "edi; bo‘lgan",
+              "partOfSpeech": "yordamchi fe’l",
+              "lemma": "كَانَ",
+              "root": "ك و ن"
+            },
+            {
+              "id": "t56-7",
+              "text": "أَوَّلَ",
+              "meaning": "birinchi",
+              "partOfSpeech": "tartib son ma’nosidagi ot"
+            },
+            {
+              "id": "t56-8",
+              "text": "مَنْ",
+              "meaning": "kim; … qilgan kishi",
+              "partOfSpeech": "shart yoki so‘roq olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g56-4",
+          "ar": "حَاوَلَ الطَّيَرَانَ؟",
+          "uz": "uchishga uringan",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t56-9",
+              "text": "حَاوَلَ",
+              "meaning": "urindi",
+              "partOfSpeech": "fe’l",
+              "lemma": "حَاوَلَ",
+              "root": "ح و ل"
+            },
+            {
+              "id": "t56-10",
+              "text": "الطَّيَرَانَ؟",
+              "meaning": "uchish",
+              "partOfSpeech": "masdar",
+              "lemma": "طَيَرَانٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَنْ — kim? الَّذِي — oldingi ismni izohlovchi nisbiy olmosh."
+    },
+    {
+      "id": "s57",
+      "start": 247.24,
+      "end": 258.24,
+      "groups": [
+        {
+          "id": "g57-1",
+          "ar": "هَلْ هُوَ الْحَسَنُ بْنُ الْهَيْثَمِ؟",
+          "uz": "Hasan ibn Haysammi?",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t57-1",
+              "text": "هَلْ",
+              "meaning": "-mi",
+              "partOfSpeech": "so‘roq yuklamasi"
+            },
+            {
+              "id": "t57-2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            },
+            {
+              "id": "t57-3",
+              "text": "الْحَسَنُ",
+              "meaning": "Hasan",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t57-4",
+              "text": "بْنُ",
+              "meaning": "ibn; o‘g‘li",
+              "partOfSpeech": "ism tarkibidagi ot",
+              "lemma": "اِبْنٌ"
+            },
+            {
+              "id": "t57-5",
+              "text": "الْهَيْثَمِ؟",
+              "meaning": "Haysam",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g57-2",
+          "ar": "عَبَّاسُ بْنُ فِرْنَاسٍ؟",
+          "uz": "Abbos ibn Firnosmi?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t57-6",
+              "text": "عَبَّاسُ",
+              "meaning": "Abbos",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t57-7",
+              "text": "بْنُ",
+              "meaning": "ibn; o‘g‘li",
+              "partOfSpeech": "ism tarkibidagi ot",
+              "lemma": "اِبْنٌ"
+            },
+            {
+              "id": "t57-8",
+              "text": "فِرْنَاسٍ؟",
+              "meaning": "Firnos",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g57-3",
+          "ar": "مُحَمَّدٌ عَلِيٌّ كْلَاي؟",
+          "uz": "Muhammad Ali Kleymi?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t57-9",
+              "text": "مُحَمَّدٌ",
+              "meaning": "Muhammad",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t57-10",
+              "text": "عَلِيٌّ",
+              "meaning": "Ali",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t57-11",
+              "text": "كْلَاي؟",
+              "meaning": "Kley",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "Uchta shaxs nomi savolning variantlari sifatida sanaladi; ismni oddiy lug‘at kabi yodlash shart emas."
+    },
+    {
+      "id": "s58",
+      "start": 263.47,
+      "end": 271.81,
+      "groups": [
+        {
+          "id": "g58-1",
+          "ar": "السُّؤَالُ مَرَّةً أُخْرَى:",
+          "uz": "Savolni yana takrorlaymiz:",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t58-1",
+              "text": "السُّؤَالُ",
+              "meaning": "savol",
+              "partOfSpeech": "ot",
+              "lemma": "سُؤَالٌ"
+            },
+            {
+              "id": "t58-2",
+              "text": "مَرَّةً",
+              "meaning": "bir marta",
+              "partOfSpeech": "ot; takror miqdori"
+            },
+            {
+              "id": "t58-3",
+              "text": "أُخْرَى:",
+              "meaning": "yana; boshqa",
+              "partOfSpeech": "sifat",
+              "lemma": "آخَرُ"
+            }
+          ]
+        },
+        {
+          "id": "g58-2",
+          "ar": "مَنْ هُوَ",
+          "uz": "kim?",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "t58-4",
+              "text": "مَنْ",
+              "meaning": "kim; … qilgan kishi",
+              "partOfSpeech": "shart yoki so‘roq olmoshi"
+            },
+            {
+              "id": "t58-5",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g58-3",
+          "ar": "الْعَالِمُ الْمُسْلِمُ",
+          "uz": "musulmon olim",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t58-6",
+              "text": "الْعَالِمُ",
+              "meaning": "olim",
+              "partOfSpeech": "ot",
+              "lemma": "عَالِمٌ",
+              "root": "ع ل م"
+            },
+            {
+              "id": "t58-7",
+              "text": "الْمُسْلِمُ",
+              "meaning": "musulmon",
+              "partOfSpeech": "sifat",
+              "lemma": "مُسْلِمٌ"
+            }
+          ]
+        },
+        {
+          "id": "g58-4",
+          "ar": "الَّذِي كَانَ أَوَّلَ مَنْ",
+          "uz": "birinchi bo‘lib",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t58-8",
+              "text": "الَّذِي",
+              "meaning": "…gan; … bo‘lgan",
+              "partOfSpeech": "nisbiy olmosh"
+            },
+            {
+              "id": "t58-9",
+              "text": "كَانَ",
+              "meaning": "edi; bo‘lgan",
+              "partOfSpeech": "yordamchi fe’l",
+              "lemma": "كَانَ",
+              "root": "ك و ن"
+            },
+            {
+              "id": "t58-10",
+              "text": "أَوَّلَ",
+              "meaning": "birinchi",
+              "partOfSpeech": "tartib son ma’nosidagi ot"
+            },
+            {
+              "id": "t58-11",
+              "text": "مَنْ",
+              "meaning": "kim; … qilgan kishi",
+              "partOfSpeech": "shart yoki so‘roq olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "g58-5",
+          "ar": "حَاوَلَ الطَّيَرَانَ؟",
+          "uz": "uchishga uringan",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t58-12",
+              "text": "حَاوَلَ",
+              "meaning": "urindi",
+              "partOfSpeech": "fe’l",
+              "lemma": "حَاوَلَ",
+              "root": "ح و ل"
+            },
+            {
+              "id": "t58-13",
+              "text": "الطَّيَرَانَ؟",
+              "meaning": "uchish",
+              "partOfSpeech": "masdar",
+              "lemma": "طَيَرَانٌ",
+              "root": "ط ي ر"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَرَّةً أُخْرَى — yana bir bor. Savol videodagi hikoyaga tegishli."
+    },
+    {
+      "id": "s59",
+      "start": 271.81,
+      "end": 282.81,
+      "groups": [
+        {
+          "id": "g59-1",
+          "ar": "هَلْ هُوَ الْحَسَنُ بْنُ الْهَيْثَمِ؟",
+          "uz": "Hasan ibn Haysammi?",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t59-1",
+              "text": "هَلْ",
+              "meaning": "-mi",
+              "partOfSpeech": "so‘roq yuklamasi"
+            },
+            {
+              "id": "t59-2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "shaxs olmoshi"
+            },
+            {
+              "id": "t59-3",
+              "text": "الْحَسَنُ",
+              "meaning": "Hasan",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t59-4",
+              "text": "بْنُ",
+              "meaning": "ibn; o‘g‘li",
+              "partOfSpeech": "ism tarkibidagi ot",
+              "lemma": "اِبْنٌ"
+            },
+            {
+              "id": "t59-5",
+              "text": "الْهَيْثَمِ؟",
+              "meaning": "Haysam",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g59-2",
+          "ar": "عَبَّاسُ بْنُ فِرْنَاسٍ؟",
+          "uz": "Abbos ibn Firnosmi?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t59-6",
+              "text": "عَبَّاسُ",
+              "meaning": "Abbos",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t59-7",
+              "text": "بْنُ",
+              "meaning": "ibn; o‘g‘li",
+              "partOfSpeech": "ism tarkibidagi ot",
+              "lemma": "اِبْنٌ"
+            },
+            {
+              "id": "t59-8",
+              "text": "فِرْنَاسٍ؟",
+              "meaning": "Firnos",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "g59-3",
+          "ar": "مُحَمَّدٌ عَلِيٌّ كْلَاي؟",
+          "uz": "Muhammad Ali Kleymi?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t59-9",
+              "text": "مُحَمَّدٌ",
+              "meaning": "Muhammad",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t59-10",
+              "text": "عَلِيٌّ",
+              "meaning": "Ali",
+              "partOfSpeech": "atoqli ot"
+            },
+            {
+              "id": "t59-11",
+              "text": "كْلَاي؟",
+              "meaning": "Kley",
+              "partOfSpeech": "atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "Avvalgi variantlar takrorlanmoqda."
+    },
+    {
+      "id": "s60",
+      "start": 283.91,
+      "end": 286.81,
+      "groups": [
+        {
+          "id": "g60-1",
+          "ar": "هَلْ مِنَ الْمُمْكِنِ",
+          "uz": "mumkinmi?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t60-1",
+              "text": "هَلْ",
+              "meaning": "-mi",
+              "partOfSpeech": "so‘roq yuklamasi"
+            },
+            {
+              "id": "t60-2",
+              "text": "مِنَ",
+              "meaning": "-dan",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t60-3",
+              "text": "الْمُمْكِنِ",
+              "meaning": "mumkin bo‘lgan",
+              "partOfSpeech": "sifat",
+              "lemma": "مُمْكِنٌ"
+            }
+          ]
+        },
+        {
+          "id": "g60-2",
+          "ar": "حَذْفُ إِجَابَتَيْنِ؟",
+          "uz": "Ikkita javobni olib tashlash",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t60-4",
+              "text": "حَذْفُ",
+              "meaning": "olib tashlash",
+              "partOfSpeech": "masdar",
+              "lemma": "حَذْفٌ",
+              "root": "ح ذ ف"
+            },
+            {
+              "id": "t60-5",
+              "text": "إِجَابَتَيْنِ؟",
+              "meaning": "ikkita javobni",
+              "partOfSpeech": "ikkilikdagi ot",
+              "lemma": "إِجَابَةٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "هَلْ مِنَ الْمُمْكِنِ — mumkinmi? إِجَابَتَيْنِ — ikkita javobni."
+    },
+    {
+      "id": "s61",
+      "start": 291.43,
+      "end": 298.77,
+      "groups": [
+        {
+          "id": "g61-1",
+          "ar": "مَاذَا؟ حَسَنًا،",
+          "uz": "Nima? Xo‘p,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t61-1",
+              "text": "مَاذَا؟",
+              "meaning": "nima",
+              "partOfSpeech": "so‘roq olmoshi"
+            },
+            {
+              "id": "t61-2",
+              "text": "حَسَنًا،",
+              "meaning": "xo‘p; yaxshi",
+              "partOfSpeech": "javob ifodasi"
+            }
+          ]
+        },
+        {
+          "id": "g61-2",
+          "ar": "هَلْ يُمْكِنُنِي الِاتِّصَالُ",
+          "uz": "qo‘ng‘iroq qilsam bo‘ladimi?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t61-3",
+              "text": "هَلْ",
+              "meaning": "-mi",
+              "partOfSpeech": "so‘roq yuklamasi"
+            },
+            {
+              "id": "t61-4",
+              "text": "يُمْكِنُنِي",
+              "meaning": "menga mumkin; qila olaman",
+              "partOfSpeech": "fe’l va shaxs olmoshi",
+              "lemma": "أَمْكَنَ"
+            },
+            {
+              "id": "t61-5",
+              "text": "الِاتِّصَالُ",
+              "meaning": "aloqa qilish; qo‘ng‘iroq qilish",
+              "partOfSpeech": "masdar",
+              "lemma": "اِتِّصَالٌ",
+              "root": "و ص ل"
+            }
+          ]
+        },
+        {
+          "id": "g61-3",
+          "ar": "بِصَدِيقِي الْحِمَارِ؟",
+          "uz": "eshak do‘stimga",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t61-6",
+              "text": "بِصَدِيقِي",
+              "meaning": "do‘stimga",
+              "partOfSpeech": "ko‘makchi va egalikdagi ot",
+              "lemma": "صَدِيقٌ"
+            },
+            {
+              "id": "t61-7",
+              "text": "الْحِمَارِ؟",
+              "meaning": "eshak",
+              "partOfSpeech": "ot",
+              "lemma": "حِمَارٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "هَلْ يُمْكِنُنِي — … qilsam bo‘ladimi? بِصَدِيقِي — do‘stimga."
+    },
+    {
+      "id": "s62",
+      "start": 303.12,
+      "end": 313.42,
+      "groups": [
+        {
+          "id": "g62-1",
+          "ar": "إِذَا عَرَفْتُمُ الْحَلَّ",
+          "uz": "javobni topsangiz,",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "t62-1",
+              "text": "إِذَا",
+              "meaning": "agar; …sa",
+              "partOfSpeech": "shart bog‘lovchisi"
+            },
+            {
+              "id": "t62-2",
+              "text": "عَرَفْتُمُ",
+              "meaning": "bildingiz; topdingiz",
+              "partOfSpeech": "fe’l",
+              "lemma": "عَرَفَ",
+              "root": "ع ر ف"
+            },
+            {
+              "id": "t62-3",
+              "text": "الْحَلَّ",
+              "meaning": "javob; yechim",
+              "partOfSpeech": "ot",
+              "lemma": "حَلٌّ",
+              "root": "ح ل ل"
+            }
+          ]
+        },
+        {
+          "id": "g62-2",
+          "ar": "أَصْدِقَائِي،",
+          "uz": "Do‘stlarim,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "t62-4",
+              "text": "أَصْدِقَائِي،",
+              "meaning": "do‘stlarim",
+              "partOfSpeech": "ko‘plikdagi ot va egalik olmoshi",
+              "lemma": "صَدِيقٌ"
+            }
+          ]
+        },
+        {
+          "id": "g62-3",
+          "ar": "أَرْسِلُوا الْإِجَابَةَ الصَّحِيحَةَ",
+          "uz": "to‘g‘ri javobni yuboringlar.",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "t62-5",
+              "text": "أَرْسِلُوا",
+              "meaning": "yuboringlar",
+              "partOfSpeech": "buyruq fe’li",
+              "lemma": "أَرْسَلَ",
+              "root": "ر س ل"
+            },
+            {
+              "id": "t62-6",
+              "text": "الْإِجَابَةَ",
+              "meaning": "javob",
+              "partOfSpeech": "ot",
+              "lemma": "إِجَابَةٌ"
+            },
+            {
+              "id": "t62-7",
+              "text": "الصَّحِيحَةَ",
+              "meaning": "to‘g‘ri",
+              "partOfSpeech": "sifat",
+              "lemma": "صَحِيحٌ",
+              "root": "ص ح ح"
+            }
+          ]
+        },
+        {
+          "id": "g62-4",
+          "ar": "إِلَى الْبَرِيدِ الْإِلِكْتُرُونِيِّ الظَّاهِرِ عَلَى الشَّاشَةِ",
+          "uz": "ekranda ko‘rsatilgan elektron pochtaga",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "t62-8",
+              "text": "إِلَى",
+              "meaning": "-ga",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t62-9",
+              "text": "الْبَرِيدِ",
+              "meaning": "pochta",
+              "partOfSpeech": "ot",
+              "lemma": "بَرِيدٌ"
+            },
+            {
+              "id": "t62-10",
+              "text": "الْإِلِكْتُرُونِيِّ",
+              "meaning": "elektron",
+              "partOfSpeech": "sifat"
+            },
+            {
+              "id": "t62-11",
+              "text": "الظَّاهِرِ",
+              "meaning": "ko‘rinib turgan",
+              "partOfSpeech": "sifatdosh",
+              "lemma": "ظَاهِرٌ",
+              "root": "ظ ه ر"
+            },
+            {
+              "id": "t62-12",
+              "text": "عَلَى",
+              "meaning": "ustida; ustiga",
+              "partOfSpeech": "ko‘makchi"
+            },
+            {
+              "id": "t62-13",
+              "text": "الشَّاشَةِ",
+              "meaning": "ekran",
+              "partOfSpeech": "ot",
+              "lemma": "شَاشَةٌ"
+            }
+          ]
+        },
+        {
+          "id": "g62-5",
+          "ar": "لِتَرْبَحُوا الْجَوَائِزَ.",
+          "uz": "sovrin yutish uchun",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "t62-14",
+              "text": "لِتَرْبَحُوا",
+              "meaning": "yutishingiz uchun",
+              "partOfSpeech": "maqsad ko‘makchisi va fe’l",
+              "lemma": "رَبِحَ",
+              "root": "ر ب ح"
+            },
+            {
+              "id": "t62-15",
+              "text": "الْجَوَائِزَ.",
+              "meaning": "sovrinlar",
+              "partOfSpeech": "ko‘plikdagi ot",
+              "lemma": "جَائِزَةٌ"
+            }
+          ]
+        }
+      ],
+      "grammar": "عَرَفْتُم va أَرْسِلُوا — ko‘plikka murojaat. Bu video yakuni; platforma mashqlari saytning o‘zida bajariladi."
+    }
+  ],
+  "words": [
+    {
+      "id": "plane",
+      "word": "الطَّائِرَةُ",
+      "meaning": "samolyot",
+      "partOfSpeech": "ot",
+      "segmentId": "s1",
+      "lemma": "طَائِرَةٌ",
+      "grammar": "كَيْفَ — usulni so‘rash. تَقُودُ — «sen boshqarasan». اشْتَرَكْتَ — «sen qo‘shilding». فِي نَادِي الطَّائِرَاتِ — izofa birikmasi.",
+      "root": "ط ي ر",
+      "image": "/learning-assets/parvoz-plane.webp"
+    },
+    {
+      "id": "driving",
+      "word": "الْقِيَادَةُ",
+      "meaning": "boshqarish; haydash",
+      "partOfSpeech": "masdar",
+      "segmentId": "s5",
+      "lemma": "قِيَادَةٌ",
+      "grammar": "عِنْدَمَا — … paytda. بِدُونِ أَنْ — … qilmasdan. قُدْتَ — sen haydading.",
+      "root": "ق و د"
+    },
+    {
+      "id": "learn",
+      "word": "يَتَعَلَّمُ",
+      "meaning": "o‘rganadi",
+      "partOfSpeech": "fe’l",
+      "segmentId": "s17",
+      "lemma": "تَعَلَّمَ",
+      "grammar": "Oldingi gap davom etadi. يَعْمَلُهُ dagi هُ — uni.",
+      "root": "ع ل م"
+    },
+    {
+      "id": "traffic",
+      "word": "إِشَارَةُ الْمُرُورِ",
+      "meaning": "svetofor",
+      "partOfSpeech": "ot birikmasi",
+      "segmentId": "s6",
+      "lemma": "إِشَارَةٌ",
+      "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ.",
+      "image": "/learning-assets/parvoz-traffic-light.webp"
+    },
+    {
+      "id": "bridge",
+      "word": "الْكُوبْرِي",
+      "meaning": "ko‘prik",
+      "partOfSpeech": "ot",
+      "segmentId": "s6",
+      "lemma": "كُوبْرِي",
+      "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ.",
+      "image": "/learning-assets/parvoz-bridge.webp"
+    },
+    {
+      "id": "fall",
+      "word": "وَقَعْنَا",
+      "meaning": "quladik",
+      "partOfSpeech": "fe’l",
+      "segmentId": "s6",
+      "lemma": "وَقَعَ",
+      "grammar": "كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ.",
+      "root": "و ق ع"
+    },
+    {
+      "id": "birds",
+      "word": "الْعَصَافِيرُ",
+      "meaning": "qushlar; chumchuqlar",
+      "partOfSpeech": "ko‘plikdagi ot",
+      "segmentId": "s18",
+      "lemma": "عُصْفُورٌ",
+      "grammar": "حَتَّى — hatto. الْعَصَافِيرُ — qushlar, chumchuqlar; fikr keyingi gapda tugallanadi.",
+      "image": "/learning-assets/parvoz-birds.webp"
+    },
+    {
+      "id": "fly",
+      "word": "يَطِيرُونَ",
+      "meaning": "ular uchadilar",
+      "partOfSpeech": "fe’l",
+      "segmentId": "s19",
+      "lemma": "طَارَ",
+      "grammar": "تُعَلِّمُ — o‘rgatadi; يَتَعَلَّمُ — o‘rganadi. هُمْ — ular.",
+      "root": "ط ي ر"
+    },
+    {
+      "id": "button",
+      "word": "الزِّرُّ",
+      "meaning": "tugma",
+      "partOfSpeech": "ot",
+      "segmentId": "s30",
+      "lemma": "زِرٌّ",
+      "grammar": "سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun.",
+      "image": "/learning-assets/parvoz-button.webp"
+    },
+    {
+      "id": "try",
+      "word": "سَأُجَرِّبُ",
+      "meaning": "sinab ko‘raman",
+      "partOfSpeech": "fe’l",
+      "segmentId": "s30",
+      "lemma": "جَرَّبَ",
+      "grammar": "سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun.",
+      "root": "ج ر ب"
+    },
+    {
+      "id": "wings",
+      "word": "جَنَاحَيْنِ",
+      "meaning": "ikkita qanotni",
+      "partOfSpeech": "ikkilikdagi ot",
+      "segmentId": "s52",
+      "lemma": "جَنَاحٌ",
+      "grammar": "جَنَاحَيْنِ كَبِيرَيْنِ — ikkilik shakli, to‘ldiruvchi. نَفْسَهُ — o‘zini.",
+      "image": "/learning-assets/parvoz-wings.webp"
+    },
+    {
+      "id": "rescue",
+      "word": "أَنْقِذُونِي",
+      "meaning": "meni qutqaringlar",
+      "partOfSpeech": "buyruq fe’li",
+      "segmentId": "s33",
+      "lemma": "أَنْقَذَ",
+      "grammar": "أَنْقِذُوا — qutqaringlar; نِي — meni.",
+      "root": "ن ق ذ"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "warning",
+      "title": "Do‘stning ogohlantirishi",
+      "start": 0,
+      "end": 76.25
+    },
+    {
+      "id": "flight",
+      "title": "Shoshqaloqlik va saboq",
+      "start": 76.25,
+      "end": 184.28
+    },
+    {
+      "id": "invention",
+      "title": "Ixtiro haqidagi savol",
+      "start": 184.28,
+      "end": 321.1
+    }
+  ],
+  "questions": [
+    {
+      "id": "p1",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Do‘sti nima uchun Juhani samolyotni boshqarishdan qaytardi?",
+      "segmentId": "s1",
+      "wordId": "plane",
+      "choices": [
+        {
+          "id": "a",
+          "text": "U klubga yaqinda qo‘shilgan, hali boshqarishni o‘rganmagan."
+        },
+        {
+          "id": "b",
+          "text": "U avval samolyot boshqargan, lekin yangi klubni yoqtirmagan."
+        },
+        {
+          "id": "c",
+          "text": "U mashina haydashni biladi, samolyoti esa hali tayyor emas."
+        },
+        {
+          "id": "d",
+          "text": "U klubga a’zo bo‘lmagan, do‘sti esa uni kutib turgan."
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "Do‘sti u klubga bugungina qo‘shilganini aytadi; keyingi gapda boshqarishni hali o‘rganmagani tushuntiriladi."
+    },
+    {
+      "id": "p2",
+      "kind": "cloze",
+      "phase": "practice",
+      "prompt": "«Avval o‘rganishing kerak» gapini to‘ldiring.",
+      "segmentId": "s4",
+      "wordId": "learn",
+      "choices": [
+        {
+          "id": "a",
+          "text": "تَتَعَلَّمَ"
+        },
+        {
+          "id": "b",
+          "text": "تُعَلِّمَ"
+        },
+        {
+          "id": "c",
+          "text": "تَعْمَلَ"
+        },
+        {
+          "id": "d",
+          "text": "تَطِيرَ"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "تَتَعَلَّمَ — o‘rganishing; تُعَلِّمَ — o‘rgatishing. Zarurat birikmasidan keyin أَنْ ishlatiladi.",
+      "sentence": "لَا بُدَّ أَنْ ___ أَوَّلًا."
+    },
+    {
+      "id": "p3",
+      "kind": "audio",
+      "phase": "practice",
+      "prompt": "Shu gapda oldingi voqea qanday tugagan?",
+      "segmentId": "s6",
+      "wordId": "fall",
+      "choices": [
+        {
+          "id": "a",
+          "text": "Svetofor sinib, ular ko‘prikdan qulagan."
+        },
+        {
+          "id": "b",
+          "text": "Svetofor yonib, ular ko‘prikdan o‘tgan."
+        },
+        {
+          "id": "c",
+          "text": "Svetofor o‘chib, ular ko‘prikda to‘xtagan."
+        },
+        {
+          "id": "d",
+          "text": "Svetofor sinib, ular ko‘prikdan qaytgan."
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "كَسَرْنَا — sindirdik; وَقَعْنَا مِنْ عَلَى الْكُوبْرِي — ko‘prikdan quladik."
+    },
+    {
+      "id": "p4",
+      "kind": "image",
+      "phase": "practice",
+      "prompt": "Qaysi arabcha so‘z rasmdagi narsani bildiradi?",
+      "segmentId": "s30",
+      "wordId": "button",
+      "choices": [
+        {
+          "id": "a",
+          "text": "الزِّرُّ"
+        },
+        {
+          "id": "b",
+          "text": "الْجِسْرُ"
+        },
+        {
+          "id": "c",
+          "text": "الْجَنَاحُ"
+        },
+        {
+          "id": "d",
+          "text": "الرِّيشُ"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "الزِّرُّ — tugma. Juha nima qilishini bilmay turib tugmani sinab ko‘radi.",
+      "image": "/learning-assets/parvoz-button.webp"
+    },
+    {
+      "id": "p5",
+      "kind": "error",
+      "phase": "practice",
+      "prompt": "Qushlar haqida aytilgan gapdagi xato fe’lni toping va to‘g‘rilang.",
+      "segmentId": "s19",
+      "wordId": "fly",
+      "choices": [
+        {
+          "id": "a",
+          "text": "يَطِيرُونَ"
+        },
+        {
+          "id": "b",
+          "text": "يَجْرُونَ"
+        },
+        {
+          "id": "c",
+          "text": "يَقُودُونَ"
+        },
+        {
+          "id": "d",
+          "text": "يَقَعُونَ"
+        }
+      ],
+      "answer": {
+        "choiceId": "a",
+        "tokenIndex": 3
+      },
+      "explanation": "Gapda uchish o‘rgatilishi aytiladi: يَطِيرُونَ. يَسْبَحُونَ esa suzadilar degani.",
+      "tokens": [
+        "أُمُّهُمْ",
+        "تُعَلِّمُهُمْ",
+        "كَيْفَ",
+        "يَسْبَحُونَ."
+      ]
+    },
+    {
+      "id": "p6",
+      "kind": "order",
+      "phase": "practice",
+      "prompt": "«Avval o‘rganishing kerak» gapini so‘zlarni bosib tuzing.",
+      "segmentId": "s4",
+      "wordId": "learn",
+      "tokens": [
+        "لَا",
+        "بُدَّ",
+        "أَنْ",
+        "تَتَعَلَّمَ",
+        "أَوَّلًا."
+      ],
+      "answer": {
+        "order": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "explanation": "Zarurat: لَا بُدَّ أَنْ; keyin harakat va payt holi: تَتَعَلَّمَ أَوَّلًا."
+    },
+    {
+      "id": "p7",
+      "kind": "match",
+      "phase": "practice",
+      "prompt": "Voqeada tilga olingan uchta narsani ma’nosi bilan juftlang.",
+      "segmentId": "s6",
+      "wordId": "traffic",
+      "pairs": [
+        {
+          "id": "plane",
+          "left": "الطَّائِرَةُ",
+          "right": "samolyot"
+        },
+        {
+          "id": "bridge",
+          "left": "الْكُوبْرِي",
+          "right": "ko‘prik"
+        },
+        {
+          "id": "traffic",
+          "left": "إِشَارَةُ الْمُرُورِ",
+          "right": "svetofor"
+        }
+      ],
+      "answer": {
+        "pairs": [
+          [
+            "plane",
+            "plane"
+          ],
+          [
+            "bridge",
+            "bridge"
+          ],
+          [
+            "traffic",
+            "traffic"
+          ]
+        ]
+      },
+      "explanation": "Samolyot — الطَّائِرَةُ; ko‘prik — الْكُوبْرِي; svetofor — إِشَارَةُ الْمُرُورِ."
+    },
+    {
+      "id": "p8",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Juha «osmonda svetofor ham, ko‘prik ham yo‘q» deb nimani oqlamoqchi?",
+      "segmentId": "s9",
+      "wordId": "bridge",
+      "choices": [
+        {
+          "id": "a",
+          "text": "O‘rganmasdan uchish ham xavfsiz degan noto‘g‘ri fikrini."
+        },
+        {
+          "id": "b",
+          "text": "Ko‘priklar qurishni avval o‘rganish kerak degan fikrini."
+        },
+        {
+          "id": "c",
+          "text": "Samolyot haydashdan oldin yo‘l qoidalarini bilish fikrini."
+        },
+        {
+          "id": "d",
+          "text": "Osmondagi belgilarni do‘stidan yaxshiroq bilish fikrini."
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "U mashinada sodir bo‘lgan xavf osmonda yo‘q deb o‘ylaydi. Do‘sti esa har qanday ishni avval o‘rganish kerakligini aytadi."
+    },
+    {
+      "id": "p9",
+      "kind": "cloze",
+      "phase": "practice",
+      "prompt": "Juha tugmani nima maqsadda bosmoqchi? Gapni to‘ldiring.",
+      "segmentId": "s30",
+      "wordId": "try",
+      "choices": [
+        {
+          "id": "a",
+          "text": "لِأَرَى"
+        },
+        {
+          "id": "b",
+          "text": "بِدُونِ"
+        },
+        {
+          "id": "c",
+          "text": "مُنْذُ"
+        },
+        {
+          "id": "d",
+          "text": "لَيْتَنِي"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "لِأَرَى — ko‘rish uchun; bu yerda tugma nima qilishini bilish maqsadini bildiradi.",
+      "sentence": "سَأُجَرِّبُ هَذَا الزِّرَّ ___ مَاذَا يَفْعَلُ."
+    },
+    {
+      "id": "p10",
+      "kind": "audio",
+      "phase": "practice",
+      "prompt": "Qahramonning ushbu iltimosi nimani bildiradi?",
+      "segmentId": "s33",
+      "wordId": "rescue",
+      "choices": [
+        {
+          "id": "a",
+          "text": "Meni qutqaringlar!"
+        },
+        {
+          "id": "b",
+          "text": "Menga o‘rgatinglar!"
+        },
+        {
+          "id": "c",
+          "text": "Meni kutinglar!"
+        },
+        {
+          "id": "d",
+          "text": "Meni tinglanglar!"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "أَنْقِذُونِي dagi أَنْقِذُوا — qutqaringlar; نِي — meni."
+    },
+    {
+      "id": "p11",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Hikoya oxirida Juha qanday xulosaga keladi?",
+      "segmentId": "s38",
+      "wordId": "driving",
+      "choices": [
+        {
+          "id": "a",
+          "text": "Biror ishni bajarishdan oldin uni o‘rganish kerak."
+        },
+        {
+          "id": "b",
+          "text": "Avval ishni boshlab, keyin kerakli qoidani so‘rash kerak."
+        },
+        {
+          "id": "c",
+          "text": "Qushlar kabi faqat boshqalarga qarab o‘rganish kerak."
+        },
+        {
+          "id": "d",
+          "text": "Xavfli ishlarni faqat do‘sti yonida bajarish kerak."
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "سَأَتَعَلَّمُ قَبْلَ أَنْ أَفْعَلَ أَيَّ شَيْءٍ — biror ish qilishdan oldin o‘rganaman."
+    },
+    {
+      "id": "p12",
+      "kind": "image",
+      "phase": "practice",
+      "prompt": "Rasmga mos birikmani tanlang.",
+      "segmentId": "s52",
+      "wordId": "wings",
+      "choices": [
+        {
+          "id": "a",
+          "text": "جَنَاحَانِ كَبِيرَانِ"
+        },
+        {
+          "id": "b",
+          "text": "زِرَّانِ كَبِيرَانِ"
+        },
+        {
+          "id": "c",
+          "text": "جِسْرَانِ كَبِيرَانِ"
+        },
+        {
+          "id": "d",
+          "text": "طَائِرَتَانِ كَبِيرَتَانِ"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "جَنَاحَانِ — ikkita qanot. Videoda to‘ldiruvchi vazifasida جَنَاحَيْنِ كَبِيرَيْنِ ishlatilgan.",
+      "image": "/learning-assets/parvoz-wings.webp"
+    },
+    {
+      "id": "v1",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«الطَّائِرَةُ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s1",
+      "wordId": "plane",
+      "image": "/learning-assets/parvoz-plane.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "svetofor"
+        },
+        {
+          "id": "c",
+          "text": "ko‘prik"
+        },
+        {
+          "id": "d",
+          "text": "qushlar; chumchuqlar"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "الطَّائِرَةُ — samolyot. كَيْفَ — usulni so‘rash. تَقُودُ — «sen boshqarasan». اشْتَرَكْتَ — «sen qo‘shilding». فِي نَادِي الطَّائِرَاتِ — izofa birikmasi."
+    },
+    {
+      "id": "v2",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الْقِيَادَةُ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s5",
+      "wordId": "driving",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "boshqarish; haydash"
+        },
+        {
+          "id": "c",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "d",
+          "text": "svetofor"
+        }
+      ],
+      "answer": {
+        "choiceId": "b"
+      },
+      "explanation": "الْقِيَادَةُ — boshqarish; haydash. عِنْدَمَا — … paytda. بِدُونِ أَنْ — … qilmasdan. قُدْتَ — sen haydading."
+    },
+    {
+      "id": "v3",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "«يَتَعَلَّمُ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s17",
+      "wordId": "learn",
+      "choices": [
+        {
+          "id": "a",
+          "text": "quladik"
+        },
+        {
+          "id": "b",
+          "text": "ular uchadilar"
+        },
+        {
+          "id": "c",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "d",
+          "text": "sinab ko‘raman"
+        }
+      ],
+      "answer": {
+        "choiceId": "c"
+      },
+      "explanation": "يَتَعَلَّمُ — o‘rganadi. Oldingi gap davom etadi. يَعْمَلُهُ dagi هُ — uni."
+    },
+    {
+      "id": "v4",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«إِشَارَةُ الْمُرُورِ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s6",
+      "wordId": "traffic",
+      "image": "/learning-assets/parvoz-traffic-light.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "ko‘prik"
+        },
+        {
+          "id": "c",
+          "text": "qushlar; chumchuqlar"
+        },
+        {
+          "id": "d",
+          "text": "svetofor"
+        }
+      ],
+      "answer": {
+        "choiceId": "d"
+      },
+      "explanation": "إِشَارَةُ الْمُرُورِ — svetofor. كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ."
+    },
+    {
+      "id": "v5",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«الْكُوبْرِي» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s6",
+      "wordId": "bridge",
+      "image": "/learning-assets/parvoz-bridge.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "ko‘prik"
+        },
+        {
+          "id": "b",
+          "text": "samolyot"
+        },
+        {
+          "id": "c",
+          "text": "svetofor"
+        },
+        {
+          "id": "d",
+          "text": "qushlar; chumchuqlar"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "الْكُوبْرِي — ko‘prik. كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ."
+    },
+    {
+      "id": "v6",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "«وَقَعْنَا» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s6",
+      "wordId": "fall",
+      "choices": [
+        {
+          "id": "a",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "b",
+          "text": "quladik"
+        },
+        {
+          "id": "c",
+          "text": "ular uchadilar"
+        },
+        {
+          "id": "d",
+          "text": "sinab ko‘raman"
+        }
+      ],
+      "answer": {
+        "choiceId": "b"
+      },
+      "explanation": "وَقَعْنَا — quladik. كَسَرْنَا va وَقَعْنَا — o‘tgan zamon, «biz». الْكُوبْرِي — so‘zlashuvdagi ko‘prik; adabiy shakli جِسْرٌ."
+    },
+    {
+      "id": "v7",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«الْعَصَافِيرُ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s18",
+      "wordId": "birds",
+      "image": "/learning-assets/parvoz-birds.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "svetofor"
+        },
+        {
+          "id": "c",
+          "text": "qushlar; chumchuqlar"
+        },
+        {
+          "id": "d",
+          "text": "ko‘prik"
+        }
+      ],
+      "answer": {
+        "choiceId": "c"
+      },
+      "explanation": "الْعَصَافِيرُ — qushlar; chumchuqlar. حَتَّى — hatto. الْعَصَافِيرُ — qushlar, chumchuqlar; fikr keyingi gapda tugallanadi."
+    },
+    {
+      "id": "v8",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "«يَطِيرُونَ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s19",
+      "wordId": "fly",
+      "choices": [
+        {
+          "id": "a",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "b",
+          "text": "quladik"
+        },
+        {
+          "id": "c",
+          "text": "sinab ko‘raman"
+        },
+        {
+          "id": "d",
+          "text": "ular uchadilar"
+        }
+      ],
+      "answer": {
+        "choiceId": "d"
+      },
+      "explanation": "يَطِيرُونَ — ular uchadilar. تُعَلِّمُ — o‘rgatadi; يَتَعَلَّمُ — o‘rganadi. هُمْ — ular."
+    },
+    {
+      "id": "v9",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«الزِّرُّ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s30",
+      "wordId": "button",
+      "image": "/learning-assets/parvoz-button.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "tugma"
+        },
+        {
+          "id": "b",
+          "text": "samolyot"
+        },
+        {
+          "id": "c",
+          "text": "svetofor"
+        },
+        {
+          "id": "d",
+          "text": "ko‘prik"
+        }
+      ],
+      "answer": {
+        "choiceId": "a"
+      },
+      "explanation": "الزِّرُّ — tugma. سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun."
+    },
+    {
+      "id": "v10",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«سَأُجَرِّبُ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s30",
+      "wordId": "try",
+      "choices": [
+        {
+          "id": "a",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "b",
+          "text": "sinab ko‘raman"
+        },
+        {
+          "id": "c",
+          "text": "quladik"
+        },
+        {
+          "id": "d",
+          "text": "ular uchadilar"
+        }
+      ],
+      "answer": {
+        "choiceId": "b"
+      },
+      "explanation": "سَأُجَرِّبُ — sinab ko‘raman. سَأُجَرِّبُ — sinab ko‘raman. سَ kelasi zamon; لِأَرَى — ko‘rish uchun."
+    },
+    {
+      "id": "v11",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "«جَنَاحَيْنِ» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s52",
+      "wordId": "wings",
+      "image": "/learning-assets/parvoz-wings.webp",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "svetofor"
+        },
+        {
+          "id": "c",
+          "text": "ikkita qanotni"
+        },
+        {
+          "id": "d",
+          "text": "ko‘prik"
+        }
+      ],
+      "answer": {
+        "choiceId": "c"
+      },
+      "explanation": "جَنَاحَيْنِ — ikkita qanotni. جَنَاحَيْنِ كَبِيرَيْنِ — ikkilik shakli, to‘ldiruvchi. نَفْسَهُ — o‘zini."
+    },
+    {
+      "id": "v12",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "«أَنْقِذُونِي» darsdagi kontekstda nimani bildiradi?",
+      "segmentId": "s33",
+      "wordId": "rescue",
+      "choices": [
+        {
+          "id": "a",
+          "text": "samolyot"
+        },
+        {
+          "id": "b",
+          "text": "boshqarish; haydash"
+        },
+        {
+          "id": "c",
+          "text": "o‘rganadi"
+        },
+        {
+          "id": "d",
+          "text": "meni qutqaringlar"
+        }
+      ],
+      "answer": {
+        "choiceId": "d"
+      },
+      "explanation": "أَنْقِذُونِي — meni qutqaringlar. أَنْقِذُوا — qutqaringlar; نِي — meni."
+    }
+  ]
+}

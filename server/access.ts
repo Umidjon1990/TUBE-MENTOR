@@ -1,3 +1,4 @@
+import {experienceFor} from './experience-content';
 import type { Request } from "express";
 import {
   lessonAccess as grants,
@@ -14,7 +15,7 @@ import {
 } from "@shared/commerce";
 import { getCommerceSettings } from "./commerce";
 import { storage } from "./storage";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { hasVerifiedIdentity } from "./auth";
 
 export type LessonAccess = "demo" | "owned" | "locked" | "admin";
@@ -125,6 +126,8 @@ export async function catalogCard(
   completion = 0,
 ) {
   const { settings } = await accessContext(req);
+  const experience=experienceFor(publishedLesson(lesson)||lesson);
+  if(experience&&req.session.userId){const state=(await pool.query('SELECT state FROM lesson_experience_progress WHERE user_id=$1 AND lesson_id=$2 AND version=$3',[req.session.userId,lesson.id,experience.version])).rows[0]?.state;completion=(state?.completed?.length||0)*20}
   return lessonCard(
     lesson,
     await lessonAccess(req, lesson),

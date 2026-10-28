@@ -1,3 +1,4 @@
+import {experienceSchema} from './experience';
 import { z } from "zod";
 const text = z.string().max(120000);
 const short = z.string().max(4000);
@@ -177,12 +178,14 @@ export const lessonPackageSchema = z
       })
       .strict(),
     content: contentSchema,
+    experience: experienceSchema.optional(),
   })
   .strict()
   .superRefine((pkg, ctx) => {
     const issue = (message: string) =>
       ctx.addIssue({ code: z.ZodIssueCode.custom, message });
     const c = pkg.content;
+    if(pkg.experience){const u=new URL(pkg.metadata.youtubeUrl),video=u.searchParams.get("v")||u.pathname.split("/").filter(Boolean).pop();if(video!==pkg.experience.youtubeId)issue("Mashqlar paketi va metadata videosi bir xil bo‘lsin")}
     if (!c.summaryShort.trim() || !c.summaryDetailed.trim())
       issue("Xulosalar bo‘sh bo‘lmasin");
     if (!c.subtitles?.length) issue("Aniq vaqtli subtitrlar kerak");

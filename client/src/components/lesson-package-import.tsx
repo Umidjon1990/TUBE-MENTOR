@@ -1,3 +1,4 @@
+import {coerceLessonPackage} from '@shared/experience-package';
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { lessonPackageSchema } from "@shared/content-validation";
@@ -18,7 +19,7 @@ export function LessonPackageImport({
   let syntaxError = "";
   if (text.trim()) {
     try {
-      parsed = lessonPackageSchema.safeParse(JSON.parse(text));
+      parsed = lessonPackageSchema.safeParse(coerceLessonPackage(JSON.parse(text)));
     } catch {
       syntaxError = "JSON sintaksisi noto‘g‘ri";
     }

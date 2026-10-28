@@ -1,3 +1,4 @@
+import {coerceLessonPackage} from '../shared/experience-package';
 import type { Express } from "express";
 import { z } from "zod";
 import { pool } from "./db";
@@ -33,7 +34,7 @@ export function registerAdminDesk(app: Express) {
     "/api/platform/admin/desk/validate-lesson",
     requireAdmin,
     (req, res) => {
-      const parsed = lessonPackageSchema.safeParse(req.body.package);
+      const parsed = lessonPackageSchema.safeParse(coerceLessonPackage(req.body.package));
       if (!parsed.success)
         return res
           .status(400)

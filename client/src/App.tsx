@@ -1,3 +1,4 @@
+const ExperienceReview=lazy(()=>import('@/pages/learning/experience-page').then(m=>({default:m.DailyReviewPage})));
 import { lazy, Suspense, type ReactNode } from "react";
 import { Switch, Route, Redirect, useParams } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -21,7 +22,7 @@ const Course = lazy(() => learner().then((m) => ({ default: m.CoursePage })));
 const Words = lazy(() => learner().then((m) => ({ default: m.WordsPage })));
 const Review = lazy(() => learner().then((m) => ({ default: m.ReviewPage })));
 const Profile = lazy(() => learner().then((m) => ({ default: m.ProfilePage })));
-const Lesson = lazy(() => import("@/pages/learning/lesson-page"));
+const Lesson = lazy(() => import("@/pages/learning/experience-page"));
 const studio = () => import("@/pages/learning/studio-pages");
 const Studio = lazy(() => studio().then((m) => ({ default: m.StudioPage })));
 const Create = lazy(() =>
@@ -146,6 +147,7 @@ function Router() {
         <Route path="/courses" component={Catalog} />
         <Route path="/courses/:id" component={Course} />
         <Route path="/learn/:id" component={Lesson} />
+        <Route path="/review/experience"><Guard><ExperienceReview/></Guard></Route>
         <Route path="/support"><Guard><Support /></Guard></Route>
         <Route path="/support/:id"><Guard><SupportTicket /></Guard></Route>
         <Route path="/wallet"><Guard><Wallet /></Guard></Route>

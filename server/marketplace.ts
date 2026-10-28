@@ -1,3 +1,4 @@
+import {experienceFor} from './experience-content';
 import { Readable } from "node:stream";
 import { registerPlatformLinks } from "./platform-links";
 import type { Express } from "express";
@@ -1066,6 +1067,7 @@ export function registerMarketplace(app: Express, http: Server) {
         )
       ).rows;
       const sourceLessons = await storage.getAllLessons();
+      const experienceStates=(await pool.query('SELECT lesson_id,version,state FROM lesson_experience_progress WHERE user_id=$1',[req.session.userId])).rows;
       const liveAttempts = new Map<string, any>();
       await Promise.all(
         [
@@ -1117,6 +1119,8 @@ export function registerMarketplace(app: Express, http: Server) {
       for (const grant of grants) {
         const lesson = sourceLessons.find((s) => s.id === grant.lesson_id);
         if (!lesson || !publishedLesson(lesson)) continue;
+        const experience=experienceFor(publishedLesson(lesson)!);
+        const experienceState=experience&&experienceStates.find(s=>s.lesson_id===lesson.id&&s.version===experience.version);
         products.push({
           ...dto(grant),
           owned: true,
@@ -1124,7 +1128,7 @@ export function registerMarketplace(app: Express, http: Server) {
             !grant.expires_at || new Date(grant.expires_at) > new Date()
               ? "owned"
               : "locked",
-          completionPercent:
+          completionPercent:experience?(experienceState?.state?.completed?.length||0)*20:
             progress.find((r) => r.lesson_id === grant.lesson_id)
               ?.completion_percent || 0,
           expiresAt: grant.expires_at,

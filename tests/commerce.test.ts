@@ -727,6 +727,7 @@ test('Payme RPC uses HTTP 200 for auth/JSON errors and sandbox transactions neve
  const account={order_id:invoice},time=Date.now(),id=randomUUID();
  assert.equal((await payRpc('wrong','CheckPerformTransaction',{account,amount:100000})).error.code,-32504);
  assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:100001})).error.code,-31001);
+ assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:0})).error.code,-31001);
  assert.equal((await payRpc(key,'CheckPerformTransaction',{account:{order_id:'not-found'},amount:100000})).error.code,-31050);
  assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:100000})).result.allow,true);
  const made=await payRpc(key,'CreateTransaction',{id,time,account,amount:100000});assert.equal(made.result.state,1);
@@ -751,6 +752,7 @@ test('Payme live-mode fixture credits exactly once, reserves numeric invoices, r
  const checked=await payRpc(key,'CheckPerformTransaction',{account,amount:o.priceUzs*100});assert.equal(checked.result.allow,true);assert.equal(checked.result.detail.items[0].price,o.priceUzs*100);
  const params={id,time,account,amount:o.priceUzs*100};const made=await payRpc(key,'CreateTransaction',params);assert.equal(made.result.state,1);
  assert.equal((await payRpc(key,'CreateTransaction',{...params,id:randomUUID()})).error.code,-31008);
+ assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:o.priceUzs*100})).error.code,-31050);
  assert.equal((await payRpc(key,'CreateTransaction',{...params,time:time+1})).error.code,-31008);
  const [first,repeat]=await Promise.all([payRpc(key,'PerformTransaction',{id}),payRpc(key,'PerformTransaction',{id})]);assert.equal(first.result.state,2);assert.deepEqual(first.result,repeat.result);
  assert.equal((await c.wallet()).balance,before+o.coins);

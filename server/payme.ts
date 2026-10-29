@@ -22,7 +22,7 @@ function cancelled(t:Payment){return{cancel_time:t.cancelTime,transaction:t.key,
 async function serialize(tx:Tx){await tx.execute(sql`SELECT pg_advisory_xact_lock(726309)`)}
 async function expire(tx:Tx,t:Payment){if(t.state===1&&Date.now()-t.time>=TTL){const [updated]=await tx.update(paymeTransactions).set({state:-1,reason:4,cancelTime:Date.now()}).where(eq(paymeTransactions.key,t.key)).returning();return updated}return t}
 function accountId(p:any){const id=p?.account?.order_id;if((typeof id!=='string'&&typeof id!=='number')||!/^\d{1,10}$/.test(String(id))||!Number.isSafeInteger(Number(id))||Number(id)<1)fail(-31050,'Buyurtma raqami noto‘g‘ri','order_id');return Number(id)}
-async function invoice(tx:Tx,p:any,mode:string){const id=accountId(p);const [inv]=await tx.select().from(paymeInvoices).where(and(eq(paymeInvoices.id,id),eq(paymeInvoices.mode,mode))).for('update');if(!inv)fail(-31050,'Buyurtma topilmadi','order_id');if(amount.parse(p.amount)!==inv.amount)fail(-31001,'To‘lov summasi noto‘g‘ri');return inv}
+async function invoice(tx:Tx,p:any,mode:string){const id=accountId(p);const [inv]=await tx.select().from(paymeInvoices).where(and(eq(paymeInvoices.id,id),eq(paymeInvoices.mode,mode))).for('update');if(!inv)fail(-31050,'Buyurtma topilmadi','order_id');if(!Number.isSafeInteger(p.amount)||p.amount<=0||p.amount!==inv.amount)fail(-31001,'To‘lov summasi noto‘g‘ri');return inv}
 async function payable(tx:Tx,inv:typeof paymeInvoices.$inferSelect){
  if(inv.mode==='test'){if(Date.now()-inv.createdAt.getTime()>=TTL)fail(-31050,'Sinov hisobi eskirgan','order_id');return null}
  const [o]=await tx.select().from(paymentOrders).where(eq(paymentOrders.id,inv.orderId!)).for('update');
@@ -55,7 +55,7 @@ export async function paymeRpc(method:string,p:any){
    if(mode==='live'&&!c.liveReady)fail(-31008,'Yangi Payme to‘lovlari vaqtincha yopiq');
    await payable(tx,inv);
    const previous=await tx.select().from(paymeTransactions).where(eq(paymeTransactions.invoiceId,inv.id));
-   for(const old of previous){const t=await expire(tx,old);if(t.state===2)fail(-31008,'Hisob allaqachon to‘langan')}
+   for(const old of previous){const t=await expire(tx,old);if(t.state===1||t.state===2)fail(-31050,'Hisob band yoki allaqachon to‘langan','order_id')}
    const detail=c.fiscalReady?{detail:{receipt_type:0,items:[{title:'Ta’lim platformasi uchun coin paketi',price:inv.amount,count:1,code:c.ikpu,package_code:c.packageCode,vat_percent:c.vat}]}}:{};
    return{result:{allow:true,...detail}};
   }
@@ -122,7 +122,7 @@ export function registerPaymeRoutes(app:Express){
  const handle=(fn:any)=>(req:any,res:any,next:any)=>Promise.resolve(fn(req,res)).catch(next);
  app.get('/api/admin/commerce/payme',requireAdmin,handle(async(_req:any,res:any)=>{
   const c=paymeConfig();const transactions=await db.select({id:paymeTransactions.id,mode:paymeTransactions.mode,invoiceId:paymeTransactions.invoiceId,amount:paymeTransactions.amount,state:paymeTransactions.state,time:paymeTransactions.time,performTime:paymeTransactions.performTime,cancelTime:paymeTransactions.cancelTime,reason:paymeTransactions.reason}).from(paymeTransactions).orderBy(desc(paymeTransactions.createTime)).limit(30);
-  res.json({mode:c.mode,merchantId:c.merchantId,configured:c.configured,liveReady:c.liveReady,fiscalReady:c.fiscalReady,endpoint:new URL('/api/payme/webhook',process.env.APP_URL||'http://localhost').href,transactions});
+  res.json({mode:c.mode,merchantId:c.merchantId,configured:c.configured,liveReady:c.liveReady,fiscalReady:c.fiscalReady,endpoint:process.env.PAYME_WEBHOOK_URL||new URL('/api/payme/webhook',process.env.APP_URL||'http://localhost').href,transactions});
  }));
  app.post('/api/admin/commerce/payme/test-invoice',requireAdmin,handle(async(req:any,res:any)=>{
   const c=paymeConfig();if(c.mode!=='test'||!c.configured)return res.status(409).json({message:'Avval Payme test kalitini serverga kiriting'});

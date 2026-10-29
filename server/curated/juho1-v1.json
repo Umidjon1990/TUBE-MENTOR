@@ -1,0 +1,3144 @@
+{
+  "schemaVersion": 1,
+  "version": "juho1-v1",
+  "lessonId": 34,
+  "youtubeId": "QcVjcoRxpwM",
+  "title": "Juho 1 — Ko‘rsatish olmoshlari",
+  "summary": "Juho va Huma sahroda dam oladi. Hikoya orqali هذا، هذه، هاتان، هؤلاء farqini, nooqil ko‘plik qoidasini va kundalik iboralarni o‘rganing. Tavsiya etilgan tinglash darajasi: B1; tayanch grammatika A1–A2.",
+  "level": "B1",
+  "duration": 148.12,
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0,
+      "end": 3.25,
+      "groups": [
+        {
+          "id": "s1g1",
+          "ar": "إِنَّهُ كَسْرٌ مَعْنَوِيٌّ",
+          "uz": "Bu ko‘chma ma’nodagi buzish-ku",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s1t1_1",
+              "text": "إِنَّهُ",
+              "meaning": "albatta, u",
+              "partOfSpeech": "Ta’kid harfi va olmosh"
+            },
+            {
+              "id": "s1t1_2",
+              "text": "كَسْرٌ",
+              "meaning": "buzish",
+              "partOfSpeech": "Masdar (ism)"
+            },
+            {
+              "id": "s1t1_3",
+              "text": "مَعْنَوِيٌّ",
+              "meaning": "ko‘chma ma’nodagi",
+              "partOfSpeech": "Sifat"
+            }
+          ]
+        },
+        {
+          "id": "s1g2",
+          "ar": "يَا هُومَا",
+          "uz": "ey Huma.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s1t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s1t2_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "إِنَّ — ta’kid yuklamasi; ـهُ uning ismi, كَسْرٌ xabari. مَعْنَوِيٌّ sifat. Bu yerda «buzish» ko‘chma ma’noda."
+    },
+    {
+      "id": "s2",
+      "start": 3.25,
+      "end": 6.1,
+      "groups": [
+        {
+          "id": "s2g1",
+          "ar": "مِثْلَ كَسْرِ الْقَوَاعِدِ وَالْقَوَانِينِ",
+          "uz": "Qoidalar va qonunlarni buzish kabi.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s2t1_1",
+              "text": "مِثْلَ",
+              "meaning": "kabi",
+              "partOfSpeech": "Ism · o‘xshatish"
+            },
+            {
+              "id": "s2t1_2",
+              "text": "كَسْرِ",
+              "meaning": "buzish",
+              "partOfSpeech": "Masdar (ism)"
+            },
+            {
+              "id": "s2t1_3",
+              "text": "الْقَوَاعِدِ",
+              "meaning": "qoidalar",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s2t1_4",
+              "text": "وَالْقَوَانِينِ",
+              "meaning": "va qonunlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَسْرِ الْقَوَاعِدِ — izofa: qoidalarni buzish. وَ — bog‘lovchi. Huma «buzish»ni jismonan sindirish deb tushunadi."
+    },
+    {
+      "id": "s3",
+      "start": 6.1,
+      "end": 10.8,
+      "groups": [
+        {
+          "id": "s3g1",
+          "ar": "وَلِمَاذَا",
+          "uz": "Nega",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s3t1_1",
+              "text": "وَلِمَاذَا",
+              "meaning": "va nega",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s3g2",
+          "ar": "يَصْنَعُونَ",
+          "uz": "yasashadi,",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s3t2_1",
+              "text": "يَصْنَعُونَ",
+              "meaning": "ular yasaydilar",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s3g3",
+          "ar": "الْقَوَاعِدَ وَالْقَوَانِينَ",
+          "uz": "qoidalar va qonunlarni",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s3t3_1",
+              "text": "الْقَوَاعِدَ",
+              "meaning": "qoidalarni",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s3t3_2",
+              "text": "وَالْقَوَانِينَ",
+              "meaning": "va qonunlarni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s3g4",
+          "ar": "مِنَ الزُّجَاجِ",
+          "uz": "oynadan",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s3t4_1",
+              "text": "مِنَ",
+              "meaning": "-dan",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s3t4_2",
+              "text": "الزُّجَاجِ",
+              "meaning": "oyna",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s3g5",
+          "ar": "يَا جُحَا",
+          "uz": "ey Juho?",
+          "order": 4,
+          "tokens": [
+            {
+              "id": "s3t5_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s3t5_2",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "لِمَاذَا — sabab so‘rog‘i. يَصْنَعُونَ — ko‘plikdagi hozirgi zamon fe’li. مِنَ الزُّجَاجِ materialni bildiradi; qahramonning so‘zi so‘zma-so‘z tushunishga asoslangan hazil."
+    },
+    {
+      "id": "s4",
+      "start": 23.24,
+      "end": 28.06,
+      "groups": [
+        {
+          "id": "s4g1",
+          "ar": "هٰذَا هُوَ",
+          "uz": "mana shu",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s4t1_1",
+              "text": "هٰذَا",
+              "meaning": "bu",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s4t1_2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s4g2",
+          "ar": "الْمَكَانُ",
+          "uz": "joy.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s4t2_1",
+              "text": "الْمَكَانُ",
+              "meaning": "joy",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s4g3",
+          "ar": "الَّذِي سَنُخَيِّمُ فِيهِ",
+          "uz": "biz chodir tikib tunaydigan",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s4t3_1",
+              "text": "الَّذِي",
+              "meaning": "-adigan (bog‘lovchi olmosh)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s4t3_2",
+              "text": "سَنُخَيِّمُ",
+              "meaning": "biz chodir tikib tunaymiz",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s4t3_3",
+              "text": "فِيهِ",
+              "meaning": "unda",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s4g4",
+          "ar": "يَا هُومَا",
+          "uz": "Ey Huma,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s4t4_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s4t4_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "هٰذَا — yaqin turgan birlik muzakkarga ishora. الْمَكَانُ — joy. الَّذِي bog‘lovchi olmoshidan keyingi gap joyni aniqlaydi; سَـ kelasi zamonni bildiradi."
+    },
+    {
+      "id": "s5",
+      "start": 28.68,
+      "end": 30.6,
+      "groups": [
+        {
+          "id": "s5g1",
+          "ar": "جَمِيلٌ جِدًّا",
+          "uz": "Juda ajoyib.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s5t1_1",
+              "text": "جَمِيلٌ",
+              "meaning": "chiroyli, ajoyib",
+              "partOfSpeech": "Sifat"
+            },
+            {
+              "id": "s5t1_2",
+              "text": "جِدًّا",
+              "meaning": "juda",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            }
+          ]
+        }
+      ],
+      "grammar": "جِدًّا sifatning darajasini kuchaytiradi: «juda». Bu qisqa gapda baholanayotgan narsa oldingi kontekstdan anglashiladi."
+    },
+    {
+      "id": "s6",
+      "start": 31.52,
+      "end": 33.6,
+      "groups": [
+        {
+          "id": "s6g1",
+          "ar": "تَقْصِدُ الْمَكَانَ",
+          "uz": "Joyni nazarda tutyapsanmi?",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s6t1_1",
+              "text": "تَقْصِدُ",
+              "meaning": "sen nazarda tutyapsan",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s6t1_2",
+              "text": "الْمَكَانَ",
+              "meaning": "joyni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "تَقْصِدُ — «sen nazarda tutyapsan». Savol intonatsiya orqali berilgan."
+    },
+    {
+      "id": "s7",
+      "start": 33.6,
+      "end": 37.08,
+      "groups": [
+        {
+          "id": "s7g1",
+          "ar": "لَا بَلْ",
+          "uz": "Yo‘q, aksincha,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s7t1_1",
+              "text": "لَا",
+              "meaning": "yo‘q",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s7t1_2",
+              "text": "بَلْ",
+              "meaning": "aksincha",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            }
+          ]
+        },
+        {
+          "id": "s7g2",
+          "ar": "أَقْصِدُ",
+          "uz": "nazarda tutyapman,",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s7t2_1",
+              "text": "أَقْصِدُ",
+              "meaning": "men nazarda tutaman",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s7g3",
+          "ar": "اسْتِخْدَامَكَ",
+          "uz": "ishlatganingni",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s7t3_1",
+              "text": "اسْتِخْدَامَكَ",
+              "meaning": "sening ishlatishingni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s7g4",
+          "ar": "لِاسْمِ الْإِشَارَةِ هٰذَا",
+          "uz": "«bu» ko‘rsatish olmoshini",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s7t4_1",
+              "text": "لِاسْمِ",
+              "meaning": "olmoshi uchun (ismga)",
+              "partOfSpeech": "Ism va jarr harfi"
+            },
+            {
+              "id": "s7t4_2",
+              "text": "الْإِشَارَةِ",
+              "meaning": "ko‘rsatish",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s7t4_3",
+              "text": "هٰذَا",
+              "meaning": "bu",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَا ... بَلْ — oldingi taxminni inkor qilib tuzatish. اِسْتِخْدَامَكَ — «sening ishlatishing»; ـكَ ikkinchi shaxs qo‘shimchasi. هٰذَا bu yerda til birligi sifatida tilga olingan."
+    },
+    {
+      "id": "s8",
+      "start": 37.08,
+      "end": 39.78,
+      "groups": [
+        {
+          "id": "s8g1",
+          "ar": "حِينَ قُلْتَ",
+          "uz": "deganingda.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s8t1_1",
+              "text": "حِينَ",
+              "meaning": "...gan paytingda",
+              "partOfSpeech": "Ism · vaqt ravishi"
+            },
+            {
+              "id": "s8t1_2",
+              "text": "قُلْتَ",
+              "meaning": "sen deding",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s8g2",
+          "ar": "هٰذَا هُوَ الْمَكَانُ",
+          "uz": "«Mana shu joy»",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s8t2_1",
+              "text": "هٰذَا",
+              "meaning": "bu",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s8t2_2",
+              "text": "هُوَ",
+              "meaning": "u",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s8t2_3",
+              "text": "الْمَكَانُ",
+              "meaning": "joy",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "حِينَ — «...ganingda», vaqtni bildiradi. قُلْتَ — قَالَ fe’lining ikkinchi shaxs o‘tgan zamoni. Keyin Juho aytgan jumla iqtibos qilinadi."
+    },
+    {
+      "id": "s9",
+      "start": 39.78,
+      "end": 43.76,
+      "groups": [
+        {
+          "id": "s9g1",
+          "ar": "مَا رَأْيُكَ فِي الْمَكَانِ",
+          "uz": "Joy haqida fikring qanday",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s9t1_1",
+              "text": "مَا",
+              "meaning": "qanday",
+              "partOfSpeech": "So‘roq / taajjub ismi"
+            },
+            {
+              "id": "s9t1_2",
+              "text": "رَأْيُكَ",
+              "meaning": "sening fikring",
+              "partOfSpeech": "Ism va egalik olmoshi"
+            },
+            {
+              "id": "s9t1_3",
+              "text": "فِي",
+              "meaning": "haqida",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s9t1_4",
+              "text": "الْمَكَانِ",
+              "meaning": "joy",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s9g2",
+          "ar": "يَا هُومَا",
+          "uz": "ey Huma?",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s9t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s9t2_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَا رَأْيُكَ فِي ...؟ — «... haqida fikring qanday?» qolipi. رَأْيُكَ tarkibidagi ـكَ «sening»ni bildiradi."
+    },
+    {
+      "id": "s10",
+      "start": 43.76,
+      "end": 46.44,
+      "groups": [
+        {
+          "id": "s10g1",
+          "ar": "إِنَّهُ مَكَانٌ مُخِيفٌ",
+          "uz": "Bu qo‘rqinchli joy ekan",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s10t1_1",
+              "text": "إِنَّهُ",
+              "meaning": "haqiqatan, u",
+              "partOfSpeech": "Ta’kid harfi va olmosh"
+            },
+            {
+              "id": "s10t1_2",
+              "text": "مَكَانٌ",
+              "meaning": "joy",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s10t1_3",
+              "text": "مُخِيفٌ",
+              "meaning": "qo‘rqinchli",
+              "partOfSpeech": "Sifat"
+            }
+          ]
+        },
+        {
+          "id": "s10g2",
+          "ar": "يَا جُحَا",
+          "uz": "ey Juho.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s10t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s10t2_2",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "إِنَّهُ — «haqiqatan ham bu». مَكَانٌ xabar, مُخِيفٌ unga ergashgan sifat: «qo‘rqinchli joy»."
+    },
+    {
+      "id": "s11",
+      "start": 46.44,
+      "end": 50.38,
+      "groups": [
+        {
+          "id": "s11g1",
+          "ar": "كَانَ بِإِمْكَانِنَا",
+          "uz": "mumkin edi.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s11t1_1",
+              "text": "كَانَ",
+              "meaning": "edi",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s11t1_2",
+              "text": "بِإِمْكَانِنَا",
+              "meaning": "bizning imkonimizda",
+              "partOfSpeech": "Jarr harfi, ism va egalik olmoshi"
+            }
+          ]
+        },
+        {
+          "id": "s11g2",
+          "ar": "التَّخْيِيمُ",
+          "uz": "chodir tikishimiz",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s11t2_1",
+              "text": "التَّخْيِيمُ",
+              "meaning": "chodir tikish",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s11g3",
+          "ar": "فِي صَالَةِ الْمَنْزِلِ",
+          "uz": "Uy mehmonxonasida",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s11t3_1",
+              "text": "فِي",
+              "meaning": "-da",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s11t3_2",
+              "text": "صَالَةِ",
+              "meaning": "mehmonxona, zal",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s11t3_3",
+              "text": "الْمَنْزِلِ",
+              "meaning": "uyning",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s11g4",
+          "ar": "أَمَامَ التِّلْفَازِ",
+          "uz": "televizor oldida",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s11t4_1",
+              "text": "أَمَامَ",
+              "meaning": "oldida",
+              "partOfSpeech": "Ism · o‘rin ravishi"
+            },
+            {
+              "id": "s11t4_2",
+              "text": "التِّلْفَازِ",
+              "meaning": "televizor",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَانَ بِإِمْكَانِنَا — «biz ... qilishimiz mumkin edi». التَّخْيِيمُ masdar. أَمَامَ — «oldida»."
+    },
+    {
+      "id": "s12",
+      "start": 64.92,
+      "end": 68.5,
+      "groups": [
+        {
+          "id": "s12g1",
+          "ar": "يَا سَلَامُ",
+          "uz": "Voy, qanday zo‘r!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s12t1_1",
+              "text": "يَا",
+              "meaning": "ey (undov)",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s12t1_2",
+              "text": "سَلَامُ",
+              "meaning": "ajoyib! (undov)",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "يَا سَلَامُ — hayrat yoki zavqni bildiradigan tayyor undov. Bu o‘rinda so‘zma-so‘z «ey tinchlik» deb tarjima qilinmaydi."
+    },
+    {
+      "id": "s13",
+      "start": 68.68,
+      "end": 70.32,
+      "groups": [
+        {
+          "id": "s13g1",
+          "ar": "يَا سَلَامُ",
+          "uz": "Voy, qanday ajoyib!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s13t1_1",
+              "text": "يَا",
+              "meaning": "ey (undov)",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s13t1_2",
+              "text": "سَلَامُ",
+              "meaning": "ajoyib! (undov)",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "Oldingi undovga ikkinchi qahramon ham qo‘shiladi. Ma’no nutq vaziyatidan anglashiladi."
+    },
+    {
+      "id": "s14",
+      "start": 70.32,
+      "end": 73.86,
+      "groups": [
+        {
+          "id": "s14g1",
+          "ar": "مَا أَجْمَلَ الِاسْتِرْخَاءَ",
+          "uz": "Dam olish naqadar yoqimli",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s14t1_1",
+              "text": "مَا",
+              "meaning": "naqadar",
+              "partOfSpeech": "So‘roq / taajjub ismi"
+            },
+            {
+              "id": "s14t1_2",
+              "text": "أَجْمَلَ",
+              "meaning": "go‘zal, yoqimli",
+              "partOfSpeech": "Taajjub fe’li"
+            },
+            {
+              "id": "s14t1_3",
+              "text": "الِاسْتِرْخَاءَ",
+              "meaning": "dam olishni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s14g2",
+          "ar": "يَا هُومَا",
+          "uz": "ey Huma!",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s14t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s14t2_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "مَا أَفْعَلَ ... — taajjub qolipi. مَا أَجْمَلَ الِاسْتِرْخَاءَ — «Dam olish naqadar yoqimli!»; الِاسْتِرْخَاءَ bu qolipda mansub."
+    },
+    {
+      "id": "s15",
+      "start": 73.86,
+      "end": 78.82,
+      "groups": [
+        {
+          "id": "s15g1",
+          "ar": "انْظُرْ يَا جُحَا",
+          "uz": "Qara, ey Juho",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s15t1_1",
+              "text": "انْظُرْ",
+              "meaning": "qara",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s15t1_2",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s15t1_3",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "s15g2",
+          "ar": "هَاتَانِ النَّجْمَتَانِ",
+          "uz": "mana bu ikki yulduz",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s15t2_1",
+              "text": "هَاتَانِ",
+              "meaning": "mana bu ikkita (muannas)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s15t2_2",
+              "text": "النَّجْمَتَانِ",
+              "meaning": "ikki yulduz",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s15g3",
+          "ar": "تَلْمَعَانِ بِشِدَّةٍ",
+          "uz": "juda yorqin porlayapti.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s15t3_1",
+              "text": "تَلْمَعَانِ",
+              "meaning": "ikkalasi porlayapti",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s15t3_2",
+              "text": "بِشِدَّةٍ",
+              "meaning": "kuchli ravishda",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            }
+          ]
+        }
+      ],
+      "grammar": "هَاتَانِ — yaqin turgan ikkita muannas narsaga ishora, raf holatida. النَّجْمَتَانِ va تَلْمَعَانِ ham ikkilik shaklda. بِشِدَّةٍ — ravish ma’nosida «kuchli»."
+    },
+    {
+      "id": "s16",
+      "start": 79.92,
+      "end": 83.82,
+      "groups": [
+        {
+          "id": "s16g1",
+          "ar": "هٰذِهِ خُدْعَةٌ مِنْكَ",
+          "uz": "Bu sening hiylang-ku",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s16t1_1",
+              "text": "هٰذِهِ",
+              "meaning": "bu (muannas)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s16t1_2",
+              "text": "خُدْعَةٌ",
+              "meaning": "hiyla",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s16t1_3",
+              "text": "مِنْكَ",
+              "meaning": "sendan, sening",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s16g2",
+          "ar": "يَا هُومَا",
+          "uz": "ey Huma.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s16t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s16t2_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "هٰذِهِ — muannas birlikka ishora. خُدْعَةٌ muannas ot bo‘lgani uchun هٰذِهِ tanlangan. مِنْكَ — «sendan», kontekstda «sening»."
+    },
+    {
+      "id": "s17",
+      "start": 83.82,
+      "end": 87.3,
+      "groups": [
+        {
+          "id": "s17g1",
+          "ar": "أَنْتَ",
+          "uz": "Sen",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s17t1_1",
+              "text": "أَنْتَ",
+              "meaning": "sen",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s17g2",
+          "ar": "تُحَاوِلُ",
+          "uz": "urinyapsan.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s17t2_1",
+              "text": "تُحَاوِلُ",
+              "meaning": "sen urinyapsan",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s17g3",
+          "ar": "مُرَاجَعَةَ",
+          "uz": "takrorlashga",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s17t3_1",
+              "text": "مُرَاجَعَةَ",
+              "meaning": "takrorlashni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s17g4",
+          "ar": "دَرْسِ أَسْمَاءِ الْإِشَارَةِ",
+          "uz": "ko‘rsatish olmoshlari darsini",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s17t4_1",
+              "text": "دَرْسِ",
+              "meaning": "darsining",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s17t4_2",
+              "text": "أَسْمَاءِ",
+              "meaning": "ismlari, olmoshlari",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s17t4_3",
+              "text": "الْإِشَارَةِ",
+              "meaning": "ko‘rsatish",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "تُحَاوِلُ + masdar — «... qilishga urinyapsan». مُرَاجَعَةَ دَرْسِ أَسْمَاءِ الْإِشَارَةِ ketma-ket izofa birikmasidir."
+    },
+    {
+      "id": "s18",
+      "start": 87.3,
+      "end": 91.12,
+      "groups": [
+        {
+          "id": "s18g1",
+          "ar": "وَهٰذَا وَقْتُ اسْتِرْخَاءٍ فَقَطْ",
+          "uz": "Bu esa faqat dam olish vaqti-ku.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s18t1_1",
+              "text": "وَهٰذَا",
+              "meaning": "bu esa",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            },
+            {
+              "id": "s18t1_2",
+              "text": "وَقْتُ",
+              "meaning": "vaqt",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s18t1_3",
+              "text": "اسْتِرْخَاءٍ",
+              "meaning": "dam olish",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s18t1_4",
+              "text": "فَقَطْ",
+              "meaning": "faqat, xolos",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            }
+          ]
+        }
+      ],
+      "grammar": "وَهٰذَا — «bu esa». وَقْتُ اسْتِرْخَاءٍ izofasi «dam olish vaqti»ni bildiradi. فَقَطْ ma’noni cheklaydi: «xolos»."
+    },
+    {
+      "id": "s19",
+      "start": 91.12,
+      "end": 94.08,
+      "groups": [
+        {
+          "id": "s19g1",
+          "ar": "هٰذَا ذَكَاءٌ مِنْكَ",
+          "uz": "Bu sening ziyrakliging",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s19t1_1",
+              "text": "هٰذَا",
+              "meaning": "bu",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s19t1_2",
+              "text": "ذَكَاءٌ",
+              "meaning": "ziyraklik",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s19t1_3",
+              "text": "مِنْكَ",
+              "meaning": "sening tomoningdan",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s19g2",
+          "ar": "يَا جُحَا",
+          "uz": "ey Juho.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s19t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s19t2_2",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "هٰذَا muzakkar ذَكَاءٌ so‘ziga mos kelgan. مِنْكَ kontekstda «sening tomoningdan» ma’nosida."
+    },
+    {
+      "id": "s20",
+      "start": 94.08,
+      "end": 97.1,
+      "groups": [
+        {
+          "id": "s20g1",
+          "ar": "لَقَدْ",
+          "uz": "Haqiqatan,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s20t1_1",
+              "text": "لَقَدْ",
+              "meaning": "haqiqatan (ta’kid)",
+              "partOfSpeech": "Ta’kid harflari"
+            }
+          ]
+        },
+        {
+          "id": "s20g2",
+          "ar": "كَشَفْتَ",
+          "uz": "fosh qilding.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s20t2_1",
+              "text": "كَشَفْتَ",
+              "meaning": "sen fosh qilding",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s20g3",
+          "ar": "خُطَّتِي",
+          "uz": "rejamni",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s20t3_1",
+              "text": "خُطَّتِي",
+              "meaning": "mening rejamni",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s20g4",
+          "ar": "بِسُهُولَةٍ",
+          "uz": "osongina",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s20t4_1",
+              "text": "بِسُهُولَةٍ",
+              "meaning": "osonlik bilan",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَقَدْ o‘tgan voqeani ta’kidlaydi. كَشَفْتَ — «sen fosh qilding»; خُطَّتِي — «mening rejam». Eski matndagi خَطَاتِي shakli xato edi."
+    },
+    {
+      "id": "s21",
+      "start": 98.02,
+      "end": 103.32,
+      "groups": [
+        {
+          "id": "s21g1",
+          "ar": "بِالتَّأْكِيدِ",
+          "uz": "Albatta!",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s21t1_1",
+              "text": "بِالتَّأْكِيدِ",
+              "meaning": "albatta",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            }
+          ]
+        },
+        {
+          "id": "s21g2",
+          "ar": "فَذَكَاءُ جُحَا",
+          "uz": "Axir Juhoning zakovati",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s21t2_1",
+              "text": "فَذَكَاءُ",
+              "meaning": "axir zakovati",
+              "partOfSpeech": "Ism va bog‘lovchi"
+            },
+            {
+              "id": "s21t2_2",
+              "text": "جُحَا",
+              "meaning": "Juhoning",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "s21g3",
+          "ar": "يُضْرَبُ بِهِ الْمَثَلُ",
+          "uz": "tillarda doston-ku.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s21t3_1",
+              "text": "يُضْرَبُ",
+              "meaning": "misol keltiriladi (iboraning fe’li)",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s21t3_2",
+              "text": "بِهِ",
+              "meaning": "u bilan",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            },
+            {
+              "id": "s21t3_3",
+              "text": "الْمَثَلُ",
+              "meaning": "misol",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "يُضْرَبُ بِهِ الْمَثَلُ — majhul nisbatdagi turg‘un ibora: «u bilan misol keltiriladi; dong‘i ketgan». Uni «misol bilan uriladi» deb tarjima qilish noto‘g‘ri."
+    },
+    {
+      "id": "s22",
+      "start": 103.32,
+      "end": 108.52,
+      "groups": [
+        {
+          "id": "s22g1",
+          "ar": "هَؤُلَاءِ النُّجُومُ",
+          "uz": "Bu yulduzlar",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s22t1_1",
+              "text": "هَؤُلَاءِ",
+              "meaning": "bular (insonlar uchun; bu yerda xato)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s22t1_2",
+              "text": "النُّجُومُ",
+              "meaning": "yulduzlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s22g2",
+          "ar": "بَعِيدَةٌ جِدًّا يَا جُحَا",
+          "uz": "juda uzoq, ey Juho",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s22t2_1",
+              "text": "بَعِيدَةٌ",
+              "meaning": "uzoq",
+              "partOfSpeech": "Sifat"
+            },
+            {
+              "id": "s22t2_2",
+              "text": "جِدًّا",
+              "meaning": "juda",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            },
+            {
+              "id": "s22t2_3",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s22t2_4",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "s22g3",
+          "ar": "أَلَيْسَ كَذٰلِكَ",
+          "uz": "shunday emasmi?",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s22t3_1",
+              "text": "أَلَيْسَ",
+              "meaning": "emasmi",
+              "partOfSpeech": "Fe’l (qo‘shimchali shakl)"
+            },
+            {
+              "id": "s22t3_2",
+              "text": "كَذٰلِكَ",
+              "meaning": "shunday",
+              "partOfSpeech": "Ko‘rsatish birikmasi"
+            }
+          ]
+        }
+      ],
+      "grammar": "MUHIM: «هَؤُلَاءِ النُّجُومُ» Huma ataylab aytgan xato — audio mazmuni sifatida saqlangan. Osmondagi yulduzlar uchun to‘g‘risi «هٰذِهِ النُّجُومُ». أَلَيْسَ كَذٰلِكَ؟ — «shunday emasmi?»"
+    },
+    {
+      "id": "s23",
+      "start": 108.52,
+      "end": 110.7,
+      "groups": [
+        {
+          "id": "s23g1",
+          "ar": "إِنَّهَا بَعِيدَةٌ فِعْلًا",
+          "uz": "Haqiqatan ham ular uzoq",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s23t1_1",
+              "text": "إِنَّهَا",
+              "meaning": "haqiqatan, u (yulduzlarga qaytadi)",
+              "partOfSpeech": "Ta’kid harfi va olmosh"
+            },
+            {
+              "id": "s23t1_2",
+              "text": "بَعِيدَةٌ",
+              "meaning": "uzoq",
+              "partOfSpeech": "Sifat"
+            },
+            {
+              "id": "s23t1_3",
+              "text": "فِعْلًا",
+              "meaning": "haqiqatan",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            }
+          ]
+        },
+        {
+          "id": "s23g2",
+          "ar": "يَا هُومَا",
+          "uz": "ey Huma.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s23t2_1",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s23t2_2",
+              "text": "هُومَا",
+              "meaning": "Huma",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        }
+      ],
+      "grammar": "إِنَّهَا tarkibidagi ـهَا nooqil ko‘plik النُّجُومُga muannas birlik sifatida qaytadi. بَعِيدَةٌ ham muannas birlikdagi xabar."
+    },
+    {
+      "id": "s24",
+      "start": 110.7,
+      "end": 113.66,
+      "groups": [
+        {
+          "id": "s24g1",
+          "ar": "وَلٰكِنَّكَ",
+          "uz": "Lekin sen",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s24t1_1",
+              "text": "وَلٰكِنَّكَ",
+              "meaning": "lekin sen",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s24g2",
+          "ar": "أَخْطَأْتَ",
+          "uz": "xato qilding.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s24t2_1",
+              "text": "أَخْطَأْتَ",
+              "meaning": "sen xato qilding",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s24g3",
+          "ar": "فِي أَسْمَاءِ الْإِشَارَةِ",
+          "uz": "ko‘rsatish olmoshlarida",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s24t3_1",
+              "text": "فِي",
+              "meaning": "-da, borasida",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s24t3_2",
+              "text": "أَسْمَاءِ",
+              "meaning": "ismlari, olmoshlari",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s24t3_3",
+              "text": "الْإِشَارَةِ",
+              "meaning": "ko‘rsatish",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "لٰكِنَّكَ — «lekin sen». أَخْطَأْتَ — o‘tgan zamon: «xato qilding». فِي أَسْمَاءِ الْإِشَارَةِ qaysi masalada xato bo‘lganini bildiradi."
+    },
+    {
+      "id": "s25",
+      "start": 113.66,
+      "end": 115,
+      "groups": [
+        {
+          "id": "s25g1",
+          "ar": "كَيْفَ",
+          "uz": "Qanday qilib?",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s25t1_1",
+              "text": "كَيْفَ",
+              "meaning": "qanday",
+              "partOfSpeech": "So‘roq ismi"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَيْفَ — «qanday?» so‘roq so‘zi. Huma tushuntirish so‘rayapti."
+    },
+    {
+      "id": "s26",
+      "start": 115,
+      "end": 118.4,
+      "groups": [
+        {
+          "id": "s26g1",
+          "ar": "لَقَدِ",
+          "uz": "Axir",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s26t1_1",
+              "text": "لَقَدِ",
+              "meaning": "axir (ta’kid)",
+              "partOfSpeech": "Ta’kid harflari"
+            }
+          ]
+        },
+        {
+          "id": "s26g2",
+          "ar": "اسْتَخْدَمْتُ",
+          "uz": "ishlatdim-ku.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s26t2_1",
+              "text": "اسْتَخْدَمْتُ",
+              "meaning": "men ishlatdim",
+              "partOfSpeech": "Fe’l (qo‘shimchali shakl)"
+            }
+          ]
+        },
+        {
+          "id": "s26g3",
+          "ar": "اسْمَ الْإِشَارَةِ هَؤُلَاءِ",
+          "uz": "«هؤلاء» ko‘rsatish olmoshini",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s26t3_1",
+              "text": "اسْمَ",
+              "meaning": "ismini, olmoshini",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s26t3_2",
+              "text": "الْإِشَارَةِ",
+              "meaning": "ko‘rsatish",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s26t3_3",
+              "text": "هَؤُلَاءِ",
+              "meaning": "bular (insonlar uchun)",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        }
+      ],
+      "grammar": "اِسْتَخْدَمْتُ — «men ishlatdim», so‘zlovchi Huma. هَؤُلَاءِ bu gapda olmoshning nomi sifatida keltirilgan."
+    },
+    {
+      "id": "s27",
+      "start": 118.4,
+      "end": 120.35,
+      "groups": [
+        {
+          "id": "s27g1",
+          "ar": "وَهُوَ يُشِيرُ إِلَى الْجَمْعِ",
+          "uz": "U ko‘plikka ishora qiladi.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s27t1_1",
+              "text": "وَهُوَ",
+              "meaning": "u esa",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            },
+            {
+              "id": "s27t1_2",
+              "text": "يُشِيرُ",
+              "meaning": "u ishora qiladi",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s27t1_3",
+              "text": "إِلَى",
+              "meaning": "-ga",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s27t1_4",
+              "text": "الْجَمْعِ",
+              "meaning": "ko‘plik",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "وَهُوَ dagi هُوَ olmoshning o‘ziga qaytadi. Huma qoida haqida hali to‘liq bo‘lmagan tushunchasini aytadi."
+    },
+    {
+      "id": "s28",
+      "start": 120.6,
+      "end": 122.54,
+      "groups": [
+        {
+          "id": "s28g1",
+          "ar": "وَالنُّجُومُ جَمْعٌ",
+          "uz": "Yulduzlar ham ko‘plik-ku.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s28t1_1",
+              "text": "وَالنُّجُومُ",
+              "meaning": "yulduzlar esa",
+              "partOfSpeech": "Ism va bog‘lovchi"
+            },
+            {
+              "id": "s28t1_2",
+              "text": "جَمْعٌ",
+              "meaning": "ko‘plik",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "النُّجُومُ — نَجْمٌning siniq ko‘pligi. Bu ot nooqil ko‘plik; oddiygina «ko‘plik» bo‘lish هَؤُلَاءِni tanlash uchun yetarli emas."
+    },
+    {
+      "id": "s29",
+      "start": 122.54,
+      "end": 126.6,
+      "groups": [
+        {
+          "id": "s29g1",
+          "ar": "كَانَ يَجِبُ أَنْ تَقُولَ",
+          "uz": "Sen deyishing kerak edi:",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s29t1_1",
+              "text": "كَانَ",
+              "meaning": "edi",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s29t1_2",
+              "text": "يَجِبُ",
+              "meaning": "kerak bo‘ladi",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s29t1_3",
+              "text": "أَنْ",
+              "meaning": "...ishni",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s29t1_4",
+              "text": "تَقُولَ",
+              "meaning": "sen aytishing",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s29g2",
+          "ar": "هٰذِهِ النُّجُومُ",
+          "uz": "«Bu yulduzlar» — هٰذِهِ النُّجُومُ.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s29t2_1",
+              "text": "هٰذِهِ",
+              "meaning": "bu (muannas; nooqil ko‘plikka ham)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s29t2_2",
+              "text": "النُّجُومُ",
+              "meaning": "yulduzlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "كَانَ يَجِبُ أَنْ تَقُولَ — «sen ... deyishing kerak edi». أَنْdan keyingi تَقُولَ mansub. هٰذِهِ nooqil ko‘plik uchun muannas birlikda ishlatilgan."
+    },
+    {
+      "id": "s30",
+      "start": 126.98,
+      "end": 129.92,
+      "groups": [
+        {
+          "id": "s30g1",
+          "ar": "بَدَلًا مِنْ هَؤُلَاءِ النُّجُومِ",
+          "uz": "«هؤلاء النجوم» deyish o‘rniga.",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s30t1_1",
+              "text": "بَدَلًا",
+              "meaning": "o‘rniga",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            },
+            {
+              "id": "s30t1_2",
+              "text": "مِنْ",
+              "meaning": "-dan",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s30t1_3",
+              "text": "هَؤُلَاءِ",
+              "meaning": "bular (insonlar uchun; bu yerda xato)",
+              "partOfSpeech": "Olmosh"
+            },
+            {
+              "id": "s30t1_4",
+              "text": "النُّجُومِ",
+              "meaning": "yulduzlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "بَدَلًا مِنْ — «... o‘rniga». هَؤُلَاءِ النُّجُومِ bu yerda avvalgi xato ibora iqtibosi; tavsiya etilayotgan javob emas."
+    },
+    {
+      "id": "s31",
+      "start": 129.92,
+      "end": 135.4,
+      "groups": [
+        {
+          "id": "s31g1",
+          "ar": "لِأَنَّ هٰذِهِ",
+          "uz": "Chunki «هذه»",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s31t1_1",
+              "text": "لِأَنَّ",
+              "meaning": "chunki",
+              "partOfSpeech": "Sababni bildiruvchi harf"
+            },
+            {
+              "id": "s31t1_2",
+              "text": "هٰذِهِ",
+              "meaning": "bu (muannas)",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s31g2",
+          "ar": "تُشِيرُ",
+          "uz": "ishora qiladi.",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s31t2_1",
+              "text": "تُشِيرُ",
+              "meaning": "u ishora qiladi",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s31g3",
+          "ar": "إِلَى الْجَمْعِ غَيْرِ الْعَاقِلِ",
+          "uz": "nooqil ko‘plikka",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s31t3_1",
+              "text": "إِلَى",
+              "meaning": "-ga",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s31t3_2",
+              "text": "الْجَمْعِ",
+              "meaning": "ko‘plik",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s31t3_3",
+              "text": "غَيْرِ",
+              "meaning": "... bo‘lmagan",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s31t3_4",
+              "text": "الْعَاقِلِ",
+              "meaning": "oqil, inson",
+              "partOfSpeech": "Sifat"
+            }
+          ]
+        }
+      ],
+      "grammar": "Asosiy qoida: nooqil ko‘plik odatda muannas birlik kabi moslashadi: هٰذِهِ النُّجُومُ. غَيْرِ الْعَاقِلِ — «inson bo‘lmagan narsalarga oid». Bu umumiy o‘quv qoidasidir."
+    },
+    {
+      "id": "s32",
+      "start": 135.4,
+      "end": 139.06,
+      "groups": [
+        {
+          "id": "s32g1",
+          "ar": "أَمَّا هَؤُلَاءِ",
+          "uz": "«هؤلاء» esa",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s32t1_1",
+              "text": "أَمَّا",
+              "meaning": "... esa",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s32t1_2",
+              "text": "هَؤُلَاءِ",
+              "meaning": "bular (insonlar uchun)",
+              "partOfSpeech": "Olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s32g2",
+          "ar": "تُسْتَخْدَمُ مَعَ الْجَمْعِ الْعَاقِلِ",
+          "uz": "oqil ko‘plik bilan ishlatiladi.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s32t2_1",
+              "text": "تُسْتَخْدَمُ",
+              "meaning": "ishlatiladi",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s32t2_2",
+              "text": "مَعَ",
+              "meaning": "bilan",
+              "partOfSpeech": "Ism · birgalik ma’nosida"
+            },
+            {
+              "id": "s32t2_3",
+              "text": "الْجَمْعِ",
+              "meaning": "ko‘plik",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s32t2_4",
+              "text": "الْعَاقِلِ",
+              "meaning": "oqil, insonlarga oid",
+              "partOfSpeech": "Sifat"
+            }
+          ]
+        }
+      ],
+      "grammar": "أَمَّا ... esa taqqoslash uchun. هَؤُلَاءِ oqil ko‘plik, ya’ni insonlar guruhiga ishora qiladi. تُسْتَخْدَمُ — majhul nisbat: «ishlatiladi»."
+    },
+    {
+      "id": "s33",
+      "start": 139.06,
+      "end": 143.74,
+      "groups": [
+        {
+          "id": "s33g1",
+          "ar": "حَسَنًا يَا جُحَا",
+          "uz": "Xo‘p, ey Juho,",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s33t1_1",
+              "text": "حَسَنًا",
+              "meaning": "xo‘p",
+              "partOfSpeech": "Ravish ma’nosidagi birikma"
+            },
+            {
+              "id": "s33t1_2",
+              "text": "يَا",
+              "meaning": "ey",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s33t1_3",
+              "text": "جُحَا",
+              "meaning": "Juho",
+              "partOfSpeech": "Atoqli ot"
+            }
+          ]
+        },
+        {
+          "id": "s33g2",
+          "ar": "لَنْ أُشِيرَ",
+          "uz": "ishora qilmayman.",
+          "order": 3,
+          "tokens": [
+            {
+              "id": "s33t2_1",
+              "text": "لَنْ",
+              "meaning": "endi ...mayman",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s33t2_2",
+              "text": "أُشِيرَ",
+              "meaning": "men ishora qilaman",
+              "partOfSpeech": "Fe’l"
+            }
+          ]
+        },
+        {
+          "id": "s33g3",
+          "ar": "بِهَؤُلَاءِ إِلَى النُّجُومِ",
+          "uz": "«هؤلاء» bilan yulduzlarga",
+          "order": 2,
+          "tokens": [
+            {
+              "id": "s33t3_1",
+              "text": "بِهَؤُلَاءِ",
+              "meaning": "«bular» olmoshi bilan",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            },
+            {
+              "id": "s33t3_2",
+              "text": "إِلَى",
+              "meaning": "-ga",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s33t3_3",
+              "text": "النُّجُومِ",
+              "meaning": "yulduzlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        },
+        {
+          "id": "s33g4",
+          "ar": "بَعْدَ الْآنِ",
+          "uz": "bundan keyin",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s33t4_1",
+              "text": "بَعْدَ",
+              "meaning": "keyin",
+              "partOfSpeech": "Ism · vaqt ravishi"
+            },
+            {
+              "id": "s33t4_2",
+              "text": "الْآنِ",
+              "meaning": "hozir",
+              "partOfSpeech": "Ism · vaqt ravishi"
+            }
+          ]
+        }
+      ],
+      "grammar": "لَنْ + أُشِيرَ kelajakdagi inkorni bildiradi: «endi ishora qilmayman». بِهَؤُلَاءِ — olmosh bilan ishora qilish. بَعْدَ الْآنِ — «bundan keyin»."
+    },
+    {
+      "id": "s34",
+      "start": 143.74,
+      "end": 148.1,
+      "groups": [
+        {
+          "id": "s34g1",
+          "ar": "يُمْكِنُكَ أَنْ تُشِيرَ بِهَا",
+          "uz": "u bilan ishora qilishing mumkin.",
+          "order": 1,
+          "tokens": [
+            {
+              "id": "s34t1_1",
+              "text": "يُمْكِنُكَ",
+              "meaning": "senga mumkin",
+              "partOfSpeech": "Fe’l (qo‘shimchali shakl)"
+            },
+            {
+              "id": "s34t1_2",
+              "text": "أَنْ",
+              "meaning": "...ishing",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s34t1_3",
+              "text": "تُشِيرَ",
+              "meaning": "sen ishora qilishing",
+              "partOfSpeech": "Fe’l"
+            },
+            {
+              "id": "s34t1_4",
+              "text": "بِهَا",
+              "meaning": "u bilan",
+              "partOfSpeech": "Yordamchi so‘z va olmosh"
+            }
+          ]
+        },
+        {
+          "id": "s34g2",
+          "ar": "إِلَى النُّجُومِ الْمَشْهُورِينَ مِنَ الْبَشَرِ",
+          "uz": "Insonlar orasidagi mashhur «yulduz»larga",
+          "order": 0,
+          "tokens": [
+            {
+              "id": "s34t2_1",
+              "text": "إِلَى",
+              "meaning": "-ga",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s34t2_2",
+              "text": "النُّجُومِ",
+              "meaning": "yulduzlar",
+              "partOfSpeech": "Ism"
+            },
+            {
+              "id": "s34t2_3",
+              "text": "الْمَشْهُورِينَ",
+              "meaning": "mashhur insonlar",
+              "partOfSpeech": "Sifat"
+            },
+            {
+              "id": "s34t2_4",
+              "text": "مِنَ",
+              "meaning": "-dan, orasidan",
+              "partOfSpeech": "Harf / yordamchi so‘z"
+            },
+            {
+              "id": "s34t2_5",
+              "text": "الْبَشَرِ",
+              "meaning": "insonlar",
+              "partOfSpeech": "Ism"
+            }
+          ]
+        }
+      ],
+      "grammar": "نُجُومٌ ikki ma’noli: osmon yulduzlari va mashhur insonlar. Mashhur insonlar nazarda tutilsa هَؤُلَاءِ ishlatiladi. أَنْ تُشِيرَ tarkibida fe’l mansub; الْمَشْهُورِينَ oqil ko‘plik sifatidir."
+    }
+  ],
+  "words": [
+    {
+      "id": "camp",
+      "word": "سَنُخَيِّمُ",
+      "meaning": "biz chodir tikib tunaymiz",
+      "partOfSpeech": "Fe’l",
+      "segmentId": "s4",
+      "grammar": "هٰذَا — yaqin turgan birlik muzakkarga ishora. الْمَكَانُ — joy. الَّذِي bog‘lovchi olmoshidan keyingi gap joyni aniqlaydi; سَـ kelasi zamonni bildiradi.",
+      "image": "/learning-assets/juho1-tent.webp"
+    },
+    {
+      "id": "stars",
+      "word": "النَّجْمَتَانِ",
+      "meaning": "ikki yulduz",
+      "partOfSpeech": "Ism · ikkilik",
+      "segmentId": "s15",
+      "grammar": "هَاتَانِ — yaqin turgan ikkita muannas narsaga ishora, raf holatida. النَّجْمَتَانِ va تَلْمَعَانِ ham ikkilik shaklda. بِشِدَّةٍ — ravish ma’nosida «kuchli».",
+      "image": "/learning-assets/juho1-stars.webp"
+    },
+    {
+      "id": "figurative",
+      "word": "كَسْرٌ مَعْنَوِيٌّ",
+      "meaning": "ko‘chma ma’nodagi buzish",
+      "partOfSpeech": "Otli birikma",
+      "segmentId": "s1",
+      "grammar": "إِنَّ — ta’kid yuklamasi; ـهُ uning ismi, كَسْرٌ xabari. مَعْنَوِيٌّ sifat. Bu yerda «buzish» ko‘chma ma’noda."
+    },
+    {
+      "id": "rules",
+      "word": "الْقَوَاعِدُ",
+      "meaning": "qoidalar",
+      "partOfSpeech": "Ism · siniq ko‘plik",
+      "segmentId": "s2",
+      "grammar": "كَسْرِ الْقَوَاعِدِ — izofa: qoidalarni buzish. وَ — bog‘lovchi. Huma «buzish»ni jismonan sindirish deb tushunadi."
+    },
+    {
+      "id": "laws",
+      "word": "الْقَوَانِينُ",
+      "meaning": "qonunlar",
+      "partOfSpeech": "Ism · siniq ko‘plik",
+      "segmentId": "s2",
+      "grammar": "كَسْرِ الْقَوَاعِدِ — izofa: qoidalarni buzish. وَ — bog‘lovchi. Huma «buzish»ni jismonan sindirish deb tushunadi."
+    },
+    {
+      "id": "glass",
+      "word": "الزُّجَاجُ",
+      "meaning": "oyna, shisha",
+      "partOfSpeech": "Ism",
+      "segmentId": "s3",
+      "grammar": "لِمَاذَا — sabab so‘rog‘i. يَصْنَعُونَ — ko‘plikdagi hozirgi zamon fe’li. مِنَ الزُّجَاجِ materialni bildiradi; qahramonning so‘zi so‘zma-so‘z tushunishga asoslangan hazil."
+    },
+    {
+      "id": "demonstrative",
+      "word": "اسْمُ الْإِشَارَةِ",
+      "meaning": "ko‘rsatish olmoshi",
+      "partOfSpeech": "Izofa birikmasi",
+      "segmentId": "s7",
+      "grammar": "لَا ... بَلْ — oldingi taxminni inkor qilib tuzatish. اِسْتِخْدَامَكَ — «sening ishlatishing»; ـكَ ikkinchi shaxs qo‘shimchasi. هٰذَا bu yerda til birligi sifatida tilga olingan."
+    },
+    {
+      "id": "scary",
+      "word": "مُخِيفٌ",
+      "meaning": "qo‘rqinchli",
+      "partOfSpeech": "Sifat",
+      "segmentId": "s10",
+      "grammar": "إِنَّهُ — «haqiqatan ham bu». مَكَانٌ xabar, مُخِيفٌ unga ergashgan sifat: «qo‘rqinchli joy»."
+    },
+    {
+      "id": "relax",
+      "word": "الِاسْتِرْخَاءُ",
+      "meaning": "dam olish, bo‘shashish",
+      "partOfSpeech": "Masdar",
+      "segmentId": "s14",
+      "grammar": "مَا أَفْعَلَ ... — taajjub qolipi. مَا أَجْمَلَ الِاسْتِرْخَاءَ — «Dam olish naqadar yoqimli!»; الِاسْتِرْخَاءَ bu qolipda mansub.",
+      "image": "/learning-assets/juho1-relax.webp"
+    },
+    {
+      "id": "shine",
+      "word": "تَلْمَعَانِ",
+      "meaning": "ikkalasi porlayapti",
+      "partOfSpeech": "Fe’l · ikkilik",
+      "segmentId": "s15",
+      "grammar": "هَاتَانِ — yaqin turgan ikkita muannas narsaga ishora, raf holatida. النَّجْمَتَانِ va تَلْمَعَانِ ham ikkilik shaklda. بِشِدَّةٍ — ravish ma’nosida «kuchli»."
+    },
+    {
+      "id": "trick",
+      "word": "خُدْعَةٌ",
+      "meaning": "hiyla, nayrang",
+      "partOfSpeech": "Ism",
+      "segmentId": "s16",
+      "grammar": "هٰذِهِ — muannas birlikka ishora. خُدْعَةٌ muannas ot bo‘lgani uchun هٰذِهِ tanlangan. مِنْكَ — «sendan», kontekstda «sening»."
+    },
+    {
+      "id": "review",
+      "word": "مُرَاجَعَةٌ",
+      "meaning": "takrorlash",
+      "partOfSpeech": "Masdar",
+      "segmentId": "s17",
+      "grammar": "تُحَاوِلُ + masdar — «... qilishga urinyapsan». مُرَاجَعَةَ دَرْسِ أَسْمَاءِ الْإِشَارَةِ ketma-ket izofa birikmasidir."
+    },
+    {
+      "id": "plan",
+      "word": "خُطَّتِي",
+      "meaning": "mening rejam",
+      "partOfSpeech": "Ism va egalik olmoshi",
+      "segmentId": "s20",
+      "grammar": "لَقَدْ o‘tgan voqeani ta’kidlaydi. كَشَفْتَ — «sen fosh qilding»; خُطَّتِي — «mening rejam». Eski matndagi خَطَاتِي shakli xato edi."
+    },
+    {
+      "id": "expose",
+      "word": "كَشَفْتَ",
+      "meaning": "sen fosh qilding",
+      "partOfSpeech": "Fe’l · o‘tgan zamon",
+      "segmentId": "s20",
+      "grammar": "لَقَدْ o‘tgan voqeani ta’kidlaydi. كَشَفْتَ — «sen fosh qilding»; خُطَّتِي — «mening rejam». Eski matndagi خَطَاتِي shakli xato edi."
+    },
+    {
+      "id": "famous",
+      "word": "يُضْرَبُ بِهِ الْمَثَلُ",
+      "meaning": "tillarda doston; dong‘i ketgan",
+      "partOfSpeech": "Turg‘un ibora",
+      "segmentId": "s21",
+      "grammar": "يُضْرَبُ بِهِ الْمَثَلُ — majhul nisbatdagi turg‘un ibora: «u bilan misol keltiriladi; dong‘i ketgan». Uni «misol bilan uriladi» deb tarjima qilish noto‘g‘ri."
+    },
+    {
+      "id": "instead",
+      "word": "بَدَلًا مِنْ",
+      "meaning": "... o‘rniga",
+      "partOfSpeech": "Birikma",
+      "segmentId": "s30",
+      "grammar": "بَدَلًا مِنْ — «... o‘rniga». هَؤُلَاءِ النُّجُومِ bu yerda avvalgi xato ibora iqtibosi; tavsiya etilayotgan javob emas."
+    },
+    {
+      "id": "nonhuman",
+      "word": "الْجَمْعُ غَيْرُ الْعَاقِلِ",
+      "meaning": "nooqil ko‘plik: inson bo‘lmagan narsalar ko‘pligi",
+      "partOfSpeech": "Grammatik atama",
+      "segmentId": "s31",
+      "grammar": "Asosiy qoida: nooqil ko‘plik odatda muannas birlik kabi moslashadi: هٰذِهِ النُّجُومُ. غَيْرِ الْعَاقِلِ — «inson bo‘lmagan narsalarga oid». Bu umumiy o‘quv qoidasidir."
+    },
+    {
+      "id": "human",
+      "word": "الْجَمْعُ الْعَاقِلُ",
+      "meaning": "oqil ko‘plik: insonlar ko‘pligi",
+      "partOfSpeech": "Grammatik atama",
+      "segmentId": "s32",
+      "grammar": "أَمَّا ... esa taqqoslash uchun. هَؤُلَاءِ oqil ko‘plik, ya’ni insonlar guruhiga ishora qiladi. تُسْتَخْدَمُ — majhul nisbat: «ishlatiladi»."
+    },
+    {
+      "id": "this",
+      "word": "هٰذِهِ",
+      "meaning": "bu: muannas birlik yoki nooqil ko‘plik",
+      "partOfSpeech": "Ko‘rsatish olmoshi",
+      "segmentId": "s16",
+      "grammar": "هٰذِهِ — muannas birlikka ishora. خُدْعَةٌ muannas ot bo‘lgani uchun هٰذِهِ tanlangan. مِنْكَ — «sendan», kontekstda «sening»."
+    },
+    {
+      "id": "these",
+      "word": "هَؤُلَاءِ",
+      "meaning": "bular: insonlar guruhi",
+      "partOfSpeech": "Ko‘rsatish olmoshi",
+      "segmentId": "s32",
+      "grammar": "أَمَّا ... esa taqqoslash uchun. هَؤُلَاءِ oqil ko‘plik, ya’ni insonlar guruhiga ishora qiladi. تُسْتَخْدَمُ — majhul nisbat: «ishlatiladi»."
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch1",
+      "title": "«Buzish» ma’nosidagi hazil",
+      "start": 0,
+      "end": 10.8
+    },
+    {
+      "id": "ch2",
+      "title": "Joy va ko‘rsatish olmoshi",
+      "start": 23.24,
+      "end": 50.38
+    },
+    {
+      "id": "ch3",
+      "title": "Dam olish va ikki yulduz",
+      "start": 66.02,
+      "end": 103.32
+    },
+    {
+      "id": "ch4",
+      "title": "هذه yoki هؤلاء?",
+      "start": 103.32,
+      "end": 148.12
+    }
+  ],
+  "questions": [
+    {
+      "id": "p1",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Huma suhbat boshida nimani so‘zma-so‘z tushunib qoldi?",
+      "segmentId": "s3",
+      "wordId": "figurative",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Yo‘l topish haqidagi gapni"
+        },
+        {
+          "id": "c1",
+          "text": "Qoidalarni buzish haqidagi gapni"
+        },
+        {
+          "id": "c2",
+          "text": "Chodir tikish haqidagi gapni"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "كَسْرٌ ko‘chma ma’noda «buzish» bo‘lsa-da, Huma uni oynadek «sindirish» deb tushunadi."
+    },
+    {
+      "id": "p2",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Huma «جَمِيلٌ جِدًّا» deganda nimani maqtadi?",
+      "segmentId": "s7",
+      "wordId": "demonstrative",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Faqat sahroning manzarasini"
+        },
+        {
+          "id": "c1",
+          "text": "Juhoning yangi chodirini"
+        },
+        {
+          "id": "c2",
+          "text": "Juhoning «هذا»ni ishlatganini"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "U joyni emas, Juhoning ko‘rsatish olmoshini to‘g‘ri ishlatganini nazarda tutgan."
+    },
+    {
+      "id": "p3",
+      "kind": "audio",
+      "phase": "practice",
+      "prompt": "Gapni tinglang. Huma qayerda chodir tikishni afzal ko‘rardi?",
+      "segmentId": "s11",
+      "wordId": "camp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Uydagi televizor oldida"
+        },
+        {
+          "id": "c1",
+          "text": "Uzoq yulduzlar ostida"
+        },
+        {
+          "id": "c2",
+          "text": "Qishloq yo‘li yonida"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "Huma «فِي صَالَةِ الْمَنْزِلِ أَمَامَ التِّلْفَازِ» deydi."
+    },
+    {
+      "id": "p4",
+      "kind": "cloze",
+      "phase": "practice",
+      "prompt": "Ikkita yulduzga mos olmoshni tanlang.",
+      "segmentId": "s15",
+      "wordId": "stars",
+      "sentence": "___ النَّجْمَتَانِ تَلْمَعَانِ بِشِدَّةٍ",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "هَؤُلَاءِ"
+        },
+        {
+          "id": "c1",
+          "text": "هَاتَانِ"
+        },
+        {
+          "id": "c2",
+          "text": "هٰذَا"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "النَّجْمَتَانِ — muannas ikkilik raf shakli; هَاتَانِ unga mos."
+    },
+    {
+      "id": "p5",
+      "kind": "cloze",
+      "phase": "practice",
+      "prompt": "Birikmani to‘ldiring: «Bu sening hiylang».",
+      "segmentId": "s16",
+      "wordId": "trick",
+      "sentence": "___ خُدْعَةٌ مِنْكَ",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "هٰذَا"
+        },
+        {
+          "id": "c1",
+          "text": "هَؤُلَاءِ"
+        },
+        {
+          "id": "c2",
+          "text": "هٰذِهِ"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "خُدْعَةٌ muannas birlik bo‘lgani uchun هٰذِهِ ishlatiladi."
+    },
+    {
+      "id": "p6",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Juho nima uchun Huma hiyla ishlatyapti deb o‘yladi?",
+      "segmentId": "s17",
+      "wordId": "review",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Uni majburan uyga qaytarmoqchi edi"
+        },
+        {
+          "id": "c1",
+          "text": "Dam olish paytida darsni takrorlatmoqchi edi"
+        },
+        {
+          "id": "c2",
+          "text": "Yulduzlarni undan yashirmoqchi edi"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "أَنْتَ تُحَاوِلُ مُرَاجَعَةَ دَرْسِ أَسْمَاءِ الْإِشَارَةِ — darsni takrorlashga urinish."
+    },
+    {
+      "id": "p7",
+      "kind": "error",
+      "phase": "practice",
+      "prompt": "Osmondagi yulduzlar haqida aytilgan gapdagi xato so‘zni bosing, keyin uning o‘rnini tanlang.",
+      "segmentId": "s22",
+      "wordId": "this",
+      "tokens": [
+        "هَؤُلَاءِ",
+        "النُّجُومُ",
+        "بَعِيدَةٌ"
+      ],
+      "choices": [
+        {
+          "id": "c0",
+          "text": "هٰذَا"
+        },
+        {
+          "id": "c1",
+          "text": "هٰذِهِ"
+        },
+        {
+          "id": "c2",
+          "text": "هَاتَانِ"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1",
+        "tokenIndex": 0
+      },
+      "explanation": "النُّجُومُ nooqil ko‘plik. Bu kontekstda هَؤُلَاءِ o‘rniga هٰذِهِ ishlatiladi."
+    },
+    {
+      "id": "p8",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Nega «النُّجُومُ» bilan «هذه» ishlatiladi?",
+      "segmentId": "s31",
+      "wordId": "nonhuman",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Chunki barcha ko‘pliklar shunday ishlatiladi"
+        },
+        {
+          "id": "c1",
+          "text": "Chunki faqat ikkita yulduz bor"
+        },
+        {
+          "id": "c2",
+          "text": "Chunki bu nooqil ko‘plikdir"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "Nooqil ko‘plik odatda muannas birlik kabi moslashadi; oqil ko‘plik bilan هَؤُلَاءِ ishlatiladi."
+    },
+    {
+      "id": "p9",
+      "kind": "choice",
+      "phase": "practice",
+      "prompt": "Oxirgi hazilda «yulduzlar» deganda kimlar nazarda tutilgan?",
+      "segmentId": "s34",
+      "wordId": "these",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Osmondagi eng yorqin yulduzlar"
+        },
+        {
+          "id": "c1",
+          "text": "Insonlar orasidagi mashhur kishilar"
+        },
+        {
+          "id": "c2",
+          "text": "Sahroda birga dam olgan sayyohlar"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "النُّجُومُ الْمَشْهُورُونَ مِنَ الْبَشَرِ — mashhur insonlar. Ularga هَؤُلَاءِ bilan ishora qilsa bo‘ladi."
+    },
+    {
+      "id": "p10",
+      "kind": "order",
+      "phase": "practice",
+      "prompt": "Hikoyadagi voqealarni sodir bo‘lgan tartibida joylashtiring.",
+      "segmentId": "s34",
+      "tokens": [
+        "Juho mashhur insonlar haqidagi hazil bilan yakunlaydi.",
+        "Huma «هذا» olmoshining ishlatilganini maqtaydi.",
+        "Juho yulduzlar uchun «هذه» kerakligini tushuntiradi.",
+        "Huma ikki yulduzning porlashini aytadi."
+      ],
+      "answer": {
+        "order": [
+          1,
+          3,
+          2,
+          0
+        ]
+      },
+      "explanation": "Avval joy va «هذا» haqida suhbat, keyin ikki yulduz, undan so‘ng nooqil ko‘plik qoidasi, oxirida «mashhur yulduzlar» hazili."
+    },
+    {
+      "id": "p11",
+      "kind": "order",
+      "phase": "practice",
+      "prompt": "Arabcha gapni to‘g‘ri tartibga keltiring.",
+      "segmentId": "s15",
+      "wordId": "shine",
+      "tokens": [
+        "بِشِدَّةٍ",
+        "النَّجْمَتَانِ",
+        "هَاتَانِ",
+        "تَلْمَعَانِ"
+      ],
+      "answer": {
+        "order": [
+          2,
+          1,
+          3,
+          0
+        ]
+      },
+      "explanation": "هَاتَانِ النَّجْمَتَانِ تَلْمَعَانِ بِشِدَّةٍ — ikki yulduz kuchli porlayapti."
+    },
+    {
+      "id": "p12",
+      "kind": "match",
+      "phase": "practice",
+      "prompt": "Ko‘rsatish olmoshlarini mos misollar bilan juftlang.",
+      "segmentId": "s32",
+      "pairs": [
+        {
+          "id": "a",
+          "left": "هٰذَا",
+          "right": "الْمَكَانُ — bu joy"
+        },
+        {
+          "id": "b",
+          "left": "هٰذِهِ",
+          "right": "النُّجُومُ — bu yulduzlar"
+        },
+        {
+          "id": "c",
+          "left": "هَاتَانِ",
+          "right": "النَّجْمَتَانِ — bu ikki yulduz"
+        },
+        {
+          "id": "d",
+          "left": "هَؤُلَاءِ",
+          "right": "الْمُعَلِّمُونَ — bu o‘qituvchilar"
+        }
+      ],
+      "answer": {
+        "pairs": [
+          [
+            "a",
+            "a"
+          ],
+          [
+            "b",
+            "b"
+          ],
+          [
+            "c",
+            "c"
+          ],
+          [
+            "d",
+            "d"
+          ]
+        ]
+      },
+      "explanation": "Muzakkar birlik: هذا; nooqil ko‘plik: هذه; muannas ikkilik: هاتان; oqil ko‘plik: هؤلاء."
+    },
+    {
+      "id": "p13",
+      "kind": "audio",
+      "phase": "practice",
+      "prompt": "Gapni tinglang. Qaysi ma’no mos?",
+      "segmentId": "s20",
+      "wordId": "plan",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "Rejamni osongina fosh qilding."
+        },
+        {
+          "id": "c1",
+          "text": "Rejamni yashirincha o‘zgartirding."
+        },
+        {
+          "id": "c2",
+          "text": "Rejamni birgalikda amalga oshirdik."
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "خُطَّتِي — mening rejam; كَشَفْتَ — sen fosh qilding; بِسُهُولَةٍ — osonlik bilan."
+    },
+    {
+      "id": "p14",
+      "kind": "cloze",
+      "phase": "practice",
+      "prompt": "Kelajakdagi inkorni to‘ldiring.",
+      "segmentId": "s33",
+      "wordId": "these",
+      "sentence": "___ أُشِيرَ بِهَؤُلَاءِ إِلَى النُّجُومِ بَعْدَ الْآنِ",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "لَنْ"
+        },
+        {
+          "id": "c1",
+          "text": "لَمْ"
+        },
+        {
+          "id": "c2",
+          "text": "هَلْ"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "لَنْ + mansub muzori’ kelajakdagi inkorni bildiradi. لَمْ bilan fe’l majzum bo‘lardi."
+    },
+    {
+      "id": "v1",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "Rasmga mos ma’noni tanlang.",
+      "segmentId": "s4",
+      "wordId": "camp",
+      "image": "/learning-assets/juho1-tent.webp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "biz chodir tikib tunaymiz"
+        },
+        {
+          "id": "c1",
+          "text": "biz dengizda suzamiz"
+        },
+        {
+          "id": "c2",
+          "text": "biz shaharga qaytamiz"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "سَنُخَيِّمُ — biz chodir tikib tunaymiz. هٰذَا — yaqin turgan birlik muzakkarga ishora. الْمَكَانُ — joy. الَّذِي bog‘lovchi olmoshidan keyingi gap joyni aniqlaydi; سَـ kelasi zamonni bildiradi."
+    },
+    {
+      "id": "v2",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "Rasmga mos ma’noni tanlang.",
+      "segmentId": "s15",
+      "wordId": "stars",
+      "image": "/learning-assets/juho1-stars.webp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "ikki sayyoh"
+        },
+        {
+          "id": "c1",
+          "text": "ikki yulduz"
+        },
+        {
+          "id": "c2",
+          "text": "ikki chodir"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "النَّجْمَتَانِ — ikki yulduz. هَاتَانِ — yaqin turgan ikkita muannas narsaga ishora, raf holatida. النَّجْمَتَانِ va تَلْمَعَانِ ham ikkilik shaklda. بِشِدَّةٍ — ravish ma’nosida «kuchli»."
+    },
+    {
+      "id": "v3",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«كَسْرٌ مَعْنَوِيٌّ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s1",
+      "wordId": "figurative",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "oynaning darz ketishi"
+        },
+        {
+          "id": "c1",
+          "text": "yo‘lning ikkiga ajralishi"
+        },
+        {
+          "id": "c2",
+          "text": "ko‘chma ma’nodagi buzish"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "كَسْرٌ مَعْنَوِيٌّ — ko‘chma ma’nodagi buzish. إِنَّ — ta’kid yuklamasi; ـهُ uning ismi, كَسْرٌ xabari. مَعْنَوِيٌّ sifat. Bu yerda «buzish» ko‘chma ma’noda."
+    },
+    {
+      "id": "v4",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "Darsdagi gapni tinglang. «الْقَوَاعِدُ» nimani anglatadi?",
+      "segmentId": "s2",
+      "wordId": "rules",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "qoidalar"
+        },
+        {
+          "id": "c1",
+          "text": "yulduzlar"
+        },
+        {
+          "id": "c2",
+          "text": "rejalari"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "الْقَوَاعِدُ — qoidalar. كَسْرِ الْقَوَاعِدِ — izofa: qoidalarni buzish. وَ — bog‘lovchi. Huma «buzish»ni jismonan sindirish deb tushunadi."
+    },
+    {
+      "id": "v5",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الْقَوَانِينُ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s2",
+      "wordId": "laws",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "qishloqlar"
+        },
+        {
+          "id": "c1",
+          "text": "qonunlar"
+        },
+        {
+          "id": "c2",
+          "text": "mehmonxonalar"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "الْقَوَانِينُ — qonunlar. كَسْرِ الْقَوَاعِدِ — izofa: qoidalarni buzish. وَ — bog‘lovchi. Huma «buzish»ni jismonan sindirish deb tushunadi."
+    },
+    {
+      "id": "v6",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الزُّجَاجُ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s3",
+      "wordId": "glass",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "yog‘och"
+        },
+        {
+          "id": "c1",
+          "text": "temir"
+        },
+        {
+          "id": "c2",
+          "text": "oyna, shisha"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "الزُّجَاجُ — oyna, shisha. لِمَاذَا — sabab so‘rog‘i. يَصْنَعُونَ — ko‘plikdagi hozirgi zamon fe’li. مِنَ الزُّجَاجِ materialni bildiradi; qahramonning so‘zi so‘zma-so‘z tushunishga asoslangan hazil."
+    },
+    {
+      "id": "v7",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«اسْمُ الْإِشَارَةِ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s7",
+      "wordId": "demonstrative",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "ko‘rsatish olmoshi"
+        },
+        {
+          "id": "c1",
+          "text": "so‘roq olmoshi"
+        },
+        {
+          "id": "c2",
+          "text": "kishilik olmoshi"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "اسْمُ الْإِشَارَةِ — ko‘rsatish olmoshi. لَا ... بَلْ — oldingi taxminni inkor qilib tuzatish. اِسْتِخْدَامَكَ — «sening ishlatishing»; ـكَ ikkinchi shaxs qo‘shimchasi. هٰذَا bu yerda til birligi sifatida tilga olingan."
+    },
+    {
+      "id": "v8",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "Darsdagi gapni tinglang. «مُخِيفٌ» nimani anglatadi?",
+      "segmentId": "s10",
+      "wordId": "scary",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "tinchlantiruvchi"
+        },
+        {
+          "id": "c1",
+          "text": "qo‘rqinchli"
+        },
+        {
+          "id": "c2",
+          "text": "hayratlanarli"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "مُخِيفٌ — qo‘rqinchli. إِنَّهُ — «haqiqatan ham bu». مَكَانٌ xabar, مُخِيفٌ unga ergashgan sifat: «qo‘rqinchli joy»."
+    },
+    {
+      "id": "v9",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الِاسْتِرْخَاءُ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s14",
+      "wordId": "relax",
+      "image": "/learning-assets/juho1-relax.webp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "shoshilish"
+        },
+        {
+          "id": "c1",
+          "text": "bahslashish"
+        },
+        {
+          "id": "c2",
+          "text": "dam olish, bo‘shashish"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "الِاسْتِرْخَاءُ — dam olish, bo‘shashish. مَا أَفْعَلَ ... — taajjub qolipi. مَا أَجْمَلَ الِاسْتِرْخَاءَ — «Dam olish naqadar yoqimli!»; الِاسْتِرْخَاءَ bu qolipda mansub."
+    },
+    {
+      "id": "v10",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«تَلْمَعَانِ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s15",
+      "wordId": "shine",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "ikkalasi porlayapti"
+        },
+        {
+          "id": "c1",
+          "text": "ikkalasi yashirinyapti"
+        },
+        {
+          "id": "c2",
+          "text": "ikkalasi yaqinlashyapti"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "تَلْمَعَانِ — ikkalasi porlayapti. هَاتَانِ — yaqin turgan ikkita muannas narsaga ishora, raf holatida. النَّجْمَتَانِ va تَلْمَعَانِ ham ikkilik shaklda. بِشِدَّةٍ — ravish ma’nosida «kuchli»."
+    },
+    {
+      "id": "v11",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«خُدْعَةٌ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s16",
+      "wordId": "trick",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "tasodif"
+        },
+        {
+          "id": "c1",
+          "text": "hiyla, nayrang"
+        },
+        {
+          "id": "c2",
+          "text": "maslahat"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "خُدْعَةٌ — hiyla, nayrang. هٰذِهِ — muannas birlikka ishora. خُدْعَةٌ muannas ot bo‘lgani uchun هٰذِهِ tanlangan. مِنْكَ — «sendan», kontekstda «sening»."
+    },
+    {
+      "id": "v12",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "Darsdagi gapni tinglang. «مُرَاجَعَةٌ» nimani anglatadi?",
+      "segmentId": "s17",
+      "wordId": "review",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "dam olish"
+        },
+        {
+          "id": "c1",
+          "text": "sayohat qilish"
+        },
+        {
+          "id": "c2",
+          "text": "takrorlash"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "مُرَاجَعَةٌ — takrorlash. تُحَاوِلُ + masdar — «... qilishga urinyapsan». مُرَاجَعَةَ دَرْسِ أَسْمَاءِ الْإِشَارَةِ ketma-ket izofa birikmasidir."
+    },
+    {
+      "id": "v13",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«خُطَّتِي»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s20",
+      "wordId": "plan",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "mening rejam"
+        },
+        {
+          "id": "c1",
+          "text": "mening xatom"
+        },
+        {
+          "id": "c2",
+          "text": "mening savolim"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "خُطَّتِي — mening rejam. لَقَدْ o‘tgan voqeani ta’kidlaydi. كَشَفْتَ — «sen fosh qilding»; خُطَّتِي — «mening rejam». Eski matndagi خَطَاتِي shakli xato edi."
+    },
+    {
+      "id": "v14",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«كَشَفْتَ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s20",
+      "wordId": "expose",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "sen yashirding"
+        },
+        {
+          "id": "c1",
+          "text": "sen fosh qilding"
+        },
+        {
+          "id": "c2",
+          "text": "sen takrorlading"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "كَشَفْتَ — sen fosh qilding. لَقَدْ o‘tgan voqeani ta’kidlaydi. كَشَفْتَ — «sen fosh qilding»; خُطَّتِي — «mening rejam». Eski matndagi خَطَاتِي shakli xato edi."
+    },
+    {
+      "id": "v15",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«يُضْرَبُ بِهِ الْمَثَلُ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s21",
+      "wordId": "famous",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "u misollarni unutgan"
+        },
+        {
+          "id": "c1",
+          "text": "u boshqalarni jazolaydi"
+        },
+        {
+          "id": "c2",
+          "text": "tillarda doston; dong‘i ketgan"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "يُضْرَبُ بِهِ الْمَثَلُ — tillarda doston; dong‘i ketgan. يُضْرَبُ بِهِ الْمَثَلُ — majhul nisbatdagi turg‘un ibora: «u bilan misol keltiriladi; dong‘i ketgan». Uni «misol bilan uriladi» deb tarjima qilish noto‘g‘ri."
+    },
+    {
+      "id": "v16",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "Darsdagi gapni tinglang. «بَدَلًا مِنْ» nimani anglatadi?",
+      "segmentId": "s30",
+      "wordId": "instead",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "... o‘rniga"
+        },
+        {
+          "id": "c1",
+          "text": "bilan birga"
+        },
+        {
+          "id": "c2",
+          "text": "sababli"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "بَدَلًا مِنْ — ... o‘rniga. بَدَلًا مِنْ — «... o‘rniga». هَؤُلَاءِ النُّجُومِ bu yerda avvalgi xato ibora iqtibosi; tavsiya etilayotgan javob emas."
+    },
+    {
+      "id": "v17",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الْجَمْعُ غَيْرُ الْعَاقِلِ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s31",
+      "wordId": "nonhuman",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "faqat ikki narsani bildiruvchi shakl"
+        },
+        {
+          "id": "c1",
+          "text": "nooqil ko‘plik: inson bo‘lmagan narsalar ko‘pligi"
+        },
+        {
+          "id": "c2",
+          "text": "faqat bir insonni bildiruvchi shakl"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "الْجَمْعُ غَيْرُ الْعَاقِلِ — nooqil ko‘plik: inson bo‘lmagan narsalar ko‘pligi. Asosiy qoida: nooqil ko‘plik odatda muannas birlik kabi moslashadi: هٰذِهِ النُّجُومُ. غَيْرِ الْعَاقِلِ — «inson bo‘lmagan narsalarga oid». Bu umumiy o‘quv qoidasidir."
+    },
+    {
+      "id": "v18",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«الْجَمْعُ الْعَاقِلُ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s32",
+      "wordId": "human",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "inson bo‘lmagan narsalar ko‘pligi"
+        },
+        {
+          "id": "c1",
+          "text": "faqat ikki insonni bildiruvchi shakl"
+        },
+        {
+          "id": "c2",
+          "text": "oqil ko‘plik: insonlar ko‘pligi"
+        }
+      ],
+      "answer": {
+        "choiceId": "c2"
+      },
+      "explanation": "الْجَمْعُ الْعَاقِلُ — oqil ko‘plik: insonlar ko‘pligi. أَمَّا ... esa taqqoslash uchun. هَؤُلَاءِ oqil ko‘plik, ya’ni insonlar guruhiga ishora qiladi. تُسْتَخْدَمُ — majhul nisbat: «ishlatiladi»."
+    },
+    {
+      "id": "v19",
+      "kind": "choice",
+      "phase": "vocabulary",
+      "prompt": "«هٰذِهِ»ning ushbu darsdagi ma’nosini tanlang.",
+      "segmentId": "s16",
+      "wordId": "this",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "bu: muannas birlik yoki nooqil ko‘plik"
+        },
+        {
+          "id": "c1",
+          "text": "bu: faqat muzakkar birlik"
+        },
+        {
+          "id": "c2",
+          "text": "bular: faqat insonlar guruhi"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "هٰذِهِ — bu: muannas birlik yoki nooqil ko‘plik. هٰذِهِ — muannas birlikka ishora. خُدْعَةٌ muannas ot bo‘lgani uchun هٰذِهِ tanlangan. مِنْكَ — «sendan», kontekstda «sening»."
+    },
+    {
+      "id": "v20",
+      "kind": "audio",
+      "phase": "vocabulary",
+      "prompt": "Darsdagi gapni tinglang. «هَؤُلَاءِ» nimani anglatadi?",
+      "segmentId": "s32",
+      "wordId": "these",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "bu: faqat muannas birlik"
+        },
+        {
+          "id": "c1",
+          "text": "bular: insonlar guruhi"
+        },
+        {
+          "id": "c2",
+          "text": "bu ikkita: muannas ikkilik"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "هَؤُلَاءِ — bular: insonlar guruhi. أَمَّا ... esa taqqoslash uchun. هَؤُلَاءِ oqil ko‘plik, ya’ni insonlar guruhiga ishora qiladi. تُسْتَخْدَمُ — majhul nisbat: «ishlatiladi»."
+    },
+    {
+      "id": "v21",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "Rasmga mos arabcha so‘zni tanlang.",
+      "segmentId": "s15",
+      "wordId": "stars",
+      "image": "/learning-assets/juho1-stars.webp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "الْقَوَانِينُ"
+        },
+        {
+          "id": "c1",
+          "text": "النَّجْمَتَانِ"
+        },
+        {
+          "id": "c2",
+          "text": "الْقَوَاعِدُ"
+        }
+      ],
+      "answer": {
+        "choiceId": "c1"
+      },
+      "explanation": "Rasmda ikki yulduz: النَّجْمَتَانِ."
+    },
+    {
+      "id": "v22",
+      "kind": "image",
+      "phase": "vocabulary",
+      "prompt": "Rasmga mos harakatni tanlang.",
+      "segmentId": "s4",
+      "wordId": "camp",
+      "image": "/learning-assets/juho1-tent.webp",
+      "choices": [
+        {
+          "id": "c0",
+          "text": "سَنُخَيِّمُ"
+        },
+        {
+          "id": "c1",
+          "text": "تَلْمَعَانِ"
+        },
+        {
+          "id": "c2",
+          "text": "كَشَفْتَ"
+        }
+      ],
+      "answer": {
+        "choiceId": "c0"
+      },
+      "explanation": "Chodir tikib tunash — التَّخْيِيمُ; سَنُخَيِّمُ — biz chodir tikib tunaymiz."
+    }
+  ]
+}

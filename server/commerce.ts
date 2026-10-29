@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import {paymeConfig} from './payme-config';
 import type { Express, Request, Response } from "express";
 import { and, asc, desc, eq, isNull, sql, or, gt } from "drizzle-orm";
 import { z } from "zod";
@@ -200,7 +201,7 @@ async function assertAdmin(tx: Tx, actorId: string) {
     problem(403, "ADMIN_REQUIRED", "Faol admin hisobi talab qilinadi");
 }
 /** Old balance grants are created by migration; this catches accounts provisioned by a legacy integration. */
-async function reconcileLots(tx: Tx, user: typeof users.$inferSelect) {
+export async function reconcileLots(tx: Tx, user: typeof users.$inferSelect) {
   const lots = await tx
     .select()
     .from(coinGrants)
@@ -215,7 +216,7 @@ async function reconcileLots(tx: Tx, user: typeof users.$inferSelect) {
     );
   return lots;
 }
-async function applyCredit(
+export async function applyCredit(
   tx: Tx,
   user: typeof users.$inferSelect,
   amount: number,
@@ -508,6 +509,8 @@ async function orderDTO(
   }
   return {
     id: order.id,
+    paymentProvider:order.instructions.provider==='payme'?'payme':'manual',
+    paymeAvailable:paymeConfig().liveReady,
     packageName: order.packageName,
     coins: order.coins,
     priceUzs: order.priceUzs,
@@ -656,6 +659,7 @@ export async function reviewPaymentOrder(
         .where(eq(paymentOrders.id, orderId))
         .for("update");
       if (!order) return problem(404, "ORDER_NOT_FOUND", "Buyurtma topilmadi");
+      if(order.instructions.provider==='payme')problem(409,'PAYME_MANAGED','Bu to‘lovni Payme avtomatik tekshiradi');
       if (
         ["approved", "partially_refunded", "refunded"].includes(order.status)
       ) {
@@ -840,6 +844,7 @@ export async function refundPaymentOrder(
         .where(eq(paymentOrders.id, orderId))
         .for("update");
       if (!order) return problem(404, "ORDER_NOT_FOUND", "Buyurtma topilmadi");
+      if(order.instructions.provider==='payme')problem(409,'PAYME_MANAGED','Qaytarishni Payme Business orqali bajaring');
       const key = `refund:${parsed.bankReference}`;
       const [previous] = await tx
         .select()
@@ -1180,6 +1185,7 @@ export function registerCommerceRoutes(app: Express) {
         lessonCost: settings.lessonCost,
         demoLessonId: settings.demoLessonId,
         paymentsEnabled: settings.paymentsEnabled,
+        paymeAvailable:settings.paymentsEnabled&&paymeConfig().liveReady,
         packages: packages.map(({ id, name, coins, priceUzs, isActive }) => ({
           id,
           name,
@@ -1265,6 +1271,7 @@ export function registerCommerceRoutes(app: Express) {
           )
           .for("update");
         if (!order) problem(404, "ORDER_NOT_FOUND", "Buyurtma topilmadi");
+        if(order.instructions.provider==='payme')problem(409,'PAYME_MANAGED','Payme to‘lovini Payme oynasida bekor qiling');
         if (order.status === "cancelled") return;
         if (order.status !== "awaiting_payment")
           problem(

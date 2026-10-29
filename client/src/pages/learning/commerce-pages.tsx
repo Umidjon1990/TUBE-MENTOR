@@ -84,7 +84,7 @@ function safePaymeUrl(value?: string | null) {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" ? url.href : null;
+    return url.protocol === "https:" && !url.username && !url.password && (!url.port || url.port==='443') && /(^|\.)(payme\.uz|paycom\.uz)$/.test(url.hostname) ? url.href : null;
   } catch {
     return null;
   }
@@ -370,6 +370,7 @@ export function PaymentOrderPage() {
         : false,
     retry: false,
   });
+  const payme = useMutation({mutationFn:()=>commerceRequest<{checkoutUrl:string}>('POST',`/api/commerce/orders/${id}/payme`,{}),onSuccess:result=>{const url=safePaymeUrl(result.checkoutUrl);if(url)window.location.assign(url);void q.refetch();}});
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
   const [notice, setNotice] = useState("");
@@ -424,7 +425,7 @@ export function PaymentOrderPage() {
     setCancelConfirm(false);
   }, [id]);
   const order = q.data;
-  const uploadAllowed = !!order && receiptStatuses.has(order.status);
+  const uploadAllowed = !!order && order.paymentProvider!=='payme' && receiptStatuses.has(order.status);
   const expired =
     !!order &&
     (order.status === "expired" ||
@@ -532,6 +533,7 @@ export function PaymentOrderPage() {
                 </p>
               )}
             </Panel>
+            {order.status==='awaiting_payment'&&!expired&&order.paymeAvailable&&<Panel><h2>Payme orqali to‘lash</h2><p>To‘lov tasdiqlangach {order.coins} coin avtomatik qo‘shiladi. Chek yuborish shart emas.</p><Button disabled={payme.isPending} onClick={()=>payme.mutate()}>{payme.isPending?'Payme ochilmoqda…':'Payme orqali to‘lash'}</Button>{payme.error&&<p role="alert">{errorText(payme.error)}</p>}</Panel>}
             {uploadAllowed && (
               <>
                 {!expired && (
@@ -683,7 +685,7 @@ export function PaymentOrderPage() {
                 </div>
               </Panel>
             )}
-            {order.status === "awaiting_payment" && (
+            {order.status === "awaiting_payment" && order.paymentProvider!=='payme' && (
               <Panel>
                 <h2>Buyurtmani bekor qilish</h2>
                 <p>

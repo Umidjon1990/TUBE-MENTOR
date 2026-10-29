@@ -1,3 +1,4 @@
+import {PaymeSetupPanel} from '@/components/payme-setup-panel';
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
@@ -1083,6 +1084,7 @@ export function AdminCommerceSettings() {
       subtitle="Rekvizitlar tasdiqlangach to‘lov qabul qilishni yoqing"
     >
       <div className="admin-commerce">
+        <PaymeSetupPanel call={async(method,path,body)=>(await apiRequest(method,path,body)).json()}/>
         {settings.isLoading ? (
           <Busy />
         ) : settings.isError ? (

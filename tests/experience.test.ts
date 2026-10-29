@@ -26,7 +26,7 @@ test('Juho covers the supplied video, preserves the intentional error, exports B
  assert.match(sentenceArabic(juho.segments[21]),/هَؤُلَاءِ النُّجُومُ/);assert.match(juho.segments[21].grammar,/xato/);
  assert.match(sentenceArabic(juho.segments[19]),/خُطَّتِي/);
  const pack=lessonPackageSchema.parse(experiencePackage(juho));assert.equal(pack.metadata.level,'B1');
- assert.deepEqual(publicationProblems({...pack.metadata,status:'approved',transcript:pack.content.subtitles?.map(s=>s.text).join('\n'),subtitlesJson:pack.content.subtitles,sentenceAnalysisJson:pack.content.sentenceAnalysis,vocabularyJson:pack.content.vocabulary,quizzesJson:pack.content.quizzes,aiMetaJson:{provider:'manual-import',experience:juho}} as any),[]);
+ assert.deepEqual(publicationProblems({...pack.metadata,status:'approved',transcript:pack.content.subtitles?.map((s:{text:string})=>s.text).join('\n'),subtitlesJson:pack.content.subtitles,sentenceAnalysisJson:pack.content.sentenceAnalysis,vocabularyJson:pack.content.vocabulary,quizzesJson:pack.content.quizzes,aiMetaJson:{provider:'manual-import',experience:juho}} as any),[]);
 });
 test('Juho offers all seven non-typing kinds with complete private answer keys and local media',()=>{
  assert.deepEqual(new Set(juho.questions.map(q=>q.kind)),new Set(['choice','cloze','audio','image','error','order','match']));

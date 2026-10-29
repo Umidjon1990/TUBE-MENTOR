@@ -1,4 +1,5 @@
 import {registerExperience} from './experience';
+import {registerPaymeWebhook,registerPaymeRoutes} from './payme';
 import { registerAdminDesk } from "./admin-desk";
 import { recoverAdministrator } from "./admin-recovery";
 import express, {
@@ -71,6 +72,7 @@ export async function createApplication(
   const httpServer = createServer(app);
   if (production) app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  registerPaymeWebhook(app);
   app.use("/api/commerce/telegram/webhook", express.json({ limit: "32kb" }));
   app.use("/api/admin/lesson-package", express.json({ limit: "2mb" }));
   app.use(express.json({ limit: "10mb" }));
@@ -144,6 +146,7 @@ export async function createApplication(
   registerExperience(app);
   registerPlatformResources(app);
   await registerCommerceRoutes(app);
+  registerPaymeRoutes(app);
   registerCommerceSupportRoutes(app);
   await registerPaymentBotRoutes(app);
   await registerLearningRoutes(app);

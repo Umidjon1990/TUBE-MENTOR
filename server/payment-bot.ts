@@ -158,6 +158,7 @@ export function registerPaymentBotRoutes(app: Express) {
       const locked = await client.query("SELECT * FROM payment_orders WHERE id=$1 FOR UPDATE", [orderId]);
       const order = locked.rows[0];
       if (!order || order.user_id !== req.session.userId) throw new CommerceError(404, "order_missing", "Buyurtma topilmadi");
+      if(order.instructions?.provider==='payme')throw new CommerceError(409,'PAYME_MANAGED','Payme to‘lovi avtomatik tasdiqlanadi; chek yuklash shart emas');
       if (!["awaiting_payment", "needs_info", "rejected", "expired", "cancelled"].includes(order.status))
         throw new CommerceError(409, "receipt_state", "Ushbu buyurtmaga hozir yangi chek yuborib bo‘lmaydi");
       // Late bank transfers still need a receipt, but must retain the explicit late-review state.

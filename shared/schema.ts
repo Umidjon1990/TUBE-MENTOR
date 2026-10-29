@@ -7,6 +7,7 @@ import {
   boolean,
   integer,
   serial,
+  bigint,
   json,
   real,
   uniqueIndex,
@@ -298,6 +299,13 @@ export const paymentReceipts = pgTable("payment_receipts", {
   sizeBytes: integer("size_bytes").notNull(),
   sha256: text("sha256").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const paymeInvoices=pgTable('payme_invoices',{
+ id:serial('id').primaryKey(),orderId:varchar('order_id').references(()=>paymentOrders.id),mode:text('mode').notNull(),amount:bigint('amount',{mode:'number'}).notNull(),createdAt:timestamp('created_at').defaultNow().notNull(),
+});
+export const paymeTransactions=pgTable('payme_transactions',{
+ key:text('key').primaryKey(),id:text('id').notNull(),mode:text('mode').notNull(),invoiceId:integer('invoice_id').notNull().references(()=>paymeInvoices.id),amount:bigint('amount',{mode:'number'}).notNull(),time:bigint('time',{mode:'number'}).notNull(),createTime:bigint('create_time',{mode:'number'}).notNull(),performTime:bigint('perform_time',{mode:'number'}).notNull().default(0),cancelTime:bigint('cancel_time',{mode:'number'}).notNull().default(0),state:integer('state').notNull(),reason:integer('reason'),fiscalData:json('fiscal_data'),
 });
 
 export const coinGrants = pgTable("coin_grants", {

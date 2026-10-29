@@ -711,3 +711,69 @@ test('legacy global sample moves into per-lesson controls and can be disabled fr
  assert.equal((await controlSave(id,{trialMode:'none',priceCoins:12})).status,200);
  assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,401);
 });
+
+const paymeEnvNames=['PAYME_MODE','PAYME_MERCHANT_ID','PAYME_TEST_KEY','PAYME_KEY','PAYME_ENABLED','PAYME_IKPU','PAYME_PACKAGE_CODE','PAYME_VAT_PERCENT','PAYME_RETURN_URL'];
+async function withPayme(mode:'test'|'live',fn:(key:string)=>Promise<void>){
+ const old=Object.fromEntries(paymeEnvNames.map(k=>[k,process.env[k]]));const key=randomBytes(24).toString('hex');
+ Object.assign(process.env,{PAYME_MODE:mode,PAYME_MERCHANT_ID:'6979166b1c0f5675c6c85bc5',PAYME_TEST_KEY:mode==='test'?key:randomBytes(24).toString('hex'),PAYME_KEY:mode==='live'?key:randomBytes(24).toString('hex'),PAYME_ENABLED:'true',PAYME_IKPU:'00000000000000000',PAYME_PACKAGE_CODE:'123',PAYME_VAT_PERCENT:'0',PAYME_RETURN_URL:'http://localhost/wallet'});
+ try{await fn(key)}finally{for(const k of paymeEnvNames){if(old[k]===undefined)delete process.env[k];else process.env[k]=old[k]}}
+}
+async function payRpc(key:string,method:string,params:any,id=7){const r=await fetch(base+'/api/payme/webhook',{method:'POST',headers:{'Content-Type':'text/json','Authorization':'Basic '+Buffer.from('Paycom:'+key).toString('base64')},body:JSON.stringify({id,method,params})});assert.equal(r.status,200);return r.json()}
+async function payInvoice(c:Client,o:any){const r=await c.call('/api/commerce/orders/'+o.id+'/payme','POST',{});assert.equal(r.status,200,JSON.stringify(r.data));const u=new URL(r.data.checkoutUrl),payload=Buffer.from(u.pathname.slice(1),'base64').toString();assert.match(payload,/ac.order_id=\d+/);assert.match(payload,new RegExp('a='+o.priceUzs*100+';'));return r.data.invoiceId}
+
+test('Payme RPC uses HTTP 200 for auth/JSON errors and sandbox transactions never credit real wallets',async()=>withPayme('test',async key=>{
+ const before=await pool.query('SELECT sum(coins)::int AS n FROM users');
+ const issued=await admin.call('/api/admin/commerce/payme/test-invoice','POST',{amountUzs:1000});assert.equal(issued.status,201);const invoice=issued.data.invoiceId;assert.match(issued.data.checkoutUrl,/^https:\/\/test.paycom.uz\//);
+ const account={order_id:invoice},time=Date.now(),id=randomUUID();
+ assert.equal((await payRpc('wrong','CheckPerformTransaction',{account,amount:100000})).error.code,-32504);
+ assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:100001})).error.code,-31001);
+ assert.equal((await payRpc(key,'CheckPerformTransaction',{account:{order_id:'not-found'},amount:100000})).error.code,-31050);
+ assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:100000})).result.allow,true);
+ const made=await payRpc(key,'CreateTransaction',{id,time,account,amount:100000});assert.equal(made.result.state,1);
+ assert.deepEqual((await payRpc(key,'CreateTransaction',{id,time,account,amount:100000})).result,made.result);
+ const paid=await payRpc(key,'PerformTransaction',{id});assert.equal(paid.result.state,2);assert.deepEqual((await payRpc(key,'PerformTransaction',{id})).result,paid.result);
+ const fiscal={status_code:0,receipt_id:'test-only',message:'accepted'};assert.equal((await payRpc(key,'SetFiscalData',{id,type:'PERFORM',fiscal_data:fiscal})).result.success,true);
+ const cancelled=await payRpc(key,'CancelTransaction',{id,reason:5});assert.equal(cancelled.result.state,-2);
+ assert.equal((await payRpc(key,'SetFiscalData',{id,type:'CANCEL',fiscal_data:{...fiscal,receipt_id:'test-cancel'}})).result.success,true);const storedFiscal=(await pool.query('SELECT fiscal_data FROM payme_transactions WHERE key=$1',['test:'+id])).rows[0].fiscal_data;assert.equal(storedFiscal.perform.receipt_id,'test-only');assert.equal(storedFiscal.cancel.receipt_id,'test-cancel');assert.deepEqual((await payRpc(key,'CancelTransaction',{id,reason:5})).result,cancelled.result);
+ assert.equal((await pool.query('SELECT sum(coins)::int AS n FROM users')).rows[0].n,before.rows[0].n);
+ const malformed=await fetch(base+'/api/payme/webhook',{method:'POST',headers:{'Content-Type':'text/json'},body:'{bad'});assert.equal(malformed.status,200);assert.equal((await malformed.json()).error.code,-32700);
+ const wrongMethod=await fetch(base+'/api/payme/webhook');assert.equal(wrongMethod.status,200);assert.equal((await wrongMethod.json()).error.code,-32300);
+ const oversized=await fetch(base+'/api/payme/webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({huge:'x'.repeat(33000)})});assert.equal(oversized.status,200);assert.equal((await oversized.json()).error.code,-32600);
+ const status=await admin.call('/api/admin/commerce/payme');assert.equal(status.status,200);assert.equal(status.data.liveReady,false);assert.equal(JSON.stringify(status.data).includes(key),false);
+}));
+
+test('Payme live-mode fixture credits exactly once, reserves numeric invoices, rejects manual changes and refunds exactly once',async()=>withPayme('live',async key=>{
+ const c=await learner(),other=await learner();const before=(await c.wallet()).balance,o=await c.order();
+ assert.equal((await other.call('/api/commerce/orders/'+o.id+'/payme','POST',{})).status,404);
+ const invoice=await payInvoice(c,o),account={order_id:invoice},time=Date.now(),id=randomUUID();
+ assert.equal((await c.receipt(o.id)).status,409);
+ assert.equal((await c.call('/api/commerce/orders/'+o.id+'/cancel','POST',{})).status,409);
+ const checked=await payRpc(key,'CheckPerformTransaction',{account,amount:o.priceUzs*100});assert.equal(checked.result.allow,true);assert.equal(checked.result.detail.items[0].price,o.priceUzs*100);
+ const params={id,time,account,amount:o.priceUzs*100};const made=await payRpc(key,'CreateTransaction',params);assert.equal(made.result.state,1);
+ assert.equal((await payRpc(key,'CreateTransaction',{...params,id:randomUUID()})).error.code,-31008);
+ assert.equal((await payRpc(key,'CreateTransaction',{...params,time:time+1})).error.code,-31008);
+ const [first,repeat]=await Promise.all([payRpc(key,'PerformTransaction',{id}),payRpc(key,'PerformTransaction',{id})]);assert.equal(first.result.state,2);assert.deepEqual(first.result,repeat.result);
+ assert.equal((await c.wallet()).balance,before+o.coins);
+ assert.equal((await pool.query("SELECT count(*)::int AS n FROM coin_transactions WHERE order_id=$1 AND type='payment_credit'",[o.id])).rows[0].n,1);
+ const order=await c.call('/api/commerce/orders/'+o.id);assert.equal(order.data.status,'approved');assert.equal(order.data.paymentProvider,'payme');
+ assert.equal((await admin.call('/api/admin/commerce/orders/'+o.id+'/refund','POST',{coins:o.coins,bankReference:randomUUID(),reason:'Only Payme handles this refund'})).status,409);
+ const statement=await payRpc(key,'GetStatement',{from:time,to:time});assert.equal(statement.result.transactions.some((t:any)=>t.id===id&&t.account.order_id===invoice),true);
+ delete process.env.PAYME_ENABLED; // Stopping new sales must not stop confirmations, status or refunds.
+ assert.equal((await payRpc(key,'PerformTransaction',{id})).result.state,2);
+ const refunded=await payRpc(key,'CancelTransaction',{id,reason:5});assert.equal(refunded.result.state,-2);
+ assert.deepEqual((await payRpc(key,'CancelTransaction',{id,reason:5})).result,refunded.result);assert.equal((await c.wallet()).balance,before);
+ assert.equal((await c.call('/api/commerce/orders/'+o.id)).data.status,'refunded');
+ assert.equal((await payRpc(key,'PerformTransaction',{id})).error.code,-31008);
+}));
+
+test('Payme timeout, spent-coin refund protection and checkout readiness prevent unpaid or duplicate credit',async()=>withPayme('live',async key=>{
+ const c=await learner();const before=(await c.wallet()).balance,o=await c.order(),invoice=await payInvoice(c,o),account={order_id:invoice},id=randomUUID(),time=Date.now();
+ await payRpc(key,'CreateTransaction',{id,time,account,amount:o.priceUzs*100});
+ await pool.query('UPDATE payme_transactions SET time=$1 WHERE mode=$2 AND id=$3',[Date.now()-43200001,'live',id]);
+ assert.equal((await payRpc(key,'PerformTransaction',{id})).error.code,-31008);const t=await payRpc(key,'CheckTransaction',{id});assert.equal(t.result.state,-1);assert.equal(t.result.reason,4);assert.equal((await c.wallet()).balance,before);
+ const next=randomUUID();assert.equal((await payRpc(key,'CreateTransaction',{id:next,time:Date.now(),account,amount:o.priceUzs*100})).result.state,1);assert.equal((await payRpc(key,'PerformTransaction',{id:next})).result.state,2);
+ // Model a legitimate spend against this paid lot while preserving wallet reconciliation.
+ await pool.query('UPDATE coin_grants SET remaining=remaining-1 WHERE order_id=$1',[o.id]);await pool.query('UPDATE users SET coins=coins-1 WHERE id=$1',[c.id]);
+ const balance=(await c.wallet()).balance;assert.equal((await payRpc(key,'CancelTransaction',{id:next,reason:5})).error.code,-31007);assert.equal((await c.wallet()).balance,balance);assert.equal((await payRpc(key,'CheckTransaction',{id:next})).result.state,2);
+ delete process.env.PAYME_ENABLED;const another=await c.order();assert.equal((await c.call('/api/commerce/orders/'+another.id+'/payme','POST',{})).status,503);
+}));

@@ -54,6 +54,8 @@ export interface PaymentReceiptDTO {
   duplicateWarning?: boolean;
 }
 export interface PaymentOrderDTO {
+  paymentProvider?:'manual'|'payme';
+  paymeAvailable?:boolean;
   id: string;
   packageName: string;
   coins: number;

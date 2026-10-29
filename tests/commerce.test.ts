@@ -751,7 +751,7 @@ test('Payme live-mode fixture credits exactly once, reserves numeric invoices, r
  assert.equal((await c.call('/api/commerce/orders/'+o.id+'/cancel','POST',{})).status,409);
  const checked=await payRpc(key,'CheckPerformTransaction',{account,amount:o.priceUzs*100});assert.equal(checked.result.allow,true);assert.equal(checked.result.detail.items[0].price,o.priceUzs*100);
  const params={id,time,account,amount:o.priceUzs*100};const made=await payRpc(key,'CreateTransaction',params);assert.equal(made.result.state,1);
- assert.equal((await payRpc(key,'CreateTransaction',{...params,id:randomUUID()})).error.code,-31008);
+ assert.equal((await payRpc(key,'CreateTransaction',{...params,id:randomUUID()})).error.code,-31050);
  assert.equal((await payRpc(key,'CheckPerformTransaction',{account,amount:o.priceUzs*100})).error.code,-31050);
  assert.equal((await payRpc(key,'CreateTransaction',{...params,time:time+1})).error.code,-31008);
  const [first,repeat]=await Promise.all([payRpc(key,'PerformTransaction',{id}),payRpc(key,'PerformTransaction',{id})]);assert.equal(first.result.state,2);assert.deepEqual(first.result,repeat.result);

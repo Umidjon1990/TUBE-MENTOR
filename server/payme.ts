@@ -47,7 +47,7 @@ export async function paymeRpc(method:string,p:any){
     if(Date.now()-time>=TTL||time>Date.now()+300000)fail(-31008,'Tranzaksiya vaqti noto‘g‘ri');
     await payable(tx,inv);
     const active=await tx.select().from(paymeTransactions).where(eq(paymeTransactions.invoiceId,inv.id));
-    for(const old of active){const t=await expire(tx,old);if(t.state===1||t.state===2)fail(-31008,'Bu hisob uchun to‘lov mavjud')}
+    for(const old of active){const t=await expire(tx,old);if(t.state===1||t.state===2)fail(-31050,'Bu hisob uchun to‘lov mavjud','order_id')}
     const [t]=await tx.insert(paymeTransactions).values({key,id,mode,invoiceId:inv.id,amount:inv.amount,time,createTime:Date.now(),state:1}).returning();
     if(inv.orderId)await tx.update(paymentOrders).set({expiresAt:new Date(Math.max(Date.now()+TTL,time+TTL)),updatedAt:new Date()}).where(eq(paymentOrders.id,inv.orderId));
     await audit(tx,'payme.created',t.key,{invoiceId:inv.id,mode,amount:inv.amount});return{result:created(t)};

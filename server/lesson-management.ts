@@ -45,7 +45,7 @@ export function registerLessonManagement(app:Express){
   const id=z.coerce.number().int().positive().parse(req.params.id),l=(await db.select().from(lessons).where(eq(lessons.id,id)))[0];if(!l)return res.status(404).json({message:'Dars topilmadi'});
   const c=(await controlsMap()).get(id)||defaultControl(id),settings=await getCommerceSettings();
   const analysis=Array.isArray(l.sentenceAnalysisJson)?l.sentenceAnalysisJson as any[]:[],xp=experienceFor(l);
-  res.json({...c,priceCoins:lessonPrice(settings,id),globalDemo:settings.demoLessonId===id,version:l.updatedAt.toISOString(),audit:{interactive:!!xp,segments:xp?.segments.length??lessonSegments(l).length,words:xp?.words.length??lessonVocabulary(l).length,missingGrammar:xp?xp.segments.filter(s=>!s.grammar).length:analysis.filter(s=>!s.grammarNotes?.trim()).length,missingAlignment:xp?0:analysis.filter(s=>!s.alignment?.length).length,problems:xp?[]:publicationProblems(l)}});
+  res.json({...c,trialMode:settings.demoLessonId===id?'full':c.trialMode,priceCoins:lessonPrice(settings,id),globalDemo:settings.demoLessonId===id,version:l.updatedAt.toISOString(),audit:{interactive:!!xp,segments:xp?.segments.length??lessonSegments(l).length,words:xp?.words.length??lessonVocabulary(l).length,missingGrammar:xp?xp.segments.filter(s=>!s.grammar).length:analysis.filter(s=>!s.grammarNotes?.trim()).length,missingAlignment:xp?0:analysis.filter(s=>!s.alignment?.length).length,problems:xp?[]:publicationProblems(l)}});
  }catch(e){next(e)}});
  app.patch('/api/admin/lessons/:id/controls',requireAdmin,async(req,res,next)=>{try{
   const id=z.coerce.number().int().positive().parse(req.params.id),b=z.object({version:z.string(),priceCoins:z.number().int().min(0).max(100000),dashboardVisible:z.boolean(),sortOrder:z.number().int().min(0).max(100000),trialMode:z.enum(['none','full','preview']),previewSegments:z.number().int().min(1).max(20),levelNote:z.string().max(4000)}).strict().parse(req.body);
@@ -54,7 +54,7 @@ export function registerLessonManagement(app:Express){
    await tx.insert(systemSettings).values({key:'commerce',value:JSON.stringify(await getCommerceSettings(tx))}).onConflictDoNothing();
    await tx.select().from(systemSettings).where(eq(systemSettings.key,'commerce')).for('update');
    const [l]=await tx.select().from(lessons).where(eq(lessons.id,id)).for('update');if(!l)fail(404,'Dars topilmadi');if(l.updatedAt.toISOString()!==b.version)fail(409,'Dars yangilangan. Sahifani yangilang.');
-   const settings=await getCommerceSettings(tx);settings.lessonPrices[String(id)]=b.priceCoins;
+   const settings=await getCommerceSettings(tx);settings.lessonPrices[String(id)]=b.priceCoins;if(settings.demoLessonId===id)settings.demoLessonId=null;
    await tx.update(systemSettings).set({value:JSON.stringify(settings)}).where(eq(systemSettings.key,'commerce'));
    const {version,priceCoins,...values}=b;
    await tx.insert(lessonControls).values({lessonId:id,...values}).onConflictDoUpdate({target:lessonControls.lessonId,set:{...values,updatedAt:new Date()}});

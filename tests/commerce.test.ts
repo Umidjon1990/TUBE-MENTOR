@@ -701,3 +701,13 @@ test('publish action validates content, and publish/unpublish operate independen
  assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(await managementPreview([id]),'publish'))).status,200);
  assert.equal((await pool.query('SELECT status FROM platform_products WHERE id=$1',['tube-'+id])).rows[0].status,'published');
 });
+test('legacy global sample moves into per-lesson controls and can be disabled from that same editor',async()=>{
+ const id=await managementLesson('Legacy sample controls');await pool.query("UPDATE lessons SET status='published' WHERE id=$1",[id]);
+ await pool.query("UPDATE system_settings SET value=jsonb_set(value::jsonb,'{demoLessonId}',to_jsonb($1::int))::text WHERE key='commerce'",[id]);
+ const before=await controlGet(id);assert.equal(before.globalDemo,true);assert.equal(before.trialMode,'full');
+ assert.equal((await controlSave(id,{})).status,200);
+ const after=await controlGet(id);assert.equal(after.globalDemo,false);assert.equal(after.trialMode,'full');
+ const guest=new Client();assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,200);
+ assert.equal((await controlSave(id,{trialMode:'none',priceCoins:12})).status,200);
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,401);
+});

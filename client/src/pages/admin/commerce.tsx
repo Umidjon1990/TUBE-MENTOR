@@ -1130,7 +1130,7 @@ export function AdminCommerceSettings() {
                   <input
                     aria-label={`${lesson.title} narxi`}
                     type="number"
-                    min={1}
+                    min={0}
                     max={100000}
                     placeholder={String(form.lessonCost)}
                     value={form.lessonPrices[String(lesson.id)] ?? ""}

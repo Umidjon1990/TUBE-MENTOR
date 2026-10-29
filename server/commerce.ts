@@ -93,7 +93,7 @@ const settingsSchema = z
     lessonPrices: z
       .record(
         z.string().regex(/^[1-9]\d*$/),
-        z.number().int().min(1).max(100000),
+        z.number().int().min(0).max(100000),
       )
       .default({}),
     demoLessonId: z.number().int().positive().nullable(),

@@ -1,3 +1,4 @@
+import {LessonControlPanel} from '@/components/lesson-control-panel';
 import {LessonManagementActions} from '@/components/lesson-management';
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
@@ -72,6 +73,7 @@ const labels: Record<string, string> = {
   rejected: "Tuzatish kerak",
   processing: "Tayyorlanmoqda",
   archived: "Arxivlangan",
+  unpublished: "Nashrdan olingan",
 };
 function Status({ value }: { value: string }) {
   return (
@@ -79,19 +81,22 @@ function Status({ value }: { value: string }) {
   );
 }
 export function StudioPage() {
-  const q = useQuery<Lesson[]>({
+  const q = useQuery<(Lesson & {control?:{sortOrder:number;dashboardVisible:boolean;trialMode:string};priceCoins?:number})[]>({
     queryKey: ["/api/admin/lessons"],
     queryFn: () => request("GET", "/api/admin/lessons"),
   });
   const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [levelFilter, setLevelFilter] = useState("");
+  const [sort,setSort]=useState("order");
   const visible = q.data?.filter(
     (l) =>
       l.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
-      (!status || l.status === status),
+      (!status || l.status === status) && (!levelFilter||cefrLevel(l.level)===levelFilter),
   );
-  useEffect(()=>setSelected([]),[search,status]);
+  visible?.sort((a,b)=>sort==="name"?a.title.localeCompare(b.title):sort==="level"?cefrLevel(a.level).localeCompare(cefrLevel(b.level)):(a.control?.sortOrder||0)-(b.control?.sortOrder||0)||b.id-a.id);
+  useEffect(()=>setSelected([]),[search,status,levelFilter]);
   return (
     <AdminContentShell title="Barcha darslar">
       <div className="section-heading">
@@ -125,6 +130,7 @@ export function StudioPage() {
           </select>
         </label>
       </div>
+      <div className="catalog-filters"><label>Daraja<select value={levelFilter} onChange={e=>setLevelFilter(e.target.value)}><option value="">Barcha darajalar</option>{CEFR_LEVELS.map(l=><option key={l}>{l}</option>)}</select></label><label>Tartiblash<select value={sort} onChange={e=>setSort(e.target.value)}><option value="order">Belgilangan tartib</option><option value="name">Nomi bo‘yicha</option><option value="level">Darajasi bo‘yicha</option></select></label></div>
       {q.isLoading ? (
         <Loading />
       ) : q.error ? (
@@ -138,8 +144,8 @@ export function StudioPage() {
           </div>
           {visible.map(l=><article className="learning-panel lesson-management-card" key={l.id}>
             <label className="lesson-select"><input type="checkbox" aria-label={l.title+' — tanlash'} checked={selected.includes(l.id)} onChange={e=>setSelected(old=>e.target.checked?[...old,l.id]:old.filter(id=>id!==l.id))}/></label>
-            <Link className="studio-card" href={`/admin/lessons/${l.id}`}><div><Status value={l.status}/><h2>{l.title}</h2><p>{cefrLevel(l.level)} · {l.targetLanguage==='en'?'Ingliz tili':'Arab tili'} · {l.contentVersion}-nusxa</p></div><ArrowRight size={20}/></Link>
-            <LessonManagementActions ids={[l.id]} onDone={()=>setSelected(old=>old.filter(id=>id!==l.id))}/>
+            <Link className="studio-card" href={`/admin/lessons/${l.id}`}><div><Status value={l.status}/><h2>{l.title}</h2><p>{cefrLevel(l.level)} · {l.targetLanguage==='en'?'Ingliz tili':'Arab tili'} · {l.contentVersion}-nusxa</p><p>{l.priceCoins??10} coin · Tartib: {l.control?.sortOrder??0} · {l.control?.dashboardVisible===false?"Dashboardda yashirin":"Dashboardda ko‘rinadi"} · {l.control?.trialMode==="full"?"To‘liq sinov":l.control?.trialMode==="preview"?"Qisman sinov":"Sinov yopiq"}</p></div><ArrowRight size={20}/></Link>
+            <LessonManagementActions ids={[l.id]} status={l.status} published={!!(l.status==="published"||l.publishedSnapshot&&l.publishedAt)&&!["archived","unpublished"].includes(l.status)} onDone={()=>setSelected(old=>old.filter(id=>id!==l.id))}/>
           </article>)}
         </div>
       ) : (
@@ -391,8 +397,9 @@ export function StudioEditor() {
       ) : (
         lesson && (
           <>
+            <LessonControlPanel id={lesson.id}/>
             <Panel>
-              <LessonManagementActions ids={[lesson.id]} onDone={()=>navigate("/admin/lessons")}/>
+              <LessonManagementActions ids={[lesson.id]} status={lesson.status} published={!!(lesson.status==="published"||lesson.publishedSnapshot&&lesson.publishedAt)&&!["archived","unpublished"].includes(lesson.status)} onDone={()=>navigate("/admin/lessons")}/>
               <div className="section-heading">
                 <Status value={lesson.status} />
                 <span>{lesson.contentVersion}-nusxa</span>

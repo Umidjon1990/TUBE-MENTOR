@@ -196,6 +196,16 @@ export const bookmarks = pgTable("bookmarks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const lessonControls = pgTable("lesson_controls", {
+ lessonId: integer("lesson_id").primaryKey().references(()=>lessons.id,{onDelete:"cascade"}),
+ dashboardVisible:boolean("dashboard_visible").notNull().default(true),
+ sortOrder:integer("sort_order").notNull().default(0),
+ trialMode:text("trial_mode").notNull().default("none"),
+ previewSegments:integer("preview_segments").notNull().default(3),
+ levelNote:text("level_note").notNull().default(""),
+ updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+});
+
 export const coinTransactions = pgTable("coin_transactions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id")

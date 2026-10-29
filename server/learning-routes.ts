@@ -1,3 +1,5 @@
+import {controlsMap,orderedVisible} from './lesson-controls';
+import {lessonPrice} from '../shared/commerce';
 import type { Express, Request } from "express";
 import { randomUUID } from "node:crypto";
 import { and, desc, eq, isNull, isNotNull, lte, or, sql } from "drizzle-orm";
@@ -84,10 +86,10 @@ async function currentUser(req: Request): Promise<User> {
 }
 async function allPublished(includeArchived = false) {
   return (await storage.getAllLessons())
-    .filter((lesson) => includeArchived || lesson.status !== "archived")
+    .filter((lesson) => includeArchived || !["archived","unpublished"].includes(lesson.status))
     .map((source) => {
       const published = publishedLesson(source);
-      return published && source.status === "archived"
+      return published && ["archived","unpublished"].includes(source.status)
         ? { ...published, status: "archived" }
         : published;
     })
@@ -359,7 +361,7 @@ export async function registerLearningRoutes(app: Express) {
           ),
         )
       : candidates;
-    const all = decisions.filter((lesson): lesson is Lesson => lesson !== null);
+    const all = orderedVisible(decisions.filter((lesson): lesson is Lesson => lesson !== null),await controlsMap(),ownedOnly);
     const matching = all.filter(
       (l) =>
         (!language || l.targetLanguage === language) &&
@@ -625,7 +627,7 @@ export async function registerLearningRoutes(app: Express) {
     rateLimit("demo-attempt", 30, 300),
     async (req, res) => {
       const lessonId = parse(idSchema, req.params.id);
-      if ((await getCommerceSettings()).demoLessonId !== lessonId)
+      if ((await getCommerceSettings()).demoLessonId !== lessonId && lessonPrice(await getCommerceSettings(),lessonId)!==0 && (await controlsMap()).get(lessonId)?.trialMode!=="full")
         return fail(403, "Bu dars namuna dars emas");
       const lesson = await accessibleLesson(req, lessonId);
       const { kind } = parse(
@@ -678,7 +680,7 @@ export async function registerLearningRoutes(app: Express) {
     rateLimit("demo-answer", 200, 300),
     async (req, res) => {
       const lessonId = parse(idSchema, req.params.id);
-      if ((await getCommerceSettings()).demoLessonId !== lessonId)
+      if ((await getCommerceSettings()).demoLessonId !== lessonId && lessonPrice(await getCommerceSettings(),lessonId)!==0 && (await controlsMap()).get(lessonId)?.trialMode!=="full")
         return fail(403, "Bu dars namuna dars emas");
       const lesson = await accessibleLesson(req, lessonId);
       const body = parse(
@@ -760,7 +762,7 @@ export async function registerLearningRoutes(app: Express) {
   app.post("/api/learn/preview/:id/transfer", requireAuth, async (req, res) => {
     parse(z.object({}).strict(), req.body);
     const lessonId = parse(idSchema, req.params.id);
-    if ((await getCommerceSettings()).demoLessonId !== lessonId)
+    if ((await getCommerceSettings()).demoLessonId !== lessonId && lessonPrice(await getCommerceSettings(),lessonId)!==0 && (await controlsMap()).get(lessonId)?.trialMode!=="full")
       return fail(403, "Faqat namuna dars natijasini saqlash mumkin");
     const lesson = await accessibleLesson(req, lessonId);
     const user = await currentUser(req);

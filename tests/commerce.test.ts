@@ -649,3 +649,55 @@ test('protected lesson blocks entire deletion batch; archive retains access, pro
  assert.equal((await pool.query('SELECT * FROM lesson_access WHERE lesson_id=$1',[protectedId])).rowCount,1);
  assert.equal((await pool.query('SELECT completion_percent FROM lesson_progress WHERE lesson_id=$1',[protectedId])).rows[0].completion_percent,40);
 });
+
+async function controlGet(id:number){const r=await admin.call(`/api/admin/lessons/${id}/controls`);assert.equal(r.status,200,JSON.stringify(r.data));return r.data}
+async function controlSave(id:number,patch:Record<string,unknown>){const c=await controlGet(id);return admin.call(`/api/admin/lessons/${id}/controls`,'PATCH',{version:c.version,priceCoins:c.priceCoins,dashboardVisible:c.dashboardVisible,sortOrder:c.sortOrder,trialMode:c.trialMode,previewSegments:c.previewSegments,levelNote:c.levelNote,...patch})}
+test('per-lesson price, full trial and visibility integrate with catalog without granting paid content',async()=>{
+ const id=await managementLesson('Controls integration');await pool.query("UPDATE lessons SET status='published' WHERE id=$1",[id]);
+ let r=await controlSave(id,{priceCoins:23,sortOrder:2});assert.equal(r.status,200,JSON.stringify(r.data));
+ const guest=new Client();let list=await guest.call('/api/lessons/public');assert.equal(list.data.lessons.find((l:any)=>l.id===id).priceCoins,23);
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,401);
+ r=await controlSave(id,{trialMode:'full'});assert.equal(r.status,200,JSON.stringify(r.data));
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,200);
+ list=await guest.call('/api/lessons/public');assert.equal(list.data.lessons.find((l:any)=>l.id===id).priceCoins,0);
+ r=await controlSave(id,{trialMode:'none',dashboardVisible:false});assert.equal(r.status,200);
+ assert.equal((await guest.call('/api/lessons/public')).data.lessons.some((l:any)=>l.id===id),false);
+ assert.equal((await guest.call('/api/learn/catalog')).data.lessons.some((l:any)=>l.id===id),false);
+ assert.equal((await guest.call('/api/platform/catalog')).data.products.some((l:any)=>l.id==='tube-'+id),false);
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,401);
+ assert.equal((await controlSave(id,{priceCoins:0,dashboardVisible:true})).status,200);
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,200);
+ const c=await controlGet(id);assert.equal(c.priceCoins,0);assert.equal((await admin.call(`/api/admin/lessons/${id}/controls`,'PATCH',{version:'stale',priceCoins:7,dashboardVisible:true,sortOrder:0,trialMode:'none',previewSegments:3,levelNote:''})).status,409);
+});
+test('partial trial exposes only selected sentences and withdrawal preserves existing access',async()=>{
+ const id=await managementLesson('Partial trial');
+ await pool.query("UPDATE lessons SET status='published',subtitles_json=$2,sentence_analysis_json=$3 WHERE id=$1",[id,JSON.stringify([0,1,2].map(i=>({text:'جملة '+i,startTime:i*4,endTime:i*4+3}))),JSON.stringify([0,1,2].map(i=>({sentence:'جملة '+i,translation:i===2?'HIDDEN THIRD':'Gap '+i,lineIndices:[i]})))]);
+ assert.equal((await controlSave(id,{trialMode:'preview',previewSegments:2,priceCoins:9})).status,200);
+ const guest=new Client(),trial=await guest.call(`/api/learn/trial/${id}`);assert.equal(trial.status,200);assert.equal(trial.data.segments.length,2);assert.ok(!JSON.stringify(trial.data).includes('HIDDEN THIRD'));assert.equal('quizzesJson' in trial.data,false);
+ assert.equal((await guest.call(`/api/lessons/public/${id}`)).status,401);
+ await pool.query("INSERT INTO lesson_access(user_id,lesson_id,source,price_coins) VALUES($1,$2,'admin',0)",[admin.id,id]);
+ const rows=await managementPreview([id]);const r=await admin.call('/api/admin/lesson-actions','POST',managementBody(rows,'unpublish'));assert.equal(r.status,200,JSON.stringify(r.data));
+ assert.equal((await pool.query('SELECT status FROM lessons WHERE id=$1',[id])).rows[0].status,'unpublished');
+ assert.equal((await guest.call(`/api/learn/trial/${id}`)).status,404);
+ assert.equal((await guest.call('/api/lessons/public')).data.lessons.some((l:any)=>l.id===id),false);
+ assert.equal((await pool.query('SELECT id FROM lesson_access WHERE lesson_id=$1',[id])).rowCount,1);
+ assert.equal((await guest.call(`/api/admin/lessons/${id}/controls`)).status,401);
+});
+test('publish action validates content, and publish/unpublish operate independently of archive',async()=>{
+ const invalid=await managementLesson('Incomplete publish');await pool.query("UPDATE lessons SET status='approved' WHERE id=$1",[invalid]);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(await managementPreview([invalid]),'publish'))).status,400);
+ const pkg=JSON.parse(await readFile('client/public/lesson-package-example.json','utf8'));pkg.metadata.title='Publication controls integration';
+ const created=await admin.call('/api/admin/lesson-package','POST',{package:pkg});assert.equal(created.status,201,JSON.stringify(created.data));const id=created.data.lesson.id;
+ await pool.query("UPDATE lessons SET status='approved' WHERE id=$1",[id]);
+ const published=await admin.call('/api/admin/lesson-actions','POST',managementBody(await managementPreview([id]),'publish'));assert.equal(published.status,200,JSON.stringify(published.data));
+ const guest=new Client();assert.equal((await guest.call('/api/lessons/public')).data.lessons.some((l:any)=>l.id===id),true);
+ assert.equal((await controlSave(id,{trialMode:'none'})).status,200);
+ await guest.call('/api/platform/catalog');assert.equal((await guest.call('/api/platform/products/tube-'+id+'/demo')).status,404);
+ assert.equal((await controlSave(id,{trialMode:'preview',previewSegments:1})).status,200);
+ const demo=await guest.call('/api/platform/products/tube-'+id+'/demo');assert.equal(demo.status,200,JSON.stringify(demo.data));assert.equal(demo.data.segments.length,1);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(await managementPreview([id]),'unpublish'))).status,200);
+ assert.equal((await pool.query('SELECT status FROM lessons WHERE id=$1',[id])).rows[0].status,'unpublished');
+ await pool.query("UPDATE lessons SET status='approved' WHERE id=$1",[id]);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(await managementPreview([id]),'publish'))).status,200);
+ assert.equal((await pool.query('SELECT status FROM platform_products WHERE id=$1',['tube-'+id])).rows[0].status,'published');
+});

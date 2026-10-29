@@ -22,6 +22,7 @@ const Words = lazy(() => learner().then((m) => ({ default: m.WordsPage })));
 const Review = lazy(() => learner().then((m) => ({ default: m.ReviewPage })));
 const Profile = lazy(() => learner().then((m) => ({ default: m.ProfilePage })));
 const Lesson = lazy(() => import("@/pages/learning/experience-page"));
+const Trial=lazy(()=>import('@/pages/learning/trial-page'));
 const ExperienceReview=lazy(()=>import('@/pages/learning/experience-page').then(m=>({default:m.DailyReviewPage})));
 const studio = () => import("@/pages/learning/studio-pages");
 const Studio = lazy(() => studio().then((m) => ({ default: m.StudioPage })));
@@ -146,6 +147,7 @@ function Router() {
         </Route>
         <Route path="/courses" component={Catalog} />
         <Route path="/courses/:id" component={Course} />
+        <Route path="/trial/:id" component={Trial} />
         <Route path="/learn/:id" component={Lesson} />
         <Route path="/review/experience"><Guard><ExperienceReview/></Guard></Route>
         <Route path="/support"><Guard><Support /></Guard></Route>

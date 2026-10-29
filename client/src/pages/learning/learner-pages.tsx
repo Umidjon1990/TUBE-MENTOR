@@ -47,6 +47,8 @@ export interface LessonCard {
   completionPercent: number;
   access: "demo" | "owned" | "locked" | "admin";
   priceCoins: number;
+  trialMode?:string;
+  trialUrl?:string|null;
 }
 interface CourseCard {
   id: number;
@@ -80,7 +82,7 @@ function Cover({ src }: { src?: string | null }) {
 }
 function LessonRow({ lesson }: { lesson: LessonCard }) {
   return (
-    <Link href={`/learn/${lesson.id}`} className="lesson-row">
+    <Link href={lesson.access==="locked"&&lesson.trialUrl?lesson.trialUrl:`/learn/${lesson.id}`} className="lesson-row">
       <Cover src={lesson.thumbnailUrl} />
       <div>
         <span className="level-pill">{lesson.level}</span>
@@ -105,7 +107,7 @@ function LessonRow({ lesson }: { lesson: LessonCard }) {
           </>
         ) : (
           <small>
-            {lesson.description?.slice(0, 95) || "Video, lug‘at va mashqlar"}
+            {lesson.trialUrl?"Bepul sinov parchasini ko‘rish →":lesson.description?.slice(0, 95) || "Video, lug‘at va mashqlar"}
           </small>
         )}
       </div>

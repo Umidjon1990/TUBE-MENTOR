@@ -1,3 +1,4 @@
+import {controlsMap,orderedVisible} from './lesson-controls';
 import {experienceFor} from './experience-content';
 import { Readable } from "node:stream";
 import { registerPlatformLinks } from "./platform-links";
@@ -139,10 +140,11 @@ const offerInput = z.object({
 /** Import only real source metadata. Never create fabricated inventory or convert UZS to coins implicitly. */
 export async function syncTubeProducts() {
   const settings = await getCommerceSettings();
+  const controls=await controlsMap();
   for (const source of await storage.getAllLessons()) {
     const lesson = publishedLesson(source);
-    if (!lesson || source.status === "archived") continue;
-    const free = settings.demoLessonId === source.id;
+    if (!lesson || ["archived","unpublished"].includes(source.status)) continue;
+    const free = settings.demoLessonId === source.id || controls.get(source.id)?.trialMode==="full";
     await pool.query(
       `INSERT INTO platform_products(id,provider,source_id,kind,title,description,thumbnail_url,level,price_coins,demo_ref,source_version,status)
    VALUES($1,'tube',$2,'tube',$3,$4,$5,$6,$7,$2,$8,'published')
@@ -162,9 +164,9 @@ export async function syncTubeProducts() {
 }
 async function tubeCatalog(req: any) {
   const sources = await storage.getAllLessons();
-  const valid = sources.filter(
-    (s) => s.status !== "archived" && publishedLesson(s),
-  );
+  const valid = orderedVisible(sources.filter(
+    (s) => !["archived","unpublished"].includes(s.status) && publishedLesson(s),
+  ),await controlsMap());
   const ids = valid.map((s) => "tube-" + s.id);
   if (!ids.length) return [];
   const rows = await pool.query(
@@ -172,13 +174,14 @@ async function tubeCatalog(req: any) {
     [ids],
   );
   return Promise.all(
-    rows.rows.map(async (p) => {
+    rows.rows.sort((a,b)=>valid.findIndex(l=>String(l.id)===a.source_id)-valid.findIndex(l=>String(l.id)===b.source_id)).map(async (p) => {
       const lesson = valid.find((s) => String(s.id) === p.source_id)!;
       const card = await catalogCard(req, lesson);
       return {
         ...dto(p),
         owned: card.access === "owned" || card.access === "admin",
         access: card.access,
+        trialMode:card.trialMode,trialUrl:card.trialUrl,sortOrder:card.sortOrder,
       };
     }),
   );
@@ -252,7 +255,7 @@ export async function buyProduct(
       ).rows[0];
       if (
         !source ||
-        source.status === "archived" ||
+        ["archived","unpublished"].includes(source.status) ||
         (!source.published_snapshot && source.status !== "published")
       )
         problem(404, "Dars nashrda mavjud emas");
@@ -925,7 +928,7 @@ export function registerMarketplace(app: Express, http: Server) {
         access: string | undefined;
       if (p.provider === "tube") {
         const source = await storage.getLessonById(Number(p.source_id));
-        if (!source || !publishedLesson(source) || source.status === "archived")
+        if (!source || !publishedLesson(source) || ["archived","unpublished"].includes(source.status))
           return res.status(404).json({ message: "Mahsulot topilmadi" });
         const card = await catalogCard(req, source);
         owned = card.access === "owned" || card.access === "admin";
@@ -960,23 +963,18 @@ export function registerMarketplace(app: Express, http: Server) {
       }
       const source = await storage.getLessonById(Number(p.source_id));
       const lesson =
-        source && source.status !== "archived" && publishedLesson(source);
+        source && !["archived","unpublished"].includes(source.status) && publishedLesson(source);
       if (!lesson) return res.status(404).json({ message: "Demo mavjud emas" });
-      const segments = lessonSegments(lesson)
-        .filter((s) => s.start !== null && s.start < 30)
-        .slice(0, 3)
-        .map((s) => ({
-          id: s.id,
-          text: s.text,
-          translation: s.translation,
-          start: s.start,
-          end: Math.min(s.end || 30, 30),
-        }));
+      const control=(await controlsMap()).get(lesson.id);
+      if(control?.trialMode==='none')return res.status(404).json({message:'Bu dars uchun sinov yopiq'});
+      const chosen=control?lessonSegments(lesson).slice(0,control.trialMode==='full'?undefined:control.previewSegments):lessonSegments(lesson).filter(s=>s.start!==null&&s.start<30).slice(0,3);
+      const endSeconds=control?(chosen.at(-1)?.end||30):30;
+      const segments=chosen.map(s=>({id:s.id,text:s.text,translation:s.translation,start:s.start,end:Math.min(s.end||endSeconds,endSeconds)}));
       res.json({
         kind: "video",
         title: lesson.title,
         youtubeId: youtubeId(lesson.youtubeUrl),
-        endSeconds: 30,
+        endSeconds,
         segments,
       });
     } catch (error) {

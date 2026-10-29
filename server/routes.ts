@@ -1,3 +1,4 @@
+import {controlsMap,defaultControl,orderedVisible} from './lesson-controls';
 import {registerLessonManagement} from './lesson-management';
 import {coerceLessonPackage} from '../shared/experience-package';
 import type { Express, Request } from "express";
@@ -650,6 +651,7 @@ export async function registerRoutes(
   app.get("/api/admin/lessons", requireAdmin, async (_req, res) => {
     const allLessons = await storage.getAllLessons();
     const allTags = await storage.getAllTags();
+    const controls=await controlsMap(),commerce=await (await import("./commerce")).getCommerceSettings();
     const lessonsWithCreator = await Promise.all(
       allLessons.map(async (lesson) => {
         const creator = lesson.createdBy
@@ -661,6 +663,8 @@ export async function registerRoutes(
           .filter(Boolean);
         return {
           ...lesson,
+          control:controls.get(lesson.id)||defaultControl(lesson.id),
+          priceCoins:commerce.lessonPrices[String(lesson.id)]??commerce.lessonCost,
           creatorName: creator?.fullName || "Noma'lum",
           creatorUsername: creator?.username || "",
           tags,
@@ -769,7 +773,8 @@ export async function registerRoutes(
       if (!lesson) return res.status(404).json({ message: "Dars topilmadi" });
       if (!publishedLesson(lesson))
         return res.status(400).json({ message: "Dars nashr qilinmagan" });
-      const updated = await archiveLesson(id);
+      await archiveLesson(id);
+      const updated = await storage.updateLesson(id,{status:"unpublished"});
       res.json(updated);
     },
   );
@@ -2406,7 +2411,7 @@ export async function registerRoutes(
       const allCategories = await storage.getAllCategories();
       const allLessons = await storage.getAllLessons();
       const publishedLessons = allLessons.flatMap((l) =>
-        l.status !== "archived" && publishedLesson(l)
+        !["archived","unpublished"].includes(l.status) && publishedLesson(l)
           ? [publishedLesson(l)!]
           : [],
       );
@@ -2442,7 +2447,7 @@ export async function registerRoutes(
       const allLessons = await storage.getAllLessons();
       const publishedLessons = allLessons
         .flatMap((l) =>
-          l.status !== "archived" && publishedLesson(l)
+          !["archived","unpublished"].includes(l.status) && publishedLesson(l)
             ? [publishedLesson(l)!]
             : [],
         )
@@ -2463,11 +2468,12 @@ export async function registerRoutes(
   app.get("/api/lessons/public", async (req, res) => {
     const allLessons = await storage.getAllLessons();
     let publicLessons = allLessons.flatMap((l) =>
-      l.status !== "archived" && publishedLesson(l)
+      !["archived","unpublished"].includes(l.status) && publishedLesson(l)
         ? [publishedLesson(l)!]
         : [],
     );
 
+    publicLessons=orderedVisible(publicLessons,await controlsMap());
     const {
       search,
       category,
@@ -2504,7 +2510,9 @@ export async function registerRoutes(
       );
     }
 
+    const visibilityControls=await controlsMap();
     publicLessons.sort((a, b) => {
+      const order=(visibilityControls.get(a.id)?.sortOrder||0)-(visibilityControls.get(b.id)?.sortOrder||0);if(order)return order;
       if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
       return (
         new Date(b.publishedAt ?? b.createdAt).getTime() -
@@ -2597,7 +2605,7 @@ export async function registerRoutes(
       (l) => l.status === "pending",
     ).length;
     const publishedLessons = allLessons.flatMap((l) =>
-      l.status !== "archived" && publishedLesson(l)
+      !["archived","unpublished"].includes(l.status) && publishedLesson(l)
         ? [publishedLesson(l)!]
         : [],
     ).length;
@@ -3003,7 +3011,7 @@ export async function registerRoutes(
     res.json({
       totalLessons: allLessons.length,
       publishedLessons: allLessons.flatMap((l) =>
-        l.status !== "archived" && publishedLesson(l)
+        !["archived","unpublished"].includes(l.status) && publishedLesson(l)
           ? [publishedLesson(l)!]
           : [],
       ).length,

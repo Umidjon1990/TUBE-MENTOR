@@ -1,3 +1,4 @@
+import {controlsMap,trialAvailable,retired} from './lesson-controls';
 import {experienceFor} from './experience-content';
 import type { Request } from "express";
 import {
@@ -26,6 +27,7 @@ const requestAccess = new WeakMap<
     demoLessonId: number | null;
     owned: Set<number>;
     settings: CommerceSettings;
+    controls: Awaited<ReturnType<typeof controlsMap>>;
   }>
 >();
 function accessContext(req: Request) {
@@ -33,6 +35,7 @@ function accessContext(req: Request) {
   if (!context) {
     context = Promise.all([
       getCommerceSettings(),
+      controlsMap(),
       req.session.userId
         ? db
             .select({ lessonId: grants.lessonId })
@@ -45,7 +48,8 @@ function accessContext(req: Request) {
               ),
             )
         : Promise.resolve([]),
-    ]).then(([settings, owned]) => ({
+    ]).then(([settings, controls, owned]) => ({
+      controls,
       settings,
       demoLessonId: settings.demoLessonId,
       owned: new Set(owned.map((grant) => grant.lessonId)),
@@ -88,8 +92,8 @@ export async function lessonAccess(
     // Queries inside a transaction must use its own connection, including configuration.
     const settings = await getCommerceSettings(tx);
     if (
-      settings.demoLessonId === lesson.id &&
-      lesson.status !== "archived" &&
+      (settings.demoLessonId === lesson.id || lessonPrice(settings,lesson.id)===0 || trialAvailable(lesson,(await controlsMap(tx)).get(lesson.id))) &&
+      !retired(lesson) &&
       publishedLesson(lesson)
     )
       return "demo";
@@ -111,8 +115,8 @@ export async function lessonAccess(
   }
   const context = await accessContext(req);
   if (
-    context.demoLessonId === lesson.id &&
-    lesson.status !== "archived" &&
+    (context.demoLessonId === lesson.id || lessonPrice(context.settings,lesson.id)===0 || trialAvailable(lesson,context.controls.get(lesson.id))) &&
+    !retired(lesson) &&
     publishedLesson(lesson)
   )
     return "demo";
@@ -125,15 +129,16 @@ export async function catalogCard(
   lesson: Lesson,
   completion = 0,
 ) {
-  const { settings } = await accessContext(req);
+  const { settings,controls } = await accessContext(req);
+  const control=controls.get(lesson.id);
   const experience=experienceFor(publishedLesson(lesson)||lesson);
   if(experience&&req.session.userId){const state=(await pool.query('SELECT state FROM lesson_experience_progress WHERE user_id=$1 AND lesson_id=$2 AND version=$3',[req.session.userId,lesson.id,experience.version])).rows[0]?.state;completion=(state?.completed?.length||0)*20}
-  return lessonCard(
+  return {...lessonCard(
     lesson,
     await lessonAccess(req, lesson),
     completion,
     lessonPrice(settings, lesson.id),
-  );
+  ),dashboardVisible:control?.dashboardVisible??true,sortOrder:control?.sortOrder??0,trialMode:control?.trialMode??"none",trialUrl:control?.trialMode==="preview"?"/trial/"+lesson.id:null};
 }
 
 /** All content routes use the same entitlement check, including legacy routes. */
@@ -176,7 +181,7 @@ export async function accessibleLesson(
     throw Object.assign(new Error("Dars nashr qilinmagan"), { status: 404 });
   const access = await lessonAccess(req, source, tx);
   if (access === "demo" || access === "owned")
-    return source.status === "archived"
+    return retired(source)
       ? { ...published, status: "archived" }
       : published;
   const price = lessonPrice(await getCommerceSettings(tx), id);
@@ -214,7 +219,7 @@ export async function readableLessons(
       const access = await lessonAccess(req, source);
       return access === "locked"
         ? null
-        : source.status === "archived"
+        : retired(source)
           ? { ...published, status: "archived" }
           : published;
     }),

@@ -1,3 +1,4 @@
+import {LessonManagementActions} from '@/components/lesson-management';
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -70,6 +71,7 @@ const labels: Record<string, string> = {
   published: "Nashr qilingan",
   rejected: "Tuzatish kerak",
   processing: "Tayyorlanmoqda",
+  archived: "Arxivlangan",
 };
 function Status({ value }: { value: string }) {
   return (
@@ -81,6 +83,7 @@ export function StudioPage() {
     queryKey: ["/api/admin/lessons"],
     queryFn: () => request("GET", "/api/admin/lessons"),
   });
+  const [selected, setSelected] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const visible = q.data?.filter(
@@ -88,6 +91,7 @@ export function StudioPage() {
       l.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
       (!status || l.status === status),
   );
+  useEffect(()=>setSelected([]),[search,status]);
   return (
     <AdminContentShell title="Barcha darslar">
       <div className="section-heading">
@@ -127,24 +131,16 @@ export function StudioPage() {
         <ErrorState error={q.error} retry={() => q.refetch()} />
       ) : visible?.length ? (
         <div className="studio-list">
-          {visible.map((l) => (
-            <Link
-              className="studio-card learning-panel"
-              href={`/admin/lessons/${l.id}`}
-              key={l.id}
-            >
-              <div>
-                <Status value={l.status} />
-                <h2>{l.title}</h2>
-                <p>
-                  {cefrLevel(l.level)} ·{" "}
-                  {l.targetLanguage === "en" ? "Ingliz tili" : "Arab tili"} ·{" "}
-                  {l.contentVersion}-nusxa
-                </p>
-              </div>
-              <ArrowRight size={20} />
-            </Link>
-          ))}
+          <div className="lesson-selection-bar">
+            <label><input type="checkbox" aria-label="Ko‘rsatilgan barcha darslarni tanlash" checked={!!visible.length&&visible.every(l=>selected.includes(l.id))} onChange={e=>setSelected(e.target.checked?visible.map(l=>l.id):[])}/> Barchasini tanlash</label>
+            <span>{selected.length} ta tanlangan</span>
+            <LessonManagementActions ids={selected} onDone={()=>setSelected([])}/>
+          </div>
+          {visible.map(l=><article className="learning-panel lesson-management-card" key={l.id}>
+            <label className="lesson-select"><input type="checkbox" aria-label={l.title+' — tanlash'} checked={selected.includes(l.id)} onChange={e=>setSelected(old=>e.target.checked?[...old,l.id]:old.filter(id=>id!==l.id))}/></label>
+            <Link className="studio-card" href={`/admin/lessons/${l.id}`}><div><Status value={l.status}/><h2>{l.title}</h2><p>{cefrLevel(l.level)} · {l.targetLanguage==='en'?'Ingliz tili':'Arab tili'} · {l.contentVersion}-nusxa</p></div><ArrowRight size={20}/></Link>
+            <LessonManagementActions ids={[l.id]} onDone={()=>setSelected(old=>old.filter(id=>id!==l.id))}/>
+          </article>)}
         </div>
       ) : (
         <EmptyState
@@ -271,6 +267,7 @@ interface Review {
   hasPublishedVersion: boolean;
 }
 export function StudioEditor() {
+  const [, navigate] = useLocation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const cache = useQueryClient();
@@ -395,6 +392,7 @@ export function StudioEditor() {
         lesson && (
           <>
             <Panel>
+              <LessonManagementActions ids={[lesson.id]} onDone={()=>navigate("/admin/lessons")}/>
               <div className="section-heading">
                 <Status value={lesson.status} />
                 <span>{lesson.contentVersion}-nusxa</span>

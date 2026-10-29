@@ -1,3 +1,4 @@
+import {registerLessonManagement} from './lesson-management';
 import {coerceLessonPackage} from '../shared/experience-package';
 import type { Express, Request } from "express";
 import { type Server } from "http";
@@ -368,6 +369,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express,
 ): Promise<Server> {
+  registerLessonManagement(app);
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
   // Legacy lesson endpoints cannot bypass the current purchase rules.
   app.use("/api/user/lessons", requireAuth, async (req, _res, next) => {

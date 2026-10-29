@@ -607,3 +607,45 @@ test('JSON lesson package is admin-only, creates a draft, rejects invalid replac
   assert.equal(reviewed.data.publishedSnapshot.title,pkg.metadata.title);
   assert.equal((await admin.call(`/api/studio/lessons/${lesson.id}/review`,'POST',{text:true})).status,400);
 });
+
+// Lesson management is exercised through the real authenticated routes and database.
+async function managementLesson(title:string){return (await pool.query("INSERT INTO lessons(title,status) VALUES($1,'draft') RETURNING id",[title])).rows[0].id as number}
+async function managementPreview(ids:number[]){const r=await admin.call('/api/admin/lesson-actions/preview','POST',{ids});assert.equal(r.status,200,JSON.stringify(r.data));return r.data.lessons as {id:number;version:string;deleteBlocked:string|null}[]}
+function managementBody(rows:{id:number;version:string}[],action='delete'){return{ids:rows.map(l=>l.id),versions:Object.fromEntries(rows.map(l=>[l.id,l.version])),action,confirmed:true}}
+test('lesson actions require admin, explicit confirmation, valid selection and fresh preview',async()=>{
+ const id=await managementLesson('Management validation');
+ assert.equal((await new Client().call('/api/admin/lesson-actions/preview','POST',{ids:[id]})).status,401);
+ const student=await learner('management_student');
+ assert.equal((await student.call('/api/admin/lesson-actions/preview','POST',{ids:[id]})).status,403);
+ assert.equal((await admin.call('/api/admin/lesson-actions/preview','POST',{ids:[]})).status,400);
+ const rows=await managementPreview([id]);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',{...managementBody(rows),confirmed:false})).status,400);
+ await pool.query("UPDATE lessons SET updated_at=updated_at+interval '1 second' WHERE id=$1",[id]);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(rows))).status,409);
+ assert.equal((await pool.query('SELECT id FROM lessons WHERE id=$1',[id])).rowCount,1);
+});
+test('bulk delete cascades lesson learning data, archives catalog products and records audit',async()=>{
+ const a=await managementLesson('Delete A'),b=await managementLesson('Delete B'),keep=await managementLesson('Keep');
+ await pool.query("INSERT INTO notes(user_id,lesson_id,content) VALUES($1,$2,'temporary note')",[admin.id,a]);
+ await pool.query("INSERT INTO platform_products(id,provider,source_id,kind,title,status) VALUES($1,'tube',$2,'tube','Delete product','published')",['management-'+a,String(a)]);
+ const rows=await managementPreview([a,b]);assert.ok(rows.every(l=>!l.deleteBlocked));
+ const r=await admin.call('/api/admin/lesson-actions','POST',managementBody(rows));assert.equal(r.status,200,JSON.stringify(r.data));
+ assert.equal((await pool.query('SELECT id FROM lessons WHERE id=ANY($1::int[])',[[a,b]])).rowCount,0);
+ assert.equal((await pool.query('SELECT id FROM lessons WHERE id=$1',[keep])).rowCount,1);
+ assert.equal((await pool.query('SELECT id FROM notes WHERE lesson_id=$1',[a])).rowCount,0);
+ assert.equal((await pool.query('SELECT status FROM platform_products WHERE id=$1',['management-'+a])).rows[0].status,'archived');
+ assert.ok((await pool.query("SELECT id FROM commerce_audit WHERE action='lesson.delete' AND actor_id=$1",[admin.id])).rowCount);
+});
+test('protected lesson blocks entire deletion batch; archive retains access, progress and publication',async()=>{
+ const protectedId=await managementLesson('Owned lesson'),other=await managementLesson('Other selection');
+ await pool.query("UPDATE lessons SET status='published' WHERE id=$1",[protectedId]);
+ await pool.query("INSERT INTO lesson_access(user_id,lesson_id,source,price_coins) VALUES($1,$2,'admin',0)",[admin.id,protectedId]);
+ await pool.query("INSERT INTO lesson_progress(user_id,lesson_id,completion_percent) VALUES($1,$2,40)",[admin.id,protectedId]);
+ const rows=await managementPreview([protectedId,other]);assert.ok(rows.find(l=>l.id===protectedId)!.deleteBlocked);
+ assert.equal((await admin.call('/api/admin/lesson-actions','POST',managementBody(rows))).status,409);
+ assert.equal((await pool.query('SELECT id FROM lessons WHERE id=ANY($1::int[])',[[protectedId,other]])).rowCount,2);
+ const r=await admin.call('/api/admin/lesson-actions','POST',managementBody(rows,'archive'));assert.equal(r.status,200,JSON.stringify(r.data));
+ const l=(await pool.query('SELECT * FROM lessons WHERE id=$1',[protectedId])).rows[0];assert.equal(l.status,'archived');assert.ok(l.published_snapshot);
+ assert.equal((await pool.query('SELECT * FROM lesson_access WHERE lesson_id=$1',[protectedId])).rowCount,1);
+ assert.equal((await pool.query('SELECT completion_percent FROM lesson_progress WHERE lesson_id=$1',[protectedId])).rows[0].completion_percent,40);
+});

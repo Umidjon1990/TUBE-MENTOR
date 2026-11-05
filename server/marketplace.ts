@@ -1397,6 +1397,26 @@ export function registerMarketplace(app: Express, http: Server) {
     stream.pipe(res);
   };
   app.get(
+    "/api/platform/admin/products/" + freeA0Id + "/student-view",
+    requireAdmin,
+    async (_req, res, next) => {
+      try {
+        const course = await product(freeA0Id);
+        if (!course)
+          return res.status(404).json({ message: "Kurs topilmadi" });
+        const lessons = await a0Lessons();
+        res.set("Cache-Control", "private, no-store").json({
+          title: course.title,
+          lessons,
+          progress: {},
+          resume: null,
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+  app.get(
     "/api/platform/admin/products/:id/preview",
     requireAdmin,
     async (req, res, next) => {

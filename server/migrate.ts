@@ -26,6 +26,7 @@ export async function migrateDatabase() {
       "0011_lesson_experience.sql",
       "0012_lesson_controls.sql",
       "0013_payme.sql",
+      "0014_free_a0_course.sql",
     ]) {
       const exists = await client.query(
         "SELECT 1 FROM tube_migrations WHERE name=$1",

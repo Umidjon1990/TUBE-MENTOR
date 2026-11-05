@@ -1,3 +1,4 @@
+import { a0Demo, a0Lessons, a0Library, a0Outline, a0ProgressInput, a0View, freeA0Id, saveA0Progress } from "./free-course";
 import {controlsMap,orderedVisible} from './lesson-controls';
 import {experienceFor} from './experience-content';
 import { Readable } from "node:stream";
@@ -135,6 +136,7 @@ const offerInput = z.object({
   maxAttempts: z.number().int().min(1).max(1000).nullable(),
   demoRef: z.string().min(1).max(200).nullable(),
   status: z.enum(["draft", "published", "archived"]),
+  thumbnailUrl: z.string().max(1024).regex(/^(?:https:\/\/[^\s]+|\/covers\/[a-zA-Z0-9_.-]+)$/).nullable().optional(),
 });
 
 /** Import only real source metadata. Never create fabricated inventory or convert UZS to coins implicitly. */
@@ -200,7 +202,7 @@ export async function buyProduct(
   expectedPrice?: number,
   expectedVersion?: string,
 ) {
-  await grantWelcomeBonus(userId);
+  if (id !== freeA0Id) await grantWelcomeBonus(userId);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -246,6 +248,22 @@ export async function buyProduct(
     if (active) {
       await client.query("COMMIT");
       return active;
+    }
+    if (p.id === freeA0Id) {
+      if (p.price_coins !== 0 || p.duration_days !== null)
+        problem(409, "Bepul kurs shartlari noto‘g‘ri");
+      const revoked = await client.query(
+        "SELECT 1 FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status='revoked'",
+        [userId, id],
+      );
+      if (revoked.rowCount) problem(403, "Kursga kirish admin tomonidan to‘xtatilgan");
+      const order = (await client.query(
+        `INSERT INTO platform_orders(user_id,product_id,request_key,status,price_coins,policy)
+         VALUES($1,$2,$3,'active',0,$4) RETURNING *`,
+        [userId, id, requestKey, JSON.stringify({ ...dto(p), version: 1 })],
+      )).rows[0];
+      await client.query("COMMIT");
+      return order;
     }
     if (p.provider === "tube") {
       const source = (
@@ -407,6 +425,7 @@ export async function managePlatformOrder(
     ).rows[0];
     if (
       order.policy.provider !== "tube" &&
+      order.product_id !== freeA0Id &&
       (!sourceResult || sourceResult.orderId !== id)
     )
       problem(409, "Manba ruxsati tasdiqlanishi kerak");
@@ -613,7 +632,7 @@ export async function processPlatformAction(id: string) {
     ).rows[0];
     if (!order) problem(404, "Xarid topilmadi");
     let sourceResult;
-    if (order.policy.provider !== "tube") {
+    if (order.policy.provider !== "tube" && order.product_id !== freeA0Id) {
       sourceResult = await providerRequest(
         order.policy.provider,
         "grants/" + order.id + "/manage",
@@ -683,6 +702,8 @@ export async function queuePlatformAction(
     )
   ).rows[0];
   if (!order) problem(404, "Xarid topilmadi");
+  if (order.product_id === freeA0Id && input.action !== "revoke")
+    problem(409, "Bepul kurs uchun faqat kirishni to‘xtatish mumkin");
   if (order.policy.legacy && input.action === "refund")
     problem(
       409,
@@ -824,8 +845,8 @@ async function performProviderCatalogSync(provider: string) {
       );
     }
     await client.query(
-      "UPDATE platform_products SET status='archived',updated_at=now() WHERE provider=$1 AND NOT(id=ANY($2::varchar[]))",
-      [provider, ids],
+      "UPDATE platform_products SET status='archived',updated_at=now() WHERE provider=$1 AND NOT(id=ANY($2::varchar[])) AND id<>$3",
+      [provider, ids, freeA0Id],
     );
     await client.query("COMMIT");
     return { count: items.length };
@@ -863,7 +884,7 @@ export function registerMarketplace(app: Express, http: Server) {
         return res.status(404).json({ message: "Xarid topilmadi" });
       const outcomes = await Promise.allSettled(
         orders
-          .filter((o: any) => o.policy.provider !== "tube")
+          .filter((o: any) => o.policy.provider !== "tube" && o.product_id !== freeA0Id)
           .map(async (o: any) =>
             providerRequest(
               o.policy.provider,
@@ -913,7 +934,15 @@ export function registerMarketplace(app: Express, http: Server) {
           "SELECT * FROM platform_products WHERE provider<>'tube' AND status='published' ORDER BY updated_at DESC",
         )
       ).rows.map(dto);
-      res.json({ products: [...native, ...other] });
+      const a0 = other.find((item) => item.id === freeA0Id);
+      const userId = req.session.userId;
+      const owned = a0 && userId ? (await pool.query(
+        "SELECT 1 FROM platform_orders WHERE user_id=$1 AND product_id=$2 AND status='active'",
+        [userId, freeA0Id],
+      )).rowCount : 0;
+      res.json({ products: [...native, ...other.map((item) =>
+        item.id === freeA0Id ? { ...item, owned: Boolean(owned) } : item,
+      )] });
     } catch (error) {
       next(error);
     }
@@ -946,11 +975,34 @@ export function registerMarketplace(app: Express, http: Server) {
       next(error);
     }
   });
+  app.get("/api/platform/products/" + freeA0Id + "/outline", async (_req, res, next) => {
+    try {
+      const p = await product(freeA0Id);
+      if (p?.status !== "published") return res.status(404).json({ message: "Kurs katalogda mavjud emas" });
+      res.json({ lessons: await a0Outline() });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post("/api/platform/owned/" + freeA0Id + "/progress/:lessonId", requireAuth, async (req, res, next) => {
+    try {
+      const lessonId = z.string().uuid().safeParse(req.params.lessonId);
+      const input = a0ProgressInput.safeParse(req.body);
+      if (!lessonId.success || !input.success)
+        return res.status(400).json({ message: "Dars progressi noto‘g‘ri" });
+      const userId = req.session.userId!;
+      const order = await ownedOrder(userId, freeA0Id);
+      res.json(await saveA0Progress(userId, order.id, lessonId.data, input.data));
+    } catch (error) {
+      next(error);
+    }
+  });
   app.get("/api/platform/products/:id/demo", async (req, res, next) => {
     try {
       const p = await product(String(req.params.id));
       if (!p || p.status !== "published" || !p.demo_ref)
         return res.status(404).json({ message: "Demo mavjud emas" });
+      if (p.id === freeA0Id) return res.json(await a0Demo());
       if (p.provider !== "tube") {
         const preview = await providerRequest(
           p.provider,
@@ -1001,6 +1053,7 @@ export function registerMarketplace(app: Express, http: Server) {
             message:
               "Mahsulot shartlarini yangilash uchun sahifani qayta oching",
           });
+        if (req.params.id === freeA0Id) await a0Lessons();
         const order = await buyProduct(
           req.session.userId!,
           String(req.params.id),
@@ -1154,6 +1207,9 @@ export function registerMarketplace(app: Express, http: Server) {
         .sort((a: any, b: any) => accessRank(a) - accessRank(b))) {
         if (seen.has(o.product_id)) continue;
         seen.add(o.product_id);
+        const freeProgress = o.product_id === freeA0Id && o.status === "active"
+          ? await a0Library(req.session.userId!).catch(() => null)
+          : null;
         products.push({
           ...o.policy,
           id: o.product_id,
@@ -1172,6 +1228,7 @@ export function registerMarketplace(app: Express, http: Server) {
             o.source_result?.attemptsRemaining,
           maxAttempts:
             liveAttempts.get(o.id)?.maxAttempts ?? o.policy.maxAttempts,
+          ...freeProgress,
         });
       }
       res.json({
@@ -1351,6 +1408,7 @@ export function registerMarketplace(app: Express, http: Server) {
             .json({
               message: "Demo mavjud emas. Manba muharririda demo belgilang.",
             });
+        if (p.id === freeA0Id) return res.json(await a0Demo());
         if (p.provider === "tube") {
           const lesson = await storage.getLessonById(Number(p.source_id));
           if (!lesson)
@@ -1460,6 +1518,10 @@ export function registerMarketplace(app: Express, http: Server) {
         String(req.params.id),
         req.query.order,
       );
+      if (o.product_id === freeA0Id) {
+        const p = await product(freeA0Id);
+        return res.json({ kind: "free-course", title: p.title, ...await a0View(req.session.userId!) });
+      }
       const view = await providerRequest(
         o.policy.provider,
         "owned/" + encodeURIComponent(o.policy.sourceId) + "/view",
@@ -1593,6 +1655,11 @@ export function registerMarketplace(app: Express, http: Server) {
         const p = await product(String(req.params.id));
         if (!p) return res.status(404).json({ message: "Mahsulot topilmadi" });
         const v = offerInput.parse(req.body);
+        if (p.id === freeA0Id) {
+          if (v.priceCoins !== 0 || v.durationDays !== null || v.maxAttempts !== null || v.demoRef !== p.demo_ref)
+            return res.status(400).json({ message: "A0 bepul va muddatsiz kurs sifatida e’lon qilinadi" });
+          if (v.status === "published") await a0Lessons();
+        }
         if (p.kind === "test" && v.status === "published" && !v.maxAttempts)
           return res
             .status(400)
@@ -1607,6 +1674,7 @@ export function registerMarketplace(app: Express, http: Server) {
               "Tarifning barcha imkoniyatlari hali ulanmagan",
           });
         if (
+          p.id !== freeA0Id &&
           (p.provider === "courses" ||
             (p.provider === "arabictest" && p.kind === "course")) &&
           v.status === "published" &&
@@ -1621,7 +1689,7 @@ export function registerMarketplace(app: Express, http: Server) {
           });
         if (v.status === "published" && !v.demoRef)
           return res.status(400).json({ message: "Savdo uchun demo kerak" });
-        if (p.provider !== "tube" && v.status === "published")
+        if (p.provider !== "tube" && p.id !== freeA0Id && v.status === "published")
           await providerRequest(
             p.provider,
             "products/" + encodeURIComponent(p.source_id) + "/demo",
@@ -1658,7 +1726,7 @@ export function registerMarketplace(app: Express, http: Server) {
           }
         }
         await pool.query(
-          "UPDATE platform_products SET title=$2,description=$3,price_coins=$4,duration_days=$5,max_attempts=$6,demo_ref=$7,status=$8,updated_at=now() WHERE id=$1",
+          "UPDATE platform_products SET title=$2,description=$3,price_coins=$4,duration_days=$5,max_attempts=$6,demo_ref=$7,status=$8,thumbnail_url=CASE WHEN $9 THEN $10 ELSE thumbnail_url END,updated_at=now() WHERE id=$1",
           [
             p.id,
             v.title,
@@ -1668,6 +1736,8 @@ export function registerMarketplace(app: Express, http: Server) {
             v.maxAttempts,
             v.demoRef,
             v.status,
+            p.id === freeA0Id && v.thumbnailUrl !== undefined,
+            v.thumbnailUrl ?? null,
           ],
         );
         await pool.query(

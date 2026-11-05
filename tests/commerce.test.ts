@@ -779,3 +779,74 @@ test('Payme timeout, spent-coin refund protection and checkout readiness prevent
  const balance=(await c.wallet()).balance;assert.equal((await payRpc(key,'CancelTransaction',{id:next,reason:5})).error.code,-31007);assert.equal((await c.wallet()).balance,balance);assert.equal((await payRpc(key,'CheckTransaction',{id:next})).result.state,2);
  delete process.env.PAYME_ENABLED;const another=await c.order();assert.equal((await c.call('/api/commerce/orders/'+another.id+'/payme','POST',{})).status,503);
 }));
+
+test("A0 is public, joins without a wallet write, and resumes from private merged playback", async (t) => {
+  const course = "bosqichli-arab-tili-a0";
+  const sourceId = "b3ca0baa-971b-4b5b-9e1f-d2525d0cb089";
+  const lessonId = randomUUID();
+  const videoId = "h0QtIPwngkI";
+  const productPath = "/api/platform/products/" + course;
+  const ownedPath = "/api/platform/owned/" + course;
+  const progressPath = ownedPath + "/progress/" + lessonId;
+  const fetchOriginal = globalThis.fetch;
+  t.mock.method(globalThis, "fetch", (url: string | URL, init?: RequestInit) => {
+    if (String(url) === "https://zamonaviy-videokurs.up.railway.app/api/courses/" + sourceId + "/lessons/public")
+      return Promise.resolve(Response.json([{
+        id: lessonId, courseId: sourceId, title: "1-DARS ", description: "",
+        order: 1, duration: 2, isDemo: true, videoUrl: "https://youtu.be/" + videoId,
+      }]));
+    return fetchOriginal(url, init);
+  });
+  const guest = new Client();
+  const student = await learner();
+  const another = await learner();
+  const catalog = await guest.call("/api/platform/catalog");
+  assert.equal(catalog.data.products.find((p: any) => p.id === course).priceCoins, 0);
+  const outline = await guest.call(productPath + "/outline");
+  assert.deepEqual(outline.data.lessons, [{ id: lessonId, title: "1-dars", description: "", durationMinutes: 2 }]);
+  assert.equal((await guest.call(ownedPath)).status, 401);
+  assert.equal((await student.call(ownedPath)).status, 403);
+  const product = (await guest.call(productPath)).data;
+  const walletState = async () => (await pool.query(
+    "SELECT coins,(SELECT COUNT(*) FROM coin_transactions WHERE user_id=users.id) AS entries FROM users WHERE id=$1",
+    [student.id],
+  )).rows[0];
+  const walletBefore = await walletState();
+  const join = () => student.call(productPath + "/purchase", "POST", {
+    requestKey: randomUUID(), expectedPrice: 0, expectedVersion: product.offerVersion,
+  });
+  const first = await join();
+  assert.equal(first.status, 200, JSON.stringify(first.data));
+  assert.equal(first.data.status, "active");
+  assert.equal(first.data.expires_at, null);
+  assert.equal(first.data.transaction_id, null);
+  assert.equal((await join()).data.id, first.data.id);
+  assert.deepEqual(await walletState(), walletBefore);
+  const post = (position: number, ranges: number[][]) => student.call(progressPath, "POST", {
+    videoId, position, duration: 120, ranges,
+  });
+  const jumped = await post(119, [[0, 20], [100, 119]]);
+  assert.deepEqual(jumped.data, { position: 119, duration: 120, watchedPercent: 32, completed: false });
+  assert.equal((await another.call(progressPath, "POST", { videoId, position: 90, duration: 120, ranges: [] })).status, 403);
+  assert.equal((await another.call(ownedPath)).status, 403);
+  const otherDevice = new Client();
+  otherDevice.cookie = student.cookie;
+  const resumed = await otherDevice.call(ownedPath);
+  assert.equal(resumed.data.resume.position, 119);
+  assert.equal(resumed.data.lessons[0].videoId, videoId);
+  const completed = await post(100, [[20, 100], [0, 30]]);
+  assert.equal(completed.data.completed, true);
+  assert.equal(completed.data.watchedPercent, 99);
+  const library = (await otherDevice.call("/api/platform/library")).data.products.find((p: any) => p.id === course);
+  assert.equal(library.completionPercent, 100);
+  assert.equal(library.completedLessons, 1);
+  assert.equal(library.resume, null);
+  const hidden = await admin.call("/api/platform/admin/products/" + course, "PATCH", {
+    title: product.title, description: product.description, thumbnailUrl: "/covers/a0.webp",
+    priceCoins: 0, durationDays: null, maxAttempts: null, demoRef: product.demoRef, status: "archived",
+  });
+  assert.equal(hidden.status, 200, JSON.stringify(hidden.data));
+  assert.equal((await guest.call(productPath)).status, 404);
+  assert.equal((await student.call(ownedPath)).status, 200);
+  await pool.query("UPDATE platform_products SET status='published' WHERE id=$1", [course]);
+});

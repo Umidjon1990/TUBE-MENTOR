@@ -412,6 +412,33 @@ test("saved words and audio progress are isolated by account and reject invalid 
     401,
   );
 });
+test("saved guides belong to one account, are idempotent and reject invalid identifiers", async () => {
+  const extra = { "x-platform-session": accessToken };
+  const list = async (h: Record<string, string>) =>
+    fetch(base + "/api/platform/guides", { headers: { ...headers, ...h } });
+  assert.equal((await list({})).status, 401);
+  assert.equal((await post("/api/platform/guides", { guideId: "cefrVocab1" })).status, 401);
+  assert.equal((await post("/api/platform/guides", { guideId: "cefrVocab1" }, extra)).status, 200);
+  assert.equal((await post("/api/platform/guides", { guideId: "cefrVocab1" }, extra)).status, 200);
+  assert.equal((await post("/api/platform/guides", { guideId: "kids1" }, extra)).status, 200);
+  for (const bad of ["", "../x", "a b", "1abc", "x".repeat(41)])
+    assert.equal((await post("/api/platform/guides", { guideId: bad }, extra)).status, 400, bad);
+  const saved = (await (await list(extra)).json()).guides.map((g: any) => g.id);
+  assert.deepEqual([...saved].sort(), ["cefrVocab1", "kids1"]);
+  const other = await pool.query(
+    "INSERT INTO users(full_name,username,password_hash,email_verified) VALUES('Guide other','guide_other','x',true) RETURNING id",
+  );
+  await pool.query("INSERT INTO platform_saved_guides(user_id,guide_id) VALUES($1,'b1')", [other.rows[0].id]);
+  assert.ok(!(await (await list(extra)).json()).guides.some((g: any) => g.id === "b1"));
+  const removed = await fetch(base + "/api/platform/guides/kids1", {
+    method: "DELETE",
+    headers: { ...headers, ...extra },
+    body: "{}",
+  });
+  assert.equal(removed.status, 200);
+  assert.equal((await fetch(base + "/api/platform/guides/..%2Fx", { method: "DELETE", headers: { ...headers, ...extra }, body: "{}" })).status, 400);
+  assert.deepEqual((await (await list(extra)).json()).guides.map((g: any) => g.id), ["cefrVocab1"]);
+});
 test("provider delivery and admin refund reconcile failures without a second debit or premature refund", async () => {
   const {
     syncProviderCatalog,

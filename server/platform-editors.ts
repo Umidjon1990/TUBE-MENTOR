@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { pool } from "./db";
-import { requireAdmin, hasVerifiedIdentity } from "./auth";
+import { requireAdmin, requireAuth, hasVerifiedIdentity } from "./auth";
 import { storage } from "./storage";
 
 export const editorProviders: Record<
@@ -39,6 +39,15 @@ export const editorProviders: Record<
     label: "Asosiy sayt va Shorts",
   },
 };
+// O'qituvchilar faqat Master Quiz'ning o'qituvchi paneliga kira oladi; boshqa muharrirlar faqat admin uchun.
+export const teacherEditorProviders = new Set(["quiz"]);
+export const canOpenEditor = (
+  user: { role: string } | undefined | null,
+  provider: string,
+) =>
+  !!user &&
+  (user.role === "admin" ||
+    (user.role === "teacher" && teacherEditorProviders.has(provider)));
 const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 const opaque = (s: any) =>
   typeof s === "string" && /^[A-Za-z0-9_-]{43}$/.test(s);
@@ -48,7 +57,7 @@ const run =
   (fn: (req: any, res: Response) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) =>
     void fn(req, res).catch(next);
-async function activeSession(sessionHash: string) {
+async function activeSession(sessionHash: string, provider: string) {
   const row = (
     await pool.query(
       "SELECT user_id,auth_version FROM platform_sessions WHERE token_hash=$1 AND revoked_at IS NULL AND expires_at>now()",
@@ -58,7 +67,7 @@ async function activeSession(sessionHash: string) {
   if (!row) return null;
   const user = await storage.getUser(row.user_id);
   return user?.isActive &&
-    user.role === "admin" &&
+    canOpenEditor(user, provider) &&
     hasVerifiedIdentity(user) &&
     user.sessionVersion === row.auth_version
     ? user
@@ -95,7 +104,7 @@ export async function initializeEditorBroker(app: Express) {
           [hash(code), provider, state],
         )
       ).rows[0];
-      const user = row && (await activeSession(row.session_hash));
+      const user = row && (await activeSession(row.session_hash, provider));
       if (!user)
         return res
           .status(401)
@@ -113,7 +122,7 @@ export async function initializeEditorBroker(app: Express) {
           id: user.id,
           fullName: user.fullName,
           username: user.username,
-          role: "admin",
+          role: user.role,
         },
       });
     }),
@@ -131,7 +140,7 @@ export async function initializeEditorBroker(app: Express) {
           [hash(handle), provider],
         )
       ).rows[0];
-      const user = row && (await activeSession(row.session_hash));
+      const user = row && (await activeSession(row.session_hash, provider));
       if (!user)
         return res
           .status(401)
@@ -141,7 +150,7 @@ export async function initializeEditorBroker(app: Express) {
           id: user.id,
           fullName: user.fullName,
           username: user.username,
-          role: "admin",
+          role: user.role,
         },
       });
     }),
@@ -171,12 +180,14 @@ export function registerEditorAuthorization(app: Express) {
   );
   app.post(
     "/api/platform/editor/:provider/authorize",
-    requireAdmin,
+    requireAuth,
     run(async (req, res) => {
       const provider = String(req.params.provider),
         p = editorProviders[provider],
         token = req.get("x-platform-session"),
         state = req.body?.state;
+      if (!canOpenEditor(await storage.getUser(req.session.userId), provider))
+        return res.status(403).json({ message: "Bu bo‘limga ruxsatingiz yo‘q" });
       if (!p || (process.env[p.key] || "").length < 32)
         return res.status(503).json({ message: "Muharrir hali ulanmagan" });
       if (!opaque(token) || !nonce(state))
@@ -184,7 +195,7 @@ export function registerEditorAuthorization(app: Express) {
           .status(400)
           .json({ message: "Asosiy kabinetdan kirish kerak" });
       const sessionHash = hash(token),
-        user = await activeSession(sessionHash);
+        user = await activeSession(sessionHash, provider);
       if (!user || user.id !== req.session.userId)
         return res.status(401).json({ message: "Hisobga qayta kiring" });
       const code = randomBytes(32).toString("base64url");

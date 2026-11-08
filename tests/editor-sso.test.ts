@@ -44,6 +44,12 @@ test("editor one-use codes bind source/state; primary logout revokes source admi
       "INSERT INTO users(username,password_hash,full_name,role,email_verified) VALUES('editor_student',$1,'Student','student',true)",
       [hashPassword(password)],
     );
+    const teacherUser = (
+      await pool.query(
+        "INSERT INTO users(username,password_hash,full_name,role,email_verified) VALUES('editor_teacher',$1,'Ustoz','teacher',true) RETURNING id",
+        [hashPassword(password)],
+      )
+    ).rows[0];
     const coreCall = async (
       path: string,
       body: any,
@@ -92,7 +98,8 @@ test("editor one-use codes bind source/state; primary logout revokes source admi
       provider: "quiz",
       coreUrl: core,
       portalUrl: "http://primary.test",
-      editorPath: "/admin",
+      allowedRoles: ["admin", "teacher"],
+      editorPath: (actor) => (actor.role === "teacher" ? "/teacher" : "/admin"),
       resolve: async (actor) => "native-" + actor.id,
       prepareBrowser: () => ({ marker: "ui-only" }),
       fetch: async (input, init) =>
@@ -193,6 +200,60 @@ test("editor one-use codes bind source/state; primary logout revokes source admi
           },
         })
       ).status,
+      401,
+    );
+    // O'qituvchi faqat Master Quiz'ga kiradi va o'qituvchi sahifasiga tushadi.
+    const teacher = (
+      await coreCall("/api/platform/auth/password", {
+        username: "editor_teacher",
+        password,
+      })
+    ).data.token;
+    assert.ok(teacher);
+    assert.equal(
+      (
+        await coreCall(
+          "/api/platform/editor/courses/authorize",
+          { state: randomBytes(32).toString("base64url") },
+          teacher,
+        )
+      ).r.status,
+      403,
+    );
+    const started2 = await fetch(base + "/api/platform/editor/start", {
+      redirect: "manual",
+    });
+    const stateCookie2 = started2.headers.get("set-cookie")!.split(";")[0],
+      nonce2 = new URL(started2.headers.get("location")!).searchParams.get(
+        "state",
+      )!;
+    const teacherIssued = await coreCall(
+      "/api/platform/editor/quiz/authorize",
+      { state: nonce2 },
+      teacher,
+    );
+    assert.equal(teacherIssued.r.status, 200);
+    const teacherDone = await fetch(teacherIssued.data.url, {
+      headers: { cookie: stateCookie2 },
+      redirect: "manual",
+    });
+    assert.equal(teacherDone.status, 200);
+    assert.match(await teacherDone.text(), /"\/teacher"/);
+    const teacherCookie = teacherDone.headers
+      .getSetCookie()
+      .find((c) => c.startsWith("zt_editor="))!
+      .split(";")[0];
+    const teacherRead = await fetch(base + "/api/private", {
+      headers: { cookie: teacherCookie },
+    });
+    assert.equal((await teacherRead.json()).id, "native-" + teacherUser.id);
+    // Maqomi olib qo'yilsa, o'qituvchi sessiyasi darhol yopiladi.
+    await pool.query("UPDATE users SET role='student' WHERE id=$1", [
+      teacherUser.id,
+    ]);
+    assert.equal(
+      (await fetch(base + "/api/private", { headers: { cookie: teacherCookie } }))
+        .status,
       401,
     );
     await coreCall("/api/platform/auth/logout", {}, admin);

@@ -241,7 +241,7 @@ const updateUserSchema = z.object({
     .min(3)
     .regex(/^[a-zA-Z0-9_]+$/)
     .optional(),
-  role: z.enum(["admin", "student"]).optional(),
+  role: z.enum(["admin", "teacher", "student"]).optional(),
   isActive: z.boolean().optional(),
 });
 

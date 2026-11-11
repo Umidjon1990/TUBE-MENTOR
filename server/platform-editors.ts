@@ -19,7 +19,7 @@ export const editorProviders: Record<
     label: "Video kurslar",
   },
   arabictest: {
-    url: "https://www.arabictest.uz",
+    url: process.env.PLATFORM_ARABICTEST_URL || "https://arabictestuz.up.railway.app",
     key: "PLATFORM_ARABICTEST_SECRET",
     label: "Arabictest",
   },

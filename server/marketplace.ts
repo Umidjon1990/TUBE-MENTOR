@@ -27,7 +27,7 @@ const providerConfig = {
     env: "PLATFORM_COURSES_SECRET",
   },
   arabictest: {
-    url: "https://www.arabictest.uz",
+    url: process.env.PLATFORM_ARABICTEST_URL || "https://arabictestuz.up.railway.app",
     env: "PLATFORM_ARABICTEST_SECRET",
   },
   quiz: {

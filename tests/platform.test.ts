@@ -1392,3 +1392,63 @@ test("admin desk reports exact Tashkent date boundaries, keeps UZS separate from
   ]);
   await pool.query("DELETE FROM coin_packages WHERE id=$1", [packageId]);
 });
+test("arabictest collections publish free in one step and new tests auto-publish on sync", async () => {
+  const { syncProviderCatalog, publishCollection, UNLIMITED_ATTEMPTS } = await import("../server/marketplace");
+  process.env.PLATFORM_ARABICTEST_SECRET = randomBytes(32).toString("hex");
+  const nativeFetch = globalThis.fetch;
+  const item = (sourceId: string, collection: string, extra: any = {}) => ({
+    sourceId,
+    kind: "test",
+    title: sourceId,
+    description: "",
+    sourceVersion: "v1",
+    demoRef: sourceId,
+    recommendedMaxAttempts: 2,
+    features: { collection, section: "reading", openPractice: false, ...extra },
+  });
+  let products: any[] = [
+    item("test:reading", "milliy"),
+    item("test:essay", "milliy", { section: "writing", openPractice: true }),
+    item("skill:a1", "daraja"),
+  ];
+  globalThis.fetch = (async (input: any, init: any) => {
+    const url = String(input);
+    if (!url.startsWith("https://arabictestuz.up.railway.app/")) return nativeFetch(input, init);
+    if (new URL(url).pathname.endsWith("/catalog")) return Response.json({ products });
+    return Response.json({}, { status: 404 });
+  }) as typeof fetch;
+  try {
+    assert.equal((await syncProviderCatalog("arabictest")).count, 3);
+    const rows = async () =>
+      Object.fromEntries(
+        (
+          await pool.query(
+            "SELECT source_id,status,price_coins,duration_days,max_attempts FROM platform_products WHERE provider='arabictest'",
+          )
+        ).rows.map((r: any) => [r.source_id, r]),
+      );
+    assert.equal((await rows())["test:reading"].status, "draft");
+    const result = await publishCollection("arabictest", "milliy", userId);
+    assert.deepEqual(result, { published: 2, skipped: 0, total: 2 });
+    const r = await rows();
+    assert.equal(r["test:reading"].status, "published");
+    assert.equal(r["test:reading"].price_coins, 0);
+    assert.equal(r["test:reading"].duration_days, null);
+    assert.equal(r["test:reading"].max_attempts, UNLIMITED_ATTEMPTS);
+    assert.equal(r["skill:a1"].status, "draft", "boshqa to'plamga tegilmaydi");
+    // Avtomatik nashr: yangi kelgan test sinxronlashda o'zi chiqadi.
+    await pool.query(
+      "INSERT INTO system_settings(key,value) VALUES('collection_autopublish',$1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+      [JSON.stringify({ "arabictest:daraja": true })],
+    );
+    products = [...products, item("skill:b1", "daraja")];
+    await syncProviderCatalog("arabictest");
+    const after = await rows();
+    assert.equal(after["skill:a1"].status, "published");
+    assert.equal(after["skill:b1"].status, "published");
+    assert.equal(after["test:reading"].status, "published");
+  } finally {
+    globalThis.fetch = nativeFetch;
+    await pool.query("DELETE FROM system_settings WHERE key='collection_autopublish'");
+  }
+});

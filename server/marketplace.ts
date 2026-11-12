@@ -235,6 +235,8 @@ export async function buyProduct(
       )
     ).rows[0];
     if (!p || !p.demo_ref) problem(404, "Mahsulot sotuvda mavjud emas");
+    if (p.source_metadata?.features?.openPractice === true)
+      problem(409, "Bu ochiq mashq — kabinetga qo‘shmasdan ishlanadi");
     if (expectedVersion !== undefined && expectedVersion !== offerVersion(p))
       problem(409, "Mahsulot shartlari yangilangan. Sahifani qayta oching");
     if (expectedPrice !== undefined && expectedPrice !== p.price_coins)
@@ -742,6 +744,10 @@ export async function queuePlatformAction(
 export async function syncProviderCatalog(provider: string) {
   try {
     const result = await performProviderCatalogSync(provider);
+    // Avtomatik nashr yoqilgan to'plamlarga yangi kelgan testlar ham bepul chiqadi.
+    const auto = await collectionAutoSettings();
+    for (const key of Object.keys(auto).filter((k) => auto[k] && k.startsWith(provider + ":")))
+      await publishCollection(provider, key.slice(provider.length + 1), null);
     await pool.query(
       "INSERT INTO system_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
       [
@@ -770,6 +776,59 @@ export async function syncProviderCatalog(provider: string) {
       .catch(() => {});
     throw error;
   }
+}
+const COLLECTION_AUTO_KEY = "collection_autopublish";
+export const UNLIMITED_ATTEMPTS = 1000;
+async function collectionAutoSettings(): Promise<Record<string, boolean>> {
+  const row = (
+    await pool.query("SELECT value FROM system_settings WHERE key=$1", [COLLECTION_AUTO_KEY])
+  ).rows[0];
+  try {
+    return row ? JSON.parse(row.value) || {} : {};
+  } catch {
+    return {};
+  }
+}
+/**
+ * To'plamdagi barcha mahsulotlarni bepul nashr qilish: testlar muddatsiz va cheksiz urinish bilan,
+ * video kurslar 10 yillik kirish bilan. Sotuvga tayyor bo'lmaganlar qoralamada qoladi.
+ */
+export async function publishCollection(provider: string, collection: string, actorId: string | null) {
+  const rows = (
+    await pool.query(
+      "SELECT * FROM platform_products WHERE provider=$1 AND status<>'archived' AND source_metadata->'features'->>'collection'=$2",
+      [provider, collection],
+    )
+  ).rows;
+  let published = 0,
+    skipped = 0;
+  for (const p of rows) {
+    if (!p.demo_ref || p.source_metadata?.readyForSale === false) {
+      skipped++;
+      continue;
+    }
+    const terms =
+      p.kind === "test"
+        ? { durationDays: null, maxAttempts: UNLIMITED_ATTEMPTS }
+        : { durationDays: 3650, maxAttempts: null };
+    const changed =
+      p.status !== "published" ||
+      p.price_coins !== 0 ||
+      p.duration_days !== terms.durationDays ||
+      p.max_attempts !== terms.maxAttempts;
+    if (!changed) continue;
+    await pool.query(
+      "UPDATE platform_products SET price_coins=0,duration_days=$2,max_attempts=$3,status='published',updated_at=now() WHERE id=$1",
+      [p.id, terms.durationDays, terms.maxAttempts],
+    );
+    published++;
+  }
+  if (published)
+    await pool.query(
+      "INSERT INTO commerce_audit(actor_id,action,reference_id,details) VALUES($1,'collection_published',$2,$3)",
+      [actorId, provider + ":" + collection, JSON.stringify({ published, skipped, free: true })],
+    );
+  return { published, skipped, total: rows.length };
 }
 async function performProviderCatalogSync(provider: string) {
   if (!Object.hasOwn(providerConfig, provider))
@@ -1667,6 +1726,52 @@ export function registerMarketplace(app: Express, http: Server) {
       }
     },
   );
+  app.get("/api/platform/admin/collections", requireAdmin, async (_req, res, next) => {
+    try {
+      const auto = await collectionAutoSettings();
+      const rows = (
+        await pool.query(
+          `SELECT provider, source_metadata->'features'->>'collection' AS collection,
+                  count(*)::int AS total,
+                  count(*) FILTER (WHERE status='published')::int AS published,
+                  count(*) FILTER (WHERE (source_metadata->'features'->>'openPractice')='true')::int AS practice
+             FROM platform_products
+            WHERE status<>'archived' AND source_metadata->'features'->>'collection' IS NOT NULL
+            GROUP BY 1,2 ORDER BY 1,2`,
+        )
+      ).rows;
+      res.json({
+        collections: rows.map((r: any) => ({ ...r, autoPublish: !!auto[r.provider + ":" + r.collection] })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.post("/api/platform/admin/collections/publish", requireAdmin, async (req, res, next) => {
+    try {
+      const v = z
+        .object({
+          provider: z.string().min(1).max(40),
+          collection: z.string().regex(/^[a-z0-9_-]{1,40}$/),
+          autoPublish: z.boolean().optional(),
+        })
+        .strict()
+        .parse(req.body);
+      if (!Object.hasOwn(providerConfig, v.provider)) problem(404, "Manba mavjud emas");
+      const result = await publishCollection(v.provider, v.collection, req.session.userId!);
+      if (v.autoPublish !== undefined) {
+        const auto = await collectionAutoSettings();
+        auto[v.provider + ":" + v.collection] = v.autoPublish;
+        await pool.query(
+          "INSERT INTO system_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+          [COLLECTION_AUTO_KEY, JSON.stringify(auto)],
+        );
+      }
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
   app.patch(
     "/api/platform/admin/products/:id",
     requireAdmin,

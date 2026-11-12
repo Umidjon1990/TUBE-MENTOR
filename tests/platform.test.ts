@@ -1452,3 +1452,81 @@ test("arabictest collections publish free in one step and new tests auto-publish
     await pool.query("DELETE FROM system_settings WHERE key='collection_autopublish'");
   }
 });
+test("arabictest one-click sign-in sends the account identity only in service headers and maps results to products", async () => {
+  const { syncProviderCatalog } = await import("../server/marketplace");
+  process.env.PLATFORM_ARABICTEST_SECRET = randomBytes(32).toString("hex");
+  const nativeFetch = globalThis.fetch;
+  const calls: { path: string; user: string | null; key: string | null; body?: any }[] = [];
+  globalThis.fetch = (async (input: any, init: any) => {
+    const url = String(input);
+    if (!url.startsWith("https://arabictestuz.up.railway.app/")) return nativeFetch(input, init);
+    const path = new URL(url).pathname.replace("/api/platform/", "");
+    const h = new Headers(init?.headers);
+    calls.push({ path, user: h.get("x-platform-user"), key: h.get("x-platform-key"), body: init?.body ? JSON.parse(init.body) : undefined });
+    if (path === "catalog")
+      return Response.json({
+        products: [
+          {
+            sourceId: "test:sso1",
+            kind: "test",
+            title: "SSO test",
+            description: "",
+            sourceVersion: "v1",
+            demoRef: "test:sso1",
+            recommendedMaxAttempts: 2,
+            features: { collection: "sso", takeUrl: "https://arabictestuz.up.railway.app/reading-test/sso1", takePath: "/reading-test/sso1" },
+          },
+        ],
+      });
+    if (path === "student-sso") return Response.json({ code: "c".repeat(43), expiresIn: 120 });
+    if (path === "student-results")
+      return Response.json({
+        results: [
+          { id: "test:a1", testId: "sso1", title: "SSO test", type: "reading", status: "completed", score: 8, maxScore: 10, level: "B1", at: "2026-11-12T10:00:00Z" },
+          { id: "test:a2", testId: "zzz", title: "Boshqa", type: "writing", status: "grading", score: null, maxScore: null, level: null, at: "2026-11-11T10:00:00Z" },
+        ],
+      });
+    return Response.json({}, { status: 404 });
+  }) as typeof fetch;
+  try {
+    await syncProviderCatalog("arabictest");
+    const productId = (
+      await pool.query("UPDATE platform_products SET status='published' WHERE provider='arabictest' AND source_id='test:sso1' RETURNING id")
+    ).rows[0].id;
+    const login = await (await post("/api/platform/auth/password", { username: "platform_test", password })).json();
+    const session = { "x-platform-session": login.token };
+    assert.equal((await post("/api/platform/arabictest/start", { productId })).status, 401);
+    const start = await post(
+      "/api/platform/arabictest/start",
+      { productId, returnUrl: "https://www.zamonaviytalim.uz/testlar/milliy" },
+      session,
+    );
+    assert.equal(start.status, 200);
+    const url = new URL((await start.json()).url);
+    assert.equal(url.origin + url.pathname, "https://arabictestuz.up.railway.app/zt-kirish");
+    assert.equal(url.searchParams.get("next"), "/reading-test/sso1");
+    assert.equal(url.searchParams.get("zt_return"), "https://www.zamonaviytalim.uz/testlar/milliy");
+    assert.equal(url.searchParams.get("code"), "c".repeat(43));
+    const sso = calls.find((c) => c.path === "student-sso")!;
+    assert.equal(sso.user, userId);
+    assert.equal(sso.key, process.env.PLATFORM_ARABICTEST_SECRET);
+    assert.equal(sso.body.fullName, "Platform test");
+    assert.equal(
+      (await post("/api/platform/arabictest/start", { productId: "missing" }, session)).status,
+      404,
+    );
+    const results = await fetch(base + "/api/platform/arabictest/results", { headers: { ...headers, ...session } });
+    assert.equal(results.status, 200);
+    const list = (await results.json()).results;
+    assert.equal(list.length, 2);
+    assert.deepEqual(
+      { score: list[0].score, maxScore: list[0].maxScore, productId: list[0].productId, status: list[0].status },
+      { score: 8, maxScore: 10, productId, status: "completed" },
+    );
+    assert.equal(list[1].status, "grading");
+    assert.equal(list[1].productId, null);
+    assert.equal(calls.find((c) => c.path === "student-results")!.user, userId);
+  } finally {
+    globalThis.fetch = nativeFetch;
+  }
+});

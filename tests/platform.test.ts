@@ -1436,16 +1436,6 @@ test("arabictest collections publish free in one step and new tests auto-publish
     assert.equal(r["test:reading"].duration_days, null);
     assert.equal(r["test:reading"].max_attempts, UNLIMITED_ATTEMPTS);
     assert.equal(r["skill:a1"].status, "draft", "boshqa to'plamga tegilmaydi");
-    // Ochiq mashqni kabinetga qo'shib bo'lmaydi.
-    const essayId = (
-      await pool.query("SELECT id FROM platform_products WHERE source_id='test:essay'")
-    ).rows[0].id;
-    const add = await post(
-      "/api/platform/products/" + essayId + "/purchase",
-      { requestKey: crypto.randomUUID(), expectedPrice: 0 },
-      { "x-platform-session": accessToken },
-    );
-    assert.equal(add.status, 409);
     // Avtomatik nashr: yangi kelgan test sinxronlashda o'zi chiqadi.
     await pool.query(
       "INSERT INTO system_settings(key,value) VALUES('collection_autopublish',$1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",

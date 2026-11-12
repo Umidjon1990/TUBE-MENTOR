@@ -235,8 +235,6 @@ export async function buyProduct(
       )
     ).rows[0];
     if (!p || !p.demo_ref) problem(404, "Mahsulot sotuvda mavjud emas");
-    if (p.source_metadata?.features?.openPractice === true)
-      problem(409, "Bu ochiq mashq — kabinetga qo‘shmasdan ishlanadi");
     if (expectedVersion !== undefined && expectedVersion !== offerVersion(p))
       problem(409, "Mahsulot shartlari yangilangan. Sahifani qayta oching");
     if (expectedPrice !== undefined && expectedPrice !== p.price_coins)
@@ -777,6 +775,7 @@ export async function syncProviderCatalog(provider: string) {
     throw error;
   }
 }
+const demoCache = new Map<string, { value: any; until: number }>();
 const COLLECTION_AUTO_KEY = "collection_autopublish";
 export const UNLIMITED_ATTEMPTS = 1000;
 async function collectionAutoSettings(): Promise<Record<string, boolean>> {
@@ -1063,10 +1062,21 @@ export function registerMarketplace(app: Express, http: Server) {
         return res.status(404).json({ message: "Demo mavjud emas" });
       if (p.id === freeA0Id) return res.json(await a0Demo());
       if (p.provider !== "tube") {
-        const preview = await providerRequest(
-          p.provider,
-          "products/" + encodeURIComponent(p.source_id) + "/demo",
-        );
+        // Demo va ochiq mashqlar manbadan 10 daqiqaga keshlanadi: har ochilishda manbaga murojaat qilinmaydi.
+        const cacheKey = p.id + ":" + p.source_version;
+        const cached = demoCache.get(cacheKey);
+        const preview =
+          cached && cached.until > Date.now()
+            ? structuredClone(cached.value)
+            : await providerRequest(
+                p.provider,
+                "products/" + encodeURIComponent(p.source_id) + "/demo",
+              );
+        if (!cached || cached.until <= Date.now()) {
+          if (demoCache.size > 500) demoCache.clear();
+          demoCache.set(cacheKey, { value: structuredClone(preview), until: Date.now() + 10 * 60 * 1000 });
+        }
+        res.set("Cache-Control", "public, max-age=300");
         if (p.kind === "pdf")
           preview.pdfUrl =
             "/api/platform/core/platform/products/" + p.id + "/demo-file";

@@ -1736,6 +1736,83 @@ export function registerMarketplace(app: Express, http: Server) {
       }
     },
   );
+  // Arabictest: bir bosishda kirish. O'quvchi arabictest'ga o'z hisobi bilan kiradi,
+  // natija uning nomiga yoziladi va kabinetda /arabictest/results orqali ko'rinadi.
+  app.post("/api/platform/arabictest/start", requireAuth, async (req, res, next) => {
+    try {
+      const body = z
+        .object({
+          productId: z.string().min(1).max(200),
+          returnUrl: z.string().url().max(2000).optional(),
+        })
+        .parse(req.body || {});
+      const p = await product(body.productId);
+      if (!p || p.provider !== "arabictest" || p.status !== "published")
+        return res.status(404).json({ message: "Test topilmadi" });
+      const f = p.source_metadata?.features || {};
+      let next = typeof f.takePath === "string" ? f.takePath : "";
+      if (!next && typeof f.takeUrl === "string")
+        try {
+          const u = new URL(f.takeUrl);
+          next = u.pathname + u.search;
+        } catch {}
+      if (!next.startsWith("/") || next.startsWith("//"))
+        return res.status(409).json({ message: "Testni ochib bo‘lmadi" });
+      const user = (
+        await pool.query("SELECT full_name FROM users WHERE id=$1", [req.session.userId])
+      ).rows[0];
+      const sso = await providerRequest(
+        "arabictest",
+        "student-sso",
+        { fullName: user?.full_name || undefined },
+        { userId: req.session.userId!, orderId: "sso" },
+      );
+      if (typeof sso?.code !== "string") problem(503, "Kirish vaqtincha ishlamayapti");
+      const params = new URLSearchParams({ code: sso.code, next });
+      if (body.returnUrl) params.set("zt_return", body.returnUrl);
+      res.set("Cache-Control", "no-store");
+      res.json({ url: providerConfig.arabictest.url + "/zt-kirish?" + params });
+    } catch (error) {
+      next(error);
+    }
+  });
+  app.get("/api/platform/arabictest/results", requireAuth, async (req, res, next) => {
+    try {
+      const data = await providerRequest("arabictest", "student-results", undefined, {
+        userId: req.session.userId!,
+        orderId: "sso",
+      });
+      const list = Array.isArray(data?.results) ? data.results.slice(0, 50) : [];
+      const sourceIds = list.map((r: any) =>
+        (String(r.type || "").startsWith("skill_") ? "skill:" : "test:") + r.testId,
+      );
+      const products = new Map<string, string>(
+        (
+          await pool.query(
+            "SELECT id,source_id FROM platform_products WHERE provider='arabictest' AND status='published' AND source_id=ANY($1)",
+            [sourceIds],
+          )
+        ).rows.map((r: any) => [r.source_id, r.id]),
+      );
+      const num = (v: any) => (v === null || v === undefined || !Number.isFinite(Number(v)) ? null : Number(v));
+      res.set("Cache-Control", "no-store");
+      res.json({
+        results: list.map((r: any, i: number) => ({
+          id: String(r.id),
+          title: String(r.title || "Test"),
+          type: String(r.type || ""),
+          status: ["completed", "grading"].includes(r.status) ? r.status : "started",
+          score: num(r.score),
+          maxScore: num(r.maxScore),
+          level: typeof r.level === "string" ? r.level : null,
+          at: r.at,
+          productId: products.get(sourceIds[i]) || null,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
   app.get("/api/platform/admin/collections", requireAdmin, async (_req, res, next) => {
     try {
       const auto = await collectionAutoSettings();

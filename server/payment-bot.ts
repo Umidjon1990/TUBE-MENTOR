@@ -468,6 +468,38 @@ async function deliverStudentSupportNotification(job: Row) {
   });
 }
 
+/** Mini-testlar papkasiga yangi test qo'shilganda o'quvchiga xabar. */
+function portalUrl() {
+  try {
+    const url = new URL(process.env.PLATFORM_APP_URL || "");
+    if (url.protocol === "https:" && !url.username && !url.password) return url.origin;
+  } catch {}
+  return "https://www.zamonaviytalim.uz";
+}
+export function miniTestsMessage(payload: Record<string, any>) {
+  const tests = Array.isArray(payload.tests) ? payload.tests.slice(0, 10) : [];
+  const count = Number(payload.count) || tests.length;
+  const kinds: Record<string, string> = { listening: "Tinglash", reading: "O‘qish" };
+  const levels: Record<string, string> = { A1A2: "A1/A2", B1B2: "B1/B2" };
+  const lines = tests.map(
+    (t: any) => `• ${String(t.title || "Test").slice(0, 120)} (${kinds[t.type] || "Test"}, ${levels[t.level] || t.level})`,
+  );
+  return `Mini-testlar papkangizga ${count} ta yangi test qo‘shildi:\n${lines.join("\n")}${count > tests.length ? "\n…" : ""}\n\nIshlab ko‘ring va natijangizni yaxshilang!`;
+}
+async function deliverMiniTestsNotification(job: Row) {
+  const result = await pool.query(
+    "SELECT l.chat_id,u.is_active FROM telegram_bot_links l JOIN users u ON u.id=l.user_id WHERE l.user_id=$1",
+    [String(job.payload.userId || "")],
+  );
+  const target = result.rows[0];
+  if (!target || target.is_active === false) return;
+  await botCall("sendMessage", {
+    chat_id: target.chat_id,
+    text: miniTestsMessage(job.payload),
+    reply_markup: { inline_keyboard: [[{ text: "Mini-testlarni ochish", url: `${portalUrl()}/testlar/mini` }]] },
+  });
+}
+
 /** Durable leases support restart recovery and more than one application instance. */
 export async function processPaymentOutbox(limit = 10) {
   if (!config().available) return;
@@ -477,7 +509,7 @@ export async function processPaymentOutbox(limit = 10) {
     try {
       await client.query("BEGIN");
       const result = await client.query(
-        `SELECT * FROM notification_outbox WHERE kind IN ('telegram_update','telegram_reply','payment_receipt','telegram_receipt_delivery','payment_review','payment_refund','support_admin','support_reply','telegram_support_admin_delivery')
+        `SELECT * FROM notification_outbox WHERE kind IN ('telegram_update','telegram_reply','payment_receipt','telegram_receipt_delivery','payment_review','payment_refund','support_admin','support_reply','telegram_support_admin_delivery','mini_new_tests')
            AND (state='pending' OR state='processing') AND next_attempt_at<=now()
          ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 1`,
       );
@@ -495,6 +527,7 @@ export async function processPaymentOutbox(limit = 10) {
       else if (job.kind === "support_admin") await dispatchSupportNotification(job);
       else if (job.kind === "telegram_support_admin_delivery") await deliverAdminSupportNotification(job);
       else if (job.kind === "support_reply") await deliverStudentSupportNotification(job);
+      else if (job.kind === "mini_new_tests") await deliverMiniTestsNotification(job);
       else await sendOrderNotification(job);
       await pool.query("UPDATE notification_outbox SET state='sent',last_error=NULL WHERE id=$1", [job.id]);
     } catch (error) {

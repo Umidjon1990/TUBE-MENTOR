@@ -1590,3 +1590,63 @@ test("mini-tests list, hide answers, check on the server and never trigger paid 
     resetMiniTestCache();
   }
 });
+test("mini-test folders track new tests per student and queue one Telegram message for linked subscribers", async () => {
+  const { resetMiniTestCache, recordNewTests, folderMatches, folderTitle } = await import("../server/mini-tests");
+  const { miniTestsMessage } = await import("../server/payment-bot");
+  resetMiniTestCache();
+  process.env.PLATFORM_OBHAVO_SECRET = randomBytes(32).toString("hex");
+  await pool.query("DELETE FROM mini_known_tests");
+  const nativeFetch = globalThis.fetch;
+  const t = (id: string, type: string, level: string) => ({ id, type, level, titleAr: "ع", titleUz: "Test " + id, testDate: "2026-11-12", hasAudio: true });
+  let tests = [t("a1", "listening", "A1A2"), t("b1", "reading", "B1B2")];
+  globalThis.fetch = (async (input: any, init: any) => {
+    const url = String(input);
+    if (!url.startsWith("https://web-production-d1f0.up.railway.app/")) return nativeFetch(input, init);
+    return Response.json({ tests });
+  }) as typeof fetch;
+  try {
+    assert.equal(folderMatches("A1A2-listening", { type: "listening", level: "A1A2" }), true);
+    assert.equal(folderMatches("A1A2-listening", { type: "reading", level: "A1A2" }), false);
+    assert.equal(folderMatches("reading", { type: "reading", level: "B1B2" }), true);
+    assert.equal(folderTitle("B1B2-reading"), "B1/B2 · O‘qish");
+    const login = await (await post("/api/platform/auth/password", { username: "platform_test", password })).json();
+    const session = { ...headers, "x-platform-session": login.token };
+    assert.equal((await fetch(base + "/api/platform/mini/folders", { headers })).status, 401);
+    // Birinchi sinxronlash: mavjud testlar eski hisoblanadi, xabar yuborilmaydi.
+    await (await fetch(base + "/api/platform/mini/tests", { headers })).json();
+    await new Promise((r) => setTimeout(r, 50));
+    assert.equal((await pool.query("SELECT count(*)::int AS n FROM mini_known_tests")).rows[0].n, 2);
+    assert.equal((await post("/api/platform/mini/folders", { folder: "../x" }, session)).status, 400);
+    assert.equal((await post("/api/platform/mini/folders", { folder: "A1A2-listening" }, session)).status, 200);
+    assert.equal((await post("/api/platform/mini/folders", { folder: "A1A2-listening" }, session)).status, 200, "takror qo'shish xato bermaydi");
+    await pool.query("INSERT INTO telegram_bot_links(user_id,telegram_user_id,chat_id) VALUES($1,'777001','777001') ON CONFLICT DO NOTHING", [userId]);
+    let view = await (await fetch(base + "/api/platform/mini/folders", { headers: session })).json();
+    assert.equal(view.folders.length, 1);
+    assert.deepEqual([view.folders[0].total, view.folders[0].fresh, view.fresh, view.telegramLinked], [1, 0, 0, true]);
+    // Yangi testlar keldi: biri papkaga mos, biri emas.
+    await new Promise((r) => setTimeout(r, 20));
+    tests = [...tests, t("a2", "listening", "A1A2"), t("b2", "reading", "B1B2")];
+    resetMiniTestCache();
+    await fetch(base + "/api/platform/mini/tests", { headers });
+    await new Promise((r) => setTimeout(r, 80));
+    view = await (await fetch(base + "/api/platform/mini/folders", { headers: session })).json();
+    assert.deepEqual([view.folders[0].total, view.folders[0].fresh, view.folders[0].freshIds[0], view.fresh], [2, 1, "a2", 1]);
+    const queued = (await pool.query("SELECT payload FROM notification_outbox WHERE kind='mini_new_tests'")).rows;
+    assert.equal(queued.length, 1);
+    assert.equal(queued[0].payload.count, 1);
+    assert.match(miniTestsMessage(queued[0].payload), /1 ta yangi test[\s\S]*Test a2 \(Tinglash, A1\/A2\)/);
+    // Qayta sinxronlash yangi xabar qo'shmaydi.
+    assert.deepEqual(await recordNewTests(tests as any), []);
+    assert.equal((await post("/api/platform/mini/folders/A1A2-listening/seen", {}, session)).status, 200);
+    view = await (await fetch(base + "/api/platform/mini/folders", { headers: session })).json();
+    assert.equal(view.fresh, 0);
+    const del = await fetch(base + "/api/platform/mini/folders/A1A2-listening", { method: "DELETE", headers: session, body: "{}" });
+    assert.equal(del.status, 200);
+    assert.equal((await (await fetch(base + "/api/platform/mini/folders", { headers: session })).json()).folders.length, 0);
+  } finally {
+    globalThis.fetch = nativeFetch;
+    resetMiniTestCache();
+    await pool.query("DELETE FROM notification_outbox WHERE kind='mini_new_tests'");
+    await pool.query("DELETE FROM telegram_bot_links WHERE user_id=$1", [userId]);
+  }
+});

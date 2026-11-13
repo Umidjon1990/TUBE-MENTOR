@@ -1530,3 +1530,63 @@ test("arabictest one-click sign-in sends the account identity only in service he
     globalThis.fetch = nativeFetch;
   }
 });
+test("mini-tests list, hide answers, check on the server and never trigger paid audio generation", async () => {
+  const { resetMiniTestCache, weekStart } = await import("../server/mini-tests");
+  resetMiniTestCache();
+  process.env.PLATFORM_OBHAVO_SECRET = randomBytes(32).toString("hex");
+  const nativeFetch = globalThis.fetch;
+  const seen: string[] = [];
+  globalThis.fetch = (async (input: any, init: any) => {
+    const url = String(input);
+    if (!url.startsWith("https://web-production-d1f0.up.railway.app/")) return nativeFetch(input, init);
+    const path = new URL(url).pathname;
+    seen.push(path + (new Headers(init?.headers).get("x-platform-key") === process.env.PLATFORM_OBHAVO_SECRET ? "#key" : ""));
+    if (path === "/api/platform/mini-tests")
+      return Response.json({
+        tests: [
+          { id: "l1", type: "listening", level: "A1A2", titleAr: "ع", titleUz: "Tinglash", testDate: "2026-11-12", hasAudio: true },
+          { id: "l2", type: "listening", level: "B1B2", titleAr: "ع", titleUz: "Audiosiz", testDate: "2026-11-10", hasAudio: false },
+          { id: "r1", type: "reading", level: "B1B2", titleAr: "ع", titleUz: "O'qish", testDate: "2026-11-03", hasAudio: false },
+          { id: "../x", type: "reading", level: "A1A2", titleAr: "", titleUz: "", testDate: "2026-11-01" },
+        ],
+      });
+    if (path === "/api/platform/mini-tests/r1")
+      return Response.json({
+        test: {
+          id: "r1",
+          type: "reading",
+          level: "B1B2",
+          paragraphsAr: ["نص"],
+          questions: [{ question: "س", options: ["a", "b", "c", "d"], correctIndex: 3, explanation: "izoh" }],
+        },
+      });
+    if (path === "/api/tests/l1/audio") return new Response(new Uint8Array([1, 2, 3]), { headers: { "Content-Type": "audio/mpeg" } });
+    return Response.json({}, { status: 404 });
+  }) as typeof fetch;
+  try {
+    assert.equal(weekStart("2026-11-13"), "2026-11-09");
+    assert.equal(weekStart("2026-11-09"), "2026-11-09");
+    assert.equal(weekStart("2026-11-08"), "2026-11-02");
+    const list = await (await fetch(base + "/api/platform/mini/tests", { headers })).json();
+    assert.equal(list.tests.length, 3, "noto'g'ri identifikatorli test tashlab yuboriladi");
+    assert.equal(list.latestWeek, "2026-11-09");
+    assert.deepEqual(list.tests.map((t: any) => t.isNew), [true, true, false]);
+    const one = await (await fetch(base + "/api/platform/mini/tests/r1", { headers })).json();
+    assert.equal(one.test.questions[0].correctIndex, undefined);
+    assert.equal(one.test.questions[0].explanation, undefined);
+    const wrong = await (await post("/api/platform/mini/tests/r1/check", { question: 0, choice: 1 })).json();
+    assert.deepEqual(wrong, { correct: false, correctIndex: 3, explanation: "izoh" });
+    assert.equal((await (await post("/api/platform/mini/tests/r1/check", { question: 0, choice: 3 })).json()).correct, true);
+    assert.equal((await post("/api/platform/mini/tests/r1/check", { question: 5, choice: 0 })).status, 400);
+    const audio = await fetch(base + "/api/platform/mini/tests/l1/audio", { headers });
+    assert.equal(audio.status, 200);
+    assert.deepEqual([...new Uint8Array(await audio.arrayBuffer())], [1, 2, 3]);
+    assert.equal((await fetch(base + "/api/platform/mini/tests/l2/audio", { headers })).status, 404);
+    assert.equal(seen.filter((p) => p.startsWith("/api/tests/l2")).length, 0, "audiosiz test uchun ovoz yaratilmaydi");
+    assert.ok(seen.includes("/api/platform/mini-tests#key"));
+    assert.equal((await fetch(base + "/api/platform/mini/tests/..%2Fx", { headers })).status, 404);
+  } finally {
+    globalThis.fetch = nativeFetch;
+    resetMiniTestCache();
+  }
+});

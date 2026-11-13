@@ -33,6 +33,7 @@ import {
   registerEditorAuthorization,
 } from "./platform-editors";
 import { registerMarketplace } from "./marketplace";
+import { registerMiniTests } from "./mini-tests";
 import { registerPlatformResources } from "./platform-resources";
 
 export async function createApplication(
@@ -142,6 +143,7 @@ export async function createApplication(
   registerPlatformBridge(app);
   registerEditorAuthorization(app);
   registerMarketplace(app, httpServer);
+  registerMiniTests(app);
   registerAdminDesk(app);
   registerExperience(app);
   registerPlatformResources(app);

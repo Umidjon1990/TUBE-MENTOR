@@ -1650,3 +1650,80 @@ test("mini-test folders track new tests per student and queue one Telegram messa
     await pool.query("DELETE FROM telegram_bot_links WHERE user_id=$1", [userId]);
   }
 });
+test("classroom: invite, approval, scheduled unlock, shuffled quiz with hidden answers, retake limit and ranking", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const adminPass = randomBytes(24).toString("hex");
+  await pool.query(
+    "INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES('Teacher','cls_teacher',$1,true,'admin')",
+    [hashPassword(adminPass)],
+  );
+  const adminLogin = await (await post("/api/platform/auth/password", { username: "cls_teacher", password: adminPass })).json();
+  const T = { "x-platform-session": adminLogin.token };
+  const studentLogin = await (await post("/api/platform/auth/password", { username: "platform_test", password })).json();
+  const S = { "x-platform-session": studentLogin.token };
+  const get = async (path: string, extra: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } });
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+
+  assert.equal((await call("/admin/courses", { title: "A1" }, S)).status, 403, "o'quvchi kurs yarata olmaydi");
+  const course = (await (await call("/admin/courses", { title: "A1 arab tili", level: "A1" }, T)).json()).course;
+  const l1 = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "1-dars" }, T)).json()).lesson;
+  const l2 = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "2-dars" }, T)).json()).lesson;
+  assert.equal(l2.position, 2);
+  assert.equal((await call(`/admin/lessons/${l1.id}/quiz`, { questions: [{ q: "س1", options: ["a", "b"], correct: 5 }] }, T, "PUT")).status, 400);
+  const questions = [
+    { q: "ما اسمك؟", options: ["أحمد", "كتاب", "قلم"], correct: 0, explanation: "Ism so'raladi" },
+    { q: "أين البيت؟", options: ["هناك", "أمس"], correct: 0 },
+  ];
+  assert.equal((await call(`/admin/lessons/${l1.id}/quiz`, { questions, maxAttempts: 2 }, T, "PUT")).status, 200);
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "1-guruh" }, T)).json()).group;
+  const past = new Date(Date.now() - 3600e3).toISOString(), future = new Date(Date.now() + 86400e3).toISOString();
+  await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: l1.id, opensAt: past, dueAt: future }, { lessonId: l2.id, opensAt: past, dueAt: null }] }, T, "PUT");
+
+  // Taklif havolasi: ochiq ma'lumot, qo'shilish tasdiqni kutadi.
+  const invite = await (await get(`/invite/${group.invite_code}`, {})).json();
+  assert.equal(invite.group.name, "1-guruh");
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza" }, {})).status, 401);
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "12", name: "Aziza" }, S)).status, 400);
+  const joined = await (await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza" }, S)).json();
+  assert.equal(joined.status, "pending");
+  assert.equal((await get(`/groups/${group.id}/lessons`, S)).status, 403);
+  assert.equal((await call(`/admin/groups/${group.id}/members/${userId}`, { action: "approve" }, T)).status, 200);
+  assert.equal((await (await get("/my", S)).json()).groups[0].status, "active");
+
+  let lessons = (await (await get(`/groups/${group.id}/lessons`, S)).json()).lessons;
+  assert.deepEqual(lessons.map((l: any) => [l.unlocked, l.reason]), [[true, "open"], [false, "previous"]]);
+  assert.equal((await get(`/groups/${group.id}/lessons/${l2.id}`, S)).status, 403);
+
+  // 1-urinish: savollarda to'g'ri javob yo'q; xato javob → javoblar ochilmaydi.
+  const a1 = await (await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, S)).json();
+  assert.equal(a1.questions.length, 2);
+  assert.equal(JSON.stringify(a1.questions).includes("correct"), false);
+  const layout1 = (await pool.query("SELECT layout FROM cls_attempts WHERE id=$1", [a1.attemptId])).rows[0].layout;
+  const wrong = layout1.map((l: any) => l.o.findIndex((orig: number) => orig !== questions[l.q].correct));
+  const r1 = await (await call(`/attempts/${a1.attemptId}/submit`, { answers: wrong }, S)).json();
+  assert.deepEqual([r1.percent, r1.passed, r1.review], [0, false, null]);
+  assert.equal((await call(`/attempts/${a1.attemptId}/submit`, { answers: wrong }, S)).status, 409);
+
+  // 2-urinish: to'g'ri → o'tdi, izohlar ko'rinadi, keyingi dars ochildi.
+  const a2 = await (await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, S)).json();
+  const layout2 = (await pool.query("SELECT layout FROM cls_attempts WHERE id=$1", [a2.attemptId])).rows[0].layout;
+  const right = layout2.map((l: any) => l.o.indexOf(questions[l.q].correct));
+  const r2 = await (await call(`/attempts/${a2.attemptId}/submit`, { answers: right }, S)).json();
+  assert.deepEqual([r2.percent, r2.passed, r2.review.length], [100, true, 2]);
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, S)).status, 409, "urinishlar tugadi");
+  lessons = (await (await get(`/groups/${group.id}/lessons`, S)).json()).lessons;
+  assert.deepEqual(lessons.map((l: any) => l.unlocked), [true, true]);
+
+  const home = await (await get(`/groups/${group.id}/home`, S)).json();
+  assert.equal(home.progress.done, 2);
+  const results = await (await get(`/groups/${group.id}/results`, S)).json();
+  assert.deepEqual([results.me.rank, results.me.points, results.leaderboard[0].me], [1, 100, true]);
+  const book = await (await get(`/admin/groups/${group.id}/gradebook`, T)).json();
+  assert.equal(book.cells.find((c: any) => c.user_id === userId).value, 100);
+
+  // Avtomatik jadval: dushanbadan, dush/chor/juma kunlari.
+  const auto = await (await call(`/admin/groups/${group.id}/schedule`, { auto: { startDate: "2026-11-16", weekdays: [1, 3, 5], openTime: "09:00", dueHours: 48 } }, T, "PUT")).json();
+  assert.deepEqual(auto.items.map((i: any) => i.opensAt), ["2026-11-16T04:00:00.000Z", "2026-11-18T04:00:00.000Z"]);
+  assert.equal((await call(`/admin/lessons/${l1.id}`, {}, T, "DELETE")).status, 409, "natijasi bor dars o'chmaydi");
+});

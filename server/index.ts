@@ -3,6 +3,7 @@ import { serveStatic } from "./static";
 import { pool } from "./db";
 import { startMaintenance } from "./maintenance";
 import { startPaymentMaintenance } from "./payment-bot";
+import { startClassNotifications } from "./classroom-notify";
 import { log } from "./logger";
 
 async function main() {
@@ -14,6 +15,7 @@ async function main() {
   }
   const stopMaintenance = startMaintenance();
   const stopPaymentMaintenance = startPaymentMaintenance();
+  const stopClassNotifications = startClassNotifications();
   const port = Number(process.env.PORT || 5000);
   httpServer.listen({ port, host: "0.0.0.0" }, () =>
     log(`serving on port ${port} (Node ${process.versions.node})`),
@@ -22,6 +24,7 @@ async function main() {
     process.once(signal, () => {
       stopMaintenance();
       stopPaymentMaintenance();
+      stopClassNotifications();
       httpServer.close(() => {
         void pool.end().then(() => process.exit(0));
       });

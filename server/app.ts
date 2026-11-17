@@ -35,6 +35,10 @@ import {
 import { registerMarketplace } from "./marketplace";
 import { registerMiniTests } from "./mini-tests";
 import { registerClassroom } from "./classroom";
+import { registerClassChat } from "./classroom-chat";
+import { registerClassZoom } from "./classroom-zoom";
+import { registerClassTasks } from "./classroom-tasks";
+import { registerClassPush } from "./classroom-notify";
 import { registerPlatformResources } from "./platform-resources";
 
 export async function createApplication(
@@ -77,6 +81,10 @@ export async function createApplication(
   registerPaymeWebhook(app);
   app.use("/api/commerce/telegram/webhook", express.json({ limit: "32kb" }));
   app.use("/api/admin/lesson-package", express.json({ limit: "2mb" }));
+  // Zoom webhook imzosi xom tana bo'yicha tekshiriladi.
+  app.use("/api/zoom/webhook", express.json({ limit: "256kb", verify: (req, _res, buf) => { (req as any).rawBody = Buffer.from(buf); } }));
+  // O'quvchi audiosi (base64, ~8 MB gacha).
+  app.use(/^\/api\/platform\/class\/groups\/[^/]+\/tasks\/[^/]+\/submit$/, express.json({ limit: "12mb" }));
   app.use(express.json({ limit: "10mb" }));
   const MemoryStore = memorystore(session);
   const PgStore = connectPgSimple(session);
@@ -146,6 +154,10 @@ export async function createApplication(
   registerMarketplace(app, httpServer);
   registerMiniTests(app);
   registerClassroom(app);
+  registerClassChat(app);
+  registerClassZoom(app);
+  registerClassTasks(app);
+  registerClassPush(app);
   registerAdminDesk(app);
   registerExperience(app);
   registerPlatformResources(app);

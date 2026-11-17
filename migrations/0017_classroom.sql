@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS cls_groups (
  leaderboard_mode text NOT NULL DEFAULT 'top10',
  late_penalty integer NOT NULL DEFAULT 20,
  archived boolean NOT NULL DEFAULT false,
+ teacher_id varchar REFERENCES users(id) ON DELETE SET NULL,
  created_at timestamptz NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS cls_group_lessons (
  lesson_id uuid NOT NULL REFERENCES cls_lessons(id) ON DELETE CASCADE,
  opens_at timestamptz,
  due_at timestamptz,
+ notified_at timestamptz,
  PRIMARY KEY(group_id, lesson_id)
 );
 --> statement-breakpoint
@@ -137,6 +139,12 @@ CREATE TABLE IF NOT EXISTS cls_live_sessions (
  status text NOT NULL DEFAULT 'scheduled',
  recording_key text,
  recording_state text NOT NULL DEFAULT 'none',
+ recording_error text,
+ zoom_uuid text,
+ join_url text,
+ reminded_at timestamptz,
+ started_at timestamptz,
+ ended_at timestamptz,
  created_at timestamptz NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
@@ -165,6 +173,8 @@ CREATE TABLE IF NOT EXISTS cls_submissions (
  user_id varchar NOT NULL REFERENCES users(id) ON DELETE CASCADE,
  audio_key text,
  audio_seconds integer,
+ audio_mime text,
+ source text NOT NULL DEFAULT 'web',
  transcript text,
  ai_percent integer,
  ai_diff jsonb,
@@ -185,3 +195,32 @@ CREATE TABLE IF NOT EXISTS cls_push_subscriptions (
  auth text NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now()
 );
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS cls_live_meeting ON cls_live_sessions(zoom_meeting_id);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS cls_chat_reads (
+ group_id uuid NOT NULL REFERENCES cls_groups(id) ON DELETE CASCADE,
+ user_id varchar NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ thread text NOT NULL,
+ last_id bigint NOT NULL DEFAULT 0,
+ PRIMARY KEY(group_id, user_id, thread)
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS cls_blobs (
+ key text PRIMARY KEY,
+ mime text NOT NULL,
+ data bytea NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS cls_tg_intake (
+ code text PRIMARY KEY,
+ user_id varchar NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ group_id uuid NOT NULL REFERENCES cls_groups(id) ON DELETE CASCADE,
+ task_id uuid NOT NULL REFERENCES cls_tasks(id) ON DELETE CASCADE,
+ chat_id text,
+ used_at timestamptz,
+ expires_at timestamptz NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS cls_tg_intake_chat ON cls_tg_intake(chat_id);

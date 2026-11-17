@@ -275,8 +275,8 @@ export function registerClassroom(app: Express) {
   app.post(P + "/admin/groups", requireAdmin, route(async (req) => {
     const b = z.object({ courseId: uuid, name: z.string().trim().min(1).max(120) }).parse(req.body);
     const g = (await pool.query(
-      "INSERT INTO cls_groups(course_id,name,invite_code) SELECT $1,$2,$3 WHERE EXISTS(SELECT 1 FROM cls_courses WHERE id=$1) RETURNING *",
-      [b.courseId, b.name, inviteCode()],
+      "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id) SELECT $1,$2,$3,$4 WHERE EXISTS(SELECT 1 FROM cls_courses WHERE id=$1) RETURNING *",
+      [b.courseId, b.name, inviteCode(), userOf(req)],
     )).rows[0];
     return g ? { group: g } : fail(404, "Kurs topilmadi");
   }));
@@ -362,7 +362,8 @@ export function registerClassroom(app: Express) {
       for (const it of items)
         await c.query(
           `INSERT INTO cls_group_lessons(group_id,lesson_id,opens_at,due_at) SELECT $1,$2,$3,$4 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$2 AND course_id=$5)
-           ON CONFLICT(group_id,lesson_id) DO UPDATE SET opens_at=EXCLUDED.opens_at,due_at=EXCLUDED.due_at`,
+           ON CONFLICT(group_id,lesson_id) DO UPDATE SET opens_at=EXCLUDED.opens_at,due_at=EXCLUDED.due_at,
+             notified_at=CASE WHEN cls_group_lessons.opens_at IS DISTINCT FROM EXCLUDED.opens_at THEN NULL ELSE cls_group_lessons.notified_at END`,
           [id, it.lessonId, it.opensAt, it.dueAt, g.course_id],
         );
       await c.query("COMMIT");
@@ -587,7 +588,7 @@ export function registerClassroom(app: Express) {
 /* ------------------------------------------------------------------ */
 /* Bildirishnomalar: keyingi bosqichda push qo'shiladi; hozir Telegram  */
 /* ------------------------------------------------------------------ */
-export type ClassNotice = { title: string; body: string; path: string };
+export type ClassNotice = { title: string; body: string; path: string; ref?: string; urgent?: boolean; tag?: string };
 let notifier: (userIds: string[], groupId: string, notice: ClassNotice) => Promise<void> = async () => undefined;
 export function setClassNotifier(fn: typeof notifier) {
   notifier = fn;
@@ -598,6 +599,13 @@ export async function notifyGroup(groupId: string, notice: ClassNotice, exceptUs
       .map((r: any) => r.user_id)
       .filter((u: string) => u !== exceptUserId);
     if (ids.length) await notifier(ids, groupId, notice);
+  } catch {
+    console.error("Class notification failed");
+  }
+}
+export async function notifyUsers(userIds: string[], groupId: string, notice: ClassNotice) {
+  try {
+    if (userIds.length) await notifier(userIds, groupId, notice);
   } catch {
     console.error("Class notification failed");
   }

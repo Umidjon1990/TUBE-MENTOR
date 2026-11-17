@@ -1727,3 +1727,185 @@ test("classroom: invite, approval, scheduled unlock, shuffled quiz with hidden a
   assert.deepEqual(auto.items.map((i: any) => i.opensAt), ["2026-11-16T04:00:00.000Z", "2026-11-18T04:00:00.000Z"]);
   assert.equal((await call(`/admin/lessons/${l1.id}`, {}, T, "DELETE")).status, 409, "natijasi bor dars o'chmaydi");
 });
+
+test("classroom live: chat permissions, Zoom join and recording import, recitation AI check and notifications", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { createHmac } = await import("node:crypto");
+  const { Readable } = await import("node:stream");
+  const { setZoomTransport } = await import("../server/classroom-zoom");
+  const { setClassStore } = await import("../server/class-storage");
+  const { setTranscriber, compareRecitation } = await import("../server/classroom-tasks");
+  const { setPushSender, processClassNotices, quietDelaySeconds } = await import("../server/classroom-notify");
+  const mk = async (username: string, role = "student") => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES($1,$1,$2,true,$3)", [username, hashPassword(pass), role]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const T = await mk("live_teacher", "admin"), S = await mk("live_student"), P = await mk("live_peer");
+  const get = async (path: string, extra: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } });
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+
+  const course = (await (await call("/admin/courses", { title: "Jonli kurs" }, T.h)).json()).course;
+  const lesson = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "Yodlash darsi" }, T.h)).json()).lesson;
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Kechki guruh" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true }, T.h, "PATCH");
+  await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: lesson.id, opensAt: new Date(Date.now() - 60000).toISOString(), dueAt: null }] }, T.h, "PUT");
+  for (const u of [S, P]) assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901112233", name: u === S ? "Ali" : "Vali" }, u.h)).json()).status, "active");
+
+  /* ---------- Chat ---------- */
+  const outbox = async () => (await pool.query("SELECT payload FROM notification_outbox WHERE kind='class_notice'")).rows.map((r: any) => r.payload);
+  const before = (await outbox()).length;
+  assert.equal((await call(`/groups/${group.id}/chat`, { body: "Assalomu alaykum" }, S.h)).status, 200);
+  assert.equal((await outbox()).length, before, "o'quvchining guruh xabari hammaga bildirishnoma yubormaydi");
+  const tmsg = (await (await call(`/groups/${group.id}/chat`, { body: "Bugun soat 19:00 da dars" }, T.h)).json()).message;
+  assert.equal(tmsg.teacher, true);
+  assert.deepEqual((await outbox()).slice(before).map((p: any) => p.userId).sort(), [S.id, P.id].sort());
+  assert.equal((await (await get(`/groups/${group.id}/chat/unread`, P.h)).json()).unread, 2);
+  const feed = await (await get(`/groups/${group.id}/chat`, P.h)).json();
+  assert.deepEqual(feed.messages.map((m: any) => m.body), ["Assalomu alaykum", "Bugun soat 19:00 da dars"]);
+  assert.equal((await (await get(`/groups/${group.id}/chat/unread`, P.h)).json()).unread, 0);
+  assert.equal((await (await get(`/groups/${group.id}/chat?after=${tmsg.id}`, P.h)).json()).messages.length, 0);
+
+  assert.equal((await call(`/groups/${group.id}/chat`, { body: "Salom", to: P.id }, S.h)).status, 403, "guruhdoshga yozish yopiq");
+  assert.equal((await call(`/groups/${group.id}/chat`, { body: "Ustoz, savol bor", to: T.id }, S.h)).status, 200);
+  const threads = await (await get(`/groups/${group.id}/chat/threads`, S.h)).json();
+  assert.deepEqual(threads.people.map((p: any) => [p.name, p.teacher]), [["live_teacher", true]]);
+  const tThreads = await (await get(`/groups/${group.id}/chat/threads`, T.h)).json();
+  assert.equal(tThreads.people.find((p: any) => p.userId === S.id).unread, 1);
+
+  await call(`/admin/groups/${group.id}`, { allowPeerDm: true }, T.h, "PATCH");
+  const dm = (await (await call(`/groups/${group.id}/chat`, { body: "Salom, Vali", to: P.id }, S.h)).json()).message;
+  assert.equal((await (await get(`/groups/${group.id}/chat?with=${S.id}`, P.h)).json()).messages[0].body, "Salom, Vali");
+  assert.equal((await get(`/groups/${group.id}/chat?with=${S.id}`, T.h)).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/chat?with=${S.id}`, T.h)).json()).messages.length, 1, "o'qituvchi faqat o'z suhbatini ko'radi");
+  assert.equal((await call(`/messages/${dm.id}/report`, {}, P.h)).status, 200);
+  assert.equal((await call(`/groups/${group.id}/block`, { userId: S.id, blocked: true }, P.h)).status, 200);
+  assert.equal((await call(`/groups/${group.id}/chat`, { body: "Yana salom", to: P.id }, S.h)).status, 403, "bloklangan");
+  assert.equal((await call(`/groups/${group.id}/block`, { userId: T.id, blocked: true }, P.h)).status, 400);
+  const reports = await (await get(`/groups/${group.id}/chat/reports`, T.h)).json();
+  assert.deepEqual(reports.reports.map((r: any) => [r.body, r.reports]), [["Salom, Vali", 1]]);
+  assert.equal((await get(`/groups/${group.id}/chat/reports`, S.h)).status, 403);
+  assert.equal((await call(`/messages/${tmsg.id}`, {}, S.h, "DELETE")).status, 403);
+  assert.equal((await call(`/messages/${dm.id}`, {}, T.h, "DELETE")).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/chat?with=${P.id}`, S.h)).json()).messages[0].deleted, true);
+  await call(`/admin/groups/${group.id}/members/${S.id}`, { action: "mute", hours: 1 }, T.h);
+  const muted = await call(`/groups/${group.id}/chat`, { body: "?" }, S.h);
+  assert.equal(muted.status, 403);
+  assert.equal((await (await get(`/groups/${group.id}/chat`, S.h)).json()).canSend, false);
+  await call(`/admin/groups/${group.id}/members/${S.id}`, { action: "unmute" }, T.h);
+
+  /* ---------- Zoom ---------- */
+  Object.assign(process.env, { ZOOM_ACCOUNT_ID: "acc", ZOOM_CLIENT_ID: "cid", ZOOM_CLIENT_SECRET: "csecret", ZOOM_SDK_KEY: "sdkkey", ZOOM_SDK_SECRET: "sdksecret", ZOOM_WEBHOOK_SECRET: "whsecret" });
+  const zoomCalls: string[] = [];
+  let meetingNo = 900000000;
+  setZoomTransport({
+    api: async (method, path, body: any) => {
+      zoomCalls.push(`${method} ${path}`);
+      if (method === "POST" && path === "/users/me/meetings") {
+        assert.equal(body.settings.auto_recording, "cloud");
+        return { id: ++meetingNo, password: body.password, join_url: `https://zoom.us/j/${meetingNo}` };
+      }
+      if (path.startsWith("/users/me/token")) return { token: "zak-token" };
+      return {};
+    },
+    download: async () => ({ stream: Readable.from([Buffer.from("MP4DATA")]), length: 7, type: "video/mp4" }),
+  });
+  const blobs = new Map<string, Buffer>();
+  setClassStore({
+    put: async (k, d) => void blobs.set(k, d),
+    get: async (k) => (blobs.has(k) ? { data: blobs.get(k)!, mime: "audio/webm" } : null),
+    remove: async (k) => void blobs.delete(k),
+    putStream: async (k, stream) => {
+      const parts: Buffer[] = [];
+      for await (const c of stream) parts.push(Buffer.from(c));
+      blobs.set(k, Buffer.concat(parts));
+    },
+    url: (k) => `https://bucket.example/${k}?signed`,
+  });
+  const later = (await (await call(`/admin/groups/${group.id}/live`, { title: "Kelasi dars", startsAt: new Date(Date.now() + 2 * 3600e3).toISOString(), durationMinutes: 60 }, T.h)).json()).session;
+  assert.equal((await call(`/live/${later.id}/join`, {}, S.h)).status, 409, "15 daqiqadan oldin kirib bo'lmaydi");
+  const now = (await (await call(`/admin/groups/${group.id}/live`, { title: "Hozirgi dars", startsAt: new Date(Date.now() + 5 * 60000).toISOString(), durationMinutes: 45, lessonId: lesson.id }, T.h)).json()).session;
+  const join = await (await call(`/live/${now.id}/join`, {}, S.h)).json();
+  const [h, b, sig] = join.signature.split(".");
+  assert.equal(createHmac("sha256", "sdksecret").update(`${h}.${b}`).digest("base64url"), sig);
+  const claims = JSON.parse(Buffer.from(b, "base64url").toString());
+  assert.deepEqual([claims.appKey, claims.mn, claims.role], ["sdkkey", join.meetingNumber, 0]);
+  assert.equal(join.userName, "Ali");
+  assert.equal((await call(`/live/${now.id}/join`, {}, { "x-platform-session": "bad" })).status, 401);
+  const start = await (await call(`/admin/live/${now.id}/start`, {}, T.h)).json();
+  assert.deepEqual([start.zak, JSON.parse(Buffer.from(start.signature.split(".")[1], "base64url").toString()).role], ["zak-token", 1]);
+  const listed = await (await get(`/groups/${group.id}/live`, P.h)).json();
+  assert.deepEqual(listed.upcoming.map((s: any) => [s.title, s.canJoin]), [["Hozirgi dars", true], ["Kelasi dars", false]]);
+  const att = await (await get(`/admin/live/${now.id}/attendance`, T.h)).json();
+  assert.deepEqual(att.people.filter((p: any) => p.joined_at).map((p: any) => p.name), ["Ali"]);
+
+  const hook = async (payload: any, valid = true) => {
+    const raw = JSON.stringify(payload);
+    const ts = String(Math.floor(Date.now() / 1000));
+    const signature = "v0=" + createHmac("sha256", valid ? "whsecret" : "nope").update(`v0:${ts}:${raw}`).digest("hex");
+    return fetch(base + "/api/zoom/webhook", { method: "POST", headers: { "Content-Type": "application/json", "x-zm-request-timestamp": ts, "x-zm-signature": signature }, body: raw });
+  };
+  const validation = await (await hook({ event: "endpoint.url_validation", payload: { plainToken: "abc" } }, false)).json();
+  assert.equal(validation.encryptedToken, createHmac("sha256", "whsecret").update("abc").digest("hex"));
+  assert.equal((await hook({ event: "meeting.started", payload: { object: { id: join.meetingNumber } } }, false)).status, 401);
+  await hook({ event: "meeting.started", payload: { object: { id: Number(join.meetingNumber), uuid: "u/1==" } } });
+  assert.equal((await pool.query("SELECT status FROM cls_live_sessions WHERE id=$1", [now.id])).rows[0].status, "live");
+  await hook({ event: "meeting.ended", payload: { object: { id: Number(join.meetingNumber), uuid: "u/1==" } } });
+  await hook({
+    event: "recording.completed",
+    download_token: "dl",
+    payload: { object: { id: Number(join.meetingNumber), uuid: "u/1==", recording_files: [{ file_type: "M4A", download_url: "https://zoom/a" }, { file_type: "MP4", recording_type: "active_speaker", download_url: "https://zoom/v", file_size: 7 }] } },
+  });
+  for (let i = 0; i < 100 && !zoomCalls.some((c) => c.endsWith("recordings?action=trash")); i++) await new Promise((r) => setTimeout(r, 20));
+  assert.equal((await pool.query("SELECT recording_state FROM cls_live_sessions WHERE id=$1", [now.id])).rows[0].recording_state, "ready");
+  assert.equal(blobs.get(`class/recordings/${group.id}/${now.id}.mp4`)?.toString(), "MP4DATA");
+  assert.ok(zoomCalls.includes("DELETE /meetings/u%2F1%3D%3D/recordings?action=trash"), "Zoom nusxasi savatga");
+  const rec = await (await get(`/live/${now.id}/recording`, P.h)).json();
+  assert.match(rec.url, /^https:\/\/bucket\.example\/class\/recordings\//);
+  assert.equal((await call(`/admin/live/${later.id}`, {}, T.h, "DELETE")).status, 200);
+  assert.ok(zoomCalls.includes(`DELETE /meetings/${meetingNo - 1}`));
+
+  /* ---------- Yodlash vazifasi ---------- */
+  const text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ الْحَمْدُ لِلَّهِ";
+  assert.deepEqual(compareRecitation(text, "بسم الله الرحمن الرحيم الحمد لله").percent, 100);
+  assert.equal(compareRecitation(text, "بسم الله الرحيم الحمد لله").percent, 83);
+  const task = (await (await call(`/admin/lessons/${lesson.id}/tasks`, { title: "Basmalani yodlang", textAr: text, maxSeconds: 60, maxScore: 10 }, T.h)).json()).task;
+  setTranscriber(async () => "بسم الله الرحيم الحمد لله");
+  const webm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), randomBytes(400)]);
+  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: randomBytes(300).toString("base64"), mime: "audio/webm", seconds: 5 }, S.h)).status, 415);
+  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 200 }, S.h)).status, 400);
+  const sub = await (await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 12 }, S.h)).json();
+  assert.deepEqual([sub.aiPercent, sub.suggested, sub.diff.filter((d: any) => d.t === "miss").length], [83, 8, 1]);
+  assert.equal((await get(`/submissions/${sub.id}/audio`, P.h)).status, 404, "boshqa o'quvchi eshita olmaydi");
+  assert.equal(Buffer.from(await (await get(`/submissions/${sub.id}/audio`, S.h)).arrayBuffer()).length, webm.length);
+  assert.equal((await get(`/groups/${group.id}/review`, S.h)).status, 403);
+  const queue = await (await get(`/groups/${group.id}/review`, T.h)).json();
+  assert.deepEqual(queue.items.map((i: any) => [i.name, i.ai_percent, i.suggested]), [["Ali", 83, 8]]);
+  assert.equal((await call(`/submissions/${sub.id}/grade`, { score: 11 }, T.h)).status, 400);
+  assert.equal((await call(`/submissions/${sub.id}/grade`, { score: 9, comment: "Barakalla" }, T.h)).status, 200);
+  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 12 }, S.h)).status, 409);
+  const res = await (await get(`/groups/${group.id}/results`, S.h)).json();
+  assert.deepEqual([res.me.points, res.tasks[0].score], [9, 9]);
+  assert.equal((await call(`/admin/tasks/${task.id}`, {}, T.h, "DELETE")).status, 409);
+
+  /* ---------- Push bildirishnoma ---------- */
+  assert.equal(quietDelaySeconds(new Date("2026-11-17T18:30:00Z")), 7 * 3600 + 30 * 60, "23:30 → 07:00");
+  assert.equal(quietDelaySeconds(new Date("2026-11-17T06:00:00Z")), 0, "11:00 → darhol");
+  const endpoint = "https://push.example/sub/1";
+  assert.equal((await call("/push/subscribe", { endpoint, keys: { p256dh: "p".repeat(40), auth: "a".repeat(16) } }, S.h)).status, 200);
+  await pool.query("UPDATE notification_outbox SET state='sent' WHERE kind='class_notice'");
+  const pushed: string[] = [];
+  setPushSender(async (s, payload) => void pushed.push(`${s.endpoint} ${payload}`));
+  await call("/push/test", { groupId: group.id }, S.h);
+  await processClassNotices();
+  assert.equal(pushed.length, 1);
+  assert.match(pushed[0], /Bildirishnoma yoqildi/);
+  assert.match(pushed[0], new RegExp(`/sinfxona/${group.id}`));
+  setPushSender(undefined);
+  setZoomTransport(undefined);
+  setClassStore(undefined);
+  setTranscriber(undefined);
+});

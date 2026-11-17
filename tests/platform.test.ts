@@ -1873,22 +1873,51 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   assert.deepEqual(compareRecitation(text, "بسم الله الرحمن الرحيم الحمد لله").percent, 100);
   assert.equal(compareRecitation(text, "بسم الله الرحيم الحمد لله").percent, 83);
   const task = (await (await call(`/admin/lessons/${lesson.id}/tasks`, { title: "Basmalani yodlang", textAr: text, maxSeconds: 60, maxScore: 10 }, T.h)).json()).task;
-  setTranscriber(async () => "بسم الله الرحيم الحمد لله");
+  assert.deepEqual([task.proctor, task.pass_percent], ["required", 80]);
+  const words = (list: string[], gapAfter = -1) => {
+    let t = 0;
+    return list.map((word, i) => ({ word, start: (t += i === gapAfter + 1 && gapAfter >= 0 ? 3.5 : 0.2), end: (t += 0.5) }));
+  };
+  setTranscriber(async () => ({ text: "بسم الله الرحيم الحمد لله", words: words(["بسم", "الله", "الرحيم", "الحمد", "لله"], 2) }));
   const webm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), randomBytes(400)]);
-  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: randomBytes(300).toString("base64"), mime: "audio/webm", seconds: 5 }, S.h)).status, 415);
-  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 200 }, S.h)).status, 400);
-  const sub = await (await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 12 }, S.h)).json();
-  assert.deepEqual([sub.aiPercent, sub.suggested, sub.diff.filter((d: any) => d.t === "miss").length], [83, 8, 1]);
+  const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), randomBytes(300)]);
+  const good = { enabled: true, supported: true, duration: 12, awaySeconds: 1.6, noFaceSeconds: 0, multiSeconds: 0, events: [{ t: 4, kind: "side", seconds: 1.6 }] };
+  const submit = (extra: any) => call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 12, ...extra }, S.h);
+  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: randomBytes(300).toString("base64"), mime: "audio/webm", seconds: 5, proctor: good }, S.h)).status, 415);
+  assert.equal((await submit({ seconds: 200, proctor: good })).status, 400);
+  assert.equal((await submit({})).status, 400, "kamerasiz qabul qilinmaydi");
+  const cheat = await submit({ proctor: { ...good, awaySeconds: 6, events: [1, 4, 8].map((t) => ({ t, kind: "down", seconds: 2 })) } });
+  assert.equal(cheat.status, 422);
+  assert.match((await cheat.json()).message, /Qayta yozing: 3 marta kameraga qaralmadi/);
+  const sub = await (await submit({ proctor: good, snapshots: [jpeg.toString("base64")] })).json();
+  // 83% to'g'ri, 1 ta uzun to'xtalish (jarimasiz, 2 tagacha), 1 ta kamera ogohlantirishi (−5) → 78% → 8 ball, o'tmadi (80%)
+  assert.deepEqual([sub.auto, sub.aiPercent, sub.finalPercent, sub.score, sub.passed, sub.pauses, sub.warnings, sub.attemptsLeft], [true, 83, 78, 8, false, 1, 1, 4]);
+  setTranscriber(async () => ({ text: "بسم الله الرحمن الرحيم الحمد لله", words: words(["بسم", "الله", "الرحمن", "الرحيم", "الحمد", "لله"]) }));
+  const sub2 = await (await submit({ proctor: { ...good, awaySeconds: 0, events: [] } })).json();
+  assert.deepEqual([sub2.finalPercent, sub2.score, sub2.passed, sub2.attemptsLeft], [100, 10, true, 3]);
   assert.equal((await get(`/submissions/${sub.id}/audio`, P.h)).status, 404, "boshqa o'quvchi eshita olmaydi");
   assert.equal(Buffer.from(await (await get(`/submissions/${sub.id}/audio`, S.h)).arrayBuffer()).length, webm.length);
+  assert.equal((await get(`/submissions/${sub.id}/snap/0`, S.h)).status, 404, "kamera suratini faqat o'qituvchi ko'radi");
+  assert.equal(Buffer.from(await (await get(`/submissions/${sub.id}/snap/0`, T.h)).arrayBuffer()).length, jpeg.length);
   assert.equal((await get(`/groups/${group.id}/review`, S.h)).status, 403);
+  const graded = await (await get(`/groups/${group.id}/review?status=graded`, T.h)).json();
+  assert.deepEqual(graded.items.map((i: any) => [i.name, i.final_percent, i.score, i.auto]), [["Ali", 100, 10, true], ["Ali", 78, 8, true]]);
+  assert.equal((await (await get(`/groups/${group.id}/review?status=rejected`, T.h)).json()).items.length, 1);
+  assert.equal((await (await get(`/groups/${group.id}/review`, T.h)).json()).waiting, 0, "o'qituvchi qo'lda tekshirishi shart emas");
+  let res = await (await get(`/groups/${group.id}/results`, S.h)).json();
+  assert.deepEqual([res.me.points, res.tasks.length, res.tasks[0].score], [10, 1, 10], "eng yaxshi natija hisoblanadi");
+  // AI ishlamay qolsa — zaxira: o'qituvchi navbati
+  setTranscriber(async () => {
+    throw new Error("down");
+  });
+  const sub3 = await (await submit({ proctor: { ...good, events: [] } })).json();
+  assert.equal(sub3.auto, false);
   const queue = await (await get(`/groups/${group.id}/review`, T.h)).json();
-  assert.deepEqual(queue.items.map((i: any) => [i.name, i.ai_percent, i.suggested]), [["Ali", 83, 8]]);
-  assert.equal((await call(`/submissions/${sub.id}/grade`, { score: 11 }, T.h)).status, 400);
-  assert.equal((await call(`/submissions/${sub.id}/grade`, { score: 9, comment: "Barakalla" }, T.h)).status, 200);
-  assert.equal((await call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 12 }, S.h)).status, 409);
-  const res = await (await get(`/groups/${group.id}/results`, S.h)).json();
-  assert.deepEqual([res.me.points, res.tasks[0].score], [9, 9]);
+  assert.deepEqual(queue.items.map((i: any) => i.id), [sub3.id]);
+  assert.equal((await call(`/submissions/${sub3.id}/grade`, { score: 11 }, T.h)).status, 400);
+  assert.equal((await call(`/submissions/${sub3.id}/grade`, { score: 9, comment: "Barakalla" }, T.h)).status, 200);
+  res = await (await get(`/groups/${group.id}/results`, S.h)).json();
+  assert.equal(res.me.points, 10);
   assert.equal((await call(`/admin/tasks/${task.id}`, {}, T.h, "DELETE")).status, 409);
 
   /* ---------- Push bildirishnoma ---------- */

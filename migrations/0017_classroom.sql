@@ -163,6 +163,8 @@ CREATE TABLE IF NOT EXISTS cls_tasks (
  text_ar text NOT NULL DEFAULT '',
  max_seconds integer NOT NULL DEFAULT 120,
  max_score integer NOT NULL DEFAULT 10,
+ proctor text NOT NULL DEFAULT 'required',
+ pass_percent integer NOT NULL DEFAULT 80,
  created_at timestamptz NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
@@ -178,6 +180,11 @@ CREATE TABLE IF NOT EXISTS cls_submissions (
  transcript text,
  ai_percent integer,
  ai_diff jsonb,
+ final_percent integer,
+ pauses integer,
+ proctor jsonb,
+ snapshots integer NOT NULL DEFAULT 0,
+ auto boolean NOT NULL DEFAULT false,
  score integer,
  comment text NOT NULL DEFAULT '',
  status text NOT NULL DEFAULT 'submitted',
@@ -212,15 +219,3 @@ CREATE TABLE IF NOT EXISTS cls_blobs (
  data bytea NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now()
 );
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS cls_tg_intake (
- code text PRIMARY KEY,
- user_id varchar NOT NULL REFERENCES users(id) ON DELETE CASCADE,
- group_id uuid NOT NULL REFERENCES cls_groups(id) ON DELETE CASCADE,
- task_id uuid NOT NULL REFERENCES cls_tasks(id) ON DELETE CASCADE,
- chat_id text,
- used_at timestamptz,
- expires_at timestamptz NOT NULL
-);
---> statement-breakpoint
-CREATE INDEX IF NOT EXISTS cls_tg_intake_chat ON cls_tg_intake(chat_id);

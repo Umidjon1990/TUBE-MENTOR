@@ -1,16 +1,15 @@
-// Yodlash vazifalari: o'quvchi matnni yoddan o'qib audio yuboradi (saytda yozib yoki Telegram botga
-// ovozli xabar / dumaloq video). Audio siqiladi, OpenAI orqali matnga aylantiriladi va asl matn bilan
-// so'zma-so'z solishtiriladi (harakatlar hisobga olinmaydi). Natija — taxminiy foiz; yakuniy ballni o'qituvchi tasdiqlaydi.
+// Yodlash vazifalari: o'quvchi matnni yoddan o'qiydi — faqat saytda, old kamera yoqilgan holda yoziladi.
+// Telefon brauzerida yuz/ko'z nazorati (MediaPipe) ishlaydi; qoidabuzarlik ko'p bo'lsa yozuv qabul qilinmaydi
+// (qayta yozish so'raladi). Audio siqiladi, OpenAI orqali matnga aylantiriladi (so'z vaqtlari bilan), asl matn bilan
+// so'zma-so'z solishtiriladi va ball AVTOMATIK qo'yiladi. O'qituvchi xohlasa bahoni o'zgartira oladi.
 import type { Express, Request } from "express";
 import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import OpenAI, { toFile } from "openai";
 import { pool } from "./db";
 import { requireAdmin, requireAuth } from "./auth";
 import { ClassError, lessonStates, membership, notifyUsers, route, uuid } from "./classroom";
 import { classStore } from "./class-storage";
-import { botFile, botUsername, botReady, setClassTelegramHook, type TelegramMedia } from "./payment-bot";
 
 const fail = (status: number, message: string): never => {
   throw new ClassError(status, message);
@@ -62,26 +61,6 @@ export function compareRecitation(original: string, spoken: string) {
   return { percent, diff, words: n };
 }
 
-/* ---------------- Audio: siqish va matnga aylantirish ---------------- */
-type Transcriber = (audio: Buffer, mime: string) => Promise<string>;
-let openai: OpenAI | undefined;
-const realTranscriber: Transcriber = async (audio, mime) => {
-  const key = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-  if (!key) throw new Error("OpenAI is not configured");
-  openai ||= new OpenAI({ apiKey: key, ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }) });
-  const ext = mime.includes("ogg") ? "ogg" : mime.includes("mp4") || mime.includes("m4a") || mime.includes("aac") ? "m4a" : mime.includes("mpeg") ? "mp3" : "webm";
-  const result = await openai.audio.transcriptions.create({
-    file: await toFile(audio, `recitation.${ext}`, { type: mime }),
-    model: process.env.CLASS_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe",
-    language: "ar",
-  });
-  return String((result as any).text || "");
-};
-let transcriber: Transcriber = realTranscriber;
-export function setTranscriber(fn: Transcriber | undefined) {
-  transcriber = fn || realTranscriber;
-}
-
 /** ffmpeg bo'lsa: ovozni mono 24 kbit/s Opus (ogg) ga siqamiz — 2 daqiqa ≈ 360 KB. Bo'lmasa asl fayl qoladi. */
 export function compressAudio(input: Buffer, maxSeconds: number): Promise<{ data: Buffer; mime: string } | null> {
   return new Promise((resolve) => {
@@ -108,7 +87,66 @@ export function compressAudio(input: Buffer, maxSeconds: number): Promise<{ data
   });
 }
 
+/* ---------------- Audio: matnga aylantirish ---------------- */
+export type Transcript = { text: string; words?: { word: string; start: number; end: number }[] };
+type Transcriber = (audio: Buffer, mime: string) => Promise<Transcript>;
+let openai: OpenAI | undefined;
+const realTranscriber: Transcriber = async (audio, mime) => {
+  const key = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  if (!key) throw new Error("OpenAI is not configured");
+  openai ||= new OpenAI({ apiKey: key, ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }) });
+  const ext = mime.includes("ogg") ? "ogg" : mime.includes("mp4") || mime.includes("m4a") || mime.includes("aac") ? "m4a" : mime.includes("mpeg") ? "mp3" : "webm";
+  // whisper-1 so'z vaqtlarini beradi — to'xtalishlar (eslay olmay qolish) shundan aniqlanadi.
+  const result: any = await openai.audio.transcriptions.create({
+    file: await toFile(audio, `recitation.${ext}`, { type: mime }),
+    model: process.env.CLASS_TRANSCRIBE_MODEL || "whisper-1",
+    language: "ar",
+    response_format: "verbose_json",
+    timestamp_granularities: ["word"],
+  } as any);
+  return { text: String(result?.text || ""), words: Array.isArray(result?.words) ? result.words : undefined };
+};
+let transcriber: Transcriber = realTranscriber;
+export function setTranscriber(fn: Transcriber | undefined) {
+  transcriber = fn || realTranscriber;
+}
+
+/* ---------------- Kamera nazorati ---------------- */
+const proctorSchema = z.object({
+  enabled: z.boolean(),
+  supported: z.boolean().default(true),
+  duration: z.number().min(0).max(600),
+  awaySeconds: z.number().min(0).max(600).default(0),
+  noFaceSeconds: z.number().min(0).max(600).default(0),
+  multiSeconds: z.number().min(0).max(600).default(0),
+  events: z.array(z.object({ t: z.number().min(0).max(600), kind: z.enum(["noface", "multi", "down", "side", "eyes"]), seconds: z.number().min(0).max(600) })).max(60).default([]),
+});
+export type ProctorReport = z.infer<typeof proctorSchema>;
+/** Sayt bilan bir xil qoida: 3+ marta ko'z olib qochish, vaqtning 25%+ i chetga qarash yoki kadrda boshqa odam — qayta yozish. */
+export function proctorVerdict(r: ProctorReport | null) {
+  if (!r || !r.enabled) return { retake: false, reasons: [] as string[], warnings: 0 };
+  const reasons: string[] = [];
+  const looks = r.events.filter((e) => e.kind !== "multi").length;
+  if (r.multiSeconds >= 1.5 || r.events.some((e) => e.kind === "multi")) reasons.push("kadrda boshqa odam ko‘rindi");
+  if (looks >= 3) reasons.push(`${looks} marta kameraga qaralmadi`);
+  if (r.duration > 0 && r.awaySeconds > Math.max(4, r.duration * 0.25)) reasons.push("ko‘p vaqt kameraga qaralmadi");
+  if (r.noFaceSeconds > Math.max(3, r.duration * 0.15)) reasons.push("yuz kadrdan chiqib ketdi");
+  return { retake: reasons.length > 0, reasons, warnings: looks };
+}
+/** So'zlar orasidagi 2,5 soniyadan uzun jimlik — eslay olmay to'xtalish. */
+export function countPauses(words: Transcript["words"]) {
+  if (!words?.length) return null;
+  let n = 0;
+  for (let i = 1; i < words.length; i++) if (words[i].start - words[i - 1].end > 2.5) n++;
+  return n;
+}
+/** Yakuniy foiz: to'g'ri aytilgan so'zlar ulushi − ortiqcha to'xtalishlar − kamera ogohlantirishlari. */
+export function autoPercent(accuracy: number, pauses: number | null, warnings: number) {
+  return Math.max(0, Math.min(100, Math.round(accuracy - Math.max(0, (pauses || 0) - 2) * 5 - warnings * 5)));
+}
+
 const MAX_AUDIO = 20 * 1024 * 1024;
+const MAX_ATTEMPTS = 5;
 async function sniffMime(data: Buffer, declared: string) {
   const head = data.subarray(0, 12).toString("latin1");
   if (head.startsWith("OggS")) return "audio/ogg";
@@ -119,8 +157,8 @@ async function sniffMime(data: Buffer, declared: string) {
   return null;
 }
 
-/** Topshiriqni saqlash va AI tekshiruv. Telegram va sayt uchun umumiy. */
-export async function submitRecitation(input: { groupId: string; taskId: string; userId: string; audio: Buffer; mime: string; seconds: number; source: "web" | "telegram" }) {
+/** Topshiriqni qabul qilish, kamera hisobotini tekshirish, AI bilan avtomatik baholash. */
+export async function submitRecitation(input: { groupId: string; taskId: string; userId: string; audio: Buffer; mime: string; seconds: number; proctor: ProctorReport | null; snapshots: Buffer[] }) {
   const task = (await pool.query("SELECT t.*, l.id AS lesson_id FROM cls_tasks t JOIN cls_lessons l ON l.id=t.lesson_id WHERE t.id=$1", [input.taskId])).rows[0] || fail(404, "Vazifa topilmadi");
   const { teacher } = await membership(input.groupId, input.userId);
   const state = (await lessonStates(input.groupId, input.userId, teacher)).find((s) => s.id === task.lesson_id) || fail(404, "Vazifa bu guruhga tegishli emas");
@@ -128,92 +166,72 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   if (!input.audio.length || input.audio.length > MAX_AUDIO) fail(413, "Audio hajmi juda katta");
   const mime = (await sniffMime(input.audio, input.mime)) || fail(415, "Audio formati tanilmadi");
   if (input.seconds > task.max_seconds + 10) fail(400, `Yozuv ${task.max_seconds} soniyadan oshmasin`);
-  const graded = (await pool.query("SELECT 1 FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status='graded'", [task.id, input.groupId, input.userId])).rowCount;
-  const recent = (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3", [task.id, input.groupId, input.userId])).rows[0].n;
-  if (graded) fail(409, "Bu vazifa allaqachon baholangan");
-  if (recent >= 5) fail(409, "Bu vazifa uchun urinishlar soni tugadi (5 ta)");
+  if (task.proctor === "required" && !input.proctor?.enabled) fail(400, "Bu vazifa old kamera yoqilgan holda yoziladi");
+  const used = (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status<>'rejected'", [task.id, input.groupId, input.userId])).rows[0].n;
+  if (used >= MAX_ATTEMPTS) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
+  const proctor = task.proctor === "off" ? null : input.proctor;
+  const verdict = proctorVerdict(proctor);
+  if (verdict.retake) {
+    // Urinish hisoblanmaydi, lekin o'qituvchi ko'rishi uchun iz qoladi.
+    await pool.query("INSERT INTO cls_submissions(task_id,group_id,user_id,status,proctor,audio_seconds) VALUES($1,$2,$3,'rejected',$4,$5)", [
+      task.id, input.groupId, input.userId, JSON.stringify(proctor), Math.round(input.seconds),
+    ]);
+    fail(422, "Qayta yozing: " + verdict.reasons.join(", "));
+  }
 
   const compressed = await compressAudio(input.audio, task.max_seconds);
   const audio = compressed?.data || input.audio;
   const audioMime = compressed?.mime || mime;
   const id = (await pool.query("SELECT gen_random_uuid() AS id")).rows[0].id;
-  const key = `class/audio/${input.groupId}/${id}.${audioMime.includes("ogg") ? "ogg" : audioMime.includes("webm") ? "webm" : audioMime.includes("mpeg") ? "mp3" : audioMime.includes("wav") ? "wav" : "m4a"}`;
-  await classStore().put(key, audio, audioMime);
+  const ext = audioMime.includes("ogg") ? "ogg" : audioMime.includes("webm") ? "webm" : audioMime.includes("mpeg") ? "mp3" : audioMime.includes("wav") ? "wav" : "m4a";
+  const key = `class/audio/${input.groupId}/${id}.${ext}`;
+  const store = classStore();
+  await store.put(key, audio, audioMime);
+  const snaps = input.snapshots.slice(0, 4);
+  for (let i = 0; i < snaps.length; i++) await store.put(`class/snap/${input.groupId}/${id}-${i}.jpg`, snaps[i], "image/jpeg");
   const due = (await pool.query("SELECT due_at FROM cls_group_lessons WHERE group_id=$1 AND lesson_id=$2", [input.groupId, task.lesson_id])).rows[0]?.due_at;
   const late = !!due && new Date(due).getTime() < Date.now();
-  // Avvalgi tekshirilmagan urinishlar o'qituvchi navbatidan chiqadi (eng oxirgisi qoladi).
   await pool.query("UPDATE cls_submissions SET status='replaced' WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status='submitted'", [task.id, input.groupId, input.userId]);
   await pool.query(
-    `INSERT INTO cls_submissions(id,task_id,group_id,user_id,audio_key,audio_seconds,audio_mime,source,late,status)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'submitted')`,
-    [id, task.id, input.groupId, input.userId, key, Math.round(input.seconds), audioMime, input.source, late],
+    `INSERT INTO cls_submissions(id,task_id,group_id,user_id,audio_key,audio_seconds,audio_mime,source,late,status,proctor,snapshots)
+     VALUES($1,$2,$3,$4,$5,$6,$7,'web',$8,'submitted',$9,$10)`,
+    [id, task.id, input.groupId, input.userId, key, Math.round(input.seconds), audioMime, late, proctor ? JSON.stringify(proctor) : null, snaps.length],
   );
-  let ai: { percent: number; diff: DiffItem[] } | null = null;
-  let transcript = "";
+  let result: { accuracy: number; diff: DiffItem[]; pauses: number | null; final: number; score: number } | null = null;
   try {
-    transcript = await transcriber(audio, audioMime);
-    ai = compareRecitation(task.text_ar, transcript);
-    await pool.query("UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4 WHERE id=$1", [id, transcript.slice(0, 10000), ai.percent, JSON.stringify(ai.diff)]);
+    const t = await transcriber(audio, audioMime);
+    const cmp = compareRecitation(task.text_ar, t.text);
+    const pauses = countPauses(t.words);
+    const final = autoPercent(cmp.percent, pauses, verdict.warnings);
+    result = { accuracy: cmp.percent, diff: cmp.diff, pauses, final, score: Math.round((task.max_score * final) / 100) };
+    await pool.query(
+      `UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4, pauses=$5, final_percent=$6, score=$7, status='graded', auto=true, graded_at=now() WHERE id=$1`,
+      [id, t.text.slice(0, 10000), cmp.percent, JSON.stringify(cmp.diff), pauses, final, result.score],
+    );
   } catch {
-    // AI ishlamasa ham topshiriq saqlanadi — o'qituvchi tinglab baholaydi.
+    // AI vaqtincha ishlamasa — o'qituvchi navbatiga tushadi (zaxira yo'l).
+    const teacherId = (await pool.query("SELECT teacher_id FROM cls_groups WHERE id=$1", [input.groupId])).rows[0]?.teacher_id;
+    if (teacherId) await notifyUsers([teacherId], input.groupId, { title: "Vazifani qo‘lda tekshirish kerak", body: task.title, path: "tekshirish", ref: `review-${input.groupId}-${Math.floor(Date.now() / 900000)}` });
   }
-  const teacherId = (await pool.query("SELECT teacher_id FROM cls_groups WHERE id=$1", [input.groupId])).rows[0]?.teacher_id;
-  if (teacherId) await notifyUsers([teacherId], input.groupId, { title: "Yangi vazifa tekshirishga keldi", body: task.title, path: "tekshirish", ref: `review-${input.groupId}-${Math.floor(Date.now() / 900000)}` });
   return {
     id,
-    aiPercent: ai?.percent ?? null,
-    suggested: ai ? Math.round((task.max_score * ai.percent) / 100) : null,
+    auto: !!result,
+    aiPercent: result?.accuracy ?? null,
+    finalPercent: result?.final ?? null,
+    score: result?.score ?? null,
     maxScore: task.max_score,
+    passed: result ? result.final >= task.pass_percent : null,
+    passPercent: task.pass_percent,
+    pauses: result?.pauses ?? null,
+    warnings: verdict.warnings,
     late,
-    diff: ai?.diff ?? null,
+    diff: result?.diff ?? null,
+    attemptsLeft: MAX_ATTEMPTS - used - 1,
   };
-}
-
-/* ---------------- Telegram orqali qabul qilish ---------------- */
-async function telegramHook(input: { chatId: string; text: string; message: { voice?: TelegramMedia; video_note?: TelegramMedia; audio?: TelegramMedia; video?: TelegramMedia } }) {
-  const start = /^\/start(?:@[A-Za-z0-9_]+)?\s+t-([A-Za-z0-9]{16})$/.exec(input.text);
-  if (start) {
-    const row = (
-      await pool.query(
-        `UPDATE cls_tg_intake SET chat_id=$2 WHERE code=$1 AND used_at IS NULL AND expires_at>now() RETURNING task_id`,
-        [start[1], input.chatId],
-      )
-    ).rows[0];
-    if (!row) return "Havola eskirgan. Saytdagi vazifadan «Telegram orqali yuborish» tugmasini qayta bosing.";
-    const t = (await pool.query("SELECT title, max_seconds FROM cls_tasks WHERE id=$1", [row.task_id])).rows[0];
-    return `«${t?.title || "Vazifa"}» uchun tayyor.\nEndi matnni yoddan o‘qib, ovozli xabar yoki dumaloq video yuboring (eng ko‘pi ${Math.min(t?.max_seconds || 60, 60)} soniya).`;
-  }
-  const media = input.message.voice || input.message.video_note || input.message.audio || input.message.video;
-  if (!media) return null;
-  const intake = (
-    await pool.query("SELECT * FROM cls_tg_intake WHERE chat_id=$1 AND used_at IS NULL AND expires_at>now() ORDER BY expires_at DESC LIMIT 1", [input.chatId])
-  ).rows[0];
-  if (!intake) return null; // boshqa maqsaddagi audio — umumiy javob beriladi
-  if ((media.file_size || 0) > 20 * 1024 * 1024) return "Fayl juda katta. 1 daqiqagacha ovozli xabar yuboring.";
-  await pool.query("UPDATE cls_tg_intake SET used_at=now() WHERE code=$1", [intake.code]);
-  try {
-    const data = await botFile(media.file_id);
-    const r = await submitRecitation({
-      groupId: intake.group_id,
-      taskId: intake.task_id,
-      userId: intake.user_id,
-      audio: data,
-      mime: media.mime_type || (input.message.voice ? "audio/ogg" : "video/mp4"),
-      seconds: Number(media.duration || 0),
-      source: "telegram",
-    });
-    return r.aiPercent === null
-      ? "Qabul qilindi ✅ O‘qituvchi tinglab baholaydi."
-      : `Qabul qilindi ✅\nTaxminiy natija: ${r.aiPercent}% (${r.suggested}/${r.maxScore} ball).\nYakuniy ballni o‘qituvchi tasdiqlaydi.`;
-  } catch (error) {
-    await pool.query("UPDATE cls_tg_intake SET used_at=NULL WHERE code=$1", [intake.code]);
-    return error instanceof ClassError ? error.message : "Yuborishda xato bo‘ldi. Birozdan so‘ng qayta yuboring.";
-  }
 }
 
 export function registerClassTasks(app: Express) {
   const P = "/api/platform/class";
-  setClassTelegramHook(telegramHook as any);
 
   /* ---------- O'qituvchi: vazifalar ---------- */
   const taskSchema = z.object({
@@ -221,6 +239,8 @@ export function registerClassTasks(app: Express) {
     textAr: z.string().trim().min(1).max(5000),
     maxSeconds: z.number().int().min(10).max(300).default(120),
     maxScore: z.number().int().min(1).max(100).default(10),
+    proctor: z.enum(["off", "warn", "required"]).default("required"),
+    passPercent: z.number().int().min(10).max(100).default(80),
   });
   app.get(P + "/admin/lessons/:id/tasks", requireAdmin, route(async (req) => ({
     tasks: (await pool.query("SELECT * FROM cls_tasks WHERE lesson_id=$1 ORDER BY created_at", [uuid.parse(req.params.id)])).rows,
@@ -229,8 +249,8 @@ export function registerClassTasks(app: Express) {
     const b = taskSchema.parse(req.body);
     const t = (
       await pool.query(
-        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score) SELECT $1,'recitation',$2,$3,$4,$5 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
-        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore],
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent) SELECT $1,'recitation',$2,$3,$4,$5,$6,$7 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
+        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore, b.proctor, b.passPercent],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Dars topilmadi");
@@ -239,21 +259,31 @@ export function registerClassTasks(app: Express) {
     const b = taskSchema.partial().parse(req.body);
     const t = (
       await pool.query(
-        "UPDATE cls_tasks SET title=COALESCE($2,title), text_ar=COALESCE($3,text_ar), max_seconds=COALESCE($4,max_seconds), max_score=COALESCE($5,max_score) WHERE id=$1 RETURNING *",
-        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null],
+        `UPDATE cls_tasks SET title=COALESCE($2,title), text_ar=COALESCE($3,text_ar), max_seconds=COALESCE($4,max_seconds), max_score=COALESCE($5,max_score),
+                proctor=COALESCE($6,proctor), pass_percent=COALESCE($7,pass_percent) WHERE id=$1 RETURNING *`,
+        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null, b.proctor ?? null, b.passPercent ?? null],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Vazifa topilmadi");
   }));
   app.delete(P + "/admin/tasks/:id", requireAdmin, route(async (req) => {
     const id = uuid.parse(req.params.id);
-    if ((await pool.query("SELECT 1 FROM cls_submissions WHERE task_id=$1 LIMIT 1", [id])).rowCount) fail(409, "Bu vazifaga javoblar bor — o‘chirib bo‘lmaydi");
+    if ((await pool.query("SELECT 1 FROM cls_submissions WHERE task_id=$1 AND status<>'rejected' LIMIT 1", [id])).rowCount) fail(409, "Bu vazifaga javoblar bor — o‘chirib bo‘lmaydi");
     await pool.query("DELETE FROM cls_tasks WHERE id=$1", [id]);
   }));
 
-  /* ---------- O'quvchi: topshirish ---------- */
+  /* ---------- O'quvchi: topshirish (faqat sayt) ---------- */
   app.post(P + "/groups/:id/tasks/:taskId/submit", requireAuth, route(async (req) => {
-    const b = z.object({ audio: z.string().min(100).max(11_000_000), mime: z.string().max(100), seconds: z.number().min(0.5).max(400) }).parse(req.body);
+    const b = z
+      .object({
+        audio: z.string().min(100).max(11_000_000),
+        mime: z.string().max(100),
+        seconds: z.number().min(0.5).max(400),
+        proctor: proctorSchema.nullable().optional(),
+        snapshots: z.array(z.string().max(200_000)).max(4).optional().default([]),
+      })
+      .parse(req.body);
+    const snapshots = b.snapshots.map((x) => Buffer.from(x, "base64")).filter((x) => x.length > 100 && x[0] === 0xff && x[1] === 0xd8);
     return submitRecitation({
       groupId: uuid.parse(req.params.id),
       taskId: uuid.parse(req.params.taskId),
@@ -261,57 +291,50 @@ export function registerClassTasks(app: Express) {
       audio: Buffer.from(b.audio, "base64"),
       mime: b.mime,
       seconds: b.seconds,
-      source: "web",
+      proctor: b.proctor ?? null,
+      snapshots,
     });
   }));
-  /** Telegram orqali yuborish uchun bir martalik havola (30 daqiqa). */
-  app.post(P + "/groups/:id/tasks/:taskId/telegram", requireAuth, route(async (req) => {
-    const groupId = uuid.parse(req.params.id), taskId = uuid.parse(req.params.taskId), me = userOf(req);
-    await membership(groupId, me);
-    if (!(await pool.query("SELECT 1 FROM cls_tasks WHERE id=$1", [taskId])).rowCount) fail(404, "Vazifa topilmadi");
-    if (!botReady()) fail(503, "Telegram bot hozircha ulanmagan");
-    const code = randomBytes(8).toString("hex");
-    await pool.query("DELETE FROM cls_tg_intake WHERE user_id=$1 AND task_id=$2 AND used_at IS NULL", [me, taskId]);
-    await pool.query("INSERT INTO cls_tg_intake(code,user_id,group_id,task_id,expires_at) VALUES($1,$2,$3,$4,now()+interval '30 minutes')", [code, me, groupId, taskId]);
-    const username = await botUsername();
-    return { url: `https://t.me/${username}?start=t-${code}` };
-  }));
-  /** Audio tinglash: o'quvchi o'zinikini, o'qituvchi hammasini. */
-  app.get(P + "/submissions/:id/audio", requireAuth, async (req, res, next) => {
+  const sendFile = (kind: "audio" | "snap") => async (req: Request, res: any, next: any) => {
     try {
       const id = uuid.parse(req.params.id), me = userOf(req);
       const s = (await pool.query("SELECT * FROM cls_submissions WHERE id=$1", [id])).rows[0];
       if (!s) return res.status(404).json({ message: "Topilmadi" });
       const { teacher } = await membership(s.group_id, me);
-      if (!teacher && s.user_id !== me) return res.status(404).json({ message: "Topilmadi" });
-      const file = s.audio_key ? await classStore().get(s.audio_key) : null;
-      if (!file) return res.status(404).json({ message: "Audio topilmadi" });
-      res.set({ "Content-Type": s.audio_mime || file.mime, "Cache-Control": "private, max-age=3600", "Content-Length": String(file.data.length) });
+      if (!teacher && (kind === "snap" || s.user_id !== me)) return res.status(404).json({ message: "Topilmadi" });
+      const n = kind === "snap" ? z.coerce.number().int().min(0).max(3).parse(req.params.n) : 0;
+      const key = kind === "audio" ? s.audio_key : n < s.snapshots ? `class/snap/${s.group_id}/${s.id}-${n}.jpg` : null;
+      const file = key ? await classStore().get(key) : null;
+      if (!file) return res.status(404).json({ message: "Fayl topilmadi" });
+      res.set({ "Content-Type": kind === "audio" ? s.audio_mime || file.mime : "image/jpeg", "Cache-Control": "private, max-age=3600", "Content-Length": String(file.data.length) });
       res.end(file.data);
     } catch (error) {
       if (error instanceof ClassError) return res.status(error.status).json({ message: error.message });
       next(error);
     }
-  });
+  };
+  /** Audio: o'quvchi o'zinikini, o'qituvchi hammasini. Kamera suratlari faqat o'qituvchiga. */
+  app.get(P + "/submissions/:id/audio", requireAuth, sendFile("audio"));
+  app.get(P + "/submissions/:id/snap/:n", requireAuth, sendFile("snap"));
 
-  /* ---------- O'qituvchi: tekshirish navbati ---------- */
+  /* ---------- O'qituvchi: natijalar (avtomatik baholangan) va zaxira navbati ---------- */
   app.get(P + "/groups/:id/review", requireAuth, route(async (req) => {
     const id = uuid.parse(req.params.id), me = userOf(req);
     const { teacher } = await membership(id, me);
     if (!teacher) fail(403, "Faqat o‘qituvchi uchun");
-    const status = req.query.status === "graded" ? "graded" : "submitted";
+    const status = req.query.status === "graded" ? "graded" : req.query.status === "rejected" ? "rejected" : "submitted";
     const rows = (
       await pool.query(
-        `SELECT s.id, s.user_id, COALESCE(NULLIF(m.display_name,''),u.full_name) AS name, s.audio_seconds, s.transcript, s.ai_percent, s.ai_diff,
-                s.score, s.comment, s.status, s.late, s.source, s.created_at, t.id AS task_id, t.title, t.text_ar, t.max_score, l.title AS lesson_title
+        `SELECT s.id, s.user_id, COALESCE(NULLIF(m.display_name,''),u.full_name) AS name, s.audio_seconds, s.transcript, s.ai_percent, s.ai_diff, s.final_percent, s.pauses,
+                s.proctor, s.snapshots, s.auto, s.score, s.comment, s.status, s.late, s.source, s.created_at, t.id AS task_id, t.title, t.text_ar, t.max_score, t.pass_percent, l.title AS lesson_title
            FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id JOIN cls_lessons l ON l.id=t.lesson_id
            JOIN users u ON u.id=s.user_id LEFT JOIN cls_members m ON m.group_id=s.group_id AND m.user_id=s.user_id
-          WHERE s.group_id=$1 AND s.status=$2 ORDER BY ${status === "graded" ? "s.created_at DESC" : "s.created_at"} LIMIT 100`,
+          WHERE s.group_id=$1 AND s.status=$2 ORDER BY ${status === "submitted" ? "s.created_at" : "s.created_at DESC"} LIMIT 100`,
         [id, status],
       )
     ).rows;
     return {
-      items: rows.map((r: any) => ({ ...r, suggested: r.ai_percent === null ? null : Math.round((r.max_score * r.ai_percent) / 100) })),
+      items: rows.map((r: any) => ({ ...r, suggested: r.final_percent === null ? (r.ai_percent === null ? null : Math.round((r.max_score * r.ai_percent) / 100)) : r.score })),
       waiting: (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE group_id=$1 AND status='submitted'", [id])).rows[0].n,
     };
   }));
@@ -321,9 +344,10 @@ export function registerClassTasks(app: Express) {
     const s = (await pool.query("SELECT s.*, t.max_score, t.title FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id WHERE s.id=$1", [id])).rows[0] || fail(404, "Topilmadi");
     const { teacher } = await membership(s.group_id, me);
     if (!teacher) fail(403, "Faqat o‘qituvchi uchun");
+    if (s.status === "rejected" || s.status === "replaced") fail(409, "Bu yozuvni baholab bo‘lmaydi");
     if (b.score > s.max_score) fail(400, `Ball ${s.max_score} dan oshmasin`);
-    await pool.query("UPDATE cls_submissions SET score=$2, comment=$3, status='graded' WHERE id=$1", [id, b.score, b.comment]);
-    await notifyUsers([s.user_id], s.group_id, { title: "Vazifangiz baholandi", body: `${s.title}: ${b.score}/${s.max_score}${b.comment ? " — " + b.comment.slice(0, 80) : ""}`, path: "natijalar", ref: `graded-${id}` });
+    await pool.query("UPDATE cls_submissions SET score=$2, comment=$3, status='graded', auto=false, graded_at=now() WHERE id=$1", [id, b.score, b.comment]);
+    await notifyUsers([s.user_id], s.group_id, { title: "O‘qituvchi bahoni tasdiqladi", body: `${s.title}: ${b.score}/${s.max_score}${b.comment ? " — " + b.comment.slice(0, 80) : ""}`, path: "natijalar", ref: `graded-${id}-${Date.now()}` });
     return { ok: true };
   }));
 }

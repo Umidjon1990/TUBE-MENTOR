@@ -166,8 +166,9 @@ export async function leaderboard(groupId: string) {
          SELECT user_id, lesson_id, max(effective_percent) AS p FROM cls_attempts
           WHERE group_id=$1 AND submitted_at IS NOT NULL GROUP BY user_id, lesson_id),
        tasks AS (
-         SELECT s.user_id, sum(COALESCE(s.score,0))::int AS t FROM cls_submissions s
-          WHERE s.group_id=$1 AND s.status='graded' GROUP BY s.user_id)
+         SELECT user_id, sum(best)::int AS t FROM (
+           SELECT s.user_id, max(COALESCE(s.score,0)) AS best FROM cls_submissions s
+            WHERE s.group_id=$1 AND s.status='graded' GROUP BY s.user_id, s.task_id) x GROUP BY user_id)
        SELECT m.user_id, COALESCE(NULLIF(m.display_name,''), u.full_name) AS name,
               (COALESCE((SELECT sum(p) FROM best b WHERE b.user_id=m.user_id),0) + COALESCE((SELECT t FROM tasks t WHERE t.user_id=m.user_id),0))::int AS points,
               (SELECT count(*) FROM best b WHERE b.user_id=m.user_id)::int AS done
@@ -507,8 +508,9 @@ export function registerClassroom(app: Express) {
     const q = (await pool.query("SELECT jsonb_array_length(questions)::int AS n,time_limit_minutes,max_attempts FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0];
     const tasks = (
       await pool.query(
-        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,
-                (SELECT row_to_json(s) FROM (SELECT id,status,score,ai_percent,comment,created_at FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 ORDER BY created_at DESC LIMIT 1) s) AS submission
+        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,
+                (SELECT row_to_json(s) FROM (SELECT id,status,score,ai_percent,final_percent,comment,created_at,auto FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status IN ('graded','submitted') ORDER BY (s.status='graded') DESC, s.score DESC NULLS LAST, s.created_at DESC LIMIT 1) s) AS submission,
+                (SELECT count(*)::int FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status<>'rejected') AS attempts
            FROM cls_tasks t WHERE t.lesson_id=$1 ORDER BY t.created_at`,
         [lessonId, id, uid],
       )
@@ -570,8 +572,9 @@ export function registerClassroom(app: Express) {
     const lessons = (await lessonStates(id, uid, teacher)).filter((s) => s.has_quiz).map((s) => ({ id: s.id, title: s.title, kind: s.kind, best: s.best, passed: s.passed, attempts: s.attempts }));
     const tasks = (
       await pool.query(
-        `SELECT t.title, s.score, t.max_score, s.status, s.comment, s.ai_percent FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id
-          WHERE s.group_id=$1 AND s.user_id=$2 ORDER BY s.created_at DESC LIMIT 50`,
+        `SELECT DISTINCT ON (s.task_id) t.title, s.score, t.max_score, s.status, s.comment, s.ai_percent, s.created_at FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id
+          WHERE s.group_id=$1 AND s.user_id=$2 AND s.status IN ('graded','submitted')
+          ORDER BY s.task_id, (s.status='graded') DESC, s.score DESC NULLS LAST, s.created_at DESC LIMIT 50`,
         [id, uid],
       )
     ).rows;

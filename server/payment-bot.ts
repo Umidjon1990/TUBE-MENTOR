@@ -16,13 +16,9 @@ const upload = multer({
   limits: { fileSize: MAX_RECEIPT_BYTES, files: 1, fields: 0, parts: 1 },
 });
 type Row = Record<string, any>;
-export type TelegramMedia = { file_id: string; duration?: number; file_size?: number; mime_type?: string };
 type TelegramUpdate = {
   update_id: number;
-  message?: {
-    message_id: number; text?: string; from?: { id: number; is_bot?: boolean }; chat: { id: number; type: string };
-    voice?: TelegramMedia; video_note?: TelegramMedia; audio?: TelegramMedia & { mime_type?: string }; video?: TelegramMedia & { mime_type?: string };
-  };
+  message?: { message_id: number; text?: string; from?: { id: number; is_bot?: boolean }; chat: { id: number; type: string } };
   callback_query?: { id: string; data?: string; from: { id: number; is_bot?: boolean }; message?: { chat: { id: number; type: string } } };
 };
 
@@ -119,8 +115,6 @@ async function getBotUsername() {
 }
 
 /* ---------- Sinfxona uchun yordamchilar ---------- */
-export const botReady = () => config().available;
-export const botUsername = () => getBotUsername();
 /** Bog'langan o'quvchiga oddiy xabar; bot ulanmagan bo'lsa false. */
 export async function sendBotMessage(userId: string, text: string, button?: { text: string; url: string }) {
   if (!config().available) return false;
@@ -129,28 +123,6 @@ export async function sendBotMessage(userId: string, text: string, button?: { te
   await botCall("sendMessage", { chat_id: target.chat_id, text: text.slice(0, 4000), ...(button ? { reply_markup: { inline_keyboard: [[button]] } } : {}) });
   return true;
 }
-export async function sendBotChat(chatId: string, text: string) {
-  await botCall("sendMessage", { chat_id: chatId, text: text.slice(0, 4000) });
-}
-/** Telegram faylini yuklab olish (bot API cheklovi 20 MB). */
-export async function botFile(fileId: string) {
-  const file = await botCall<{ file_path?: string; file_size?: number }>("getFile", { file_id: fileId });
-  if (!file.file_path || (file.file_size || 0) > 20 * 1024 * 1024) throw new Error("Telegram file unavailable");
-  let response: Response;
-  try {
-    response = await fetch(`https://api.telegram.org/file/bot${config().token}/${file.file_path}`, { signal: AbortSignal.timeout(60000) });
-  } catch {
-    throw new Error("Telegram connection failed");
-  }
-  if (!response.ok) throw new Error(`Telegram file download failed (${response.status})`);
-  return Buffer.from(await response.arrayBuffer());
-}
-type MediaHook = (input: { chatId: string; telegramId: string; text: string; message: NonNullable<TelegramUpdate["message"]> }) => Promise<string | null>;
-let classMediaHook: MediaHook | undefined;
-export function setClassTelegramHook(fn: MediaHook) {
-  classMediaHook = fn;
-}
-
 async function activeAdminLinks() {
   const allowlist = [...config().adminIds];
   if (!allowlist.length) return [];
@@ -363,13 +335,6 @@ async function processTelegramUpdate(update: TelegramUpdate) {
   const text = (update.message?.text || "").trim();
   const start = /^\/start(?:@[A-Za-z0-9_]+)?\s+([A-Za-z0-9_-]{32})$/.exec(text);
   if (start) return linkBot(update, start[1], telegramId, chatId);
-  if (classMediaHook && update.message) {
-    const m = update.message;
-    if (/^\/start(?:@[A-Za-z0-9_]+)?\s+t-[A-Za-z0-9]{16}$/.test(text) || m.voice || m.video_note || m.audio || m.video) {
-      const answer = await classMediaHook({ chatId, telegramId, text, message: m });
-      if (answer) return reply(update.update_id, "class", chatId, answer);
-    }
-  }
   const actor = await adminActor(telegramId, chatId);
   if (/^\/support(?:@[A-Za-z0-9_]+)?(?:\s|$)/.test(text)) {
     await enqueue("telegram_reply", `${update.update_id}:support`, {

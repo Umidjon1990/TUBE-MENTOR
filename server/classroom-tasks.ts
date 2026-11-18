@@ -7,8 +7,8 @@ import { spawn } from "node:child_process";
 import { z } from "zod";
 import OpenAI, { toFile } from "openai";
 import { pool } from "./db";
-import { requireAdmin, requireAuth } from "./auth";
-import { ClassError, lessonStates, membership, notifyUsers, route, uuid } from "./classroom";
+import { requireAuth } from "./auth";
+import { ClassError, groupStaff, lessonStates, membership, needLesson, notifyUsers, requireStaff, route, uuid } from "./classroom";
 import { classStore } from "./class-storage";
 
 const fail = (status: number, message: string): never => {
@@ -210,8 +210,8 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
     );
   } catch {
     // AI vaqtincha ishlamasa — o'qituvchi navbatiga tushadi (zaxira yo'l).
-    const teacherId = (await pool.query("SELECT teacher_id FROM cls_groups WHERE id=$1", [input.groupId])).rows[0]?.teacher_id;
-    if (teacherId) await notifyUsers([teacherId], input.groupId, { title: "Vazifani qo‘lda tekshirish kerak", body: task.title, path: "tekshirish", ref: `review-${input.groupId}-${Math.floor(Date.now() / 900000)}` });
+    const staffIds = (await groupStaff(input.groupId)).map((x) => x.user_id);
+    if (staffIds.length) await notifyUsers(staffIds, input.groupId, { title: "Vazifani qo‘lda tekshirish kerak", body: task.title, path: "tekshirish", ref: `review-${input.groupId}-${Math.floor(Date.now() / 900000)}` });
   }
   return {
     id,
@@ -242,10 +242,12 @@ export function registerClassTasks(app: Express) {
     proctor: z.enum(["off", "warn", "required"]).default("required"),
     passPercent: z.number().int().min(10).max(100).default(80),
   });
-  app.get(P + "/admin/lessons/:id/tasks", requireAdmin, route(async (req) => ({
-    tasks: (await pool.query("SELECT * FROM cls_tasks WHERE lesson_id=$1 ORDER BY created_at", [uuid.parse(req.params.id)])).rows,
-  })));
-  app.post(P + "/admin/lessons/:id/tasks", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/lessons/:id/tasks", requireStaff, route(async (req) => {
+    await needLesson(uuid.parse(req.params.id), userOf(req), "view");
+    return { tasks: (await pool.query("SELECT * FROM cls_tasks WHERE lesson_id=$1 ORDER BY created_at", [uuid.parse(req.params.id)])).rows };
+  }));
+  app.post(P + "/admin/lessons/:id/tasks", requireStaff, route(async (req) => {
+    await needLesson(uuid.parse(req.params.id), userOf(req));
     const b = taskSchema.parse(req.body);
     const t = (
       await pool.query(
@@ -255,7 +257,9 @@ export function registerClassTasks(app: Express) {
     ).rows[0];
     return t ? { task: t } : fail(404, "Dars topilmadi");
   }));
-  app.patch(P + "/admin/tasks/:id", requireAdmin, route(async (req) => {
+  app.patch(P + "/admin/tasks/:id", requireStaff, route(async (req) => {
+    const t0 = (await pool.query("SELECT lesson_id FROM cls_tasks WHERE id=$1", [uuid.parse(req.params.id)])).rows[0] || fail(404, "Vazifa topilmadi");
+    await needLesson(t0.lesson_id, userOf(req));
     const b = taskSchema.partial().parse(req.body);
     const t = (
       await pool.query(
@@ -266,8 +270,10 @@ export function registerClassTasks(app: Express) {
     ).rows[0];
     return t ? { task: t } : fail(404, "Vazifa topilmadi");
   }));
-  app.delete(P + "/admin/tasks/:id", requireAdmin, route(async (req) => {
+  app.delete(P + "/admin/tasks/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    const t0 = (await pool.query("SELECT lesson_id FROM cls_tasks WHERE id=$1", [id])).rows[0] || fail(404, "Vazifa topilmadi");
+    await needLesson(t0.lesson_id, userOf(req));
     if ((await pool.query("SELECT 1 FROM cls_submissions WHERE task_id=$1 AND status<>'rejected' LIMIT 1", [id])).rowCount) fail(409, "Bu vazifaga javoblar bor — o‘chirib bo‘lmaydi");
     await pool.query("DELETE FROM cls_tasks WHERE id=$1", [id]);
   }));
@@ -342,8 +348,8 @@ export function registerClassTasks(app: Express) {
     const id = uuid.parse(req.params.id), me = userOf(req);
     const b = z.object({ score: z.number().int().min(0).max(100), comment: z.string().trim().max(1000).optional().default("") }).parse(req.body);
     const s = (await pool.query("SELECT s.*, t.max_score, t.title FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id WHERE s.id=$1", [id])).rows[0] || fail(404, "Topilmadi");
-    const { teacher } = await membership(s.group_id, me);
-    if (!teacher) fail(403, "Faqat o‘qituvchi uchun");
+    const { manage } = await membership(s.group_id, me);
+    if (!manage) fail(403, "Bahoni faqat o‘qituvchi o‘zgartiradi");
     if (s.status === "rejected" || s.status === "replaced") fail(409, "Bu yozuvni baholab bo‘lmaydi");
     if (b.score > s.max_score) fail(400, `Ball ${s.max_score} dan oshmasin`);
     await pool.query("UPDATE cls_submissions SET score=$2, comment=$3, status='graded', auto=false, graded_at=now() WHERE id=$1", [id, b.score, b.comment]);

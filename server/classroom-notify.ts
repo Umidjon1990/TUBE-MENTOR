@@ -37,18 +37,46 @@ function portal() {
 }
 
 /** Xabarni har bir foydalanuvchi uchun navbatga qo'yish. */
+/** O'qituvchi bildirishnomani bosganda o'z xonasiga (/ustoz) tushadi, o'quvchi — sinfxonaga. */
+export function staffPath(groupId: string, rel: string) {
+  const [head, query = ""] = rel.replace(/^\//, "").split("?");
+  const params = new URLSearchParams(query);
+  if (head === "chat") return `/ustoz/xabarlar?group=${groupId}${params.get("with") ? "&with=" + encodeURIComponent(params.get("with")!) : ""}`;
+  if (head === "tekshirish" || head === "natijalar") return "/ustoz/vazifalar";
+  if (head === "jonli") return "/ustoz/darslar";
+  return `/ustoz/guruh/${groupId}`;
+}
+
+/** Xabarni har bir foydalanuvchi uchun navbatga qo'yish. */
 export async function enqueueClassNotice(userIds: string[], groupId: string, notice: ClassNotice) {
   if (!userIds.length) return;
   const delay = notice.urgent ? 0 : quietDelaySeconds();
   const ref = notice.ref || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const path = `/sinfxona/${groupId}${notice.path ? "/" + notice.path.replace(/^\//, "") : ""}`;
-  await pool.query(
-    `INSERT INTO notification_outbox(kind,reference_id,payload,next_attempt_at)
-     SELECT 'class_notice', $1 || ':' || u, json_build_object('userId',u,'title',$2::text,'body',$3::text,'path',$4::text,'tag',$5::text), now()+($6*interval '1 second')
-       FROM unnest($7::text[]) AS u
-     ON CONFLICT(kind,reference_id) DO NOTHING`,
-    [ref, notice.title.slice(0, 120), notice.body.slice(0, 300), path, notice.tag || groupId, delay, userIds],
+  const rel = notice.path ? notice.path.replace(/^\//, "") : "";
+  const studentPath = `/sinfxona/${groupId}${rel ? "/" + rel : ""}`;
+  const staff = new Set(
+    (
+      await pool.query(
+        `SELECT u.id FROM users u LEFT JOIN cls_group_staff gs ON gs.user_id=u.id AND gs.group_id=$1
+          WHERE u.id = ANY($2::text[]) AND (u.role='admin' OR gs.user_id IS NOT NULL)`,
+        [groupId, userIds],
+      )
+    ).rows.map((r: any) => r.id),
   );
+  const groups: [string[], string][] = [
+    [userIds.filter((u) => !staff.has(u)), studentPath],
+    [userIds.filter((u) => staff.has(u)), staffPath(groupId, rel)],
+  ];
+  for (const [ids, path] of groups) {
+    if (!ids.length) continue;
+    await pool.query(
+      `INSERT INTO notification_outbox(kind,reference_id,payload,next_attempt_at)
+       SELECT 'class_notice', $1 || ':' || u, json_build_object('userId',u,'title',$2::text,'body',$3::text,'path',$4::text,'tag',$5::text), now()+($6*interval '1 second')
+         FROM unnest($7::text[]) AS u
+       ON CONFLICT(kind,reference_id) DO NOTHING`,
+      [ref, notice.title.slice(0, 120), notice.body.slice(0, 300), path, notice.tag || groupId, delay, ids],
+    );
+  }
 }
 
 type Sender = (sub: { endpoint: string; keys: { p256dh: string; auth: string } }, payload: string) => Promise<void>;
@@ -182,8 +210,16 @@ export function registerClassPush(app: Express) {
     return { ok: true };
   }));
   app.post(P + "/test", requireAuth, route(async (req) => {
-    const b = z.object({ groupId: z.string().uuid() }).parse(req.body);
-    await enqueueClassNotice([String(req.session.userId)], b.groupId, { title: "Bildirishnoma yoqildi", body: "Yangi dars, vazifa va xabarlar shu yerga keladi.", path: "", urgent: true });
+    const b = z.object({ groupId: z.string().uuid().optional() }).parse(req.body);
+    const uid = String(req.session.userId);
+    if (b.groupId) await enqueueClassNotice([uid], b.groupId, { title: "Bildirishnoma yoqildi", body: "Yangi dars, vazifa va xabarlar shu yerga keladi.", path: "", urgent: true });
+    else
+      await pool.query(
+        `INSERT INTO notification_outbox(kind,reference_id,payload,next_attempt_at)
+         VALUES('class_notice', $1, json_build_object('userId',$2::text,'title','Bildirishnoma yoqildi','body','Xabarlar, so‘rovlar va vazifalar haqida shu yerga xabar keladi.','path','/ustoz','tag','ustoz'), now())
+         ON CONFLICT(kind,reference_id) DO NOTHING`,
+        [`test-${Date.now()}:${uid}`, uid],
+      );
     return { ok: true };
   }));
 }

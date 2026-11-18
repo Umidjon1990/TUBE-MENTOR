@@ -1,10 +1,11 @@
 // Sinfxona (online kurs): kurs → darslar (+test), guruh → a'zolar, jadval, e'lonlar, natijalar.
-// O'qituvchi = admin roli. O'quvchi guruhga taklif havolasi orqali qo'shiladi va admin tasdiqlaydi.
+// Rollar: admin (hamma narsa), o'qituvchi (o'z guruhlari va kurslari), yordamchi (biriktirilgan guruhda chat va
+// vazifalarni ko'radi, sozlamalarni o'zgartirmaydi). O'quvchi guruhga taklif havolasi orqali qo'shiladi.
 import type { Express, NextFunction, Request, Response } from "express";
 import { randomBytes, randomInt } from "node:crypto";
 import { z } from "zod";
 import { pool } from "./db";
-import { requireAdmin, requireAuth } from "./auth";
+import { requireAuth } from "./auth";
 
 export class ClassError extends Error {
   constructor(public status: number, message: string) {
@@ -67,15 +68,90 @@ const inviteCode = () => randomBytes(9).toString("base64url");
 export async function isAdmin(userId: string) {
   return (await pool.query("SELECT role FROM users WHERE id=$1", [userId])).rows[0]?.role === "admin";
 }
-/** Guruhga kirish: admin har doim; o'quvchi faqat faol a'zo bo'lsa. */
+export type StaffRole = "admin" | "teacher" | "assistant";
+/** Platformadagi o'qituvchilik roli (guruhdan qat'i nazar). */
+export async function staffRole(userId: string): Promise<StaffRole | null> {
+  const r = (await pool.query("SELECT u.role, s.role AS staff, s.active FROM users u LEFT JOIN cls_staff s ON s.user_id=u.id WHERE u.id=$1", [userId])).rows[0];
+  if (!r) return null;
+  if (r.role === "admin") return "admin";
+  return r.staff && r.active ? (r.staff as StaffRole) : null;
+}
+/** Shu guruhdagi roli: admin hamma guruhda; o'qituvchi/yordamchi faqat biriktirilgan guruhida. */
+export async function groupRole(groupId: string, userId: string): Promise<StaffRole | null> {
+  const r = (
+    await pool.query(
+      `SELECT u.role, gs.role AS grole, s.active FROM users u
+         LEFT JOIN cls_group_staff gs ON gs.user_id=u.id AND gs.group_id=$1
+         LEFT JOIN cls_staff s ON s.user_id=u.id
+        WHERE u.id=$2`,
+      [groupId, userId],
+    )
+  ).rows[0];
+  if (!r) return null;
+  if (r.role === "admin") return "admin";
+  return r.grole && r.active !== false ? (r.grole as StaffRole) : null;
+}
+/** Guruh bo'yicha ruxsat: "view" — o'qituvchi va yordamchi; "manage" — faqat admin va o'qituvchi. */
+export async function needGroup(groupId: string, userId: string, level: "view" | "manage" = "manage") {
+  const g = (await pool.query("SELECT g.*, c.title AS course_title FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.id=$1", [groupId])).rows[0];
+  if (!g) fail(404, "Guruh topilmadi");
+  const role = await groupRole(groupId, userId);
+  if (!role || (level === "manage" && role === "assistant")) fail(role ? 403 : 404, role ? "Bu amal faqat o‘qituvchi uchun" : "Guruh topilmadi");
+  return { group: g, role: role as StaffRole };
+}
+/** Kurs bo'yicha ruxsat: admin; kurs egasi; yoki shu kurs bo'yicha guruhning o'qituvchisi. */
+export async function needCourse(courseId: string, userId: string, level: "view" | "manage" = "manage") {
+  const c = (await pool.query("SELECT * FROM cls_courses WHERE id=$1", [courseId])).rows[0];
+  if (!c) fail(404, "Kurs topilmadi");
+  const role = await staffRole(userId);
+  if (role === "admin") return c;
+  if (role && c.owner_id === userId) return c;
+  const via = (
+    await pool.query("SELECT gs.role FROM cls_group_staff gs JOIN cls_groups g ON g.id=gs.group_id WHERE g.course_id=$1 AND gs.user_id=$2", [courseId, userId])
+  ).rows.map((r: any) => r.role);
+  if (via.includes("teacher") || (level === "view" && via.length)) return c;
+  return fail(404, "Kurs topilmadi");
+}
+export async function needLesson(lessonId: string, userId: string, level: "view" | "manage" = "manage") {
+  const l = (await pool.query("SELECT * FROM cls_lessons WHERE id=$1", [lessonId])).rows[0];
+  if (!l) fail(404, "Dars topilmadi");
+  await needCourse(l.course_id, userId, level);
+  return l;
+}
+/** Guruh xodimlari (o'qituvchi + yordamchi) — bildirishnoma va "O'qituvchi" kontakti uchun. */
+export async function groupStaff(groupId: string) {
+  return (
+    await pool.query(
+      `SELECT gs.user_id, gs.role, u.full_name FROM cls_group_staff gs JOIN users u ON u.id=gs.user_id
+        LEFT JOIN cls_staff s ON s.user_id=gs.user_id
+        WHERE gs.group_id=$1 AND u.is_active AND (u.role='admin' OR s.active) ORDER BY (gs.role='teacher') DESC, gs.created_at`,
+      [groupId],
+    )
+  ).rows as { user_id: string; role: string; full_name: string }[];
+}
+/** Kirgan foydalanuvchi o'qituvchi/yordamchi/admin bo'lishi shart. */
+export const requireStaff = (req: Request, res: Response, next: NextFunction) =>
+  requireAuth(req, res, async (err?: unknown) => {
+    if (err) return next(err);
+    try {
+      const role = await staffRole(String(req.session.userId));
+      if (!role) return res.status(403).json({ message: "Faqat o‘qituvchilar uchun" });
+      res.locals.staffRole = role;
+      next();
+    } catch (e) {
+      next(e);
+    }
+  });
+/** Guruhga kirish: guruh xodimi har doim; o'quvchi faqat faol a'zo bo'lsa. */
 export async function membership(groupId: string, userId: string) {
   const g = (await pool.query("SELECT * FROM cls_groups WHERE id=$1", [groupId])).rows[0];
   if (!g) fail(404, "Guruh topilmadi");
-  if (await isAdmin(userId)) return { group: g, teacher: true, member: null as any };
+  const role = await groupRole(groupId, userId);
+  if (role) return { group: g, teacher: true, role, manage: role !== "assistant", member: null as any };
   const m = (await pool.query("SELECT * FROM cls_members WHERE group_id=$1 AND user_id=$2", [groupId, userId])).rows[0];
   if (!m || m.status !== "active") fail(403, m?.status === "pending" ? "A’zoligingiz o‘qituvchi tasdig‘ini kutmoqda" : "Bu guruhga kirish huquqingiz yo‘q");
   if (g.archived) fail(403, "Guruh yopilgan");
-  return { group: g, teacher: false, member: m };
+  return { group: g, teacher: false, role: null as StaffRole | null, manage: false, member: m };
 }
 
 /* ------------------------------------------------------------------ */
@@ -187,21 +263,26 @@ export function registerClassroom(app: Express) {
   const P = "/api/platform/class";
 
   /* ---------- Admin: kurslar va darslar ---------- */
-  app.get(P + "/admin/courses", requireAdmin, route(async () => ({
+  app.get(P + "/admin/courses", requireStaff, route(async (req, res) => ({
     courses: (
       await pool.query(
         `SELECT c.*, (SELECT count(*)::int FROM cls_lessons l WHERE l.course_id=c.id) AS lessons,
                 (SELECT count(*)::int FROM cls_groups g WHERE g.course_id=c.id AND NOT g.archived) AS groups
-           FROM cls_courses c WHERE NOT c.archived ORDER BY c.created_at DESC`,
+           FROM cls_courses c WHERE NOT c.archived
+            AND ($1 OR c.owner_id=$2 OR EXISTS(SELECT 1 FROM cls_groups g JOIN cls_group_staff gs ON gs.group_id=g.id WHERE g.course_id=c.id AND gs.user_id=$2))
+          ORDER BY c.created_at DESC`,
+        [res.locals.staffRole === "admin", userOf(req)],
       )
     ).rows,
   })));
-  app.post(P + "/admin/courses", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/courses", requireStaff, route(async (req, res) => {
+    if (res.locals.staffRole === "assistant") fail(403, "Kursni faqat o‘qituvchi yaratadi");
     const b = z.object({ title: z.string().trim().min(1).max(200), description: z.string().max(5000).optional().default(""), level: z.string().max(40).optional().default("") }).parse(req.body);
-    return { course: (await pool.query("INSERT INTO cls_courses(title,description,level) VALUES($1,$2,$3) RETURNING *", [b.title, b.description, b.level])).rows[0] };
+    return { course: (await pool.query("INSERT INTO cls_courses(title,description,level,owner_id) VALUES($1,$2,$3,$4) RETURNING *", [b.title, b.description, b.level, userOf(req)])).rows[0] };
   }));
-  app.patch(P + "/admin/courses/:id", requireAdmin, route(async (req) => {
+  app.patch(P + "/admin/courses/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needCourse(id, userOf(req));
     const b = z.object({ title: z.string().trim().min(1).max(200).optional(), description: z.string().max(5000).optional(), level: z.string().max(40).optional(), archived: z.boolean().optional() }).parse(req.body);
     const c = (await pool.query(
       "UPDATE cls_courses SET title=COALESCE($2,title),description=COALESCE($3,description),level=COALESCE($4,level),archived=COALESCE($5,archived) WHERE id=$1 RETURNING *",
@@ -209,9 +290,9 @@ export function registerClassroom(app: Express) {
     )).rows[0];
     return c ? { course: c } : fail(404, "Kurs topilmadi");
   }));
-  app.get(P + "/admin/courses/:id", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/courses/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
-    const course = (await pool.query("SELECT * FROM cls_courses WHERE id=$1", [id])).rows[0] || fail(404, "Kurs topilmadi");
+    const course = await needCourse(id, userOf(req), "view");
     const lessons = (
       await pool.query(
         `SELECT l.*, q.questions, q.time_limit_minutes, q.max_attempts,
@@ -222,8 +303,9 @@ export function registerClassroom(app: Express) {
     ).rows;
     return { course, lessons };
   }));
-  app.post(P + "/admin/courses/:id/lessons", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/courses/:id/lessons", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needCourse(id, userOf(req));
     const b = lessonSchema.parse(req.body);
     const pos = (await pool.query("SELECT COALESCE(max(position),0)+1 AS p FROM cls_lessons WHERE course_id=$1", [id])).rows[0].p;
     const l = (await pool.query(
@@ -232,8 +314,9 @@ export function registerClassroom(app: Express) {
     )).rows[0];
     return l ? { lesson: l } : fail(404, "Kurs topilmadi");
   }));
-  app.patch(P + "/admin/lessons/:id", requireAdmin, route(async (req) => {
+  app.patch(P + "/admin/lessons/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needLesson(id, userOf(req));
     const b = lessonSchema.partial().extend({ position: z.number().int().min(1).max(1000).optional() }).parse(req.body);
     const l = (await pool.query(
       `UPDATE cls_lessons SET title=COALESCE($2,title),kind=COALESCE($3,kind),body=COALESCE($4,body),video_url=COALESCE($5,video_url),
@@ -242,14 +325,16 @@ export function registerClassroom(app: Express) {
     )).rows[0];
     return l ? { lesson: l } : fail(404, "Dars topilmadi");
   }));
-  app.delete(P + "/admin/lessons/:id", requireAdmin, route(async (req) => {
+  app.delete(P + "/admin/lessons/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needLesson(id, userOf(req));
     const used = (await pool.query("SELECT 1 FROM cls_attempts WHERE lesson_id=$1 LIMIT 1", [id])).rowCount;
     if (used) fail(409, "Bu dars bo‘yicha natijalar bor, uni o‘chirib bo‘lmaydi");
     await pool.query("DELETE FROM cls_lessons WHERE id=$1", [id]);
   }));
-  app.put(P + "/admin/lessons/:id/quiz", requireAdmin, route(async (req) => {
+  app.put(P + "/admin/lessons/:id/quiz", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needLesson(id, userOf(req));
     const b = quizSchema.parse(req.body);
     const q = (await pool.query(
       `INSERT INTO cls_quizzes(lesson_id,questions,time_limit_minutes,max_attempts) SELECT $1,$2,$3,$4 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1)
@@ -258,31 +343,39 @@ export function registerClassroom(app: Express) {
     )).rows[0];
     return q ? { quiz: q } : fail(404, "Dars topilmadi");
   }));
-  app.delete(P + "/admin/lessons/:id/quiz", requireAdmin, route(async (req) => {
-    await pool.query("DELETE FROM cls_quizzes WHERE lesson_id=$1", [uuid.parse(req.params.id)]);
+  app.delete(P + "/admin/lessons/:id/quiz", requireStaff, route(async (req) => {
+    const id = uuid.parse(req.params.id);
+    await needLesson(id, userOf(req));
+    await pool.query("DELETE FROM cls_quizzes WHERE lesson_id=$1", [id]);
   }));
 
   /* ---------- Admin: guruhlar ---------- */
-  app.get(P + "/admin/groups", requireAdmin, route(async () => ({
+  app.get(P + "/admin/groups", requireStaff, route(async (req, res) => ({
     groups: (
       await pool.query(
-        `SELECT g.*, c.title AS course_title,
+        `SELECT g.*, c.title AS course_title, COALESCE(gs.role, CASE WHEN $1 THEN 'admin' END) AS my_role,
                 (SELECT count(*)::int FROM cls_members m WHERE m.group_id=g.id AND m.status='active') AS members,
                 (SELECT count(*)::int FROM cls_members m WHERE m.group_id=g.id AND m.status='pending') AS pending
-           FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE NOT g.archived ORDER BY g.created_at DESC`,
+           FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id
+           LEFT JOIN cls_group_staff gs ON gs.group_id=g.id AND gs.user_id=$2
+          WHERE (g.archived = $3) AND ($1 OR gs.user_id IS NOT NULL) ORDER BY g.created_at DESC`,
+        [res.locals.staffRole === "admin", userOf(req), req.query.archived === "1"],
       )
     ).rows,
   })));
-  app.post(P + "/admin/groups", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups", requireStaff, route(async (req) => {
     const b = z.object({ courseId: uuid, name: z.string().trim().min(1).max(120) }).parse(req.body);
+    await needCourse(b.courseId, userOf(req));
     const g = (await pool.query(
-      "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id) SELECT $1,$2,$3,$4 WHERE EXISTS(SELECT 1 FROM cls_courses WHERE id=$1) RETURNING *",
+      "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id) VALUES($1,$2,$3,$4) RETURNING *",
       [b.courseId, b.name, inviteCode(), userOf(req)],
     )).rows[0];
-    return g ? { group: g } : fail(404, "Kurs topilmadi");
+    await pool.query("INSERT INTO cls_group_staff(group_id,user_id,role) VALUES($1,$2,'teacher') ON CONFLICT DO NOTHING", [g.id, userOf(req)]);
+    return { group: g };
   }));
-  app.patch(P + "/admin/groups/:id", requireAdmin, route(async (req) => {
+  app.patch(P + "/admin/groups/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needGroup(id, userOf(req));
     const b = groupSettings.parse(req.body);
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
@@ -292,13 +385,14 @@ export function registerClassroom(app: Express) {
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
-  app.post(P + "/admin/groups/:id/invite", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups/:id/invite", requireStaff, route(async (req) => {
+    await needGroup(uuid.parse(req.params.id), userOf(req));
     const g = (await pool.query("UPDATE cls_groups SET invite_code=$2, invite_active=true WHERE id=$1 RETURNING *", [uuid.parse(req.params.id), inviteCode()])).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
-  app.get(P + "/admin/groups/:id", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/groups/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
-    const group = (await pool.query("SELECT g.*, c.title AS course_title FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.id=$1", [id])).rows[0] || fail(404, "Guruh topilmadi");
+    const { group, role } = await needGroup(id, userOf(req), "view");
     const members = (
       await pool.query(
         `SELECT m.user_id,m.status,m.phone,m.display_name,m.joined_at,m.muted_until,u.full_name,u.username
@@ -314,9 +408,11 @@ export function registerClassroom(app: Express) {
       )
     ).rows;
     const announcements = (await pool.query("SELECT * FROM cls_announcements WHERE group_id=$1 ORDER BY pinned DESC, created_at DESC LIMIT 50", [id])).rows;
-    return { group, members, schedule, announcements };
+    const staff = await groupStaff(id);
+    return { group, members, schedule, announcements, staff, myRole: role };
   }));
-  app.post(P + "/admin/groups/:id/members/:userId", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups/:id/members/:userId", requireStaff, route(async (req) => {
+    await needGroup(uuid.parse(req.params.id), userOf(req));
     const b = z.object({ action: z.enum(["approve", "remove", "mute", "unmute"]), hours: z.number().int().min(1).max(720).optional() }).parse(req.body);
     const args = [uuid.parse(req.params.id), z.string().min(1).max(100).parse(req.params.userId)];
     const sql = {
@@ -329,8 +425,9 @@ export function registerClassroom(app: Express) {
     if (!r.rowCount) fail(404, "A’zo topilmadi");
   }));
   /** Jadval: har bir dars uchun ochilish va muddat; yoki boshlanish sanasi + hafta kunlari bilan avtomatik. */
-  app.put(P + "/admin/groups/:id/schedule", requireAdmin, route(async (req) => {
+  app.put(P + "/admin/groups/:id/schedule", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needGroup(id, userOf(req));
     const b = z.union([
       z.object({ items: z.array(z.object({ lessonId: uuid, opensAt: z.string().datetime({ offset: true }).nullable(), dueAt: z.string().datetime({ offset: true }).nullable() })).max(500) }),
       z.object({
@@ -376,23 +473,27 @@ export function registerClassroom(app: Express) {
     }
     return { items };
   }));
-  app.post(P + "/admin/groups/:id/unlock", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups/:id/unlock", requireStaff, route(async (req) => {
+    await needGroup(uuid.parse(req.params.id), userOf(req));
     const b = z.object({ userId: z.string().min(1).max(100), lessonId: uuid }).parse(req.body);
     await pool.query("INSERT INTO cls_unlocks(group_id,user_id,lesson_id) VALUES($1,$2,$3) ON CONFLICT DO NOTHING", [uuid.parse(req.params.id), b.userId, b.lessonId]);
   }));
-  app.post(P + "/admin/groups/:id/announcements", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups/:id/announcements", requireStaff, route(async (req) => {
+    await needGroup(uuid.parse(req.params.id), userOf(req));
     const b = z.object({ body: z.string().trim().min(1).max(4000), pinned: z.boolean().optional().default(false) }).parse(req.body);
     const a = (await pool.query("INSERT INTO cls_announcements(group_id,body,pinned) SELECT $1,$2,$3 WHERE EXISTS(SELECT 1 FROM cls_groups WHERE id=$1) RETURNING *", [uuid.parse(req.params.id), b.body, b.pinned])).rows[0];
     if (!a) fail(404, "Guruh topilmadi");
     await notifyGroup(a.group_id, { title: "Yangi e’lon", body: b.body.slice(0, 140), path: "" });
     return { announcement: a };
   }));
-  app.delete(P + "/admin/announcements/:id", requireAdmin, route(async (req) => {
+  app.delete(P + "/admin/announcements/:id", requireStaff, route(async (req) => {
+    const a = (await pool.query("SELECT group_id FROM cls_announcements WHERE id=$1", [uuid.parse(req.params.id)])).rows[0] || fail(404, "E’lon topilmadi");
+    await needGroup(a.group_id, userOf(req));
     await pool.query("DELETE FROM cls_announcements WHERE id=$1", [uuid.parse(req.params.id)]);
   }));
-  app.get(P + "/admin/groups/:id/gradebook", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/groups/:id/gradebook", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
-    const g = (await pool.query("SELECT course_id FROM cls_groups WHERE id=$1", [id])).rows[0] || fail(404, "Guruh topilmadi");
+    const { group: g } = await needGroup(id, userOf(req), "view");
     const columns = (
       await pool.query(
         `SELECT l.id,l.position,l.title,l.kind,'quiz' AS type FROM cls_lessons l JOIN cls_quizzes q ON q.lesson_id=l.id WHERE l.course_id=$1
@@ -440,23 +541,32 @@ export function registerClassroom(app: Express) {
        RETURNING status`,
       [g.id, userOf(req), status, b.phone, b.name],
     )).rows[0];
+    const staffIds = (await groupStaff(g.id)).map((x) => x.user_id);
+    if (staffIds.length)
+      await notifyUsers(staffIds, g.id, {
+        title: m.status === "pending" ? "Guruhga qo‘shilish so‘rovi" : "Guruhga yangi o‘quvchi qo‘shildi",
+        body: `${b.name} — ${g.name}`,
+        path: "",
+        ref: `join-${g.id}-${userOf(req)}`,
+      });
     return { groupId: g.id, status: m.status };
   }));
 
   /* ---------- O'quvchi ---------- */
   app.get(P + "/my", requireAuth, route(async (req) => {
     const uid = userOf(req);
-    const teacher = await isAdmin(uid);
+    const role = await staffRole(uid);
     const groups = (
       await pool.query(
-        teacher
-          ? `SELECT g.id,g.name,c.title AS course_title,'active' AS status FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE NOT g.archived ORDER BY g.created_at DESC`
+        role
+          ? `SELECT g.id,g.name,c.title AS course_title,'active' AS status FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id
+              WHERE NOT g.archived AND ($2 OR EXISTS(SELECT 1 FROM cls_group_staff gs WHERE gs.group_id=g.id AND gs.user_id=$1)) ORDER BY g.created_at DESC`
           : `SELECT g.id,g.name,c.title AS course_title,m.status FROM cls_members m JOIN cls_groups g ON g.id=m.group_id JOIN cls_courses c ON c.id=g.course_id
               WHERE m.user_id=$1 AND m.status IN ('active','pending') AND NOT g.archived ORDER BY m.joined_at DESC`,
-        teacher ? [] : [uid],
+        role ? [uid, role === "admin"] : [uid],
       )
     ).rows;
-    return { teacher, groups };
+    return { teacher: !!role, role, groups };
   }));
   app.get(P + "/groups/:id/home", requireAuth, route(async (req) => {
     const id = uuid.parse(req.params.id), uid = userOf(req);

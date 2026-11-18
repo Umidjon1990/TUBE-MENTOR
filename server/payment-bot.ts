@@ -114,6 +114,15 @@ async function getBotUsername() {
   return identity.username;
 }
 
+/* ---------- Sinfxona uchun yordamchilar ---------- */
+/** Bog'langan o'quvchiga oddiy xabar; bot ulanmagan bo'lsa false. */
+export async function sendBotMessage(userId: string, text: string, button?: { text: string; url: string }) {
+  if (!config().available) return false;
+  const target = (await pool.query("SELECT l.chat_id,u.is_active FROM telegram_bot_links l JOIN users u ON u.id=l.user_id WHERE l.user_id=$1", [userId])).rows[0];
+  if (!target || target.is_active === false) return false;
+  await botCall("sendMessage", { chat_id: target.chat_id, text: text.slice(0, 4000), ...(button ? { reply_markup: { inline_keyboard: [[button]] } } : {}) });
+  return true;
+}
 async function activeAdminLinks() {
   const allowlist = [...config().adminIds];
   if (!allowlist.length) return [];

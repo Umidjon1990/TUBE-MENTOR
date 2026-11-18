@@ -295,19 +295,30 @@ export function registerClassChat(app: Express) {
       const id = z.coerce.number().int().positive().parse(req.params.id), me = userOf(req);
       const m = (await pool.query("SELECT * FROM cls_messages WHERE id=$1 AND deleted_at IS NULL", [id])).rows[0];
       if (!m?.file_key) return res.status(404).json({ message: "Fayl topilmadi" });
-      const { teacher } = await membership(m.group_id, me);
-      if (m.recipient_id && ![m.recipient_id, m.sender_id].includes(me) && !teacher) return res.status(404).json({ message: "Fayl topilmadi" });
+      const { teacher, member } = await membership(m.group_id, me);
+      if (!teacher && (!member || (m.recipient_id && ![m.recipient_id, m.sender_id].includes(me)))) return res.status(404).json({ message: "Fayl topilmadi" });
       const file = await classStore().get(m.file_key);
       if (!file) return res.status(404).json({ message: "Fayl topilmadi" });
       const safeName = String(m.file_name || "fayl").replace(/[^\p{L}\p{N}._ -]/gu, "_").slice(0, 120);
+      // Safari ovozli xabarni faqat Range (206) javobi bilan o'ynatadi.
+      const size = file.data.length, range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range || ""));
+      let body = file.data;
+      if (range && (range[1] || range[2])) {
+        const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]));
+        const end = range[1] && range[2] ? Math.min(size - 1, Number(range[2])) : size - 1;
+        if (start > end || start >= size) return res.status(416).set("Content-Range", `bytes */${size}`).end();
+        body = file.data.subarray(start, end + 1);
+        res.status(206).set("Content-Range", `bytes ${start}-${end}/${size}`);
+      }
       res.set({
         "Content-Type": m.file_mime || file.mime,
-        "Content-Length": String(file.data.length),
+        "Content-Length": String(body.length),
+        "Accept-Ranges": "bytes",
         "Cache-Control": "private, max-age=86400",
         "Content-Disposition": `${m.kind === "file" ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(safeName)}`,
         "X-Content-Type-Options": "nosniff",
       });
-      res.end(file.data);
+      res.end(body);
     } catch (error) {
       if (error instanceof ClassError) return res.status(error.status).json({ message: error.message });
       next(error);

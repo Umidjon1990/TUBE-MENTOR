@@ -1938,3 +1938,110 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   setClassStore(undefined);
   setTranscriber(undefined);
 });
+
+test("ustoz: teacher and assistant roles, scoped groups, inbox, broadcast, voice messages, student card and today view", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const mk = async (username: string, role = "student") => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES($1,$1,$2,true,$3)", [username, hashPassword(pass), role]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const A = await mk("u_admin", "admin"), T = await mk("u_teacher"), T2 = await mk("u_teacher2"), H = await mk("u_helper"), S = await mk("u_student"), S2 = await mk("u_student2");
+  const get = async (path: string, extra: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } });
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+
+  // Faqat admin rol beradi; o'quvchi o'qituvchi xonasiga kira olmaydi.
+  assert.equal((await get("/staff/me", T.h)).status, 403);
+  assert.equal((await call("/admin/staff", { login: "u_teacher", role: "teacher" }, T.h)).status, 403);
+  for (const [login, role] of [["u_teacher", "teacher"], ["u_teacher2", "teacher"], ["u_helper", "assistant"]])
+    assert.equal((await call("/admin/staff", { login, role }, A.h)).status, 200);
+  assert.equal((await call("/admin/staff", { login: "nobody_here", role: "teacher" }, A.h)).status, 404);
+  assert.equal((await (await get("/staff/me", T.h)).json()).role, "teacher");
+
+  // O'qituvchi o'z kursi va guruhini yaratadi; boshqa o'qituvchi uni ko'rmaydi.
+  const course = (await (await call("/admin/courses", { title: "Ustoz kursi" }, T.h)).json()).course;
+  const lesson = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "1-dars" }, T.h)).json()).lesson;
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Ustoz guruhi" }, T.h)).json()).group;
+  assert.equal((await get(`/admin/groups/${group.id}`, T2.h)).status, 404, "boshqa o'qituvchining guruhi ko'rinmaydi");
+  assert.equal((await get(`/admin/courses/${course.id}`, T2.h)).status, 404);
+  assert.deepEqual((await (await get("/admin/groups", T2.h)).json()).groups, []);
+  assert.equal((await call("/admin/groups", { courseId: course.id, name: "O'g'irlangan" }, T2.h)).status, 404);
+  assert.ok((await (await get("/admin/groups", A.h)).json()).groups.some((g: any) => g.id === group.id), "admin hamma guruhni ko'radi");
+  assert.equal((await call("/admin/courses", { title: "Yordamchi kursi" }, H.h)).status, 403);
+
+  // Yordamchini guruhga biriktirish: ko'radi, lekin sozlamani o'zgartira olmaydi.
+  assert.equal((await call(`/admin/groups/${group.id}/staff`, { userId: S.id, role: "assistant" }, T.h, "PUT")).status, 400, "o'quvchi xodim emas");
+  assert.equal((await call(`/admin/groups/${group.id}/staff`, { userId: H.id, role: "assistant" }, T.h, "PUT")).status, 200);
+  assert.equal((await call(`/admin/groups/${group.id}/staff`, { userId: T.id, role: null }, T.h, "PUT")).status, 400, "oxirgi o'qituvchini olib bo'lmaydi");
+  const detail = await (await get(`/admin/groups/${group.id}`, H.h)).json();
+  assert.deepEqual([detail.myRole, detail.staff.map((x: any) => x.role)], ["assistant", ["teacher", "assistant"]]);
+  assert.equal((await call(`/admin/groups/${group.id}`, { autoApprove: true }, H.h, "PATCH")).status, 403);
+  assert.equal((await call(`/admin/groups/${group.id}`, { autoApprove: false }, T.h, "PATCH")).status, 200);
+
+  // O'quvchi qo'shilish so'rovi → o'qituvchining "Bugun"ida va bildirishnomasi /ustoz ga boradi.
+  await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123-45-67", name: "Aziza" }, S.h);
+  const today = await (await get("/staff/today", T.h)).json();
+  assert.deepEqual(today.pending.map((p: any) => [p.name, p.phone]), [["Aziza", "+998901234567"]]);
+  const joinNotice = (await pool.query("SELECT payload FROM notification_outbox WHERE kind='class_notice' AND reference_id LIKE $1", [`join-${group.id}-%`])).rows.map((r: any) => [r.payload.userId, r.payload.path]);
+  assert.deepEqual(joinNotice.sort(), [[T.id, `/ustoz/guruh/${group.id}`], [H.id, `/ustoz/guruh/${group.id}`]].sort());
+  await call(`/admin/groups/${group.id}/members/${S.id}`, { action: "approve" }, T.h);
+
+  // Telefon raqami bo'yicha qo'shish: avval boshqa guruhda raqam qoldirgan o'quvchi.
+  const other = (await (await call("/admin/groups", { courseId: course.id, name: "Boshqa guruh" }, T.h)).json()).group;
+  await call(`/invite/${other.invite_code}/join`, { phone: "+998 91 777 66 55", name: "Bobur" }, S2.h);
+  { const r0 = await call(`/admin/groups/${group.id}/add-member`, { phone: "000000000" }, T.h); assert.equal(r0.status, 404, await r0.text()); }
+  const added = await (await call(`/admin/groups/${group.id}/add-member`, { phone: "91 777-66-55" }, T.h)).json();
+  assert.deepEqual([added.member.userId, added.member.name], [S2.id, "Bobur"]);
+
+  // Chat: o'quvchi o'qituvchi va yordamchini ko'radi; ovozli xabar; qadash.
+  const threads = await (await get(`/groups/${group.id}/chat/threads`, S.h)).json();
+  assert.deepEqual(threads.people.filter((p: any) => p.teacher).map((p: any) => p.name).sort(), ["u_helper", "u_teacher"]);
+  const ogg = Buffer.concat([Buffer.from("OggS"), randomBytes(2000)]);
+  const voice = (await (await call(`/groups/${group.id}/chat`, { to: T.id, file: { data: ogg.toString("base64"), mime: "audio/ogg", seconds: 7 } }, S.h)).json()).message;
+  assert.deepEqual([voice.kind, voice.file.seconds, voice.file.mime], ["voice", 7, "audio/ogg"]);
+  assert.equal((await call(`/groups/${group.id}/chat`, { file: { data: randomBytes(500).toString("base64"), mime: "application/zip" } }, S.h)).status, 415);
+  assert.equal(Buffer.from(await (await get(`/messages/${voice.id}/file`, T.h)).arrayBuffer()).length, ogg.length);
+  assert.equal((await get(`/messages/${voice.id}/file`, S2.h)).status, 404, "boshqa o'quvchi shaxsiy ovozni eshitmaydi");
+  const hello = (await (await call(`/groups/${group.id}/chat`, { body: "Salom, ustoz!" }, S.h)).json()).message;
+  assert.equal((await call(`/groups/${group.id}/chat/pin`, { messageId: hello.id }, S.h)).status, 403);
+  assert.equal((await call(`/groups/${group.id}/chat/pin`, { messageId: hello.id }, H.h)).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/chat`, S2.h)).json()).pinned.body, "Salom, ustoz!");
+
+  // Xabarlar markazi: barcha guruhlar, o'qilmaganlar, shaxsiy suhbat telefon bilan.
+  const inbox = await (await get("/staff/inbox", T.h)).json();
+  const dm = inbox.threads.find((t: any) => t.type === "dm");
+  assert.deepEqual([dm.title, dm.phone, dm.unread, dm.last.kind], ["Aziza", "+998901234567", 1, "voice"]);
+  assert.ok(inbox.threads.some((t: any) => t.type === "group" && t.groupId === group.id && t.unread === 1));
+  assert.equal((await (await get("/staff/inbox?filter=dm", T.h)).json()).threads.length, 1);
+  assert.deepEqual((await (await get("/staff/inbox", T2.h)).json()).threads, []);
+
+  // Bir nechta guruhga e'lon (begona guruh tashlab ketiladi) va tayyor javoblar.
+  const t2group = (await (await call("/admin/groups", { courseId: (await (await call("/admin/courses", { title: "T2 kursi" }, T2.h)).json()).course.id, name: "T2 guruhi" }, T2.h)).json()).group;
+  const bc = await (await call("/staff/broadcast", { groupIds: [group.id, other.id, t2group.id], body: "Ertaga dars yo‘q" }, T.h)).json();
+  assert.equal(bc.sent, 2);
+  assert.equal((await (await get(`/groups/${t2group.id}/chat`, T2.h)).json()).messages.length, 0);
+  const qr = (await (await call("/staff/quick-replies", { body: "Vazifa 3-sahifada" }, T.h)).json()).reply;
+  assert.deepEqual((await (await get("/staff/quick-replies", T.h)).json()).replies.map((r: any) => r.body), ["Vazifa 3-sahifada"]);
+  assert.equal((await call(`/staff/quick-replies/${qr.id}`, {}, T.h, "DELETE")).status, 200);
+
+  // O'quvchi kartasi: telefon, guruhlar, eslatmalar (faqat xodimlarga).
+  const card = await (await get(`/staff/students/${S2.id}`, H.h)).json();
+  assert.deepEqual([card.student.name, card.student.phone, card.groups.length], ["Bobur", "+998917776655", 1], "yordamchi faqat o‘z guruhini ko‘radi");
+  assert.equal((await (await get(`/staff/students/${S2.id}`, T.h)).json()).groups.length, 2);
+  assert.equal(card.groups[0].canManage, false);
+  assert.equal((await get(`/staff/students/${S2.id}`, T2.h)).status, 404);
+  assert.equal((await get(`/staff/students/${S2.id}`, S.h)).status, 403);
+  const note = (await (await call(`/staff/students/${S2.id}/notes`, { body: "ه va ح ni aralashtiradi" }, T.h)).json()).note;
+  assert.equal((await (await get(`/staff/students/${S2.id}`, H.h)).json()).notes[0].body, "ه va ح ni aralashtiradi");
+  assert.equal((await call(`/staff/notes/${note.id}`, {}, H.h, "DELETE")).status, 404, "boshqaning eslatmasini o'chirib bo'lmaydi");
+  assert.equal((await (await get("/staff/students?q=bob", T.h)).json()).students.length, 2);
+
+  // Taqvim va vazifalar ro'yxati ishlaydi.
+  await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: lesson.id, opensAt: new Date(Date.now() + 3600e3).toISOString(), dueAt: null }] }, T.h, "PUT");
+  const cal = await (await get(`/staff/calendar?from=${encodeURIComponent(new Date(Date.now() - 86400e3).toISOString())}&to=${encodeURIComponent(new Date(Date.now() + 7 * 86400e3).toISOString())}`, T.h)).json();
+  assert.deepEqual(cal.lessons.map((l: any) => l.title), ["1-dars"]);
+  assert.deepEqual((await (await get("/staff/submissions", T.h)).json()).items, []);
+});

@@ -6,8 +6,8 @@ import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { Readable } from "node:stream";
 import { z } from "zod";
 import { pool } from "./db";
-import { requireAdmin, requireAuth } from "./auth";
-import { ClassError, membership, notifyGroup, route, uuid } from "./classroom";
+import { requireAuth } from "./auth";
+import { ClassError, membership, needGroup, notifyGroup, requireStaff, route, uuid } from "./classroom";
 import { classStore } from "./class-storage";
 
 const fail = (status: number, message: string): never => {
@@ -172,14 +172,15 @@ function publicSession(s: any) {
 export function registerClassZoom(app: Express) {
   const P = "/api/platform/class";
 
-  app.get(P + "/admin/zoom/status", requireAdmin, route(async () => {
+  app.get(P + "/admin/zoom/status", requireStaff, route(async () => {
     const c = zoomConfig();
     return { api: c.api, sdk: c.sdk, webhook: c.webhook, storage: Boolean(classStore().putStream) };
   }));
 
   /* ---------- O'qituvchi ---------- */
-  app.get(P + "/admin/groups/:id/live", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/groups/:id/live", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
+    await needGroup(id, userOf(req), "view");
     const rows = (
       await pool.query(
         `SELECT s.*, (SELECT count(*)::int FROM cls_attendance a WHERE a.session_id=s.id) AS attendance
@@ -189,10 +190,10 @@ export function registerClassZoom(app: Express) {
     ).rows;
     return { sessions: rows.map(publicSession), zoom: zoomConfig().api && zoomConfig().sdk };
   }));
-  app.post(P + "/admin/groups/:id/live", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/groups/:id/live", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const b = liveSchema.parse(req.body);
-    const g = (await pool.query("SELECT * FROM cls_groups WHERE id=$1", [id])).rows[0] || fail(404, "Guruh topilmadi");
+    const { group: g } = await needGroup(id, userOf(req));
     if (b.lessonId && !(await pool.query("SELECT 1 FROM cls_lessons WHERE id=$1 AND course_id=$2", [b.lessonId, g.course_id])).rowCount) fail(400, "Dars bu kursga tegishli emas");
     if (!zoomConfig().api) fail(503, "Zoom hali ulanmagan. Sozlamalarga Zoom kalitlarini kiriting");
     const password = String(randomInt(100000, 999999));
@@ -224,10 +225,11 @@ export function registerClassZoom(app: Express) {
     await notifyGroup(id, { title: "Jonli dars rejalashtirildi", body: `${b.title} — ${localTime(b.startsAt)}`, path: "jonli", ref: `live-new-${s.id}` });
     return { session: publicSession(s) };
   }));
-  app.patch(P + "/admin/live/:id", requireAdmin, route(async (req) => {
+  app.patch(P + "/admin/live/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const b = liveSchema.partial().parse(req.body);
     const s = (await pool.query("SELECT * FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
+    await needGroup(s.group_id, userOf(req));
     if (s.status !== "scheduled") fail(409, "Boshlangan yoki tugagan darsni o‘zgartirib bo‘lmaydi");
     if (s.zoom_meeting_id && (b.startsAt || b.durationMinutes || b.title))
       await api("PATCH", `/meetings/${s.zoom_meeting_id}`, {
@@ -246,18 +248,20 @@ export function registerClassZoom(app: Express) {
     if (b.startsAt) await notifyGroup(u.group_id, { title: "Jonli dars vaqti o‘zgardi", body: `${u.title} — ${localTime(u.starts_at)}`, path: "jonli", ref: `live-move-${id}-${Date.now()}` });
     return { session: publicSession(u) };
   }));
-  app.delete(P + "/admin/live/:id", requireAdmin, route(async (req) => {
+  app.delete(P + "/admin/live/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const s = (await pool.query("SELECT * FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
+    await needGroup(s.group_id, userOf(req));
     if (s.status === "ended") fail(409, "Tugagan darsni bekor qilib bo‘lmaydi");
     if (s.zoom_meeting_id) await api("DELETE", `/meetings/${s.zoom_meeting_id}`).catch((e: any) => (e?.zoomStatus === 404 ? null : Promise.reject(e)));
     await pool.query("UPDATE cls_live_sessions SET status='cancelled' WHERE id=$1", [id]);
     await notifyGroup(s.group_id, { title: "Jonli dars bekor qilindi", body: `${s.title} — ${localTime(s.starts_at)}`, path: "jonli", ref: `live-cancel-${id}`, urgent: true });
   }));
   /** O'qituvchi darsni saytning o'zida boshlaydi (host). */
-  app.post(P + "/admin/live/:id/start", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/live/:id/start", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const s = (await pool.query("SELECT * FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
+    await needGroup(s.group_id, userOf(req));
     if (s.status === "cancelled") fail(409, "Bu dars bekor qilingan");
     const zak = (await api("GET", "/users/me/token?type=zak"))?.token;
     const meeting = await api("GET", `/meetings/${s.zoom_meeting_id}`).catch(() => null);
@@ -273,9 +277,10 @@ export function registerClassZoom(app: Express) {
       groupId: s.group_id,
     };
   }));
-  app.get(P + "/admin/live/:id/attendance", requireAdmin, route(async (req) => {
+  app.get(P + "/admin/live/:id/attendance", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const s = (await pool.query("SELECT group_id FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
+    await needGroup(s.group_id, userOf(req), "view");
     return {
       people: (
         await pool.query(
@@ -287,9 +292,10 @@ export function registerClassZoom(app: Express) {
       ).rows,
     };
   }));
-  app.post(P + "/admin/live/:id/recording/retry", requireAdmin, route(async (req) => {
+  app.post(P + "/admin/live/:id/recording/retry", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
     const s = (await pool.query("SELECT * FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
+    await needGroup(s.group_id, userOf(req));
     const rec = await api("GET", `/meetings/${zoomUuidPath(s.zoom_uuid || s.zoom_meeting_id)}/recordings`).catch(() => null);
     if (!rec?.recording_files?.length) fail(404, "Zoom’da bu dars yozuvi topilmadi");
     importRecording(id, rec.recording_files, null, rec.uuid).catch(() => undefined);

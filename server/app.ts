@@ -39,6 +39,7 @@ import { registerClassChat } from "./classroom-chat";
 import { registerClassZoom } from "./classroom-zoom";
 import { registerClassTasks } from "./classroom-tasks";
 import { registerClassPush } from "./classroom-notify";
+import { registerClassStaff } from "./classroom-staff";
 import { registerPlatformResources } from "./platform-resources";
 
 export async function createApplication(
@@ -85,6 +86,8 @@ export async function createApplication(
   app.use("/api/zoom/webhook", express.json({ limit: "256kb", verify: (req, _res, buf) => { (req as any).rawBody = Buffer.from(buf); } }));
   // O'quvchi audiosi (base64, ~8 MB gacha).
   app.use(/^\/api\/platform\/class\/groups\/[^/]+\/tasks\/[^/]+\/submit$/, express.json({ limit: "12mb" }));
+  // Chatga ovoz, rasm yoki PDF (base64, 10 MB gacha).
+  app.use(/^\/api\/platform\/class\/groups\/[^/]+\/chat$/, express.json({ limit: "15mb" }));
   app.use(express.json({ limit: "10mb" }));
   const MemoryStore = memorystore(session);
   const PgStore = connectPgSimple(session);
@@ -158,6 +161,7 @@ export async function createApplication(
   registerClassZoom(app);
   registerClassTasks(app);
   registerClassPush(app);
+  registerClassStaff(app);
   registerAdminDesk(app);
   registerExperience(app);
   registerPlatformResources(app);

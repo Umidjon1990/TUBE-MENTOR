@@ -2,6 +2,7 @@
 // Har bir xabar notification_outbox'ga yoziladi (qayta urinish, bir nechta server nusxasi xavfsiz).
 // Tinch soatlar: 22:00–07:00 (Toshkent) oralig'idagi oddiy xabarlar ertalab 07:00 da yuboriladi.
 import type { Express } from "express";
+import { runClassFlow } from "./classroom-flow";
 import webpush from "web-push";
 import { z } from "zod";
 import { pool } from "./db";
@@ -173,6 +174,7 @@ export function startClassNotifications() {
     try {
       await remindLiveSessions();
       await announceOpenedLessons();
+      await runClassFlow();
       await processClassNotices();
     } catch {
       console.error("Class notification worker failed");

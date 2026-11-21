@@ -7,6 +7,7 @@ import { z } from "zod";
 import { pool } from "./db";
 import { requireAuth } from "./auth";
 import { currentOffer, isPreapproved, recordAgreement } from "./classroom-enroll";
+import { mainGate } from "./classroom-flow";
 import { OFFER_CONSENTS } from "./offer-draft";
 
 export class ClassError extends Error {
@@ -35,13 +36,24 @@ const userOf = (req: Request) => String(req.session.userId);
 /* ------------------------------------------------------------------ */
 /* Schemas                                                             */
 /* ------------------------------------------------------------------ */
-const questionSchema = z.object({
+const choiceSchema = z.object({
   q: z.string().trim().min(1).max(2000),
   options: z.array(z.string().trim().min(1).max(500)).min(2).max(6),
   correct: z.number().int().min(0),
   explanation: z.string().trim().max(2000).optional().default(""),
+  topic: z.string().trim().max(80).optional(),
 }).refine((q) => q.correct < q.options.length, "To‘g‘ri javob varianti noto‘g‘ri");
-const quizSchema = z.object({
+/** So'zlardan gap tuzish: words — to'g'ri tartibda; o'quvchiga aralashtirib ko'rsatiladi. */
+const orderSchema = z.object({
+  type: z.literal("order"),
+  q: z.string().trim().min(1).max(2000),
+  words: z.array(z.string().trim().min(1).max(120)).min(2).max(14),
+  explanation: z.string().trim().max(2000).optional().default(""),
+  topic: z.string().trim().max(80).optional(),
+});
+export const questionSchema = z.union([orderSchema, choiceSchema]);
+export const answersSchema = z.object({ answers: z.array(z.union([z.number().int().min(0).max(10), z.array(z.number().int().min(0).max(20)).max(20)]).nullable()).max(100) });
+export const quizSchema = z.object({
   questions: z.array(questionSchema).min(1).max(100),
   timeLimitMinutes: z.number().int().min(1).max(240).nullable().optional(),
   maxAttempts: z.number().int().min(1).max(20).optional(),
@@ -62,6 +74,7 @@ const groupSettings = z.object({
   latePenalty: z.number().int().min(0).max(100).optional(),
   archived: z.boolean().optional(),
   offerRequired: z.boolean().optional(),
+  discipline: z.boolean().optional(),
 });
 const inviteCode = () => randomBytes(9).toString("base64url");
 
@@ -217,20 +230,36 @@ function shuffle<T>(items: T[]) {
   return a;
 }
 /** Savollar va variantlar tartibi har urinishda aralashtiriladi; layout = asl indekslar. */
-export function makeLayout(questions: { options: string[] }[]) {
-  return shuffle(questions.map((_, i) => i)).map((qi) => ({ q: qi, o: shuffle(questions[qi].options.map((_, j) => j)) }));
+const items = (q: any): string[] => (q.type === "order" ? q.words : q.options);
+export function makeLayout(questions: any[]) {
+  return shuffle(questions.map((_, i) => i)).map((qi) => {
+    let o = shuffle(items(questions[qi]).map((_, j) => j));
+    // Gap tuzishda aralashtirilgan tartib tasodifan to'g'ri chiqmasin.
+    if (questions[qi].type === "order" && o.every((v, i) => v === i)) o = [...o.slice(1), o[0]];
+    return { q: qi, o };
+  });
 }
 export function present(questions: any[], layout: { q: number; o: number[] }[]) {
-  return layout.map((l) => ({ q: questions[l.q].q, options: l.o.map((j) => questions[l.q].options[j]) }));
+  return layout.map((l) => {
+    const q = questions[l.q];
+    return q.type === "order" ? { type: "order", q: q.q, words: l.o.map((j) => q.words[j]) } : { q: q.q, options: l.o.map((j) => q.options[j]) };
+  });
 }
-export function grade(questions: any[], layout: { q: number; o: number[] }[], answers: (number | null)[]) {
+/** answers[i]: variant raqami (test) yoki ko'rsatilgan so'zlar tartibi (gap tuzish). */
+export function grade(questions: any[], layout: { q: number; o: number[] }[], answers: (number | number[] | null)[]) {
   let score = 0;
   const review = layout.map((l, i) => {
-    const chosen = answers[i];
-    const original = chosen === null || chosen === undefined ? null : l.o[chosen];
-    const right = original === questions[l.q].correct;
+    const q = questions[l.q], chosen = answers[i] ?? null;
+    if (q.type === "order") {
+      const seq = Array.isArray(chosen) ? chosen.map((d) => l.o[d]) : [];
+      const right = seq.length === q.words.length && seq.every((v, k) => v === k);
+      if (right) score++;
+      return { type: "order", q: q.q, words: l.o.map((j) => q.words[j]), chosen, answer: q.words.join(" "), right, explanation: q.explanation || "", topic: q.topic || null };
+    }
+    const original = typeof chosen === "number" ? l.o[chosen] : null;
+    const right = original === q.correct;
     if (right) score++;
-    return { q: questions[l.q].q, options: l.o.map((j) => questions[l.q].options[j]), chosen: chosen ?? null, correct: l.o.indexOf(questions[l.q].correct), right, explanation: questions[l.q].explanation || "" };
+    return { q: q.q, options: l.o.map((j) => q.options[j]), chosen, correct: l.o.indexOf(q.correct), right, explanation: q.explanation || "", topic: q.topic || null };
   });
   return { score, max: layout.length, review };
 }
@@ -383,9 +412,9 @@ export function registerClassroom(app: Express) {
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
               allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived),
-              offer_required=COALESCE($9,offer_required)
+              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline)
         WHERE id=$1 RETURNING *`,
-      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null],
+      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null],
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
@@ -650,6 +679,10 @@ export function registerClassroom(app: Express) {
     const { teacher } = await membership(id, uid);
     const state = (await lessonStates(id, uid, teacher)).find((s) => s.id === lessonId) || fail(404, "Dars topilmadi");
     if (!state.unlocked) fail(403, "Bu dars hali ochilmagan");
+    if (!teacher) {
+      const gate = await mainGate(id, lessonId, uid);
+      if (!gate.ok) fail(403, gate.reason === "live" ? "Asosiy topshiriq jonli darsdan keyin ochiladi" : "Avval dars yozuvini ko‘ring (yoki tezkor topshiriqdan 85% oling)");
+    }
     const quiz = (await pool.query("SELECT * FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0] || fail(404, "Bu darsda test yo‘q");
     const open = (await pool.query("SELECT * FROM cls_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [id, lessonId, uid])).rows[0];
     if (open) return { attemptId: open.id, questions: present(quiz.questions, open.layout), timeLimitMinutes: quiz.time_limit_minutes, startedAt: open.started_at };
@@ -663,7 +696,7 @@ export function registerClassroom(app: Express) {
   }));
   app.post(P + "/attempts/:id/submit", requireAuth, route(async (req) => {
     const id = uuid.parse(req.params.id), uid = userOf(req);
-    const answers = z.object({ answers: z.array(z.number().int().min(0).max(10).nullable()).max(100) }).parse(req.body).answers;
+    const answers = answersSchema.parse(req.body).answers;
     const c = await pool.connect();
     try {
       await c.query("BEGIN");

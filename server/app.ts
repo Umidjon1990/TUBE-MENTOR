@@ -37,6 +37,7 @@ import { registerMiniTests } from "./mini-tests";
 import { registerClassroom } from "./classroom";
 import { registerClassroomEnroll } from "./classroom-enroll";
 import { registerClassroomFlow } from "./classroom-flow";
+import { registerClassroomA1 } from "./classroom-a1";
 import { registerClassChat } from "./classroom-chat";
 import { registerClassZoom } from "./classroom-zoom";
 import { registerClassTasks } from "./classroom-tasks";
@@ -160,6 +161,7 @@ export async function createApplication(
   registerMiniTests(app);
   registerClassroomEnroll(app);
   registerClassroomFlow(app);
+  registerClassroomA1(app);
   registerClassroom(app);
   registerClassChat(app);
   registerClassZoom(app);

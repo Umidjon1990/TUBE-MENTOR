@@ -10,7 +10,7 @@ import type { Express, Request } from "express";
 import { z } from "zod";
 import { pool } from "./db";
 import { requireAuth } from "./auth";
-import { ClassError, answersSchema, grade, groupStaff, lessonStates, makeLayout, membership, needGroup, notifyUsers, present, questionSchema, requireStaff, route, uuid } from "./classroom";
+import { ClassError, answersSchema, grade, groupStaff, isTestUser, lessonStates, makeLayout, membership, needGroup, notifyUsers, present, questionSchema, requireStaff, route, uuid } from "./classroom";
 
 const P = "/api/platform/class";
 const userOf = (req: Request) => String(req.session.userId);
@@ -39,7 +39,7 @@ export async function monthPoints(groupId: string, userId: string, month = month
 }
 export async function addPenalty(groupId: string, userId: string, kind: keyof typeof POINTS, ref: string, note = "") {
   const g = (await pool.query("SELECT discipline,name FROM cls_groups WHERE id=$1", [groupId])).rows[0];
-  if (!g?.discipline) return false;
+  if (!g?.discipline || (await isTestUser(userId))) return false;
   const r = await pool.query(
     "INSERT INTO cls_penalties(group_id,user_id,points,kind,ref,note) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(group_id,user_id,kind,ref) DO NOTHING RETURNING id",
     [groupId, userId, POINTS[kind], kind, ref, note],
@@ -207,7 +207,7 @@ async function quickBest(groupId: string, userId: string) {
 
 /** Yozuvni ko'rish huquqi: qatnashgan, uzrli yoki o'qituvchi ruxsat bergan o'quvchi. */
 export async function canWatch(session: any, userId: string, teacher: boolean) {
-  if (teacher) return { ok: true as const };
+  if (teacher || (await isTestUser(userId))) return { ok: true as const };
   const mark = (await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;
   if (["present", "late", "excused"].includes(mark)) return { ok: true as const };
   const ex = (await pool.query("SELECT status FROM cls_excuses WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;
@@ -221,6 +221,7 @@ export async function canWatch(session: any, userId: string, teacher: boolean) {
 
 /** Asosiy topshiriq ochiqmi: jonli darsi bo'lmagan dars, yozuv ≥90% ko'rilgan, tezkor ≥85%, qo'lda ochilgan yoki yozuv 24 soatda tayyor bo'lmagan. */
 export async function mainGate(groupId: string, lessonId: string, userId: string) {
+  if (await isTestUser(userId)) return { ok: true, reason: "test" };
   const t = (await timings(groupId)).get(lessonId);
   if (!t?.sessionId) return { ok: true, reason: "no-live" };
   if ((await pool.query("SELECT 1 FROM cls_unlocks WHERE group_id=$1 AND user_id=$2 AND lesson_id=$3", [groupId, userId, lessonId])).rowCount) return { ok: true, reason: "manual" };
@@ -267,9 +268,21 @@ export async function runClassFlow(now = Date.now()) {
   await penalizeOverdue(now);
 }
 
+/** Asosiy topshiriqning qo'shimcha qismlari (mustahkamlash, tarjima, so'zlar): nechtasi o'tish balidan o'tilgan. */
+async function partProgress(groupId: string, userId: string) {
+  return new Map<string, { total: number; done: number }>((await pool.query(
+    `SELECT p.lesson_id, count(*)::int AS total,
+            count(*) FILTER (WHERE (SELECT max(a.percent) FROM cls_part_attempts a WHERE a.part_id=p.id AND a.group_id=$1 AND a.user_id=$2 AND a.submitted_at IS NOT NULL) >= p.pass_percent)::int AS done
+       FROM cls_parts p JOIN cls_lessons l ON l.id=p.lesson_id JOIN cls_groups g ON g.course_id=l.course_id WHERE g.id=$1 GROUP BY p.lesson_id`,
+    [groupId, userId],
+  )).rows.map((r: any) => [r.lesson_id, { total: r.total, done: r.done }]));
+}
+
 /** O'quvchi uchun bitta darsning 5 bosqichi va cheklisti. */
 async function lessonFlow(groupId: string, userId: string, teacher: boolean) {
+  const test = !teacher && (await isTestUser(userId));
   const states = await lessonStates(groupId, userId, teacher);
+  const parts = await partProgress(groupId, userId);
   const t = await timings(groupId);
   const quickQ = new Map<string, number>((await pool.query(
     "SELECT q.lesson_id, jsonb_array_length(q.questions)::int AS n FROM cls_quick_quizzes q JOIN cls_lessons l ON l.id=q.lesson_id JOIN cls_groups g ON g.course_id=l.course_id WHERE g.id=$1",
@@ -295,17 +308,18 @@ async function lessonFlow(groupId: string, userId: string, teacher: boolean) {
     const watched = x.sessionId ? watch.get(x.sessionId) || 0 : 0;
     const skip = (quickPct ?? 0) >= 85;
     const task = tasks.get(s.id) || { total: 0, done: 0 };
-    const mainHas = s.has_quiz || task.total > 0;
-    const mainDone = (!s.has_quiz || s.attempts > 0) && task.done >= task.total && mainHas;
+    const pp = parts.get(s.id) || { total: 0, done: 0 };
+    const mainHas = s.has_quiz || task.total > 0 || pp.total > 0;
+    const mainDone = (!s.has_quiz || s.attempts > 0) && task.done >= task.total && pp.done >= pp.total && mainHas;
     const state = (done: boolean, open: boolean, due: number | null) => (done ? "done" : !open ? "locked" : due && due < now ? "overdue" : "todo");
     const liveItem = x.sessionId
       ? { key: "live", state: ["present", "late", "excused"].includes(mark || "") ? "done" : mark === "absent" ? "overdue" : mark === "pending" ? "todo" : x.ended ? "todo" : "locked", mark, excuse: excuses.get(x.sessionId) || null }
       : null;
-    const quickOpen = !!x.quickOpens && x.quickOpens <= now && s.unlocked;
+    const quickOpen = test || (!!x.quickOpens && x.quickOpens <= now && s.unlocked);
     const quickItem = hasQuick ? { key: "quick", state: state(quickPct !== null, quickOpen, x.quickDue), percent: quickPct, opensAt: x.quickOpens, dueAt: x.quickDue } : null;
     const watchItem = x.sessionId ? { key: "watch", state: state(watched >= 90 || skip, x.ended && x.recordingReady, x.mainDue), percent: watched, skipped: skip && watched < 90, ready: x.recordingReady } : null;
-    const mainOpen = s.unlocked && (!x.sessionId || watched >= 90 || skip || (x.ended && !x.recordingReady && !!x.quickOpens && now > x.quickOpens + 24 * H));
-    const mainItem = mainHas ? { key: "main", state: state(mainDone, mainOpen, x.mainDue), best: s.best, passed: s.passed, dueAt: x.mainDue, tasks: task } : null;
+    const mainOpen = test || s.unlocked && (!x.sessionId || watched >= 90 || skip || (x.ended && !x.recordingReady && !!x.quickOpens && now > x.quickOpens + 24 * H));
+    const mainItem = mainHas ? { key: "main", state: state(mainDone, mainOpen, x.mainDue), best: s.best, passed: s.passed, dueAt: x.mainDue, tasks: task, parts: pp } : null;
     const stars = !s.unlocked ? 0 : (hasQuick ? quickPct !== null : ["present", "late", "excused"].includes(mark || "") || !x.sessionId) ? 1 + ((s.best ?? 0) >= 70 ? 1 : 0) + ((s.best ?? 0) >= 90 && late.has(s.id) ? 1 : 0) : 0;
     return {
       id: s.id, position: s.position, title: s.title, kind: s.kind, unlocked: s.unlocked, reason: s.reason, opensAt: s.opens_at,
@@ -385,9 +399,10 @@ export function registerClassroomFlow(app: Express) {
     if (!quiz?.questions?.length) fail(404, "Bu darsda tezkor topshiriq yo‘q");
     const state = (await lessonStates(id, uid, teacher)).find((s) => s.id === lessonId) || fail(404, "Dars topilmadi");
     const t = (await timings(id)).get(lessonId);
-    if (!teacher && (!state.unlocked || !t?.quickOpens || t.quickOpens > Date.now())) fail(403, "Tezkor topshiriq dars tugagach ochiladi");
+    const test = !teacher && (await isTestUser(uid));
+    if (!teacher && !test && (!state.unlocked || !t?.quickOpens || t.quickOpens > Date.now())) fail(403, "Tezkor topshiriq dars tugagach ochiladi");
     const done = (await pool.query("SELECT id FROM cls_quick_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL LIMIT 1", [id, lessonId, uid])).rowCount;
-    if (done && !teacher) fail(409, "Tezkor topshiriq bajarilgan");
+    if (done && !teacher && !test) fail(409, "Tezkor topshiriq bajarilgan");
     const open = (await pool.query("SELECT * FROM cls_quick_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [id, lessonId, uid])).rows[0];
     if (open) return { attemptId: open.id, questions: present(quiz.questions, open.layout), dueAt: t?.quickDue };
     const layout = makeLayout(quiz.questions);

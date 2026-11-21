@@ -51,7 +51,15 @@ const orderSchema = z.object({
   explanation: z.string().trim().max(2000).optional().default(""),
   topic: z.string().trim().max(80).optional(),
 });
-export const questionSchema = z.union([orderSchema, choiceSchema]);
+/** Moslashtirish: pairs — to'g'ri juftliklar (a ↔ b); o'quvchiga b tomoni aralashtirib ko'rsatiladi. */
+const matchSchema = z.object({
+  type: z.literal("match"),
+  q: z.string().trim().min(1).max(2000),
+  pairs: z.array(z.object({ a: z.string().trim().min(1).max(200), b: z.string().trim().min(1).max(200) })).min(2).max(8),
+  explanation: z.string().trim().max(2000).optional().default(""),
+  topic: z.string().trim().max(80).optional(),
+});
+export const questionSchema = z.union([orderSchema, matchSchema, choiceSchema]);
 export const answersSchema = z.object({ answers: z.array(z.union([z.number().int().min(0).max(10), z.array(z.number().int().min(0).max(20)).max(20)]).nullable()).max(100) });
 export const quizSchema = z.object({
   questions: z.array(questionSchema).min(1).max(100),
@@ -176,7 +184,12 @@ export async function membership(groupId: string, userId: string) {
 type LessonRow = { id: string; position: number; kind: string; title: string; pass_percent: number; has_quiz: boolean; opens_at: Date | null; due_at: Date | null; question_count: number; max_attempts: number | null; task_count: number };
 export type LessonState = LessonRow & { unlocked: boolean; reason: "open" | "date" | "previous" | "unscheduled"; best: number | null; attempts: number; passed: boolean };
 
+/** Sinov hisobi (admin "O'quvchi sifatida kirish"): barcha qulflar ochiq, urinishlar cheklanmaydi, jarima yozilmaydi. */
+export async function isTestUser(userId: string) {
+  return !!(await pool.query("SELECT is_test FROM users WHERE id=$1", [userId])).rows[0]?.is_test;
+}
 export async function lessonStates(groupId: string, userId: string, teacher = false, now = new Date()): Promise<LessonState[]> {
+  if (!teacher && (await isTestUser(userId))) teacher = true;
   const lessons: LessonRow[] = (
     await pool.query(
       `SELECT l.id,l.position,l.kind,l.title,l.pass_percent,(q.lesson_id IS NOT NULL) AS has_quiz,
@@ -230,18 +243,19 @@ function shuffle<T>(items: T[]) {
   return a;
 }
 /** Savollar va variantlar tartibi har urinishda aralashtiriladi; layout = asl indekslar. */
-const items = (q: any): string[] => (q.type === "order" ? q.words : q.options);
+const items = (q: any): string[] => (q.type === "order" ? q.words : q.type === "match" ? q.pairs : q.options);
 export function makeLayout(questions: any[]) {
   return shuffle(questions.map((_, i) => i)).map((qi) => {
     let o = shuffle(items(questions[qi]).map((_, j) => j));
     // Gap tuzishda aralashtirilgan tartib tasodifan to'g'ri chiqmasin.
-    if (questions[qi].type === "order" && o.every((v, i) => v === i)) o = [...o.slice(1), o[0]];
+    if ((questions[qi].type === "order" || questions[qi].type === "match") && o.every((v, i) => v === i)) o = [...o.slice(1), o[0]];
     return { q: qi, o };
   });
 }
 export function present(questions: any[], layout: { q: number; o: number[] }[]) {
   return layout.map((l) => {
     const q = questions[l.q];
+    if (q.type === "match") return { type: "match", q: q.q, left: q.pairs.map((p: any) => p.a), right: l.o.map((j) => q.pairs[j].b) };
     return q.type === "order" ? { type: "order", q: q.q, words: l.o.map((j) => q.words[j]) } : { q: q.q, options: l.o.map((j) => q.options[j]) };
   });
 }
@@ -250,6 +264,12 @@ export function grade(questions: any[], layout: { q: number; o: number[] }[], an
   let score = 0;
   const review = layout.map((l, i) => {
     const q = questions[l.q], chosen = answers[i] ?? null;
+    if (q.type === "match") {
+      // chosen[i] = chap tomondagi i-element uchun tanlangan (ko'rsatilgan) o'ng element raqami.
+      const ok = Array.isArray(chosen) && chosen.length === q.pairs.length && chosen.every((d, i) => l.o[d] === i);
+      if (ok) score++;
+      return { type: "match", q: q.q, left: q.pairs.map((p: any) => p.a), side: l.o.map((j) => q.pairs[j].b), chosen, answer: q.pairs.map((p: any) => `${p.a} — ${p.b}`).join("; "), right: ok, explanation: q.explanation || "", topic: q.topic || null };
+    }
     if (q.type === "order") {
       const seq = Array.isArray(chosen) ? chosen.map((d) => l.o[d]) : [];
       const right = seq.length === q.words.length && seq.every((v, k) => v === k);
@@ -661,7 +681,7 @@ export function registerClassroom(app: Express) {
     const q = (await pool.query("SELECT jsonb_array_length(questions)::int AS n,time_limit_minutes,max_attempts FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0];
     const tasks = (
       await pool.query(
-        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,
+        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,t.shadow,
                 (SELECT row_to_json(s) FROM (SELECT id,status,score,ai_percent,final_percent,comment,created_at,auto FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status IN ('graded','submitted') ORDER BY (s.status='graded') DESC, s.score DESC NULLS LAST, s.created_at DESC LIMIT 1) s) AS submission,
                 (SELECT count(*)::int FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status<>'rejected') AS attempts
            FROM cls_tasks t WHERE t.lesson_id=$1 ORDER BY t.created_at`,
@@ -669,6 +689,7 @@ export function registerClassroom(app: Express) {
       )
     ).rows;
     return {
+      parts: await (await import("./classroom-a1")).partsFor(lessonId, id, uid), // aylanma importdan qochish
       lesson: { ...l, dueAt: state.due_at },
       quiz: q ? { questions: q.n, timeLimitMinutes: q.time_limit_minutes, maxAttempts: q.max_attempts, attempts: state.attempts, best: state.best, passed: state.passed } : null,
       tasks,
@@ -679,14 +700,14 @@ export function registerClassroom(app: Express) {
     const { teacher } = await membership(id, uid);
     const state = (await lessonStates(id, uid, teacher)).find((s) => s.id === lessonId) || fail(404, "Dars topilmadi");
     if (!state.unlocked) fail(403, "Bu dars hali ochilmagan");
-    if (!teacher) {
+    if (!teacher && !(await isTestUser(uid))) {
       const gate = await mainGate(id, lessonId, uid);
       if (!gate.ok) fail(403, gate.reason === "live" ? "Asosiy topshiriq jonli darsdan keyin ochiladi" : "Avval dars yozuvini ko‘ring (yoki tezkor topshiriqdan 85% oling)");
     }
     const quiz = (await pool.query("SELECT * FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0] || fail(404, "Bu darsda test yo‘q");
     const open = (await pool.query("SELECT * FROM cls_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [id, lessonId, uid])).rows[0];
     if (open) return { attemptId: open.id, questions: present(quiz.questions, open.layout), timeLimitMinutes: quiz.time_limit_minutes, startedAt: open.started_at };
-    if (!teacher && state.attempts >= quiz.max_attempts) fail(409, "Urinishlar soni tugadi");
+    if (!teacher && state.attempts >= quiz.max_attempts && !(await isTestUser(uid))) fail(409, "Urinishlar soni tugadi");
     const layout = makeLayout(quiz.questions);
     const a = (await pool.query(
       "INSERT INTO cls_attempts(group_id,lesson_id,user_id,layout,max_score) VALUES($1,$2,$3,$4,$5) RETURNING id,started_at",

@@ -4,7 +4,7 @@ import type { Express, Request, Response } from "express";
 import { and, asc, desc, eq, isNull, sql, or, gt } from "drizzle-orm";
 import { z } from "zod";
 import { db, pool } from "./db";
-import { requireAdmin, requireAuth, hasVerifiedIdentity } from "./auth";
+import { requireAdmin, requireAuth, hasVerifiedIdentity, canSignIn } from "./auth";
 import { rateLimit } from "./security";
 import { publishedLesson } from "@shared/learning";
 import {
@@ -381,7 +381,7 @@ export async function purchaseLesson(userId: string, lessonId: number) {
     problem(409, 'MARKETPLACE_REQUIRED', 'Xaridni asosiy marketplace orqali yakunlang');
   return db.transaction(async (tx) => {
     const user = await lockUser(tx, userId);
-    if (!user.isActive || user.role !== "student" || !hasVerifiedIdentity(user))
+    if (!user.isActive || user.role !== "student" || !canSignIn(user))
       problem(403, "STUDENT_REQUIRED", "Dars xaridi o‘quvchi hisobi uchun");
     const [owned] = await tx
       .select()

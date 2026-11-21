@@ -31,6 +31,7 @@ export async function migrateDatabase() {
       "0016_mini_folders.sql",
       "0017_classroom.sql",
       "0018_ustoz.sql",
+      "0019_phone_login.sql",
     ]) {
       const exists = await client.query(
         "SELECT 1 FROM tube_migrations WHERE name=$1",

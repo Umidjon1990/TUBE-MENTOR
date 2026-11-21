@@ -60,6 +60,11 @@ before(async () => {
   await new Promise<void>((resolve) => http.listen(0, "127.0.0.1", resolve));
   base = "http://127.0.0.1:" + (http.address() as any).port;
 });
+/** Onlayn kursga qo'shilishda oferta roziligi (barcha bandlar). */
+async function agreement(birthYear = 1995) {
+  const o = await (await fetch(base + "/api/platform/class/offer", { headers })).json();
+  return { offerVersion: o.version, birthYear, consents: Object.fromEntries(o.consents.map((c: any) => [c.key, true])) };
+}
 after(async () => {
   if (http) await new Promise<void>((resolve) => http.close(() => resolve()));
   await pool?.end();
@@ -1683,9 +1688,9 @@ test("classroom: invite, approval, scheduled unlock, shuffled quiz with hidden a
   // Taklif havolasi: ochiq ma'lumot, qo'shilish tasdiqni kutadi.
   const invite = await (await get(`/invite/${group.invite_code}`, {})).json();
   assert.equal(invite.group.name, "1-guruh");
-  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza" }, {})).status, 401);
-  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "12", name: "Aziza" }, S)).status, 400);
-  const joined = await (await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza" }, S)).json();
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza", agreement: await agreement() }, {})).status, 401);
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "12", name: "Aziza", agreement: await agreement() }, S)).status, 400);
+  const joined = await (await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123 45 67", name: "Aziza", agreement: await agreement() }, S)).json();
   assert.equal(joined.status, "pending");
   assert.equal((await get(`/groups/${group.id}/lessons`, S)).status, 403);
   assert.equal((await call(`/admin/groups/${group.id}/members/${userId}`, { action: "approve" }, T)).status, 200);
@@ -1753,7 +1758,7 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   const group = (await (await call("/admin/groups", { courseId: course.id, name: "Kechki guruh" }, T.h)).json()).group;
   await call(`/admin/groups/${group.id}`, { autoApprove: true }, T.h, "PATCH");
   await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: lesson.id, opensAt: new Date(Date.now() - 60000).toISOString(), dueAt: null }] }, T.h, "PUT");
-  for (const u of [S, P]) assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901112233", name: u === S ? "Ali" : "Vali" }, u.h)).json()).status, "active");
+  for (const u of [S, P]) assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901112233", name: u === S ? "Ali" : "Vali", agreement: await agreement() }, u.h)).json()).status, "active");
 
   /* ---------- Chat ---------- */
   const outbox = async () => (await pool.query("SELECT payload FROM notification_outbox WHERE kind='class_notice'")).rows.map((r: any) => r.payload);
@@ -1982,7 +1987,7 @@ test("ustoz: teacher and assistant roles, scoped groups, inbox, broadcast, voice
   assert.equal((await call(`/admin/groups/${group.id}`, { autoApprove: false }, T.h, "PATCH")).status, 200);
 
   // O'quvchi qo'shilish so'rovi → o'qituvchining "Bugun"ida va bildirishnomasi /ustoz ga boradi.
-  await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123-45-67", name: "Aziza" }, S.h);
+  await call(`/invite/${group.invite_code}/join`, { phone: "+998 90 123-45-67", name: "Aziza", agreement: await agreement() }, S.h);
   const today = await (await get("/staff/today", T.h)).json();
   assert.deepEqual(today.pending.map((p: any) => [p.name, p.phone]), [["Aziza", "+998901234567"]]);
   const joinNotice = (await pool.query("SELECT payload FROM notification_outbox WHERE kind='class_notice' AND reference_id LIKE $1", [`join-${group.id}-%`])).rows.map((r: any) => [r.payload.userId, r.payload.path]);
@@ -1991,7 +1996,7 @@ test("ustoz: teacher and assistant roles, scoped groups, inbox, broadcast, voice
 
   // Telefon raqami bo'yicha qo'shish: avval boshqa guruhda raqam qoldirgan o'quvchi.
   const other = (await (await call("/admin/groups", { courseId: course.id, name: "Boshqa guruh" }, T.h)).json()).group;
-  await call(`/invite/${other.invite_code}/join`, { phone: "+998 91 777 66 55", name: "Bobur" }, S2.h);
+  await call(`/invite/${other.invite_code}/join`, { phone: "+998 91 777 66 55", name: "Bobur", agreement: await agreement() }, S2.h);
   { const r0 = await call(`/admin/groups/${group.id}/add-member`, { phone: "000000000" }, T.h); assert.equal(r0.status, 404, await r0.text()); }
   const added = await (await call(`/admin/groups/${group.id}/add-member`, { phone: "91 777-66-55" }, T.h)).json();
   assert.deepEqual([added.member.userId, added.member.name], [S2.id, "Bobur"]);
@@ -2082,4 +2087,51 @@ test("phone + passcode signup/login, 90-day sessions, lockout, admin student mod
   const { passcode: fresh } = await reset.json();
   assert.equal((await post("/api/platform/auth/phone/login", { phone, passcode: fresh })).status, 200);
   assert.equal(admin.rowCount, 1);
+});
+test("class enrollment: offer agreement, minors, preapproved phones, bulk approve, agreement copies", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const mk = async (u: string, role = "student") => {
+    const id = (await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES($1,$1,$2,true,$3) RETURNING id", [u, hashPassword("pass-" + u), role])).rows[0].id;
+    const t = (await (await post("/api/platform/auth/password", { username: u, password: "pass-" + u })).json()).token;
+    return { id, h: { "x-platform-session": t } };
+  };
+  const T = await mk("enr_admin", "admin"), A = await mk("enr_a"), B = await mk("enr_b"), C = await mk("enr_c"), D = await mk("enr_d");
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+  const course = (await (await call("/admin/courses", { title: "Oferta kursi" }, T.h)).json()).course;
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Oferta guruhi" }, T.h)).json()).group;
+  const inv = await (await fetch(base + "/api/platform/class/invite/" + group.invite_code, { headers })).json();
+  assert.ok(inv.offer.body.includes("OMMAVIY OFERTA") && inv.offer.consents.length >= 8);
+  // Roziliksiz yoki bandlardan biri yo'q — qo'shilib bo'lmaydi.
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar" }, A.h)).status, 400);
+  const partial = await agreement(); delete (partial.consents as any).refund;
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar", agreement: partial }, A.h)).status, 400);
+  // 18 yoshdan kichik: ota-ona ma'lumotisiz rad etiladi.
+  const young = await agreement(new Date().getFullYear() - 15);
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000002", name: "Bola", agreement: young }, B.h)).status, 400);
+  const ja = await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar", agreement: await agreement() }, A.h)).json();
+  assert.equal(ja.status, "pending"); assert.ok(ja.agreementId);
+  const jb = await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901000002", name: "Bola", agreement: { ...young, guardianName: "Otasi Karimov", guardianPhone: "+998 93 111 22 33" } }, B.h)).json();
+  assert.equal(jb.status, "pending");
+  // Oldindan ruxsat: C ning raqami ro'yxatda — darhol qabul qilinadi.
+  const pre = await (await call(`/admin/groups/${group.id}/preapproved`, { phones: ["+998 90 100 00 03", "bad"] }, T.h, "PUT")).json();
+  assert.deepEqual(pre.phones, ["+998901000003"]);
+  assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "90 100-00-03", name: "Cho'lpon", agreement: await agreement() }, C.h)).json()).status, "active");
+  // Oferta yangilansa eski versiya bilan rozilik rad etiladi (409).
+  const oldAgreement = await agreement();
+  const cur = await (await fetch(base + "/api/platform/class/admin/offer", { headers: { ...headers, ...T.h } })).json();
+  assert.equal((await call("/admin/offer", { body: cur.body + "\n\n16. Qo'shimcha band." }, T.h, "PUT")).status, 200);
+  assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000004", name: "Dilnoza", agreement: oldAgreement }, D.h)).status, 409);
+  assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+998901000004", name: "Dilnoza", agreement: await agreement() }, D.h)).json()).status, "pending");
+  // Birdan tasdiqlash.
+  const bulk = await (await call(`/admin/groups/${group.id}/members/bulk`, { action: "approve", userIds: [A.id, B.id, D.id, C.id] }, T.h)).json();
+  assert.equal(bulk.changed, 3);
+  assert.ok([403, 404].includes((await call(`/admin/groups/${group.id}/members/bulk`, { action: "approve", userIds: [A.id] }, A.h)).status));
+  // Shartnoma nusxasi: o'quvchi o'zinikini, o'qituvchi guruhdagini ko'radi, begona ko'rmaydi.
+  const mine = (await (await fetch(base + "/api/platform/class/my/agreements", { headers: { ...headers, ...B.h } })).json()).agreements;
+  assert.equal(mine.length, 1); assert.equal(mine[0].guardianName, "Otasi Karimov"); assert.match(mine[0].number, /^ZT-\d{4}-\d{6}$/);
+  assert.equal((await fetch(base + "/api/platform/class/agreements/" + mine[0].id, { headers: { ...headers, ...T.h } })).status, 200);
+  assert.ok([403, 404].includes((await fetch(base + "/api/platform/class/agreements/" + mine[0].id, { headers: { ...headers, ...A.h } })).status));
+  const detail = await (await fetch(base + "/api/platform/class/admin/groups/" + group.id, { headers: { ...headers, ...T.h } })).json();
+  assert.ok(detail.members.every((m: any) => m.agreement_id));
 });

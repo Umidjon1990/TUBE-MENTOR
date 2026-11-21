@@ -35,6 +35,7 @@ import {
 import { registerMarketplace } from "./marketplace";
 import { registerMiniTests } from "./mini-tests";
 import { registerClassroom } from "./classroom";
+import { registerClassroomEnroll } from "./classroom-enroll";
 import { registerClassChat } from "./classroom-chat";
 import { registerClassZoom } from "./classroom-zoom";
 import { registerClassTasks } from "./classroom-tasks";
@@ -156,6 +157,7 @@ export async function createApplication(
   registerEditorAuthorization(app);
   registerMarketplace(app, httpServer);
   registerMiniTests(app);
+  registerClassroomEnroll(app);
   registerClassroom(app);
   registerClassChat(app);
   registerClassZoom(app);

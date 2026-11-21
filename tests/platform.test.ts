@@ -2045,3 +2045,41 @@ test("ustoz: teacher and assistant roles, scoped groups, inbox, broadcast, voice
   assert.deepEqual(cal.lessons.map((l: any) => l.title), ["1-dars"]);
   assert.deepEqual((await (await get("/staff/submissions", T.h)).json()).items, []);
 });
+test("phone + passcode signup/login, 90-day sessions, lockout, admin student mode", async () => {
+  const phone = "+998 90 123-45-67", passcode = "Mening kod 7!";
+  const reg = await post("/api/platform/auth/phone/register", { phone, fullName: "  Aziza   Karimova ", passcode });
+  assert.equal(reg.status, 200);
+  const r = await reg.json();
+  assert.equal(r.user.fullName, "Aziza Karimova");
+  assert.equal(r.user.phone, "+998901234567");
+  assert.equal(r.user.coins, 0, "telefon hisobiga xush kelibsiz bonusi berilmaydi");
+  const exp = await pool.query("SELECT expires_at FROM platform_sessions WHERE user_id=$1", [r.user.id]);
+  assert.ok(new Date(exp.rows[0].expires_at).getTime() > Date.now() + 89 * 86400000);
+  assert.equal((await post("/api/platform/auth/phone/register", { phone: "901234567", fullName: "Boshqa", passcode: "1234" })).status, 409);
+  const me = await fetch(base + "/api/platform/me", { headers: { ...headers, "x-platform-session": r.token } });
+  assert.equal((await me.json()).user.id, r.user.id);
+  // sirpanuvchi muddat: eskirayotgan sessiya uzayadi
+  await pool.query("UPDATE platform_sessions SET expires_at=now()+interval '2 days' WHERE user_id=$1", [r.user.id]);
+  await fetch(base + "/api/platform/me", { headers: { ...headers, "x-platform-session": r.token } });
+  const ext = await pool.query("SELECT expires_at FROM platform_sessions WHERE user_id=$1", [r.user.id]);
+  assert.ok(new Date(ext.rows[0].expires_at).getTime() > Date.now() + 89 * 86400000);
+  const ok = await post("/api/platform/auth/phone/login", { phone: "998901234567", passcode });
+  assert.equal(ok.status, 200);
+  for (let i = 0; i < 5; i++) assert.equal((await post("/api/platform/auth/phone/login", { phone, passcode: "wrong" + i })).status, 401);
+  assert.equal((await post("/api/platform/auth/phone/login", { phone, passcode })).status, 429);
+  // admin: o'quvchi rejimi va kodni tiklash
+  const { hashPassword } = await import("../server/auth");
+  const admin = await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES('Admin','admin_pm',$1,true,'admin') RETURNING id", [hashPassword("adminpass123")]);
+  const adminLogin = await (await post("/api/platform/auth/password", { username: "admin_pm", password: "adminpass123" })).json();
+  const sm1 = await (await post("/api/platform/auth/student-mode", {}, { "x-platform-session": adminLogin.token })).json();
+  const sm2 = await (await post("/api/platform/auth/student-mode", {}, { "x-platform-session": adminLogin.token })).json();
+  assert.equal(sm1.user.role, "student");
+  assert.equal(sm1.user.isTest, true);
+  assert.equal(sm1.user.id, sm2.user.id, "bitta sinov hisobi qayta ishlatiladi");
+  assert.equal((await post("/api/platform/auth/student-mode", {}, { "x-platform-session": sm1.token })).status, 403);
+  const reset = await post("/api/platform/admin/users/" + r.user.id + "/reset-passcode", {}, { "x-platform-session": adminLogin.token });
+  assert.equal(reset.status, 200);
+  const { passcode: fresh } = await reset.json();
+  assert.equal((await post("/api/platform/auth/phone/login", { phone, passcode: fresh })).status, 200);
+  assert.equal(admin.rowCount, 1);
+});

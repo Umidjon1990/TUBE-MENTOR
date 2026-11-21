@@ -26,6 +26,11 @@ export function hasVerifiedIdentity(user: User): boolean {
   return user.emailVerified || Boolean(user.googleId || user.telegramId);
 }
 
+/** Kirishga ruxsat: tasdiqlangan identifikator, telefon+kod hisobi yoki admin sinov hisobi. */
+export function canSignIn(user: User): boolean {
+  return hasVerifiedIdentity(user) || Boolean(user.phone) || Boolean(user.isTest);
+}
+
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");

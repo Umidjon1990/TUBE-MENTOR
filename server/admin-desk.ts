@@ -83,7 +83,7 @@ export function registerAdminDesk(app: Express) {
           ).rows;
           const counts = (
             await c.query(
-              `SELECT (SELECT count(*)::int FROM users WHERE role='student') AS students,(SELECT count(*)::int FROM platform_products WHERE status='published') AS published,(SELECT count(*)::int FROM platform_products WHERE status='draft') AS drafts,(SELECT count(*)::int FROM platform_orders WHERE status='pending') AS pending_access,(SELECT count(*)::int FROM payment_orders WHERE status IN('receipt_submitted','under_review','needs_info')) AS pending_payments,(SELECT count(*)::int FROM commerce_support_tickets WHERE status='open') AS open_support,(SELECT count(*)::int FROM notification_outbox WHERE state<>'sent' AND attempts>=3) AS notification_failures`,
+              `SELECT (SELECT count(*)::int FROM users WHERE role='student' AND NOT is_test) AS students,(SELECT count(*)::int FROM platform_products WHERE status='published') AS published,(SELECT count(*)::int FROM platform_products WHERE status='draft') AS drafts,(SELECT count(*)::int FROM platform_orders WHERE status='pending') AS pending_access,(SELECT count(*)::int FROM payment_orders WHERE status IN('receipt_submitted','under_review','needs_info')) AS pending_payments,(SELECT count(*)::int FROM commerce_support_tickets WHERE status='open') AS open_support,(SELECT count(*)::int FROM notification_outbox WHERE state<>'sent' AND attempts>=3) AS notification_failures`,
             )
           ).rows[0];
           const sales = (
@@ -133,7 +133,7 @@ export function registerAdminDesk(app: Express) {
             .parse(req.query.q || "");
         const like = "%" + q.replace(/[\\%_]/g, "\\$&") + "%";
         const where =
-          "WHERE full_name ILIKE $1 ESCAPE '\\' OR COALESCE(email,'') ILIKE $1 ESCAPE '\\' OR username ILIKE $1 ESCAPE '\\'";
+          "WHERE full_name ILIKE $1 ESCAPE '\\' OR COALESCE(email,'') ILIKE $1 ESCAPE '\\' OR COALESCE(phone,'') ILIKE $1 ESCAPE '\\' OR username ILIKE $1 ESCAPE '\\'";
         const total = (
           await pool.query("SELECT count(*)::int AS n FROM users " + where, [
             like,
@@ -141,7 +141,7 @@ export function registerAdminDesk(app: Express) {
         ).rows[0].n;
         const rows = (
           await pool.query(
-            "SELECT id,full_name,username,email,role,is_active,coins,created_at FROM users " +
+            "SELECT id,full_name,username,email,phone,is_test,role,is_active,coins,created_at FROM users " +
               where +
               " ORDER BY created_at DESC,id LIMIT 40 OFFSET $2",
             [like, page * 40],

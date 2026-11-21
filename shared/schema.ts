@@ -26,6 +26,11 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").default(true).notNull(),
   googleId: text("google_id").unique(),
   telegramId: text("telegram_id").unique(),
+  // Telefon raqam + o'quvchi o'zi o'ylab topgan kirish kodi (passwordHash da saqlanadi).
+  phone: text("phone"),
+  // Admin uchun "O'quvchi rejimi" hisobi: statistikaga kirmaydi.
+  isTest: boolean("is_test").default(false).notNull(),
+  testOwnerId: varchar("test_owner_id"),
   sessionVersion: integer("session_version").default(0).notNull(),
   learningLevel: text("learning_level").default("A1").notNull(),
   targetLanguage: text("target_language").default("ar").notNull(),

@@ -9,6 +9,7 @@ import { pool } from "./db";
 import { requireAuth } from "./auth";
 import { ClassError, membership, needGroup, notifyGroup, requireStaff, route, uuid } from "./classroom";
 import { classStore } from "./class-storage";
+import { canWatch, onParticipant } from "./classroom-flow";
 
 const fail = (status: number, message: string): never => {
   throw new ClassError(status, message);
@@ -190,12 +191,8 @@ export function registerClassZoom(app: Express) {
     ).rows;
     return { sessions: rows.map(publicSession), zoom: zoomConfig().api && zoomConfig().sdk };
   }));
-  app.post(P + "/admin/groups/:id/live", requireStaff, route(async (req) => {
-    const id = uuid.parse(req.params.id);
-    const b = liveSchema.parse(req.body);
-    const { group: g } = await needGroup(id, userOf(req));
-    if (b.lessonId && !(await pool.query("SELECT 1 FROM cls_lessons WHERE id=$1 AND course_id=$2", [b.lessonId, g.course_id])).rowCount) fail(400, "Dars bu kursga tegishli emas");
-    if (!zoomConfig().api) fail(503, "Zoom hali ulanmagan. Sozlamalarga Zoom kalitlarini kiriting");
+  /** Bitta jonli dars: Zoom uchrashuvi + yozuv. */
+  async function createSession(id: string, g: any, b: { title: string; startsAt: string; durationMinutes: number; lessonId?: string | null }, notify = true) {
     const password = String(randomInt(100000, 999999));
     const meeting = await api("POST", "/users/me/meetings", {
       topic: `${g.name}: ${b.title}`.slice(0, 200),
@@ -222,8 +219,39 @@ export function registerClassZoom(app: Express) {
         [id, b.lessonId || null, b.title, b.startsAt, b.durationMinutes, String(meeting.id), meeting.password || password, meeting.join_url || null],
       )
     ).rows[0];
-    await notifyGroup(id, { title: "Jonli dars rejalashtirildi", body: `${b.title} — ${localTime(b.startsAt)}`, path: "jonli", ref: `live-new-${s.id}` });
-    return { session: publicSession(s) };
+    if (notify) await notifyGroup(id, { title: "Jonli dars rejalashtirildi", body: `${b.title} — ${localTime(b.startsAt)}`, path: "jonli", ref: `live-new-${s.id}` });
+    return s;
+  }
+  app.post(P + "/admin/groups/:id/live", requireStaff, route(async (req) => {
+    const id = uuid.parse(req.params.id);
+    const b = liveSchema.parse(req.body);
+    const { group: g } = await needGroup(id, userOf(req));
+    if (b.lessonId && !(await pool.query("SELECT 1 FROM cls_lessons WHERE id=$1 AND course_id=$2", [b.lessonId, g.course_id])).rowCount) fail(400, "Dars bu kursga tegishli emas");
+    if (!zoomConfig().api) fail(503, "Zoom hali ulanmagan. Sozlamalarga Zoom kalitlarini kiriting");
+    return { session: publicSession(await createSession(id, g, b)) };
+  }));
+  /** Oy rejasi: jadvaldagi har bir dars kuni uchun berilgan soatda jonli dars (hali yaratilmaganlariga). */
+  app.post(P + "/admin/groups/:id/live/plan", requireStaff, route(async (req) => {
+    const id = uuid.parse(req.params.id);
+    const b = z.object({ time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), durationMinutes: z.number().int().min(15).max(300).default(80) }).parse(req.body);
+    const { group: g } = await needGroup(id, userOf(req));
+    if (!zoomConfig().api) fail(503, "Zoom hali ulanmagan. Sozlamalarga Zoom kalitlarini kiriting");
+    const lessons = (await pool.query(
+      `SELECT l.id,l.title,gl.opens_at FROM cls_lessons l JOIN cls_group_lessons gl ON gl.lesson_id=l.id AND gl.group_id=$1
+        WHERE l.course_id=$2 AND gl.opens_at IS NOT NULL AND gl.opens_at > now() - interval '12 hours'
+          AND NOT EXISTS(SELECT 1 FROM cls_live_sessions s WHERE s.group_id=$1 AND s.lesson_id=l.id AND s.status<>'cancelled')
+        ORDER BY gl.opens_at LIMIT 31`,
+      [id, g.course_id],
+    )).rows;
+    const created = [];
+    for (const l of lessons) {
+      const day = new Date(new Date(l.opens_at).getTime() + 5 * 3600e3).toISOString().slice(0, 10);
+      const startsAt = new Date(`${day}T${b.time}:00+05:00`).toISOString();
+      if (Date.parse(startsAt) < Date.now()) continue;
+      created.push(publicSession(await createSession(id, g, { title: l.title, startsAt, durationMinutes: b.durationMinutes, lessonId: l.id }, false)));
+    }
+    if (created.length) await notifyGroup(id, { title: "Oylik dars jadvali tayyor", body: `${created.length} ta jonli dars rejalashtirildi`, path: "darslar", ref: `live-plan-${id}-${Date.now()}` });
+    return { created };
   }));
   app.patch(P + "/admin/live/:id", requireStaff, route(async (req) => {
     const id = uuid.parse(req.params.id);
@@ -341,6 +369,8 @@ export function registerClassZoom(app: Express) {
       meetingNumber: String(s.zoom_meeting_id),
       password: s.zoom_password || "",
       userName: (member?.display_name || u?.full_name || "O‘quvchi").slice(0, 60),
+      // Zoom webhooklarida qatnashchini aniq foydalanuvchiga bog'lash uchun (davomat: kirish-chiqish vaqti).
+      customerKey: teacher ? "" : me.slice(0, 36),
       joinUrl: s.join_url,
       title: s.title,
       groupId: s.group_id,
@@ -349,8 +379,10 @@ export function registerClassZoom(app: Express) {
   app.get(P + "/live/:id/recording", requireAuth, route(async (req) => {
     const id = uuid.parse(req.params.id), me = userOf(req);
     const s = (await pool.query("SELECT * FROM cls_live_sessions WHERE id=$1", [id])).rows[0] || fail(404, "Jonli dars topilmadi");
-    await membership(s.group_id, me);
+    const { teacher } = await membership(s.group_id, me);
     if (s.recording_state !== "ready" || !s.recording_key) fail(404, "Yozuv hali tayyor emas");
+    const access = await canWatch(s, me, teacher);
+    if (!access.ok) fail(403, access.request === "pending" ? "So‘rovingiz o‘qituvchida. Ruxsat berilgach yozuv ochiladi" : "Darsga sababsiz kirmagansiz. Yozuvni ko‘rish uchun o‘qituvchidan ruxsat so‘rang");
     const store = classStore();
     if (!store.url) fail(503, "Yozuvlar ombori sozlanmagan");
     return { url: store.url!(s.recording_key, 4 * 3600), title: s.title, startsAt: s.starts_at };
@@ -378,6 +410,8 @@ export function registerClassZoom(app: Express) {
         await notifyGroup(s.group_id, { title: "Jonli dars boshlandi", body: `${s.title} — hoziroq qo‘shiling`, path: "jonli", ref: `live-start-${s.id}`, urgent: true });
       } else if (body.event === "meeting.ended") {
         await pool.query("UPDATE cls_live_sessions SET status='ended', ended_at=now(), zoom_uuid=COALESCE($2,zoom_uuid), recording_state=CASE WHEN recording_state='none' THEN 'waiting' ELSE recording_state END WHERE id=$1 AND status<>'cancelled'", [s.id, object.uuid || null]);
+      } else if (body.event === "meeting.participant_joined" || body.event === "meeting.participant_left") {
+        await onParticipant(s, body.event, object.participant || {});
       } else if (body.event === "recording.completed") {
         await importRecording(s.id, object.recording_files || [], typeof body.download_token === "string" ? body.download_token : null, object.uuid);
       }

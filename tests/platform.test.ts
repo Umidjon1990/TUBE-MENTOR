@@ -1868,7 +1868,9 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   assert.equal((await pool.query("SELECT recording_state FROM cls_live_sessions WHERE id=$1", [now.id])).rows[0].recording_state, "ready");
   assert.equal(blobs.get(`class/recordings/${group.id}/${now.id}.mp4`)?.toString(), "MP4DATA");
   assert.ok(zoomCalls.includes("DELETE /meetings/u%2F1%3D%3D/recordings?action=trash"), "Zoom nusxasi savatga");
-  const rec = await (await get(`/live/${now.id}/recording`, P.h)).json();
+  // Darsga kirmagan o'quvchi (P) yozuvni ruxsatsiz ko'ra olmaydi; qatnashgan (S) ko'radi.
+  assert.equal((await fetch(base + `/api/platform/class/live/${now.id}/recording`, { headers: { ...headers, ...P.h } })).status, 403);
+  const rec = await (await get(`/live/${now.id}/recording`, S.h)).json();
   assert.match(rec.url, /^https:\/\/bucket\.example\/class\/recordings\//);
   assert.equal((await call(`/admin/live/${later.id}`, {}, T.h, "DELETE")).status, 200);
   assert.ok(zoomCalls.includes(`DELETE /meetings/${meetingNo - 1}`));
@@ -2134,4 +2136,107 @@ test("class enrollment: offer agreement, minors, preapproved phones, bulk approv
   assert.ok([403, 404].includes((await fetch(base + "/api/platform/class/agreements/" + mine[0].id, { headers: { ...headers, ...A.h } })).status));
   const detail = await (await fetch(base + "/api/platform/class/admin/groups/" + group.id, { headers: { ...headers, ...T.h } })).json();
   assert.ok(detail.members.every((m: any) => m.agreement_id));
+});
+test("class flow: zoom attendance 70%, late/absent points, excuses, recording access, watch gate, quick task, thresholds, order questions", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const flow = await import("../server/classroom-flow");
+  const mk = async (u: string, role = "student") => {
+    const id = (await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES($1,$1,$2,true,$3) RETURNING id", [u, hashPassword("pass-" + u), role])).rows[0].id;
+    const t = (await (await post("/api/platform/auth/password", { username: u, password: "pass-" + u })).json()).token;
+    return { id, h: { "x-platform-session": t } };
+  };
+  const T = await mk("flow_admin", "admin"), A = await mk("flow_a"), B = await mk("flow_b"), C = await mk("flow_c"), D = await mk("flow_d");
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+  const get = async (path: string, extra: Record<string, string>) => (await fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } })).json();
+  const course = (await (await call("/admin/courses", { title: "Oqim kursi" }, T.h)).json()).course;
+  const l1 = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "1-dars" }, T.h)).json()).lesson;
+  const l2 = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "2-dars" }, T.h)).json()).lesson;
+  // Asosiy test: gap tuzish + oddiy savol, mavzu belgisi bilan.
+  assert.equal((await call(`/admin/lessons/${l1.id}/quiz`, { questions: [
+    { type: "order", q: "Gap tuzing", words: ["هذا", "كتاب", "جديد"], topic: "ism jumla" },
+    { q: "ما هذا؟", options: ["كتاب", "قلم"], correct: 0, topic: "ism jumla" },
+  ], maxAttempts: 3 }, T.h, "PUT")).status, 200);
+  assert.equal((await call(`/admin/lessons/${l1.id}/quick`, { questions: [{ q: "س", options: ["a", "b"], correct: 0 }, { q: "ص", options: ["a", "b"], correct: 1 }] }, T.h, "PUT")).status, 200);
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Oqim guruhi" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true, offerRequired: false }, T.h, "PATCH");
+  const past = new Date(Date.now() - 3 * 3600e3).toISOString(), soon = new Date(Date.now() + 2 * 86400e3).toISOString();
+  await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: l1.id, opensAt: past, dueAt: null }, { lessonId: l2.id, opensAt: soon, dueAt: null }] }, T.h, "PUT");
+  for (const [u, n] of [[A, "Anvar"], [B, "Botir"], [C, "Charos"], [D, "Dilshod"]] as const)
+    assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+99890" + String(Math.random()).slice(2, 9), name: n }, u.h)).json()).status, "active");
+  await pool.query("UPDATE cls_members SET joined_at=now()-interval '1 day' WHERE group_id=$1", [group.id]);
+  // 60 daqiqalik dars, 2 soat oldin boshlangan, tugagan.
+  const start = new Date(Date.now() - 2 * 3600e3), end = new Date(start.getTime() + 60 * 60000);
+  const s = (await pool.query("INSERT INTO cls_live_sessions(group_id,lesson_id,title,starts_at,duration_minutes,status,started_at,ended_at,recording_state,recording_key) VALUES($1,$2,'1-dars jonli',$3,60,'ended',$3,$4,'ready','rec.mp4') RETURNING *", [group.id, l1.id, start, end])).rows[0];
+  const at = (min: number) => new Date(start.getTime() + min * 60000).toISOString();
+  // A: to'liq; B: 20-daqiqada kirgan (kechikdi); C: 30 daqiqa (<70%) — kelmadi; D: uzr so'ragan (o'qituvchi tasdiqlaydi).
+  await flow.onParticipant(s, "meeting.participant_joined", { customer_key: A.id, join_time: at(0) });
+  await flow.onParticipant(s, "meeting.participant_left", { customer_key: A.id, leave_time: at(60) });
+  await flow.onParticipant(s, "meeting.participant_joined", { user_name: "Botir", join_time: at(20) });
+  await flow.onParticipant(s, "meeting.participant_left", { user_name: "botir", leave_time: at(65) });
+  await flow.onParticipant(s, "meeting.participant_joined", { customer_key: C.id, join_time: at(0) });
+  await flow.onParticipant(s, "meeting.participant_left", { customer_key: C.id, leave_time: at(30) });
+  assert.equal((await call(`/live/${s.id}/excuse`, { reason: "Kasal edim" }, D.h)).status, 200);
+  await flow.finalizeSessions();
+  const marks = Object.fromEntries((await pool.query("SELECT user_id,status FROM cls_marks WHERE session_id=$1", [s.id])).rows.map((r: any) => [r.user_id, r.status]));
+  assert.deepEqual([marks[A.id], marks[B.id], marks[C.id], marks[D.id]], ["present", "late", "absent", "pending"]);
+  assert.equal(await flow.monthPoints(group.id, B.id), 1);
+  assert.equal(await flow.monthPoints(group.id, C.id), 3);
+  assert.equal(await flow.monthPoints(group.id, D.id), 0, "uzr ko'rib chiqilguncha ball yo'q");
+  // Yozuv: A ko'radi, C ko'ra olmaydi; D tasdiqlangach ko'radi.
+  assert.equal((await fetch(base + `/api/platform/class/live/${s.id}/recording`, { headers: { ...headers, ...C.h } })).status, 403);
+  const ex = (await get(`/admin/groups/${group.id}/excuses`, T.h)).excuses;
+  assert.equal(ex.length, 1);
+  await call(`/admin/excuses/${ex[0].id}`, { approve: true }, T.h);
+  assert.equal((await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [s.id, D.id])).rows[0].status, "excused");
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, D.id, false)).ok, true);
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, false);
+  // C ruxsat so'raydi → o'qituvchi rad etadi → ball qoladi.
+  await call(`/live/${s.id}/excuse`, { reason: "Internet yo'q edi" }, C.h);
+  const ex2 = (await get(`/admin/groups/${group.id}/excuses`, T.h)).excuses;
+  await call(`/admin/excuses/${ex2[0].id}`, { approve: false }, T.h);
+  assert.equal(await flow.monthPoints(group.id, C.id), 3);
+  // Asosiy topshiriq: yozuv ko'rilmaguncha yopiq.
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, A.h)).status, 403);
+  // A tezkor topshiriqni 100% ishlaydi → asosiy ochiladi (o'tkazib yuborish).
+  const qa = await (await call(`/groups/${group.id}/lessons/${l1.id}/quick`, {}, A.h)).json();
+  const ans = qa.questions.map((q: any) => q.options.indexOf(q.q === "س" ? "a" : "b"));
+  const qr = await (await call(`/quick-attempts/${qa.attemptId}/submit`, { answers: ans }, A.h)).json();
+  assert.equal(qr.percent, 100); assert.equal(qr.skip, true);
+  const att = await (await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, A.h)).json();
+  const answers = att.questions.map((q: any) => (q.type === "order" ? ["هذا", "كتاب", "جديد"].map((w) => q.words.indexOf(w)) : q.options.indexOf("كتاب")));
+  const sub = await (await call(`/attempts/${att.attemptId}/submit`, { answers }, A.h)).json();
+  assert.equal(sub.percent, 100);
+  // B yozuvni 90% ko'radi → asosiy ochiladi.
+  for (let t = 0; t < 3600; t += 30) await call(`/live/${s.id}/watch`, { from: t, to: t + 30, duration: 3600 }, B.h);
+  assert.equal((await pool.query("SELECT percent FROM cls_watch WHERE session_id=$1 AND user_id=$2", [s.id, B.id])).rows[0].percent, 100);
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, B.h)).status, 200);
+  // Oqim: A uchun 3 yulduz, bosqichlar bajarilgan.
+  const fa = await get(`/groups/${group.id}/flow`, A.h);
+  const first = fa.lessons.find((l: any) => l.id === l1.id);
+  assert.equal(first.stars, 3);
+  assert.deepEqual(first.steps.map((x: any) => [x.key, x.state]), [["live", "done"], ["quick", "done"], ["watch", "done"], ["main", "done"]]);
+  const fc = await get(`/groups/${group.id}/flow`, C.h);
+  assert.equal(fc.points, 3);
+  assert.equal(fc.lessons.find((l: any) => l.id === l1.id).steps[0].state, "overdue");
+  // Tezkor topshiriq muddati o'tdi (25 soat) → C va D ga emas (D uzrli), B ga 1 ball.
+  await pool.query("UPDATE cls_live_sessions SET ended_at=now()-interval '25 hours', started_at=now()-interval '26 hours', starts_at=now()-interval '26 hours' WHERE id=$1", [s.id]);
+  await flow.penalizeOverdue();
+  assert.equal(await flow.monthPoints(group.id, B.id), 2);
+  assert.equal(await flow.monthPoints(group.id, D.id), 0);
+  // Chegaralar: C ga qo'lda 3 ball (chat odobi) → 6 → 1-ogohlantirish; yana 2 marta → 12.
+  for (let i = 0; i < 3; i++) assert.equal((await call(`/admin/groups/${group.id}/penalties`, { userId: C.id, note: "Chatda haqorat " + i }, T.h)).status, 200);
+  assert.equal(await flow.monthPoints(group.id, C.id), 13, "3 kelmadi + 1 tezkor + 9 chat");
+  const levels = (await pool.query("SELECT level FROM cls_warnings WHERE group_id=$1 AND user_id=$2 ORDER BY level", [group.id, C.id])).rows.map((r: any) => r.level);
+  assert.deepEqual(levels, [6, 10, 12]);
+  const disc = await get(`/admin/groups/${group.id}/discipline`, T.h);
+  assert.equal(disc.students[0].user_id, C.id);
+  const del = await fetch(base + `/api/platform/class/admin/penalties/${disc.students[0].items[0].id}`, { method: "DELETE", headers: { ...headers, ...T.h }, body: "{}" });
+  assert.equal(del.status, 200, await del.text());
+  assert.equal(await flow.monthPoints(group.id, C.id), 10);
+  // Mavzular va cheklist.
+  const topics = await get(`/admin/groups/${group.id}/topics`, T.h);
+  assert.equal(topics.topics[0].topic, "ism jumla");
+  const cl = await get(`/admin/groups/${group.id}/checklist`, T.h);
+  assert.equal(cl.rows[0].overdue >= 1, true);
 });

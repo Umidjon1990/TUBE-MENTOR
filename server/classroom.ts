@@ -6,6 +6,8 @@ import { randomBytes, randomInt } from "node:crypto";
 import { z } from "zod";
 import { pool } from "./db";
 import { requireAuth } from "./auth";
+import { currentOffer, isPreapproved, recordAgreement } from "./classroom-enroll";
+import { OFFER_CONSENTS } from "./offer-draft";
 
 export class ClassError extends Error {
   constructor(public status: number, message: string) {
@@ -59,6 +61,7 @@ const groupSettings = z.object({
   leaderboardMode: z.enum(["top10", "all"]).optional(),
   latePenalty: z.number().int().min(0).max(100).optional(),
   archived: z.boolean().optional(),
+  offerRequired: z.boolean().optional(),
 });
 const inviteCode = () => randomBytes(9).toString("base64url");
 
@@ -379,9 +382,10 @@ export function registerClassroom(app: Express) {
     const b = groupSettings.parse(req.body);
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
-              allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived)
+              allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived),
+              offer_required=COALESCE($9,offer_required)
         WHERE id=$1 RETURNING *`,
-      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null],
+      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null],
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
@@ -395,7 +399,8 @@ export function registerClassroom(app: Express) {
     const { group, role } = await needGroup(id, userOf(req), "view");
     const members = (
       await pool.query(
-        `SELECT m.user_id,m.status,m.phone,m.display_name,m.joined_at,m.muted_until,u.full_name,u.username
+        `SELECT m.user_id,m.status,m.phone,m.display_name,m.joined_at,m.muted_until,u.full_name,u.username,
+                (SELECT a.id FROM cls_agreements a WHERE a.group_id=m.group_id AND a.user_id=m.user_id ORDER BY a.accepted_at DESC LIMIT 1) AS agreement_id
            FROM cls_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1 AND m.status<>'removed' ORDER BY m.status DESC, m.joined_at`,
         [id],
       )
@@ -516,24 +521,33 @@ export function registerClassroom(app: Express) {
   app.get(P + "/invite/:code", route(async (req) => {
     const code = z.string().min(6).max(40).parse(req.params.code);
     const g = (await pool.query(
-      "SELECT g.id,g.name,g.invite_active,g.archived,c.title AS course_title,c.description FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.invite_code=$1",
+      "SELECT g.id,g.name,g.invite_active,g.archived,g.offer_required,c.title AS course_title,c.description FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.invite_code=$1",
       [code],
     )).rows[0];
     if (!g || !g.invite_active || g.archived) fail(404, "Taklif havolasi eskirgan yoki noto‘g‘ri");
     let status: string | null = null;
     if (req.session.userId)
       status = (await pool.query("SELECT status FROM cls_members WHERE group_id=$1 AND user_id=$2", [g.id, req.session.userId])).rows[0]?.status || null;
-    return { group: { id: g.id, name: g.name, courseTitle: g.course_title, description: g.description }, status };
+    const offer = g.offer_required ? await currentOffer() : null;
+    return {
+      group: { id: g.id, name: g.name, courseTitle: g.course_title, description: g.description },
+      status,
+      offer: offer && { version: offer.version, body: offer.body, consents: OFFER_CONSENTS },
+    };
   }));
   app.post(P + "/invite/:code/join", requireAuth, route(async (req) => {
     const code = z.string().min(6).max(40).parse(req.params.code);
     const b = z.object({
       phone: z.string().trim().transform((v) => v.replace(/[\s()-]/g, "")).pipe(z.string().regex(/^\+?\d{9,15}$/, "Telefon raqami noto‘g‘ri")),
       name: z.string().trim().min(2).max(80),
+      agreement: z.unknown().optional(),
     }).parse(req.body);
     const g = (await pool.query("SELECT * FROM cls_groups WHERE invite_code=$1", [code])).rows[0];
     if (!g || !g.invite_active || g.archived) fail(404, "Taklif havolasi eskirgan yoki noto‘g‘ri");
-    const status = g.auto_approve ? "active" : "pending";
+    // Oferta: rozilik yozilmasa qo'shilib bo'lmaydi (guruh sozlamasida o'chirilmagan bo'lsa).
+    const existing = (await pool.query("SELECT status FROM cls_members WHERE group_id=$1 AND user_id=$2", [g.id, userOf(req)])).rows[0];
+    const agreement = existing && existing.status !== "removed" ? null : await recordAgreement(req, g, b.name, b.phone, b.agreement);
+    const status = g.auto_approve || (await isPreapproved(g.id, b.phone)) ? "active" : "pending";
     const m = (await pool.query(
       `INSERT INTO cls_members(group_id,user_id,status,phone,display_name) VALUES($1,$2,$3,$4,$5)
        ON CONFLICT(group_id,user_id) DO UPDATE SET phone=EXCLUDED.phone, display_name=EXCLUDED.display_name,
@@ -549,7 +563,7 @@ export function registerClassroom(app: Express) {
         path: "",
         ref: `join-${g.id}-${userOf(req)}`,
       });
-    return { groupId: g.id, status: m.status };
+    return { groupId: g.id, status: m.status, agreementId: agreement?.id || null };
   }));
 
   /* ---------- O'quvchi ---------- */

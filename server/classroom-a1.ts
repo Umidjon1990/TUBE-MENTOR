@@ -32,6 +32,7 @@ export const wordSchema = z.object({
   exUz: z.string().trim().max(500).optional().default(""),
   /** Arabcha ta'rif (التعريف). */
   def: z.string().trim().max(500).optional().default(""),
+  defUz: z.string().trim().max(500).optional().default(""),
   /** Rasm: bazadagi xesh (import paytida imageData'dan yaratiladi). */
   img: z.string().regex(/^[a-f0-9]{40}$/).optional(),
   imageData: z.string().max(400_000).optional(),
@@ -50,6 +51,10 @@ const partSchema = z.discriminatedUnion("kind", [
     passPercent: z.number().int().min(0).max(100).default(80),
     maxAttempts: z.number().int().min(1).max(20).default(3),
     words: z.array(wordSchema).min(4).max(80),
+    /** Tayyor video darslar (YouTube): "words" — so'zlar (ixtiyoriy ko'rish), "qa" — savol-javob. */
+    videos: z.array(z.object({ id: z.enum(["words", "qa"]), title: z.string().trim().min(1).max(120), youtube: z.string().regex(/^[\w-]{6,20}$/), ratio: z.string().regex(/^\d{2,4}\/\d{2,4}$/).optional() })).max(4).default([]),
+    /** Qo'llanmadagi tayyor so'z testi. Bo'lsa imtihon shu savollardan (+ ta'rif savollari) tuziladi. */
+    exam: z.array(questionSchema).max(100).default([]),
   }),
 ]);
 
@@ -61,12 +66,12 @@ function pick<T>(list: T[], n: number, not: T) {
   return out;
 }
 /** Har so'zga bitta savol: arabcha → ma'no, ma'no → arabcha yoki birlik → ko'plik (navbatma-navbat, tasodifiy). */
-export function vocabQuestions(words: z.infer<typeof wordSchema>[]) {
+export function vocabQuestions(words: z.infer<typeof wordSchema>[], only?: "def") {
   const uz = [...new Set(words.map((w) => w.uz))];
   const ar = [...new Set(words.map((w) => w.ar))];
   const plurals = [...new Set(words.map((w) => w.plural).filter(Boolean))];
-  return words.map((w, i) => {
-    const kinds = ["ar-uz", "uz-ar", ...(w.plural && plurals.length >= 4 ? ["plural"] : []), ...(w.def ? ["def", "def"] : [])];
+  return words.filter((w) => !only || w.def).map((w, i) => {
+    const kinds = only ? ["def"] : ["ar-uz", "uz-ar", ...(w.plural && plurals.length >= 4 ? ["plural"] : []), ...(w.def ? ["def", "def"] : [])];
     const kind = kinds[(i + randomInt(kinds.length)) % kinds.length];
     if (kind === "uz-ar") {
       const options = [w.ar, ...pick(ar, 3, w.ar)];
@@ -74,7 +79,7 @@ export function vocabQuestions(words: z.infer<typeof wordSchema>[]) {
     }
     if (kind === "def") {
       const options = [w.ar, ...pick(ar, 3, w.ar)];
-      return { q: `Ta’rifga mos so‘zni toping: «${w.def}»`, options, correct: 0, explanation: `${w.ar} — ${w.uz}`, topic: "so‘z" };
+      return { q: `Ta’rifga mos so‘zni toping: «${w.def}»`, options, correct: 0, explanation: `${w.ar} — ${w.uz}${w.defUz ? ` (${w.defUz})` : ""}`, topic: "so‘z" };
     }
     if (kind === "plural") {
       const options = [w.plural, ...pick(plurals, 3, w.plural)];
@@ -85,6 +90,15 @@ export function vocabQuestions(words: z.infer<typeof wordSchema>[]) {
   });
 }
 
+/** So'z imtihoni: tayyor test bo'lsa — uning savollari va 8 ta tasodifiy ta'rif savoli; bo'lmasa har so'zga bittadan. */
+export function vocabExam(data: { words: z.infer<typeof wordSchema>[]; exam?: any[] }) {
+  if (!data.exam?.length) return vocabQuestions(data.words);
+  const defs = vocabQuestions(data.words, "def");
+  const chosen: any[] = [];
+  while (chosen.length < 8 && defs.length) chosen.push(defs.splice(randomInt(defs.length), 1)[0]);
+  return [...data.exam, ...chosen];
+}
+
 /* ---------------- O'quvchi: dars qismlari ---------------- */
 export async function partsFor(lessonId: string, groupId: string, userId: string) {
   const rows = (
@@ -93,14 +107,15 @@ export async function partsFor(lessonId: string, groupId: string, userId: string
               CASE WHEN p.kind='vocab' THEN jsonb_array_length(p.data->'words') ELSE jsonb_array_length(p.data->'questions') END AS count,
               (SELECT max(a.percent) FROM cls_part_attempts a WHERE a.part_id=p.id AND a.group_id=$2 AND a.user_id=$3 AND a.submitted_at IS NOT NULL)::int AS best,
               (SELECT count(*) FROM cls_part_attempts a WHERE a.part_id=p.id AND a.group_id=$2 AND a.user_id=$3 AND a.submitted_at IS NOT NULL)::int AS attempts,
-              EXISTS(SELECT 1 FROM cls_vocab_progress v WHERE v.part_id=p.id AND v.group_id=$2 AND v.user_id=$3) AS learned
+              EXISTS(SELECT 1 FROM cls_vocab_progress v WHERE v.part_id=p.id AND v.group_id=$2 AND v.user_id=$3) AS learned,
+              COALESCE(p.data->'videos','[]'::jsonb) AS videos
          FROM cls_parts p WHERE p.lesson_id=$1 ORDER BY p.position, p.created_at`,
       [lessonId, groupId, userId],
     )
   ).rows;
   return rows.map((r: any) => ({
     id: r.id, kind: r.kind, title: r.title, passPercent: r.pass_percent, maxAttempts: r.max_attempts, count: r.count,
-    best: r.best, attempts: r.attempts, passed: r.best !== null && r.best >= r.pass_percent, learned: r.learned,
+    best: r.best, attempts: r.attempts, passed: r.best !== null && r.best >= r.pass_percent, learned: r.learned, videos: r.videos,
   }));
 }
 
@@ -158,6 +173,9 @@ const importSchema = z.object({
     textAr: z.string().trim().min(1).max(5000),
     /** Savol-javob: o'quvchiga beriladigan savol; textAr — yodlanadigan javob. */
     promptAr: z.string().trim().max(1000).optional().default(""),
+    /** O'zbekcha tarjimalar: savol va javobning har bir gapi (o'quvchi ma'nosini bilib yodlaydi). */
+    promptUz: z.string().trim().max(1000).optional().default(""),
+    textUz: z.array(z.string().trim().max(1000)).max(60).default([]),
     maxSeconds: z.number().int().min(10).max(300).default(120),
     maxScore: z.number().int().min(1).max(100).default(10),
     proctor: z.enum(["off", "warn", "required"]).default("required"),
@@ -185,6 +203,15 @@ async function storeWordImages(b: ImportLesson) {
         w.img = hash;
         delete w.imageData;
       }
+  // Tayyor testdagi rasm savollari: so'z raqami → shu so'z rasmining xeshi.
+  for (const p of b.parts)
+    if (p.kind === "vocab")
+      for (const q of p.exam as any[])
+        if (q.imgWord) {
+          const img = p.words[q.imgWord - 1]?.img;
+          if (img) q.img = img;
+          delete q.imgWord;
+        }
 }
 type Db = { query: (sql: string, params?: unknown[]) => Promise<any> };
 /** Darsni tayyor kontent bilan yaratadi yoki yangilaydi (source_key bo'yicha); tranzaksiya ichida chaqiriladi. */
@@ -216,7 +243,7 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
   // Qismlar va og'zaki vazifalar sarlavha bo'yicha yangilanadi (bor natijalar saqlanib qoladi).
   const keepParts: string[] = [];
   for (const [i, p] of b.parts.entries()) {
-    const data = p.kind === "vocab" ? { words: p.words.map(({ imageData: _drop, ...w }) => w) } : { questions: p.questions };
+    const data = p.kind === "vocab" ? { words: p.words.map(({ imageData: _drop, ...w }) => w), videos: p.videos, exam: p.exam } : { questions: p.questions };
     const ex = (await c.query("SELECT id FROM cls_parts WHERE lesson_id=$1 AND title=$2", [lessonId, p.title])).rows[0];
     const id = ex
       ? (await c.query("UPDATE cls_parts SET kind=$2,position=$3,data=$4,pass_percent=$5,max_attempts=$6 WHERE id=$1 RETURNING id", [ex.id, p.kind, i, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id
@@ -229,12 +256,12 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
   for (const t of b.tasks) {
     const ex = (await c.query("SELECT id FROM cls_tasks WHERE lesson_id=$1 AND title=$2", [lessonId, t.title])).rows[0];
     if (ex) {
-      await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7,prompt_ar=$8 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null]);
+      await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7,prompt_ar=$8,prompt_uz=$9,text_uz=$10 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz)]);
       keepTasks.push(ex.id);
     } else
       keepTasks.push((await c.query(
-        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,prompt_ar) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id",
-        [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null],
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,prompt_ar,prompt_uz,text_uz) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id",
+        [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz)],
       )).rows[0].id);
   }
   await c.query("DELETE FROM cls_tasks WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepTasks]);
@@ -265,7 +292,7 @@ export function registerClassroomA1(app: Express) {
   app.get(P + "/groups/:id/parts/:partId/words", requireAuth, route(async (req) => {
     const { part } = await partContext(uuid.parse(req.params.id), uuid.parse(req.params.partId), userOf(req));
     if (part.kind !== "vocab") fail(400, "Bu so‘z topshirig‘i emas");
-    return { title: part.title, words: part.data.words };
+    return { title: part.title, words: part.data.words, videos: part.data.videos || [] };
   }));
   // So'zlar yodlandi: imtihon ochiladi.
   app.post(P + "/groups/:id/parts/:partId/learned", requireAuth, route(async (req) => {
@@ -291,7 +318,7 @@ export function registerClassroomA1(app: Express) {
     if (open) return { attemptId: open.id, title: part.title, kind: part.kind, questions: present(open.layout.q, open.layout.l) };
     const used = (await pool.query("SELECT count(*)::int AS n FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].n;
     if (!teacher && !test && used >= part.max_attempts) fail(409, "Urinishlar soni tugadi. O‘qituvchingizga yozing");
-    const questions = part.kind === "vocab" ? vocabQuestions(part.data.words) : part.data.questions;
+    const questions = part.kind === "vocab" ? vocabExam(part.data) : part.data.questions;
     const layout = makeLayout(questions);
     const a = (await pool.query(
       "INSERT INTO cls_part_attempts(part_id,group_id,user_id,layout,max_score) VALUES($1,$2,$3,$4,$5) RETURNING id",

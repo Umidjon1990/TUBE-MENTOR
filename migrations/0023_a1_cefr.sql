@@ -9,3 +9,7 @@ CREATE TABLE IF NOT EXISTS cls_media (
  content_type text NOT NULL,
  created_at timestamptz NOT NULL DEFAULT now()
 );
+--> statement-breakpoint
+ALTER TABLE cls_tasks ADD COLUMN IF NOT EXISTS prompt_uz text;
+--> statement-breakpoint
+ALTER TABLE cls_tasks ADD COLUMN IF NOT EXISTS text_uz jsonb NOT NULL DEFAULT '[]'::jsonb;

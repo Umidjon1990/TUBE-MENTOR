@@ -2332,6 +2332,26 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   assert.equal((await call(`/groups/${group.id}/test-reset`, {}, X.h)).status, 200);
   const after = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
   assert.deepEqual(after.parts.map((p: any) => [p.attempts, p.learned]), [[0, false], [0, false]]);
+  // Qo'llanmadagi tayyor test, video darslar va tarjimalar.
+  const exam = [
+    { q: "Rasmga mos so‘zni toping", options: ["قلم", "باب"], correct: 0, imgWord: 1 },
+    { q: "«Kitob» arabchada?", options: ["كتاب", "بيت"], correct: 0 },
+  ];
+  const v2 = {
+    ...content,
+    parts: [content.parts[0], { ...content.parts[1], videos: [{ id: "words", title: "So‘zlar", youtube: "aZ6pS19s4kQ", ratio: "984/880" }], exam, words: words.map((w) => ({ ...w, defUz: "ta’rif " + w.uz })) }],
+    tasks: [{ ...content.tasks[0], promptUz: "Sen kimsan?", textUz: ["Men Ahmadman.", "Men talabaman."] }],
+  };
+  await call(`/admin/courses/${course.id}/import-lesson`, v2, T.h);
+  const l2 = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
+  assert.deepEqual(l2.parts[1].videos.map((v: any) => v.youtube), ["aZ6pS19s4kQ"]);
+  assert.deepEqual([l2.tasks[0].prompt_uz, l2.tasks[0].text_uz], ["Sen kimsan?", ["Men Ahmadman.", "Men talabaman."]]);
+  await call(`/groups/${group.id}/parts/${vocab.id}/learned`, {}, X.h);
+  const ex = await (await call(`/groups/${group.id}/parts/${vocab.id}/attempts`, {}, X.h)).json();
+  assert.equal(ex.questions.length, 2 + 5, "tayyor test + ta'rif savollari");
+  const pic = ex.questions.find((q: any) => q.q.startsWith("Rasmga"));
+  assert.equal(pic.img, wl[0].img, "rasm savoliga so'z rasmi biriktiriladi");
+  assert.equal(JSON.stringify(ex).includes("correct"), false);
 });
 
 test("A1 pilot seed: service key only, creates course, group, lesson and the admin's test student once", async () => {

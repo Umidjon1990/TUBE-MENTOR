@@ -42,6 +42,9 @@ const choiceSchema = z.object({
   correct: z.number().int().min(0),
   explanation: z.string().trim().max(2000).optional().default(""),
   topic: z.string().trim().max(80).optional(),
+  /** Savol rasmi (cls_media xeshi). So'z imtihonida imgWord — so'z raqami, import paytida xeshga aylanadi. */
+  img: z.string().regex(/^[a-f0-9]{40}$/).optional(),
+  imgWord: z.number().int().min(1).max(80).optional(),
 }).refine((q) => q.correct < q.options.length, "To‘g‘ri javob varianti noto‘g‘ri");
 /** So'zlardan gap tuzish: words — to'g'ri tartibda; o'quvchiga aralashtirib ko'rsatiladi. */
 const orderSchema = z.object({
@@ -256,7 +259,7 @@ export function present(questions: any[], layout: { q: number; o: number[] }[]) 
   return layout.map((l) => {
     const q = questions[l.q];
     if (q.type === "match") return { type: "match", q: q.q, left: q.pairs.map((p: any) => p.a), right: l.o.map((j) => q.pairs[j].b) };
-    return q.type === "order" ? { type: "order", q: q.q, words: l.o.map((j) => q.words[j]) } : { q: q.q, options: l.o.map((j) => q.options[j]) };
+    return q.type === "order" ? { type: "order", q: q.q, words: l.o.map((j) => q.words[j]) } : { q: q.q, options: l.o.map((j) => q.options[j]), ...(q.img ? { img: q.img } : {}) };
   });
 }
 /** answers[i]: variant raqami (test) yoki ko'rsatilgan so'zlar tartibi (gap tuzish). */
@@ -681,7 +684,7 @@ export function registerClassroom(app: Express) {
     const q = (await pool.query("SELECT jsonb_array_length(questions)::int AS n,time_limit_minutes,max_attempts FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0];
     const tasks = (
       await pool.query(
-        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,t.shadow,t.prompt_ar,
+        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,t.shadow,t.prompt_ar,t.prompt_uz,t.text_uz,
                 (SELECT row_to_json(s) FROM (SELECT id,status,score,ai_percent,final_percent,comment,created_at,auto FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status IN ('graded','submitted') ORDER BY (s.status='graded') DESC, s.score DESC NULLS LAST, s.created_at DESC LIMIT 1) s) AS submission,
                 (SELECT count(*)::int FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status<>'rejected') AS attempts
            FROM cls_tasks t WHERE t.lesson_id=$1 ORDER BY t.created_at`,

@@ -74,7 +74,7 @@ export async function optionalAuth(
     if (
       !user ||
       !user.isActive ||
-      !hasVerifiedIdentity(user) ||
+      !canSignIn(user) ||
       (req.session.authVersion ?? 0) !== user.sessionVersion
     ) {
       delete (req.session as Partial<typeof req.session>).userId;
@@ -103,7 +103,7 @@ export async function requireAuth(
     !user ||
     !user.isActive ||
     (req.session.authVersion ?? 0) !== user.sessionVersion ||
-    !hasVerifiedIdentity(user)
+    !canSignIn(user)
   ) {
     req.session.destroy(() => {});
     return res.status(401).json({

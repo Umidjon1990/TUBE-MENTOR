@@ -3,7 +3,7 @@ import type { Express, Request, Response } from "express";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { hasVerifiedIdentity, requireAdmin, requireAuth } from "./auth";
+import { canSignIn, hasVerifiedIdentity, requireAdmin, requireAuth } from "./auth";
 import { rateLimit } from "./security";
 import {
   CommerceError,
@@ -81,7 +81,7 @@ function ticketDTO(ticket: Ticket, admin: boolean): SupportTicketDTO {
 }
 async function actor(tx: Tx, actorId: string, admin = false) {
   const [user] = await tx.select().from(users).where(eq(users.id, actorId));
-  if (!user?.isActive || !hasVerifiedIdentity(user))
+  if (!user?.isActive || !(admin ? hasVerifiedIdentity(user) : canSignIn(user)))
     return fail(401, "AUTH_REQUIRED", "Faol hisob talab qilinadi");
   if (admin && user.role !== "admin")
     fail(403, "ADMIN_REQUIRED", "Admin hisobi talab qilinadi");

@@ -17,7 +17,7 @@ import {
 import { getCommerceSettings } from "./commerce";
 import { storage } from "./storage";
 import { db, pool } from "./db";
-import { hasVerifiedIdentity } from "./auth";
+import { canSignIn } from "./auth";
 
 export type LessonAccess = "demo" | "owned" | "locked" | "admin";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -154,7 +154,7 @@ export async function accessibleLesson(
       .where(eq(users.id, req.session.userId));
     if (
       !user?.isActive ||
-      !hasVerifiedIdentity(user) ||
+      !canSignIn(user) ||
       user.sessionVersion !== (req.session.authVersion ?? 0)
     )
       throw Object.assign(

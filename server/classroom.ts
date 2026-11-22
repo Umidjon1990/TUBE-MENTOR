@@ -681,7 +681,7 @@ export function registerClassroom(app: Express) {
     const q = (await pool.query("SELECT jsonb_array_length(questions)::int AS n,time_limit_minutes,max_attempts FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0];
     const tasks = (
       await pool.query(
-        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,t.shadow,
+        `SELECT t.id,t.kind,t.title,t.text_ar,t.max_seconds,t.max_score,t.proctor,t.pass_percent,t.shadow,t.prompt_ar,
                 (SELECT row_to_json(s) FROM (SELECT id,status,score,ai_percent,final_percent,comment,created_at,auto FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status IN ('graded','submitted') ORDER BY (s.status='graded') DESC, s.score DESC NULLS LAST, s.created_at DESC LIMIT 1) s) AS submission,
                 (SELECT count(*)::int FROM cls_submissions s WHERE s.task_id=t.id AND s.group_id=$2 AND s.user_id=$3 AND s.status<>'rejected') AS attempts
            FROM cls_tasks t WHERE t.lesson_id=$1 ORDER BY t.created_at`,

@@ -30,6 +30,11 @@ export const wordSchema = z.object({
   uz: z.string().trim().min(1).max(200),
   exAr: z.string().trim().max(500).optional().default(""),
   exUz: z.string().trim().max(500).optional().default(""),
+  /** Arabcha ta'rif (التعريف). */
+  def: z.string().trim().max(500).optional().default(""),
+  /** Rasm: bazadagi xesh (import paytida imageData'dan yaratiladi). */
+  img: z.string().regex(/^[a-f0-9]{40}$/).optional(),
+  imageData: z.string().max(400_000).optional(),
 });
 const partSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -61,18 +66,22 @@ export function vocabQuestions(words: z.infer<typeof wordSchema>[]) {
   const ar = [...new Set(words.map((w) => w.ar))];
   const plurals = [...new Set(words.map((w) => w.plural).filter(Boolean))];
   return words.map((w, i) => {
-    const kinds = ["ar-uz", "uz-ar", ...(w.plural && plurals.length >= 4 ? ["plural"] : [])];
+    const kinds = ["ar-uz", "uz-ar", ...(w.plural && plurals.length >= 4 ? ["plural"] : []), ...(w.def ? ["def", "def"] : [])];
     const kind = kinds[(i + randomInt(kinds.length)) % kinds.length];
     if (kind === "uz-ar") {
       const options = [w.ar, ...pick(ar, 3, w.ar)];
-      return { q: `«${w.uz}» arabchada qanday?`, options, correct: 0, explanation: w.exAr ? `${w.exAr} — ${w.exUz}` : "", topic: "so‘z" };
+      return { q: `«${w.uz}» arabchada qanday?`, options, correct: 0, explanation: w.exAr ? `${w.exAr}${w.exUz ? " — " + w.exUz : ""}` : "", topic: "so‘z" };
+    }
+    if (kind === "def") {
+      const options = [w.ar, ...pick(ar, 3, w.ar)];
+      return { q: `Ta’rifga mos so‘zni toping: «${w.def}»`, options, correct: 0, explanation: `${w.ar} — ${w.uz}`, topic: "so‘z" };
     }
     if (kind === "plural") {
       const options = [w.plural, ...pick(plurals, 3, w.plural)];
       return { q: `«${w.ar}» so‘zining ko‘pligi qaysi?`, options, correct: 0, explanation: `${w.ar} — ${w.plural}`, topic: "so‘z" };
     }
     const options = [w.uz, ...pick(uz, 3, w.uz)];
-    return { q: `«${w.ar}» so‘zining ma’nosi?`, options, correct: 0, explanation: w.exAr ? `${w.exAr} — ${w.exUz}` : "", topic: "so‘z" };
+    return { q: `«${w.ar}» so‘zining ma’nosi?`, options, correct: 0, explanation: w.exAr ? `${w.exAr}${w.exUz ? " — " + w.exUz : ""}` : "", topic: "so‘z" };
   });
 }
 
@@ -135,6 +144,7 @@ export function splitSentences(text: string) {
 /* ---------------- Import ---------------- */
 const importSchema = z.object({
   key: z.string().trim().min(1).max(60),
+  version: z.number().int().min(1).max(10000).default(1),
   position: z.number().int().min(1).max(500),
   title: z.string().trim().min(1).max(200),
   kind: z.enum(["lesson", "midterm", "final"]).default("lesson"),
@@ -146,6 +156,8 @@ const importSchema = z.object({
   tasks: z.array(z.object({
     title: z.string().trim().min(1).max(200),
     textAr: z.string().trim().min(1).max(5000),
+    /** Savol-javob: o'quvchiga beriladigan savol; textAr — yodlanadigan javob. */
+    promptAr: z.string().trim().max(1000).optional().default(""),
     maxSeconds: z.number().int().min(10).max(300).default(120),
     maxScore: z.number().int().min(1).max(100).default(10),
     proctor: z.enum(["off", "warn", "required"]).default("required"),
@@ -155,6 +167,25 @@ const importSchema = z.object({
 });
 
 type ImportLesson = z.infer<typeof importSchema>;
+/** So'z rasmlarini omborga yozadi (bir xil rasm bir marta) va so'zga xeshini qo'yadi. Tranzaksiyadan oldin chaqiriladi. */
+async function storeWordImages(b: ImportLesson) {
+  for (const p of b.parts)
+    if (p.kind === "vocab")
+      for (const w of p.words) {
+        if (!w.imageData) continue;
+        const data = Buffer.from(w.imageData, "base64");
+        const type = data[0] === 0xff && data[1] === 0xd8 ? "image/jpeg" : data[0] === 0x89 && data[1] === 0x50 ? "image/png" : data[0] === 0x52 && data[8] === 0x57 ? "image/webp" : null;
+        if (!type || data.length > 300_000) fail(400, "So‘z rasmi noto‘g‘ri");
+        const hash = createHash("sha256").update(data).digest("hex").slice(0, 40);
+        if (!(await pool.query("SELECT 1 FROM cls_media WHERE hash=$1", [hash])).rowCount) {
+          const key = `class/media/${hash}.${type!.split("/")[1]}`;
+          await classStore().put(key, data, type!);
+          await pool.query("INSERT INTO cls_media(hash,storage_key,content_type) VALUES($1,$2,$3) ON CONFLICT DO NOTHING", [hash, key, type]);
+        }
+        w.img = hash;
+        delete w.imageData;
+      }
+}
 type Db = { query: (sql: string, params?: unknown[]) => Promise<any> };
 /** Darsni tayyor kontent bilan yaratadi yoki yangilaydi (source_key bo'yicha); tranzaksiya ichida chaqiriladi. */
 async function importLesson(c: Db, courseId: string, b: ImportLesson) {
@@ -162,11 +193,11 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
   let lessonId: string;
   if (old) {
     lessonId = old.id;
-    await c.query("UPDATE cls_lessons SET title=$2,kind=$3,body=$4,pass_percent=$5,position=$6 WHERE id=$1", [lessonId, b.title, b.kind, b.body, b.passPercent, b.position]);
+    await c.query("UPDATE cls_lessons SET title=$2,kind=$3,body=$4,pass_percent=$5,position=$6,source_version=$7 WHERE id=$1", [lessonId, b.title, b.kind, b.body, b.passPercent, b.position, b.version]);
   } else {
     lessonId = (await c.query(
-      "INSERT INTO cls_lessons(course_id,position,kind,title,body,pass_percent,source_key) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
-      [courseId, b.position, b.kind, b.title, b.body, b.passPercent, b.key],
+      "INSERT INTO cls_lessons(course_id,position,kind,title,body,pass_percent,source_key,source_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id",
+      [courseId, b.position, b.kind, b.title, b.body, b.passPercent, b.key, b.version],
     )).rows[0].id;
   }
   if (b.quiz) {
@@ -185,7 +216,7 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
   // Qismlar va og'zaki vazifalar sarlavha bo'yicha yangilanadi (bor natijalar saqlanib qoladi).
   const keepParts: string[] = [];
   for (const [i, p] of b.parts.entries()) {
-    const data = p.kind === "vocab" ? { words: p.words } : { questions: p.questions };
+    const data = p.kind === "vocab" ? { words: p.words.map(({ imageData: _drop, ...w }) => w) } : { questions: p.questions };
     const ex = (await c.query("SELECT id FROM cls_parts WHERE lesson_id=$1 AND title=$2", [lessonId, p.title])).rows[0];
     const id = ex
       ? (await c.query("UPDATE cls_parts SET kind=$2,position=$3,data=$4,pass_percent=$5,max_attempts=$6 WHERE id=$1 RETURNING id", [ex.id, p.kind, i, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id
@@ -193,11 +224,20 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
     keepParts.push(id);
   }
   await c.query("DELETE FROM cls_parts WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepParts]);
+  // Og'zaki vazifalar sarlavha bo'yicha yangilanadi; kontentda yo'q bo'lganlari o'chiriladi.
+  const keepTasks: string[] = [];
   for (const t of b.tasks) {
     const ex = (await c.query("SELECT id FROM cls_tasks WHERE lesson_id=$1 AND title=$2", [lessonId, t.title])).rows[0];
-    if (ex) await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
-    else await c.query("INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8)", [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
+    if (ex) {
+      await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7,prompt_ar=$8 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null]);
+      keepTasks.push(ex.id);
+    } else
+      keepTasks.push((await c.query(
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,prompt_ar) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id",
+        [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null],
+      )).rows[0].id);
   }
+  await c.query("DELETE FROM cls_tasks WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepTasks]);
   return { lessonId, created: !old };
 }
 
@@ -205,8 +245,9 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
 export async function warmLessonVoices(lessonId: string) {
   const texts: string[] = [];
   for (const p of (await pool.query("SELECT data FROM cls_parts WHERE lesson_id=$1 AND kind='vocab'", [lessonId])).rows)
-    for (const w of p.data.words || []) texts.push(w.ar, ...(w.exAr ? [w.exAr] : []));
-  for (const t of (await pool.query("SELECT text_ar FROM cls_tasks WHERE lesson_id=$1 AND shadow", [lessonId])).rows) texts.push(...splitSentences(t.text_ar));
+    for (const w of p.data.words || []) texts.push(w.ar, ...[w.plural, w.def, w.exAr].filter(Boolean));
+  for (const t of (await pool.query("SELECT text_ar,prompt_ar FROM cls_tasks WHERE lesson_id=$1 AND shadow", [lessonId])).rows)
+    texts.push(...(t.prompt_ar ? [t.prompt_ar] : []), ...splitSentences(t.text_ar));
   let ok = 0, failed = 0;
   for (const t of texts) {
     try {
@@ -273,28 +314,40 @@ export function registerClassroomA1(app: Express) {
   // Ovoz: faqat bazadagi matnlar uchun (ixtiyoriy matn qabul qilinmaydi).
   app.post(P + "/groups/:id/tts", requireAuth, route(async (req) => {
     const groupId = uuid.parse(req.params.id), uid = userOf(req);
-    const b = z.object({ source: z.enum(["word", "example", "task"]), id: uuid, index: z.number().int().min(0).max(200) }).parse(req.body);
+    const b = z.object({ source: z.enum(["word", "plural", "def", "example", "task", "prompt"]), id: uuid, index: z.number().int().min(0).max(200) }).parse(req.body);
     let text = "";
-    if (b.source === "task") {
-      const t = (await pool.query("SELECT lesson_id,text_ar FROM cls_tasks WHERE id=$1", [b.id])).rows[0] || fail(404, "Matn topilmadi");
+    if (b.source === "task" || b.source === "prompt") {
+      const t = (await pool.query("SELECT lesson_id,text_ar,prompt_ar FROM cls_tasks WHERE id=$1", [b.id])).rows[0] || fail(404, "Matn topilmadi");
       const { teacher } = await membership(groupId, uid);
       const state = (await lessonStates(groupId, uid, teacher)).find((s) => s.id === t.lesson_id) || fail(404, "Matn topilmadi");
       if (!state.unlocked) fail(403, "Bu dars hali ochilmagan");
-      text = splitSentences(t.text_ar)[b.index] || fail(404, "Gap topilmadi");
+      text = (b.source === "prompt" ? t.prompt_ar : splitSentences(t.text_ar)[b.index]) || fail(404, "Gap topilmadi");
     } else {
       const { part } = await partContext(groupId, b.id, uid);
       const w = part.kind === "vocab" ? part.data.words[b.index] : null;
-      text = (b.source === "word" ? w?.ar : w?.exAr) || fail(404, "So‘z topilmadi");
+      text = (b.source === "word" ? w?.ar : b.source === "plural" ? w?.plural : b.source === "def" ? w?.def : w?.exAr) || fail(404, "So‘z topilmadi");
     }
     return { url: await ttsUrl(text) };
   }));
+  app.get(P + "/media/:hash", requireAuth, async (req, res, next) => {
+    try {
+      const hash = z.string().regex(/^[a-f0-9]{40}$/).parse(req.params.hash);
+      const row = (await pool.query("SELECT storage_key,content_type FROM cls_media WHERE hash=$1", [hash])).rows[0];
+      const file = row ? await classStore().get(row.storage_key) : null;
+      if (!file) return res.status(404).json({ message: "Topilmadi" });
+      res.set({ "Content-Type": row.content_type, "Cache-Control": "private, max-age=2592000, immutable", "Content-Length": String(file.data.length) });
+      res.end(file.data);
+    } catch (e) {
+      next(e);
+    }
+  });
   app.get(P + "/tts-file/:hash", requireAuth, async (req, res, next) => {
     try {
       const hash = z.string().regex(/^[a-f0-9]{40}$/).parse(req.params.hash);
       const row = (await pool.query("SELECT storage_key FROM cls_tts WHERE hash=$1", [hash])).rows[0];
       const file = row ? await classStore().get(row.storage_key) : null;
       if (!file) return res.status(404).json({ message: "Topilmadi" });
-      res.set({ "Content-Type": "audio/mpeg", "Cache-Control": "private, max-age=604800", "Content-Length": String(file.data.length) });
+      res.set({ "Content-Type": "audio/mpeg", "Cache-Control": "private, max-age=2592000, immutable", "Content-Length": String(file.data.length) });
       res.end(file.data);
     } catch (e) {
       next(e);
@@ -324,6 +377,7 @@ export function registerClassroomA1(app: Express) {
     try {
       if (!platformKeyMatches(req.get("x-platform-key"))) return res.status(403).json({ message: "Xizmat ruxsati yo‘q" });
       const lessons = z.array(importSchema).min(1).max(40).parse(req.body?.lessons);
+      for (const l of lessons) await storeWordImages(l);
       const owner = (await pool.query("SELECT id FROM users WHERE role='admin' AND NOT is_test ORDER BY created_at LIMIT 1")).rows[0];
       if (!owner) return res.status(409).json({ message: "Admin topilmadi" });
       const c = await pool.connect();
@@ -332,11 +386,12 @@ export function registerClassroomA1(app: Express) {
         await c.query("BEGIN");
         await c.query("SELECT pg_advisory_xact_lock(7711001)");
         let course = (await c.query("SELECT id FROM cls_courses WHERE source_key='a1-pilot'")).rows[0];
-        if (!course) course = (await c.query("INSERT INTO cls_courses(title,description,level,source_key) VALUES('A1 kursi (sinov)','«Bosqichli arab tili A1» va «Arab tilida so‘z boyligi A1» asosida','A1','a1-pilot') RETURNING id")).rows[0];
+        if (!course) course = (await c.query("INSERT INTO cls_courses(title,description,level,source_key) VALUES('A1 kursi (sinov)','«Bosqichli arab tili A1» va «Arab tilida CEFR so‘z boyligi» asosida','A1','a1-pilot') RETURNING id")).rows[0];
         const created: string[] = [];
         for (const l of lessons) {
-          const has = (await c.query("SELECT id FROM cls_lessons WHERE course_id=$1 AND source_key=$2", [course.id, l.key])).rows[0];
-          if (!has) created.push((await importLesson(c, course.id, l)).lessonId);
+          // Yangi dars yaratiladi; kontent versiyasi oshgan bo'lsa (masalan, kitob almashdi) dars yangilanadi.
+          const has = (await c.query("SELECT id,source_version FROM cls_lessons WHERE course_id=$1 AND source_key=$2", [course.id, l.key])).rows[0];
+          if (!has || has.source_version < l.version) created.push((await importLesson(c, course.id, l)).lessonId);
         }
         let group = (await c.query("SELECT id,invite_code FROM cls_groups WHERE source_key='a1-pilot'")).rows[0];
         if (!group) {
@@ -387,6 +442,7 @@ export function registerClassroomA1(app: Express) {
     const courseId = uuid.parse(req.params.id), uid = userOf(req);
     await needCourse(courseId, uid);
     const b = importSchema.parse(req.body);
+    await storeWordImages(b);
     const c = await pool.connect();
     try {
       await c.query("BEGIN");

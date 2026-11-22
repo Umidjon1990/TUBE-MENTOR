@@ -2256,7 +2256,8 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
     fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
   const get = async (path: string, extra: Record<string, string>) => (await fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } })).json();
   const course = (await (await call("/admin/courses", { title: "A1 sinov" }, T.h)).json()).course;
-  const words = ["قلم:Qalam", "كتاب:Kitob", "باب:Eshik", "بيت:Uy", "ولد:O‘g‘il"].map((x) => ({ ar: x.split(":")[0], uz: x.split(":")[1] }));
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  const words = ["قلم:Qalam", "كتاب:Kitob", "باب:Eshik", "بيت:Uy", "ولد:O‘g‘il"].map((x, i) => ({ ar: x.split(":")[0], uz: x.split(":")[1], def: "تعريف " + i, ...(i === 0 ? { imageData: png.toString("base64") } : {}) }));
   const content = {
     key: "a1-01", position: 1, title: "1-dars", passPercent: 80,
     quiz: { questions: [{ q: "أنا ... (طالب)", options: ["طالب", "طالبة"], correct: 0 }], maxAttempts: 2 },
@@ -2265,7 +2266,7 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
       { kind: "quiz", title: "Mustahkamlash", questions: [{ type: "match", q: "Moslang", pairs: [{ a: "هو", b: "u (erkak)" }, { a: "هي", b: "u (ayol)" }, { a: "أنا", b: "men" }] }] },
       { kind: "vocab", title: "So‘zlar", words },
     ],
-    tasks: [{ title: "Og‘zaki: Ana va anta", textAr: "أنا أحمد. أنا طالب.", maxSeconds: 60, proctor: "off" }],
+    tasks: [{ title: "Og‘zaki: Ana va anta", textAr: "أنا أحمد. أنا طالب.", promptAr: "من أنت؟", maxSeconds: 60, proctor: "off" }],
   };
   assert.equal((await call(`/admin/courses/${course.id}/import-lesson`, content, S.h)).status, 403);
   const imp = await (await call(`/admin/courses/${course.id}/import-lesson`, content, T.h)).json();
@@ -2280,7 +2281,7 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   assert.equal((await fetch(base + `/api/platform/class/groups/${group.id}/lessons/${imp.lessonId}`, { headers: { ...headers, ...S.h } })).status, 403);
   const lesson = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
   assert.deepEqual(lesson.parts.map((p: any) => [p.kind, p.count, p.passed]), [["quiz", 1, false], ["vocab", 5, false]]);
-  assert.equal(lesson.tasks[0].shadow, true);
+  assert.deepEqual([lesson.tasks[0].shadow, lesson.tasks[0].prompt_ar], [true, "من أنت؟"]);
   // Tezkor topshiriq (jonli darssiz ham sinov hisobida ochiq), 20 ta savol.
   const qa = await (await call(`/groups/${group.id}/lessons/${imp.lessonId}/quick`, {}, X.h)).json();
   assert.equal(qa.questions.length, 20);
@@ -2298,13 +2299,17 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   assert.deepEqual([right.percent, right.passed], [100, true]);
   // So'zlar: yodlamasdan imtihon yo'q (oddiy o'quvchi uchun), yodlagach — 5 ta savol, hammasi to'g'ri → o'tdi.
   const byAr = Object.fromEntries(words.map((w) => [w.ar, w.uz])), byUz = Object.fromEntries(words.map((w) => [w.uz, w.ar]));
-  assert.equal((await get(`/groups/${group.id}/parts/${vocab.id}/words`, X.h)).words.length, 5);
+  const wl = (await get(`/groups/${group.id}/parts/${vocab.id}/words`, X.h)).words;
+  assert.deepEqual([wl.length, wl[0].def, typeof wl[0].img, "imageData" in wl[0]], [5, "تعريف 0", "string", false]);
+  const media = await fetch(base + "/api/platform/class/media/" + wl[0].img, { headers: { ...headers, ...X.h } });
+  assert.deepEqual([media.status, Buffer.from(await media.arrayBuffer()).equals(png)], [200, true]);
   await call(`/groups/${group.id}/parts/${vocab.id}/learned`, {}, X.h);
   const va = await (await call(`/groups/${group.id}/parts/${vocab.id}/attempts`, {}, X.h)).json();
   assert.equal(va.questions.length, 5);
   const vAns = va.questions.map((q: any) => {
     const m = q.q.match(/«(.+?)»/)[1];
-    return q.options.indexOf(byAr[m] ?? byUz[m]);
+    const byDef = Object.fromEntries(words.map((w) => [w.def, w.ar]));
+    return q.options.indexOf(byAr[m] ?? byUz[m] ?? byDef[m]);
   });
   assert.equal(vAns.includes(-1), false);
   assert.equal((await (await call(`/part-attempts/${va.attemptId}/submit`, { answers: vAns }, X.h)).json()).percent, 100);
@@ -2338,6 +2343,9 @@ test("A1 pilot seed: service key only, creates course, group, lesson and the adm
   const again = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [{ ...lesson, title: "o‘zgardi" }] }) })).json();
   assert.deepEqual([again.groupId, again.courseId, again.createdLessons], [first.groupId, first.courseId, 0], "qayta chaqiruv hech narsani qayta yozmaydi");
   assert.equal((await pool.query("SELECT title FROM cls_lessons WHERE course_id=$1", [first.courseId])).rows[0].title, "1-dars");
+  const bumped = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [{ ...lesson, version: 2, title: "1-dars: Oila" }] }) })).json();
+  assert.equal(bumped.createdLessons, 1, "versiya oshsa dars yangilanadi");
+  assert.equal((await pool.query("SELECT title FROM cls_lessons WHERE course_id=$1", [first.courseId])).rows[0].title, "1-dars: Oila");
   const m = (await pool.query("SELECT u.is_test, m.status FROM cls_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1", [first.groupId])).rows;
   assert.deepEqual(m.map((r: any) => [r.is_test, r.status]), [[true, "active"]]);
   const st = await (await fetch(url, { headers })).json();

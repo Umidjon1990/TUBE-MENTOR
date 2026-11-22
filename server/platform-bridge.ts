@@ -206,6 +206,11 @@ export function registerPlatformBridge(app: Express) {
       }
       const student = await storage.getUser(row.rows[0].id);
       if (!student) return res.status(500).json({ message: 'Sinov hisobini ochib bo‘lmadi' });
+      // Har bir adminning sinov o'quvchisi tayyor sinov guruhlariga (masalan, "A1 sinov guruhi") avtomatik qo'shiladi.
+      await pool.query(
+        "INSERT INTO cls_members(group_id,user_id,status,display_name) SELECT g.id,$1,'active','Sinov o‘quvchi' FROM cls_groups g WHERE g.source_key IS NOT NULL ON CONFLICT (group_id,user_id) DO UPDATE SET status='active'",
+        [student.id],
+      );
       res.json(await sessionFor(student));
     } catch (error) { next(error); }
   });

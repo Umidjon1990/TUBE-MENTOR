@@ -107,7 +107,9 @@ async function partContext(groupId: string, partId: string, userId: string) {
 /* ---------------- Ovoz (klon) ---------------- */
 async function ttsUrl(text: string) {
   const key = process.env.ELEVENLABS_API_KEY, voice = process.env.ELEVENLABS_VOICE_ID;
-  const model = process.env.ELEVENLABS_MODEL || "eleven_multilingual_v2";
+  // Sinfxona ovozlari uchun barqaror model: ifodali modellar (v3/v4) qisqa so'zlarga nafas, kulgi kabi ortiqcha
+  // tovushlar qo'shishi mumkin. Model nomi xeshga kiradi — model almashsa, ovozlar qayta yaratiladi.
+  const model = process.env.CLASS_TTS_MODEL || "eleven_multilingual_v2";
   const hash = createHash("sha256").update(`${voice}|${model}|${text}`).digest("hex").slice(0, 40);
   const cached = (await pool.query("SELECT hash FROM cls_tts WHERE hash=$1", [hash])).rows[0];
   if (cached) return `${P}/tts-file/${hash}`;
@@ -115,7 +117,8 @@ async function ttsUrl(text: string) {
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice!)}?output_format=mp3_44100_64`, {
     method: "POST",
     headers: { "xi-api-key": key!, "content-type": "application/json", accept: "audio/mpeg" },
-    body: JSON.stringify({ text, model_id: model }), // ovoz sozlamalari ElevenLabs'dagi klonning o'zidan olinadi
+    // Barqaror, toza ovoz: yuqori o'xshashlik, fon tovushlarisiz (style 0, speaker boost).
+    body: JSON.stringify({ text, model_id: model, voice_settings: { stability: 0.7, similarity_boost: 0.9, style: 0, use_speaker_boost: true } }),
   }).catch(() => null);
   if (!r?.ok) fail(502, "Ovoz tayyorlanmadi, birozdan keyin urinib ko‘ring");
   const data = Buffer.from(await r!.arrayBuffer());

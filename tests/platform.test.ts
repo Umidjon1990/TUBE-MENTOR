@@ -2342,4 +2342,11 @@ test("A1 pilot seed: service key only, creates course, group, lesson and the adm
   assert.deepEqual(m.map((r: any) => [r.is_test, r.status]), [[true, "active"]]);
   const st = await (await fetch(url, { headers })).json();
   assert.equal(st.group.lessons, 1);
+  // Boshqa admin "O'quvchi sifatida kirish"ni bossa ham, uning sinov o'quvchisi sinov guruhida bo'ladi.
+  const { hashPassword } = await import("../server/auth");
+  await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES('Ikkinchi admin','pilot_admin2',$1,true,'admin')", [hashPassword("pass-pilot2")]);
+  const adm = (await (await post("/api/platform/auth/password", { username: "pilot_admin2", password: "pass-pilot2" })).json()).token;
+  const sm = await (await post("/api/platform/auth/student-mode", {}, { "x-platform-session": adm })).json();
+  const groups = await (await fetch(base + "/api/platform/class/my", { headers: { ...headers, "x-platform-session": sm.token } })).json();
+  assert.ok(groups.groups.some((g: any) => g.id === first.groupId), "sinov guruhi o'quvchi rejimida ko'rinadi");
 });

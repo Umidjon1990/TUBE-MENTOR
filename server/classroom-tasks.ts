@@ -107,6 +107,45 @@ const realTranscriber: Transcriber = async (audio, mime) => {
   return { text: String(result?.text || ""), words: Array.isArray(result?.words) ? result.words : undefined };
 };
 let transcriber: Transcriber = realTranscriber;
+
+/* ---------------- ChatGPT: so'zma-so'z hakamlik ---------------- */
+export type Judge = { percent: number; missing: string[]; wrong: { said: string; expected: string }[]; extra: string[]; note: string };
+type Judger = (original: string, spoken: string, lcs: number) => Promise<Judge>;
+const realJudge: Judger = async (original, spoken, lcs) => {
+  const key = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  if (!key) throw new Error("OpenAI is not configured");
+  openai ||= new OpenAI({ apiKey: key, ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }) });
+  const r: any = await openai.chat.completions.create({
+    model: process.env.CLASS_JUDGE_MODEL || "gpt-4o-mini",
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You grade an Arabic memorization (recitation) exam. ORIGINAL is the text the student had to memorize word for word. TRANSCRIPT is an automatic speech-to-text (Whisper) result of the student's recording. " +
+          "Compare them word by word, ignoring diacritics (harakat), punctuation, hamza/alif/ta-marbuta spelling variants and obvious speech-recognition spelling errors of the SAME word. " +
+          "Count as errors only words the student omitted, replaced with a different word, or added. Return JSON: {\"percent\": integer 0-100 = share of ORIGINAL words said correctly and in order, minus small penalty for added words, " +
+          "\"missing\": [original words not said], \"wrong\": [{\"said\": word, \"expected\": word}], \"extra\": [added words], \"note\": one short sentence in Uzbek (Latin script) for the student}. Be strict: the text must be memorized verbatim.",
+      },
+      { role: "user", content: `ORIGINAL:\n${original}\n\nTRANSCRIPT:\n${spoken}\n\nAutomatic word-match score for reference: ${lcs}%` },
+    ],
+  });
+  const j = JSON.parse(r?.choices?.[0]?.message?.content || "{}");
+  const list = (v: any) => (Array.isArray(v) ? v.map(String).slice(0, 60) : []);
+  return {
+    percent: Math.max(0, Math.min(100, Math.round(Number(j.percent)))),
+    missing: list(j.missing),
+    wrong: Array.isArray(j.wrong) ? j.wrong.slice(0, 60).map((w: any) => ({ said: String(w?.said ?? ""), expected: String(w?.expected ?? "") })) : [],
+    extra: list(j.extra),
+    note: String(j.note || "").slice(0, 400),
+  };
+};
+let judge: Judger | null = realJudge;
+/** Testlar uchun: null — hakam o'chiq (faqat avtomatik solishtirish). */
+export function setJudge(fn: Judger | null | undefined) {
+  judge = fn === undefined ? realJudge : fn;
+}
 export function setTranscriber(fn: Transcriber | undefined) {
   transcriber = fn || realTranscriber;
 }
@@ -168,7 +207,8 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   if (input.seconds > task.max_seconds + 10) fail(400, `Yozuv ${task.max_seconds} soniyadan oshmasin`);
   if (task.proctor === "required" && !input.proctor?.enabled) fail(400, "Bu vazifa old kamera yoqilgan holda yoziladi");
   const used = (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status<>'rejected'", [task.id, input.groupId, input.userId])).rows[0].n;
-  if (used >= MAX_ATTEMPTS) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
+  const test = !!(await pool.query("SELECT is_test FROM users WHERE id=$1", [input.userId])).rows[0]?.is_test;
+  if (used >= MAX_ATTEMPTS && !test) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
   const proctor = task.proctor === "off" ? null : input.proctor;
   const verdict = proctorVerdict(proctor);
   if (verdict.retake) {
@@ -187,8 +227,8 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   const key = `class/audio/${input.groupId}/${id}.${ext}`;
   const store = classStore();
   await store.put(key, audio, audioMime);
-  const snaps = input.snapshots.slice(0, 4);
-  for (let i = 0; i < snaps.length; i++) await store.put(`class/snap/${input.groupId}/${id}-${i}.jpg`, snaps[i], "image/jpeg");
+  // Yuz suratlari serverga saqlanmaydi (biometrik ma'lumot): faqat raqamli kamera hisoboti qoladi.
+  const snaps: Buffer[] = [];
   const due = (await pool.query("SELECT due_at FROM cls_group_lessons WHERE group_id=$1 AND lesson_id=$2", [input.groupId, task.lesson_id])).rows[0]?.due_at;
   const late = !!due && new Date(due).getTime() < Date.now();
   await pool.query("UPDATE cls_submissions SET status='replaced' WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status='submitted'", [task.id, input.groupId, input.userId]);
@@ -197,16 +237,19 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
      VALUES($1,$2,$3,$4,$5,$6,$7,'web',$8,'submitted',$9,$10)`,
     [id, task.id, input.groupId, input.userId, key, Math.round(input.seconds), audioMime, late, proctor ? JSON.stringify(proctor) : null, snaps.length],
   );
-  let result: { accuracy: number; diff: DiffItem[]; pauses: number | null; final: number; score: number } | null = null;
+  let result: { accuracy: number; diff: DiffItem[]; pauses: number | null; final: number; score: number; judge: Judge | null } | null = null;
   try {
     const t = await transcriber(audio, audioMime);
     const cmp = compareRecitation(task.text_ar, t.text);
+    let verdictAi: Judge | null = null;
+    if (judge && t.text.trim()) verdictAi = await judge(task.text_ar, t.text, cmp.percent).catch(() => null);
+    const accuracy = verdictAi ? verdictAi.percent : cmp.percent;
     const pauses = countPauses(t.words);
-    const final = autoPercent(cmp.percent, pauses, verdict.warnings);
-    result = { accuracy: cmp.percent, diff: cmp.diff, pauses, final, score: Math.round((task.max_score * final) / 100) };
+    const final = autoPercent(accuracy, pauses, verdict.warnings);
+    result = { accuracy, diff: cmp.diff, pauses, final, score: Math.round((task.max_score * final) / 100), judge: verdictAi };
     await pool.query(
-      `UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4, pauses=$5, final_percent=$6, score=$7, status='graded', auto=true, graded_at=now() WHERE id=$1`,
-      [id, t.text.slice(0, 10000), cmp.percent, JSON.stringify(cmp.diff), pauses, final, result.score],
+      `UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4, pauses=$5, final_percent=$6, score=$7, ai_judge=$8, status='graded', auto=true, graded_at=now() WHERE id=$1`,
+      [id, t.text.slice(0, 10000), accuracy, JSON.stringify(cmp.diff), pauses, final, result.score, verdictAi ? JSON.stringify(verdictAi) : null],
     );
   } catch {
     // AI vaqtincha ishlamasa — o'qituvchi navbatiga tushadi (zaxira yo'l).
@@ -226,7 +269,8 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
     warnings: verdict.warnings,
     late,
     diff: result?.diff ?? null,
-    attemptsLeft: MAX_ATTEMPTS - used - 1,
+    judge: result?.judge ?? null,
+    attemptsLeft: test ? 99 : MAX_ATTEMPTS - used - 1,
   };
 }
 
@@ -241,6 +285,7 @@ export function registerClassTasks(app: Express) {
     maxScore: z.number().int().min(1).max(100).default(10),
     proctor: z.enum(["off", "warn", "required"]).default("required"),
     passPercent: z.number().int().min(10).max(100).default(80),
+    shadow: z.boolean().default(false),
   });
   app.get(P + "/admin/lessons/:id/tasks", requireStaff, route(async (req) => {
     await needLesson(uuid.parse(req.params.id), userOf(req), "view");
@@ -251,8 +296,8 @@ export function registerClassTasks(app: Express) {
     const b = taskSchema.parse(req.body);
     const t = (
       await pool.query(
-        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent) SELECT $1,'recitation',$2,$3,$4,$5,$6,$7 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
-        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore, b.proctor, b.passPercent],
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow) SELECT $1,'recitation',$2,$3,$4,$5,$6,$7,$8 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
+        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore, b.proctor, b.passPercent, b.shadow],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Dars topilmadi");
@@ -264,8 +309,8 @@ export function registerClassTasks(app: Express) {
     const t = (
       await pool.query(
         `UPDATE cls_tasks SET title=COALESCE($2,title), text_ar=COALESCE($3,text_ar), max_seconds=COALESCE($4,max_seconds), max_score=COALESCE($5,max_score),
-                proctor=COALESCE($6,proctor), pass_percent=COALESCE($7,pass_percent) WHERE id=$1 RETURNING *`,
-        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null, b.proctor ?? null, b.passPercent ?? null],
+                proctor=COALESCE($6,proctor), pass_percent=COALESCE($7,pass_percent), shadow=COALESCE($8,shadow) WHERE id=$1 RETURNING *`,
+        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null, b.proctor ?? null, b.passPercent ?? null, b.shadow ?? null],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Vazifa topilmadi");
@@ -289,7 +334,7 @@ export function registerClassTasks(app: Express) {
         snapshots: z.array(z.string().max(200_000)).max(4).optional().default([]),
       })
       .parse(req.body);
-    const snapshots = b.snapshots.map((x) => Buffer.from(x, "base64")).filter((x) => x.length > 100 && x[0] === 0xff && x[1] === 0xd8);
+    const snapshots: Buffer[] = []; // eski mijozlar yuborsa ham saqlanmaydi
     return submitRecitation({
       groupId: uuid.parse(req.params.id),
       taskId: uuid.parse(req.params.taskId),

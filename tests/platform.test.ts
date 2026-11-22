@@ -1905,7 +1905,7 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   assert.equal((await get(`/submissions/${sub.id}/audio`, P.h)).status, 404, "boshqa o'quvchi eshita olmaydi");
   assert.equal(Buffer.from(await (await get(`/submissions/${sub.id}/audio`, S.h)).arrayBuffer()).length, webm.length);
   assert.equal((await get(`/submissions/${sub.id}/snap/0`, S.h)).status, 404, "kamera suratini faqat o'qituvchi ko'radi");
-  assert.equal(Buffer.from(await (await get(`/submissions/${sub.id}/snap/0`, T.h)).arrayBuffer()).length, jpeg.length);
+  assert.equal((await get(`/submissions/${sub.id}/snap/0`, T.h)).status, 404, "yuz suratlari serverda saqlanmaydi");
   assert.equal((await get(`/groups/${group.id}/review`, S.h)).status, 403);
   const graded = await (await get(`/groups/${group.id}/review?status=graded`, T.h)).json();
   assert.deepEqual(graded.items.map((i: any) => [i.name, i.final_percent, i.score, i.auto]), [["Ali", 100, 10, true], ["Ali", 78, 8, true]]);
@@ -2239,4 +2239,105 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   assert.equal(topics.topics[0].topic, "ism jumla");
   const cl = await get(`/admin/groups/${group.id}/checklist`, T.h);
   assert.equal(cl.rows[0].overdue >= 1, true);
+});
+
+test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, test account unlocks everything and resets", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { setTranscriber, setJudge } = await import("../server/classroom-tasks");
+  const mk = async (u: string, role = "student", isTest = false) => {
+    const id = (await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,is_test) VALUES($1,$1,$2,true,$3,$4) RETURNING id", [u, hashPassword("pass-" + u), role, isTest])).rows[0].id;
+    const t = (await (await post("/api/platform/auth/password", { username: u, password: "pass-" + u })).json()).token;
+    return { id, h: { "x-platform-session": t } };
+  };
+  const T = await mk("a1_admin", "admin"), S = await mk("a1_student"), X = await mk("a1_tester", "student", true);
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+  const get = async (path: string, extra: Record<string, string>) => (await fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } })).json();
+  const course = (await (await call("/admin/courses", { title: "A1 sinov" }, T.h)).json()).course;
+  const words = ["قلم:Qalam", "كتاب:Kitob", "باب:Eshik", "بيت:Uy", "ولد:O‘g‘il"].map((x) => ({ ar: x.split(":")[0], uz: x.split(":")[1] }));
+  const content = {
+    key: "a1-01", position: 1, title: "1-dars", passPercent: 80,
+    quiz: { questions: [{ q: "أنا ... (طالب)", options: ["طالب", "طالبة"], correct: 0 }], maxAttempts: 2 },
+    quick: { questions: Array.from({ length: 20 }, (_, i) => ({ q: "S" + i, options: ["a", "b"], correct: 0 })) },
+    parts: [
+      { kind: "quiz", title: "Mustahkamlash", questions: [{ type: "match", q: "Moslang", pairs: [{ a: "هو", b: "u (erkak)" }, { a: "هي", b: "u (ayol)" }, { a: "أنا", b: "men" }] }] },
+      { kind: "vocab", title: "So‘zlar", words },
+    ],
+    tasks: [{ title: "Og‘zaki: Ana va anta", textAr: "أنا أحمد. أنا طالب.", maxSeconds: 60, proctor: "off" }],
+  };
+  assert.equal((await call(`/admin/courses/${course.id}/import-lesson`, content, S.h)).status, 403);
+  const imp = await (await call(`/admin/courses/${course.id}/import-lesson`, content, T.h)).json();
+  assert.equal(imp.created, true);
+  const again = await (await call(`/admin/courses/${course.id}/import-lesson`, { ...content, title: "1-dars: Tanishuv" }, T.h)).json();
+  assert.deepEqual([again.lessonId, again.created], [imp.lessonId, false], "qayta import o'sha darsni yangilaydi");
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM cls_parts WHERE lesson_id=$1", [imp.lessonId])).rows[0].n, 2);
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "A1 sinov guruhi" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true, offerRequired: false }, T.h, "PATCH");
+  for (const u of [S, X]) assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+99890" + String(Math.random()).slice(2, 9), name: "O‘quvchi" }, u.h)).json()).status, "active");
+  // Dars rejalashtirilmagan: oddiy o'quvchiga yopiq, sinov hisobiga ochiq.
+  assert.equal((await fetch(base + `/api/platform/class/groups/${group.id}/lessons/${imp.lessonId}`, { headers: { ...headers, ...S.h } })).status, 403);
+  const lesson = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
+  assert.deepEqual(lesson.parts.map((p: any) => [p.kind, p.count, p.passed]), [["quiz", 1, false], ["vocab", 5, false]]);
+  assert.equal(lesson.tasks[0].shadow, true);
+  // Tezkor topshiriq (jonli darssiz ham sinov hisobida ochiq), 20 ta savol.
+  const qa = await (await call(`/groups/${group.id}/lessons/${imp.lessonId}/quick`, {}, X.h)).json();
+  assert.equal(qa.questions.length, 20);
+  // Moslashtirish: javoblar ko'rsatilmaydi, faqat serverda tekshiriladi.
+  const mustah = lesson.parts[0], vocab = lesson.parts[1];
+  const ma = await (await call(`/groups/${group.id}/parts/${mustah.id}/attempts`, {}, X.h)).json();
+  const mq = ma.questions[0];
+  assert.equal(mq.type, "match");
+  assert.equal(JSON.stringify(ma).includes("correct"), false);
+  const truth: Record<string, string> = { "هو": "u (erkak)", "هي": "u (ayol)", "أنا": "men" };
+  const wrong = await (await call(`/part-attempts/${ma.attemptId}/submit`, { answers: [[0, 0, 0]] }, X.h)).json();
+  assert.equal(wrong.percent, 0);
+  const ma2 = await (await call(`/groups/${group.id}/parts/${mustah.id}/attempts`, {}, X.h)).json();
+  const right = await (await call(`/part-attempts/${ma2.attemptId}/submit`, { answers: [ma2.questions[0].left.map((l: string) => ma2.questions[0].right.indexOf(truth[l]))] }, X.h)).json();
+  assert.deepEqual([right.percent, right.passed], [100, true]);
+  // So'zlar: yodlamasdan imtihon yo'q (oddiy o'quvchi uchun), yodlagach — 5 ta savol, hammasi to'g'ri → o'tdi.
+  const byAr = Object.fromEntries(words.map((w) => [w.ar, w.uz])), byUz = Object.fromEntries(words.map((w) => [w.uz, w.ar]));
+  assert.equal((await get(`/groups/${group.id}/parts/${vocab.id}/words`, X.h)).words.length, 5);
+  await call(`/groups/${group.id}/parts/${vocab.id}/learned`, {}, X.h);
+  const va = await (await call(`/groups/${group.id}/parts/${vocab.id}/attempts`, {}, X.h)).json();
+  assert.equal(va.questions.length, 5);
+  const vAns = va.questions.map((q: any) => {
+    const m = q.q.match(/«(.+?)»/)[1];
+    return q.options.indexOf(byAr[m] ?? byUz[m]);
+  });
+  assert.equal(vAns.includes(-1), false);
+  assert.equal((await (await call(`/part-attempts/${va.attemptId}/submit`, { answers: vAns }, X.h)).json()).percent, 100);
+  // Og'zaki: ChatGPT hakami foizni beradi, yuz suratlari saqlanmaydi.
+  setTranscriber(async () => ({ text: "انا احمد انا طالب" }));
+  setJudge(async () => ({ percent: 92, missing: [], wrong: [], extra: [], note: "Yaxshi" }));
+  const webm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), randomBytes(400)]);
+  const oral = await (await call(`/groups/${group.id}/tasks/${lesson.tasks[0].id}/submit`, { audio: webm.toString("base64"), mime: "audio/webm", seconds: 8 }, X.h)).json();
+  assert.deepEqual([oral.aiPercent, oral.passed, oral.judge.note], [92, true, "Yaxshi"]);
+  setTranscriber(undefined); setJudge(undefined);
+  // Ovoz: kalit sozlanmagan — 503 (sayt brauzer ovoziga o'tadi); begona matn so'rab bo'lmaydi.
+  assert.equal((await call(`/groups/${group.id}/tts`, { source: "word", id: vocab.id, index: 0 }, X.h)).status, 503);
+  assert.equal((await call(`/groups/${group.id}/tts`, { source: "task", id: lesson.tasks[0].id, index: 9 }, X.h)).status, 404);
+  // Oqim: sinov hisobida asosiy topshiriq ochiq, qismlar hisobga olinadi.
+  const f = await get(`/groups/${group.id}/flow`, X.h);
+  const main = f.lessons[0].steps.find((x: any) => x.key === "main");
+  assert.deepEqual(main.parts, { total: 2, done: 2 });
+  // Tozalash: faqat sinov hisobi.
+  assert.equal((await call(`/groups/${group.id}/test-reset`, {}, S.h)).status, 403);
+  assert.equal((await call(`/groups/${group.id}/test-reset`, {}, X.h)).status, 200);
+  const after = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
+  assert.deepEqual(after.parts.map((p: any) => [p.attempts, p.learned]), [[0, false], [0, false]]);
+});
+
+test("A1 pilot seed: service key only, creates course, group, lesson and the admin's test student once", async () => {
+  const lesson = { key: "a1-01", position: 1, title: "1-dars", quick: { questions: [{ q: "S", options: ["a", "b"], correct: 0 }] }, parts: [{ kind: "vocab", title: "So‘zlar", words: ["قلم:Qalam", "كتاب:Kitob", "باب:Eshik", "بيت:Uy"].map((x) => ({ ar: x.split(":")[0], uz: x.split(":")[1] })) }] };
+  const url = base + "/api/platform/class/service/a1-pilot";
+  assert.equal((await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lessons: [lesson] }) })).status, 403);
+  const first = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [lesson] }) })).json();
+  assert.equal(first.createdLessons, 1);
+  const again = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [{ ...lesson, title: "o‘zgardi" }] }) })).json();
+  assert.deepEqual([again.groupId, again.courseId, again.createdLessons], [first.groupId, first.courseId, 0], "qayta chaqiruv hech narsani qayta yozmaydi");
+  assert.equal((await pool.query("SELECT title FROM cls_lessons WHERE course_id=$1", [first.courseId])).rows[0].title, "1-dars");
+  const m = (await pool.query("SELECT u.is_test, m.status FROM cls_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1", [first.groupId])).rows;
+  assert.deepEqual(m.map((r: any) => [r.is_test, r.status]), [[true, "active"]]);
+  const st = await (await fetch(url, { headers })).json();
+  assert.equal(st.group.lessons, 1);
 });

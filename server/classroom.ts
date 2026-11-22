@@ -84,7 +84,7 @@ const groupSettings = z.object({
   offerRequired: z.boolean().optional(),
   discipline: z.boolean().optional(),
 });
-const inviteCode = () => randomBytes(9).toString("base64url");
+export const inviteCode = () => randomBytes(9).toString("base64url");
 
 /* ------------------------------------------------------------------ */
 /* Access                                                              */

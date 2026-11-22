@@ -2326,3 +2326,18 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   const after = await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h);
   assert.deepEqual(after.parts.map((p: any) => [p.attempts, p.learned]), [[0, false], [0, false]]);
 });
+
+test("A1 pilot seed: service key only, creates course, group, lesson and the admin's test student once", async () => {
+  const lesson = { key: "a1-01", position: 1, title: "1-dars", quick: { questions: [{ q: "S", options: ["a", "b"], correct: 0 }] }, parts: [{ kind: "vocab", title: "So‘zlar", words: ["قلم:Qalam", "كتاب:Kitob", "باب:Eshik", "بيت:Uy"].map((x) => ({ ar: x.split(":")[0], uz: x.split(":")[1] })) }] };
+  const url = base + "/api/platform/class/service/a1-pilot";
+  assert.equal((await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lessons: [lesson] }) })).status, 403);
+  const first = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [lesson] }) })).json();
+  assert.equal(first.createdLessons, 1);
+  const again = await (await fetch(url, { method: "POST", headers, body: JSON.stringify({ lessons: [{ ...lesson, title: "o‘zgardi" }] }) })).json();
+  assert.deepEqual([again.groupId, again.courseId, again.createdLessons], [first.groupId, first.courseId, 0], "qayta chaqiruv hech narsani qayta yozmaydi");
+  assert.equal((await pool.query("SELECT title FROM cls_lessons WHERE course_id=$1", [first.courseId])).rows[0].title, "1-dars");
+  const m = (await pool.query("SELECT u.is_test, m.status FROM cls_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1", [first.groupId])).rows;
+  assert.deepEqual(m.map((r: any) => [r.is_test, r.status]), [[true, "active"]]);
+  const st = await (await fetch(url, { headers })).json();
+  assert.equal(st.group.lessons, 1);
+});

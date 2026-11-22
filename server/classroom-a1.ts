@@ -9,12 +9,13 @@
 // • Import: kurs darsini tayyor kontent bilan yaratadi yoki yangilaydi (source_key bo'yicha). Kitob matni bu ochiq
 //   repoda saqlanmaydi — uni sayt serveri yopiq repodan yuboradi.
 import type { Express, Request } from "express";
-import { createHash, randomInt } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import { z } from "zod";
 import { pool } from "./db";
-import { requireAuth } from "./auth";
+import { hashPassword, requireAuth } from "./auth";
+import { platformKeyMatches } from "./platform-bridge";
 import { classStore } from "./class-storage";
-import { ClassError, answersSchema, grade, isTestUser, lessonStates, makeLayout, membership, needCourse, present, questionSchema, requireStaff, route, uuid } from "./classroom";
+import { ClassError, answersSchema, grade, inviteCode, isTestUser, lessonStates, makeLayout, membership, needCourse, present, questionSchema, requireStaff, route, uuid } from "./classroom";
 import { mainGate } from "./classroom-flow";
 
 const P = "/api/platform/class";
@@ -114,7 +115,7 @@ async function ttsUrl(text: string) {
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice!)}?output_format=mp3_44100_64`, {
     method: "POST",
     headers: { "xi-api-key": key!, "content-type": "application/json", accept: "audio/mpeg" },
-    body: JSON.stringify({ text, model_id: model, voice_settings: { stability: 0.6, similarity_boost: 0.85 } }),
+    body: JSON.stringify({ text, model_id: model }), // ovoz sozlamalari ElevenLabs'dagi klonning o'zidan olinadi
   }).catch(() => null);
   if (!r?.ok) fail(502, "Ovoz tayyorlanmadi, birozdan keyin urinib ko‘ring");
   const data = Buffer.from(await r!.arrayBuffer());
@@ -149,6 +150,71 @@ const importSchema = z.object({
     shadow: z.boolean().default(true),
   })).max(10).default([]),
 });
+
+type ImportLesson = z.infer<typeof importSchema>;
+type Db = { query: (sql: string, params?: unknown[]) => Promise<any> };
+/** Darsni tayyor kontent bilan yaratadi yoki yangilaydi (source_key bo'yicha); tranzaksiya ichida chaqiriladi. */
+async function importLesson(c: Db, courseId: string, b: ImportLesson) {
+      const old = (await c.query("SELECT id FROM cls_lessons WHERE course_id=$1 AND source_key=$2", [courseId, b.key])).rows[0];
+  let lessonId: string;
+  if (old) {
+    lessonId = old.id;
+    await c.query("UPDATE cls_lessons SET title=$2,kind=$3,body=$4,pass_percent=$5,position=$6 WHERE id=$1", [lessonId, b.title, b.kind, b.body, b.passPercent, b.position]);
+  } else {
+    lessonId = (await c.query(
+      "INSERT INTO cls_lessons(course_id,position,kind,title,body,pass_percent,source_key) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+      [courseId, b.position, b.kind, b.title, b.body, b.passPercent, b.key],
+    )).rows[0].id;
+  }
+  if (b.quiz) {
+    await c.query(
+      `INSERT INTO cls_quizzes(lesson_id,questions,time_limit_minutes,max_attempts) VALUES($1,$2,$3,$4)
+       ON CONFLICT(lesson_id) DO UPDATE SET questions=EXCLUDED.questions,time_limit_minutes=EXCLUDED.time_limit_minutes,max_attempts=EXCLUDED.max_attempts,updated_at=now()`,
+      [lessonId, JSON.stringify(b.quiz.questions), b.quiz.timeLimitMinutes, b.quiz.maxAttempts],
+    );
+  }
+  if (b.quick) {
+    await c.query(
+      `INSERT INTO cls_quick_quizzes(lesson_id,questions) VALUES($1,$2) ON CONFLICT(lesson_id) DO UPDATE SET questions=EXCLUDED.questions, updated_at=now()`,
+      [lessonId, JSON.stringify(b.quick.questions)],
+    );
+  }
+  // Qismlar va og'zaki vazifalar sarlavha bo'yicha yangilanadi (bor natijalar saqlanib qoladi).
+  const keepParts: string[] = [];
+  for (const [i, p] of b.parts.entries()) {
+    const data = p.kind === "vocab" ? { words: p.words } : { questions: p.questions };
+    const ex = (await c.query("SELECT id FROM cls_parts WHERE lesson_id=$1 AND title=$2", [lessonId, p.title])).rows[0];
+    const id = ex
+      ? (await c.query("UPDATE cls_parts SET kind=$2,position=$3,data=$4,pass_percent=$5,max_attempts=$6 WHERE id=$1 RETURNING id", [ex.id, p.kind, i, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id
+      : (await c.query("INSERT INTO cls_parts(lesson_id,kind,position,title,data,pass_percent,max_attempts) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id", [lessonId, p.kind, i, p.title, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id;
+    keepParts.push(id);
+  }
+  await c.query("DELETE FROM cls_parts WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepParts]);
+  for (const t of b.tasks) {
+    const ex = (await c.query("SELECT id FROM cls_tasks WHERE lesson_id=$1 AND title=$2", [lessonId, t.title])).rows[0];
+    if (ex) await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
+    else await c.query("INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8)", [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
+  }
+  return { lessonId, created: !old };
+}
+
+/** Kontentdagi barcha ovozlarni (so'zlar, namunaviy gaplar, og'zaki gaplar) oldindan tayyorlaydi; tayyorlari keshdan olinadi. */
+export async function warmLessonVoices(lessonId: string) {
+  const texts: string[] = [];
+  for (const p of (await pool.query("SELECT data FROM cls_parts WHERE lesson_id=$1 AND kind='vocab'", [lessonId])).rows)
+    for (const w of p.data.words || []) texts.push(w.ar, ...(w.exAr ? [w.exAr] : []));
+  for (const t of (await pool.query("SELECT text_ar FROM cls_tasks WHERE lesson_id=$1 AND shadow", [lessonId])).rows) texts.push(...splitSentences(t.text_ar));
+  let ok = 0, failed = 0;
+  for (const t of texts) {
+    try {
+      await ttsUrl(t);
+      ok++;
+    } catch {
+      failed++;
+    }
+  }
+  return { total: texts.length, ok, failed };
+}
 
 export function registerClassroomA1(app: Express) {
   // Qism: so'zlar ro'yxati (yodlash uchun — o'quv materiali, maxfiy emas).
@@ -249,6 +315,70 @@ export function registerClassroomA1(app: Express) {
     return { reset: true };
   }));
 
+  // Sinov kursi (sayt serveri yuboradi, faqat xizmat kaliti bilan): kurs, guruh va darslar YO'Q bo'lsa yaratiladi —
+  // o'qituvchi keyin o'zgartirgan narsa qayta yozilmaydi. Adminning sinov o'quvchisi guruhga qo'shiladi, ovozlar tayyorlanadi.
+  app.post(P + "/service/a1-pilot", async (req, res, next) => {
+    try {
+      if (!platformKeyMatches(req.get("x-platform-key"))) return res.status(403).json({ message: "Xizmat ruxsati yo‘q" });
+      const lessons = z.array(importSchema).min(1).max(40).parse(req.body?.lessons);
+      const owner = (await pool.query("SELECT id FROM users WHERE role='admin' AND NOT is_test ORDER BY created_at LIMIT 1")).rows[0];
+      if (!owner) return res.status(409).json({ message: "Admin topilmadi" });
+      const c = await pool.connect();
+      let out: any;
+      try {
+        await c.query("BEGIN");
+        await c.query("SELECT pg_advisory_xact_lock(7711001)");
+        let course = (await c.query("SELECT id FROM cls_courses WHERE source_key='a1-pilot'")).rows[0];
+        if (!course) course = (await c.query("INSERT INTO cls_courses(title,description,level,source_key) VALUES('A1 kursi (sinov)','«Bosqichli arab tili A1» va «Arab tilida so‘z boyligi A1» asosida','A1','a1-pilot') RETURNING id")).rows[0];
+        const created: string[] = [];
+        for (const l of lessons) {
+          const has = (await c.query("SELECT id FROM cls_lessons WHERE course_id=$1 AND source_key=$2", [course.id, l.key])).rows[0];
+          if (!has) created.push((await importLesson(c, course.id, l)).lessonId);
+        }
+        let group = (await c.query("SELECT id,invite_code FROM cls_groups WHERE source_key='a1-pilot'")).rows[0];
+        if (!group) {
+          group = (await c.query(
+            "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id,auto_approve,offer_required,discipline,source_key) VALUES($1,'A1 sinov guruhi',$2,$3,true,false,false,'a1-pilot') RETURNING id,invite_code",
+            [course.id, inviteCode(), owner.id],
+          )).rows[0];
+          await c.query("INSERT INTO cls_group_staff(group_id,user_id,role) VALUES($1,$2,'teacher') ON CONFLICT DO NOTHING", [group.id, owner.id]);
+        }
+        let tester = (await c.query("SELECT id FROM users WHERE test_owner_id=$1", [owner.id])).rows[0];
+        if (!tester)
+          tester = (await c.query(
+            "INSERT INTO users(full_name,username,email_verified,password_hash,role,is_test,test_owner_id) VALUES('Sinov o‘quvchi',$1,false,$2,'student',true,$3) RETURNING id",
+            ["test_" + String(owner.id).replace(/-/g, "").slice(0, 24), hashPassword(randomBytes(32).toString("hex")), owner.id],
+          )).rows[0];
+        await c.query("INSERT INTO cls_members(group_id,user_id,status,display_name) VALUES($1,$2,'active','Sinov o‘quvchi') ON CONFLICT (group_id,user_id) DO UPDATE SET status='active'", [group.id, tester.id]);
+        await c.query("COMMIT");
+        out = { courseId: course.id, groupId: group.id, inviteCode: group.invite_code, createdLessons: created.length };
+      } catch (e) {
+        await c.query("ROLLBACK").catch(() => undefined);
+        throw e;
+      } finally {
+        c.release();
+      }
+      const ids = (await pool.query("SELECT id FROM cls_lessons WHERE course_id=$1 AND source_key IS NOT NULL ORDER BY position", [out.courseId])).rows.map((r: any) => r.id);
+      // Ovozlar fonda tayyorlanadi (keshdagilari qayta yaratilmaydi).
+      void (async () => {
+        for (const id of ids) console.log("[a1-pilot] ovozlar", id, JSON.stringify(await warmLessonVoices(id).catch((e) => ({ error: String(e?.message || e) }))));
+      })();
+      res.json(out);
+    } catch (e) {
+      next(e);
+    }
+  });
+  app.get(P + "/service/a1-pilot", async (req, res, next) => {
+    try {
+      if (!platformKeyMatches(req.get("x-platform-key"))) return res.status(403).json({ message: "Xizmat ruxsati yo‘q" });
+      const voices = (await pool.query("SELECT count(*)::int AS n FROM cls_tts")).rows[0].n;
+      const g = (await pool.query("SELECT g.id, g.invite_code, (SELECT count(*)::int FROM cls_lessons l WHERE l.course_id=g.course_id) AS lessons FROM cls_groups g WHERE g.source_key='a1-pilot'")).rows[0];
+      res.json({ group: g || null, voices, voiceConfigured: !!(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_VOICE_ID) });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // Import: kurs darsini tayyor kontent bilan yaratish yoki yangilash.
   app.post(P + "/admin/courses/:id/import-lesson", requireStaff, route(async (req) => {
     const courseId = uuid.parse(req.params.id), uid = userOf(req);
@@ -257,48 +387,9 @@ export function registerClassroomA1(app: Express) {
     const c = await pool.connect();
     try {
       await c.query("BEGIN");
-      const old = (await c.query("SELECT id FROM cls_lessons WHERE course_id=$1 AND source_key=$2", [courseId, b.key])).rows[0];
-      let lessonId: string;
-      if (old) {
-        lessonId = old.id;
-        await c.query("UPDATE cls_lessons SET title=$2,kind=$3,body=$4,pass_percent=$5,position=$6 WHERE id=$1", [lessonId, b.title, b.kind, b.body, b.passPercent, b.position]);
-      } else {
-        lessonId = (await c.query(
-          "INSERT INTO cls_lessons(course_id,position,kind,title,body,pass_percent,source_key) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id",
-          [courseId, b.position, b.kind, b.title, b.body, b.passPercent, b.key],
-        )).rows[0].id;
-      }
-      if (b.quiz) {
-        await c.query(
-          `INSERT INTO cls_quizzes(lesson_id,questions,time_limit_minutes,max_attempts) VALUES($1,$2,$3,$4)
-           ON CONFLICT(lesson_id) DO UPDATE SET questions=EXCLUDED.questions,time_limit_minutes=EXCLUDED.time_limit_minutes,max_attempts=EXCLUDED.max_attempts,updated_at=now()`,
-          [lessonId, JSON.stringify(b.quiz.questions), b.quiz.timeLimitMinutes, b.quiz.maxAttempts],
-        );
-      }
-      if (b.quick) {
-        await c.query(
-          `INSERT INTO cls_quick_quizzes(lesson_id,questions) VALUES($1,$2) ON CONFLICT(lesson_id) DO UPDATE SET questions=EXCLUDED.questions, updated_at=now()`,
-          [lessonId, JSON.stringify(b.quick.questions)],
-        );
-      }
-      // Qismlar va og'zaki vazifalar sarlavha bo'yicha yangilanadi (bor natijalar saqlanib qoladi).
-      const keepParts: string[] = [];
-      for (const [i, p] of b.parts.entries()) {
-        const data = p.kind === "vocab" ? { words: p.words } : { questions: p.questions };
-        const ex = (await c.query("SELECT id FROM cls_parts WHERE lesson_id=$1 AND title=$2", [lessonId, p.title])).rows[0];
-        const id = ex
-          ? (await c.query("UPDATE cls_parts SET kind=$2,position=$3,data=$4,pass_percent=$5,max_attempts=$6 WHERE id=$1 RETURNING id", [ex.id, p.kind, i, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id
-          : (await c.query("INSERT INTO cls_parts(lesson_id,kind,position,title,data,pass_percent,max_attempts) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id", [lessonId, p.kind, i, p.title, JSON.stringify(data), p.passPercent, p.maxAttempts])).rows[0].id;
-        keepParts.push(id);
-      }
-      await c.query("DELETE FROM cls_parts WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepParts]);
-      for (const t of b.tasks) {
-        const ex = (await c.query("SELECT id FROM cls_tasks WHERE lesson_id=$1 AND title=$2", [lessonId, t.title])).rows[0];
-        if (ex) await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
-        else await c.query("INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8)", [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow]);
-      }
+      const result = await importLesson(c, courseId, b);
       await c.query("COMMIT");
-      return { lessonId, created: !old };
+      return result;
     } catch (e) {
       await c.query("ROLLBACK").catch(() => undefined);
       throw e;

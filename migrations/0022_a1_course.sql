@@ -49,3 +49,7 @@ ALTER TABLE cls_tasks ADD COLUMN IF NOT EXISTS shadow boolean NOT NULL DEFAULT f
 ALTER TABLE cls_lessons ADD COLUMN IF NOT EXISTS source_key text;
 --> statement-breakpoint
 ALTER TABLE cls_submissions ADD COLUMN IF NOT EXISTS ai_judge jsonb;
+--> statement-breakpoint
+ALTER TABLE cls_courses ADD COLUMN IF NOT EXISTS source_key text;
+--> statement-breakpoint
+ALTER TABLE cls_groups ADD COLUMN IF NOT EXISTS source_key text;

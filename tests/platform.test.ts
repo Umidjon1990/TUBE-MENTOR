@@ -2250,6 +2250,8 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
     return { id, h: { "x-platform-session": t } };
   };
   const T = await mk("a1_admin", "admin"), S = await mk("a1_student"), X = await mk("a1_tester", "student", true);
+  // Prod'dagi sinov hisobi kabi: tasdiqlangan email yo'q — baribir barcha o'quvchi yo'llari ishlashi kerak.
+  await pool.query("UPDATE users SET email_verified=false, email=NULL WHERE id=$1", [X.id]);
   const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
     fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
   const get = async (path: string, extra: Record<string, string>) => (await fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } })).json();

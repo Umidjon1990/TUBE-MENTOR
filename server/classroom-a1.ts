@@ -129,20 +129,23 @@ async function partContext(groupId: string, partId: string, userId: string) {
 }
 
 /* ---------------- Ovoz (klon) ---------------- */
-async function ttsUrl(text: string) {
+/** O'zbekcha matnni ovozga tayyorlash: "aka / uka" → "aka, uka". */
+const speakUz = (t: string) => t.replace(/\s*\/\s*/g, ", ");
+async function ttsUrl(text: string, lang: "ar" | "uz" = "ar") {
   const key = process.env.ELEVENLABS_API_KEY, voice = process.env.ELEVENLABS_VOICE_ID;
-  // Sinfxona ovozlari uchun barqaror model: ifodali modellar (v3/v4) qisqa so'zlarga nafas, kulgi kabi ortiqcha
-  // tovushlar qo'shishi mumkin. Model nomi xeshga kiradi — model almashsa, ovozlar qayta yaratiladi.
-  const model = process.env.CLASS_TTS_MODEL || "eleven_multilingual_v2";
-  const hash = createHash("sha256").update(`${voice}|${model}|${text}`).digest("hex").slice(0, 40);
+  // Eng sifatli model — Eleven v4 (arabcha ham, o'zbekcha ham). Til kodi aniq beriladi: o'zbekcha so'z arabcha
+  // talaffuzda o'qilmaydi. Model va til xeshga kiradi — almashsa, ovozlar qayta yaratiladi.
+  const model = process.env.CLASS_TTS_MODEL || "eleven_v4";
+  if (lang === "uz") text = speakUz(text);
+  const hash = createHash("sha256").update(`${voice}|${model}|${lang}|${text}`).digest("hex").slice(0, 40);
   const cached = (await pool.query("SELECT hash FROM cls_tts WHERE hash=$1", [hash])).rows[0];
   if (cached) return `${P}/tts-file/${hash}`;
   if (!key || !voice) fail(503, "Ovoz xizmati sozlanmagan");
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice!)}?output_format=mp3_44100_64`, {
     method: "POST",
     headers: { "xi-api-key": key!, "content-type": "application/json", accept: "audio/mpeg" },
-    // Barqaror, toza ovoz: yuqori o'xshashlik, fon tovushlarisiz (style 0, speaker boost).
-    body: JSON.stringify({ text, model_id: model, voice_settings: { stability: 0.7, similarity_boost: 0.9, style: 0, use_speaker_boost: true } }),
+    // Barqaror, toza ovoz va klonga yuqori o'xshashlik (v4'da faqat shu ikki sozlama bor).
+    body: JSON.stringify({ text, model_id: model, language_code: lang, voice_settings: { stability: 0.7, similarity_boost: 0.9 } }),
   }).catch(() => null);
   if (!r?.ok) fail(502, "Ovoz tayyorlanmadi, birozdan keyin urinib ko‘ring");
   const data = Buffer.from(await r!.arrayBuffer());
@@ -270,21 +273,24 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
 
 /** Kontentdagi barcha ovozlarni (so'zlar, namunaviy gaplar, og'zaki gaplar) oldindan tayyorlaydi; tayyorlari keshdan olinadi. */
 export async function warmLessonVoices(lessonId: string) {
-  const texts: string[] = [];
+  const texts: string[] = [], uzTexts: string[] = [];
   for (const p of (await pool.query("SELECT data FROM cls_parts WHERE lesson_id=$1 AND kind='vocab'", [lessonId])).rows)
-    for (const w of p.data.words || []) texts.push(w.ar, ...[w.plural, w.def, w.exAr].filter(Boolean));
+    for (const w of p.data.words || []) {
+      texts.push(w.ar, ...[w.plural, w.def, w.exAr].filter(Boolean));
+      uzTexts.push(...[w.uz, w.defUz, w.exUz].filter(Boolean));
+    }
   for (const t of (await pool.query("SELECT text_ar,prompt_ar FROM cls_tasks WHERE lesson_id=$1 AND shadow", [lessonId])).rows)
     texts.push(...(t.prompt_ar ? [t.prompt_ar] : []), ...splitSentences(t.text_ar));
   let ok = 0, failed = 0;
-  for (const t of texts) {
+  for (const [t, lang] of [...texts.map((t) => [t, "ar"] as const), ...uzTexts.map((t) => [t, "uz"] as const)]) {
     try {
-      await ttsUrl(t);
+      await ttsUrl(t, lang);
       ok++;
     } catch {
       failed++;
     }
   }
-  return { total: texts.length, ok, failed };
+  return { total: texts.length + uzTexts.length, ok, failed };
 }
 
 export function registerClassroomA1(app: Express) {
@@ -341,8 +347,8 @@ export function registerClassroomA1(app: Express) {
   // Ovoz: faqat bazadagi matnlar uchun (ixtiyoriy matn qabul qilinmaydi).
   app.post(P + "/groups/:id/tts", requireAuth, route(async (req) => {
     const groupId = uuid.parse(req.params.id), uid = userOf(req);
-    const b = z.object({ source: z.enum(["word", "plural", "def", "example", "task", "prompt"]), id: uuid, index: z.number().int().min(0).max(200) }).parse(req.body);
-    let text = "";
+    const b = z.object({ source: z.enum(["word", "plural", "def", "example", "task", "prompt", "uz", "defUz", "exUz"]), id: uuid, index: z.number().int().min(0).max(200) }).parse(req.body);
+    let text = "", lang: "ar" | "uz" = "ar";
     if (b.source === "task" || b.source === "prompt") {
       const t = (await pool.query("SELECT lesson_id,text_ar,prompt_ar FROM cls_tasks WHERE id=$1", [b.id])).rows[0] || fail(404, "Matn topilmadi");
       const { teacher } = await membership(groupId, uid);
@@ -352,9 +358,11 @@ export function registerClassroomA1(app: Express) {
     } else {
       const { part } = await partContext(groupId, b.id, uid);
       const w = part.kind === "vocab" ? part.data.words[b.index] : null;
-      text = (b.source === "word" ? w?.ar : b.source === "plural" ? w?.plural : b.source === "def" ? w?.def : w?.exAr) || fail(404, "So‘z topilmadi");
+      const field = { word: "ar", plural: "plural", def: "def", example: "exAr", uz: "uz", defUz: "defUz", exUz: "exUz" }[b.source as string]!;
+      if (["uz", "defUz", "exUz"].includes(b.source)) lang = "uz";
+      text = (w as any)?.[field] || fail(404, "So‘z topilmadi");
     }
-    return { url: await ttsUrl(text) };
+    return { url: await ttsUrl(text, lang) };
   }));
   app.get(P + "/media/:hash", requireAuth, async (req, res, next) => {
     try {

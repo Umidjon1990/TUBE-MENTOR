@@ -33,6 +33,8 @@ export function apiSecurity(req: Request, res: Response, next: NextFunction) {
       !req.path.endsWith("/whisper-audio-upload") &&
       !/^\/api\/platform\/owned\/[^/]+\/native\//.test(req.path) &&
       !/^\/api\/commerce\/orders\/[0-9a-f-]{36}\/receipt$/.test(req.path) &&
+      // Admin qo'llanma materiali (PDF) yuklaydi; route faqat PDF imzosini qabul qiladi.
+      !/^\/api\/platform\/admin\/guides\/[A-Za-z][A-Za-z0-9-]{0,39}\/materials$/.test(req.path) &&
       !req.is("application/json")
     ) {
       return res.status(415).json({ message: "JSON so‘rov talab qilinadi" });

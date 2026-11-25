@@ -44,6 +44,7 @@ import { registerClassTasks } from "./classroom-tasks";
 import { registerClassPush } from "./classroom-notify";
 import { registerClassStaff } from "./classroom-staff";
 import { registerPlatformResources } from "./platform-resources";
+import { registerGuideAccess } from "./guide-access";
 
 export async function createApplication(
   options: { production?: boolean; seed?: boolean } = {},
@@ -170,6 +171,7 @@ export async function createApplication(
   registerClassStaff(app);
   registerAdminDesk(app);
   registerExperience(app);
+  registerGuideAccess(app);
   registerPlatformResources(app);
   await registerCommerceRoutes(app);
   registerPaymeRoutes(app);

@@ -2378,3 +2378,74 @@ test("A1 pilot seed: service key only, creates course, group, lesson and the adm
   const groups = await (await fetch(base + "/api/platform/class/my", { headers: { ...headers, "x-platform-session": sm.token } })).json();
   assert.ok(groups.groups.some((g: any) => g.id === first.groupId), "sinov guruhi o'quvchi rejimida ko'rinadi");
 });
+
+test("qo'llanma kodlari, o'qituvchi biriktirish va faqat o'qituvchiga materiallar", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const mk = async (username: string, role = "student", phone?: string) => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,phone) VALUES($1,$1,$2,true,$3,$4)", [username, hashPassword(pass), role, phone ?? null]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const A = await mk("g_admin", "admin"), S = await mk("g_student", "student", "+998901110001"), S2 = await mk("g_student2", "student", "+998901110002"), T = await mk("g_teacher", "student", "+998901110003");
+  const req = (path: string, extra: Record<string, string>, method = "GET", body?: unknown) =>
+    fetch(base + "/api/platform" + path, { method, headers: { ...headers, ...extra }, body: body === undefined ? undefined : JSON.stringify(body) });
+
+  // Faqat admin kod yaratadi.
+  assert.equal((await req("/admin/guides/cefrVocab1/codes", S.h, "POST", { count: 3 })).status, 403);
+  const made = await (await req("/admin/guides/cefrVocab1/codes", A.h, "POST", { count: 3, batch: "1-partiya" })).json();
+  assert.equal(made.codes.length, 3);
+  assert.ok(made.codes.every((c: string) => /^ZT-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(c)));
+  const csv = await (await req("/admin/guides/cefrVocab1/codes.csv?batch=1-partiya", A.h)).text();
+  assert.ok(csv.includes(made.codes[0]));
+
+  // O'quvchi kodni kichik harf va bo'sh joy bilan kiritsa ham ishlaydi; kod ikkinchi hisobda ishlamaydi.
+  const loose = made.codes[0].toLowerCase().replace(/-/g, " ");
+  const ok = await req("/guides/redeem", S.h, "POST", { code: loose });
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).guideId, "cefrVocab1");
+  assert.equal((await req("/guides/redeem", S.h, "POST", { code: made.codes[0] })).status, 200, "o'z kodini qayta kiritish xato emas");
+  assert.equal((await req("/guides/redeem", S2.h, "POST", { code: made.codes[0] })).status, 409);
+  assert.equal((await req("/guides/redeem", S2.h, "POST", { code: "ZT-AAAA-AAAA" })).status, 404);
+  const access = await (await req("/guides/access", S.h)).json();
+  assert.deepEqual(access.owned.map((g: any) => [g.guideId, g.source]), [["cefrVocab1", "code"]]);
+  const saved = await (await req("/guides", S.h)).json();
+  assert.ok(saved.guides.some((g: any) => g.id === "cefrVocab1"), "kod kiritilgan qo'llanma kabinetga ham qo'shiladi");
+  const sum = await (await req("/admin/guides/summary", A.h)).json();
+  assert.deepEqual([sum.guides.cefrVocab1.codes, sum.guides.cefrVocab1.used, sum.guides.cefrVocab1.learners], [3, 1, 1]);
+
+  // Taxmin qilib terish: soatiga 10 ta xato urinishdan keyin to'xtatiladi.
+  for (let i = 0; i < 9; i++) await req("/guides/redeem", S2.h, "POST", { code: "ZT-BBBB-BBB" + "CDEFGHJKM"[i] });
+  assert.equal((await req("/guides/redeem", S2.h, "POST", { code: made.codes[1] })).status, 429);
+
+  // Sotuvchi telefon orqali biriktiradi.
+  assert.equal((await req("/admin/guides/a1/grant", A.h, "POST", { phone: "90 111 00 02" })).status, 200);
+  assert.ok((await (await req("/guides/access", S2.h)).json()).owned.some((g: any) => g.guideId === "a1"));
+  assert.equal((await req("/admin/guides/a1/grant", A.h, "POST", { phone: "+998 99 000 00 00" })).status, 404);
+
+  // O'qituvchi materiali: faqat biriktirilgan o'qituvchi va admin ochadi.
+  const pdf = Buffer.from("%PDF-1.4\n% sinov\n");
+  const up = await fetch(base + "/api/platform/admin/guides/cefrVocab1/materials?kind=test&title=" + encodeURIComponent("1-dars testi (A variant)"), {
+    method: "POST", headers: { "x-platform-key": key, ...A.h, "Content-Type": "application/pdf" }, body: pdf,
+  });
+  assert.equal(up.status, 200);
+  const mid = (await up.json()).id;
+  assert.equal((await fetch(base + "/api/platform/admin/guides/cefrVocab1/materials?kind=test&title=xx", {
+    method: "POST", headers: { "x-platform-key": key, ...A.h, "Content-Type": "application/pdf" }, body: Buffer.from("nope!"),
+  })).status, 400);
+  assert.equal((await req(`/guides/cefrVocab1/materials/${mid}`, S.h)).status, 404, "kitobni sotib olgan o'quvchi ham o'qituvchi materialini ololmaydi");
+  assert.equal((await req(`/guides/cefrVocab1/materials/${mid}`, T.h)).status, 404);
+  assert.equal((await req("/admin/guides/cefrVocab1/teachers", A.h, "POST", { phone: "+998901110003", tier: "free" })).status, 200);
+  const mine = await (await req("/guides/teacher", T.h)).json();
+  assert.deepEqual(mine.guides.map((g: any) => [g.guideId, g.tier, g.materials.length]), [["cefrVocab1", "free", 1]]);
+  const file = await req(`/guides/cefrVocab1/materials/${mid}`, T.h);
+  assert.equal(file.status, 200);
+  assert.equal(file.headers.get("content-type"), "application/pdf");
+  assert.equal(Buffer.from(await file.arrayBuffer()).toString(), pdf.toString());
+  assert.equal((await req(`/guides/a1/materials/${mid}`, T.h)).status, 404, "boshqa qo'llanma yo'lidan ochilmaydi");
+  const detail = await (await req("/admin/guides/cefrVocab1", A.h)).json();
+  assert.deepEqual([detail.batches.length, detail.access.length, detail.teachers.length, detail.materials.length], [1, 1, 1, 1]);
+  assert.equal((await req(`/admin/guides/cefrVocab1/teachers/${T.id}`, A.h, "DELETE", {})).status, 200);
+  assert.equal((await req(`/guides/cefrVocab1/materials/${mid}`, T.h)).status, 404, "biriktirish olib tashlansa material yopiladi");
+});

@@ -2322,6 +2322,21 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   setTranscriber(undefined); setJudge(undefined);
   // Ovoz: kalit sozlanmagan — 503 (sayt brauzer ovoziga o'tadi); begona matn so'rab bo'lmaydi.
   assert.equal((await call(`/groups/${group.id}/tts`, { source: "word", id: vocab.id, index: 0 }, X.h)).status, 503);
+  // Eleven v4: arabcha va o'zbekcha alohida til kodi bilan (klon ovoz), har matn bir marta yaratiladi.
+  {
+    const realFetch = globalThis.fetch, sent: any[] = [];
+    process.env.ELEVENLABS_API_KEY = "k"; process.env.ELEVENLABS_VOICE_ID = "v";
+    globalThis.fetch = (async (u: any, init?: any) => {
+      if (String(u).startsWith("https://api.elevenlabs.io/")) return (sent.push(JSON.parse(init.body)), new Response(Buffer.from([0xff, 0xf3, 1, 2])));
+      return realFetch(u, init);
+    }) as typeof fetch;
+    try {
+      for (const source of ["word", "uz", "uz"]) assert.equal((await call(`/groups/${group.id}/tts`, { source, id: vocab.id, index: 0 }, X.h)).status, 200);
+      assert.deepEqual(sent.map((b) => [b.model_id, b.language_code, b.text]), [["eleven_v4", "ar", words[0].ar], ["eleven_v4", "uz", words[0].uz]]);
+    } finally {
+      globalThis.fetch = realFetch; delete process.env.ELEVENLABS_API_KEY; delete process.env.ELEVENLABS_VOICE_ID;
+    }
+  }
   assert.equal((await call(`/groups/${group.id}/tts`, { source: "task", id: lesson.tasks[0].id, index: 9 }, X.h)).status, 404);
   // Oqim: sinov hisobida asosiy topshiriq ochiq, qismlar hisobga olinadi.
   const f = await get(`/groups/${group.id}/flow`, X.h);

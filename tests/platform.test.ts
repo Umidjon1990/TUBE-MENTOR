@@ -2103,10 +2103,10 @@ test("class enrollment: offer agreement, minors, preapproved phones, bulk approv
   const course = (await (await call("/admin/courses", { title: "Oferta kursi" }, T.h)).json()).course;
   const group = (await (await call("/admin/groups", { courseId: course.id, name: "Oferta guruhi" }, T.h)).json()).group;
   const inv = await (await fetch(base + "/api/platform/class/invite/" + group.invite_code, { headers })).json();
-  assert.ok(inv.offer.body.includes("OMMAVIY OFERTA") && inv.offer.consents.length >= 8);
+  assert.ok(inv.offer.body.includes("ommaviy oferta") && inv.offer.body.includes("312 316 714") && inv.offer.consents.length === 4);
   // Roziliksiz yoki bandlardan biri yo'q — qo'shilib bo'lmaydi.
   assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar" }, A.h)).status, 400);
-  const partial = await agreement(); delete (partial.consents as any).refund;
+  const partial = await agreement(); delete (partial.consents as any).payment;
   assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar", agreement: partial }, A.h)).status, 400);
   // 18 yoshdan kichik: ota-ona ma'lumotisiz rad etiladi.
   const young = await agreement(new Date().getFullYear() - 15);
@@ -2463,4 +2463,185 @@ test("qo'llanma kodlari, o'qituvchi biriktirish va faqat o'qituvchiga materialla
   assert.deepEqual([detail.batches.length, detail.access.length, detail.teachers.length, detail.materials.length], [1, 1, 1, 1]);
   assert.equal((await req(`/admin/guides/cefrVocab1/teachers/${T.id}`, A.h, "DELETE", {})).status, 200);
   assert.equal((await req(`/guides/cefrVocab1/materials/${mid}`, T.h)).status, 404, "biriktirish olib tashlansa material yopiladi");
+});
+
+test("o'qituvchilar guruhi: qo'llanma biriktirish hammaga Bepul, Pro faqat tanlanganga, guruhdan chiqsa kirish yopiladi", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const mk = async (username: string, role = "student", phone?: string) => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,phone) VALUES($1,$1,$2,true,$3,$4)", [username, hashPassword(pass), role, phone ?? null]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const A = await mk("tg_admin", "admin"), T1 = await mk("tg_t1"), T2 = await mk("tg_t2");
+  const req = (path: string, extra: Record<string, string>, method = "GET", body?: unknown) =>
+    fetch(base + "/api/platform" + path, { method, headers: { ...headers, ...extra }, body: body === undefined ? undefined : JSON.stringify(body) });
+
+  const created = await req("/class/admin/groups", A.h, "POST", { name: "O‘qituvchilar — Fonetika", audience: "teachers" });
+  assert.equal(created.status, 200);
+  const g = (await created.json()).group;
+  assert.deepEqual([g.audience, g.offer_required, g.discipline], ["teachers", false, false]);
+  const courses = await (await req("/class/admin/courses", A.h)).json();
+  assert.ok(!courses.courses.some((c: any) => c.level === "teachers"), "ichki kurs kurslar ro'yxatida ko'rinmaydi");
+  assert.equal((await req("/class/admin/groups", A.h, "POST", { name: "kurssiz o‘quvchilar" })).status, 400);
+
+  // O'qituvchilar havola orqali qo'shiladi (oferta so'ralmaydi), admin tasdiqlaydi.
+  const inv = await (await req("/class/invite/" + g.invite_code, T1.h)).json();
+  assert.equal(inv.group.audience, "teachers");
+  assert.equal(inv.offer, null);
+  for (const T of [T1, T2]) {
+    assert.equal((await req(`/class/invite/${g.invite_code}/join`, T.h, "POST", { name: "Ustoz", phone: "+998901234567" })).status, 200);
+    assert.equal((await req(`/class/admin/groups/${g.id}/members/${T.id}`, A.h, "POST", { action: "approve" })).status, 200);
+  }
+
+  // Qo'llanma biriktirish: faqat admin, faqat o'qituvchilar guruhiga.
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, T1.h, "PUT", { guides: ["fonetika"] })).status, 403);
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, A.h, "PUT", { guides: ["fonetika", "kids1"] })).status, 200);
+  const detail = await (await req(`/class/admin/groups/${g.id}`, A.h)).json();
+  assert.deepEqual(detail.guides.sort(), ["fonetika", "kids1"]);
+  for (const T of [T1, T2]) {
+    const mine = await (await req("/guides/teacher", T.h)).json();
+    assert.deepEqual(mine.guides.map((x: any) => [x.guideId, x.tier]).sort(), [["fonetika", "free"], ["kids1", "free"]]);
+    assert.deepEqual(mine.groups.map((x: any) => x.id), [g.id]);
+  }
+
+  // Pro faqat tanlangan a'zoga va guruhga biriktirilgan qo'llanma bo'yicha.
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, A.h, "PUT", { userId: T1.id, guideId: "a1", on: true })).status, 400);
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, T1.h, "PUT", { userId: T1.id, guideId: "fonetika", on: true })).status, 403);
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, A.h, "PUT", { userId: T1.id, guideId: "fonetika", on: true })).status, 200);
+  const t1 = await (await req("/guides/access", T1.h)).json();
+  assert.deepEqual(t1.teacher.map((x: any) => [x.guideId, x.tier]).sort(), [["fonetika", "pro"], ["kids1", "free"]]);
+  const t2 = await (await req("/guides/access", T2.h)).json();
+  assert.ok(t2.teacher.every((x: any) => x.tier === "free"), "Pro boshqa a'zoga o'tmaydi");
+
+  // Guruh orqali biriktirilgan o'qituvchi materialni ochadi; guruhdan chiqsa yopiladi.
+  const up = await fetch(base + "/api/platform/admin/guides/fonetika/materials?kind=test&title=" + encodeURIComponent("1-dars"), {
+    method: "POST", headers: { "x-platform-key": key, ...A.h, "Content-Type": "application/pdf" }, body: Buffer.from("%PDF-1.4\n% t\n"),
+  });
+  const mid = (await up.json()).id;
+  assert.equal((await req(`/guides/fonetika/materials/${mid}`, T2.h)).status, 200);
+  assert.equal((await req(`/class/admin/groups/${g.id}/members/${T2.id}`, A.h, "POST", { action: "remove" })).status, 200);
+  assert.equal((await req(`/guides/fonetika/materials/${mid}`, T2.h)).status, 404);
+  assert.deepEqual((await (await req("/guides/teacher", T2.h)).json()).guides, []);
+
+  // Qo'llanma guruhdan olinsa, uning Pro'si ham o'chadi.
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, A.h, "PUT", { guides: ["kids1"] })).status, 200);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM cls_group_pro WHERE group_id=$1", [g.id])).rows[0].n, 0);
+  assert.deepEqual((await (await req("/guides/access", T1.h)).json()).teacher.map((x: any) => x.guideId), ["kids1"]);
+
+  // O'quvchilar guruhiga qo'llanma biriktirilmaydi.
+  const course = await (await req("/class/admin/courses", A.h, "POST", { title: "A1" })).json();
+  const sg = (await (await req("/class/admin/groups", A.h, "POST", { name: "A1 guruh", courseId: course.course.id })).json()).group;
+  assert.equal(sg.audience, "students");
+  assert.equal((await req(`/class/admin/groups/${sg.id}/guides`, A.h, "PUT", { guides: ["kids1"] })).status, 400);
+});
+
+test("sinfxona to'lovi: sinov haftasi, chek, tasdiqlash, nasiya, darslarni yopish va ogohlantirib chiqarish", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { runBilling } = await import("../server/classroom-billing");
+  const mk = async (username: string, role = "student") => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role) VALUES($1,$1,$2,true,$3)", [username, hashPassword(pass), role]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const T = await mk("bill_admin", "admin"), S1 = await mk("bill_s1"), S2 = await mk("bill_s2"), S3 = await mk("bill_s3");
+  const get = async (path: string, h: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...h } });
+  const call = (path: string, body: unknown, h: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...h }, body: JSON.stringify(body) });
+
+  const course = (await (await call("/admin/courses", { title: "To‘lovli kurs" }, T.h)).json()).course;
+  const lesson = (await (await call(`/admin/courses/${course.id}/lessons`, { title: "1-dars" }, T.h)).json()).lesson;
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Sinov guruhi" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true, offerRequired: false }, T.h, "PATCH");
+  await call(`/admin/groups/${group.id}/schedule`, { items: [{ lessonId: lesson.id, opensAt: new Date(Date.now() - 60000).toISOString(), dueAt: null }] }, T.h, "PUT");
+  for (const [u, n] of [[S1, "Ali"], [S2, "Vali"], [S3, "Soli"]] as const)
+    assert.equal((await (await call(`/invite/${group.invite_code}/join`, { phone: "+99890111223" + n.length, name: n }, u.h)).json()).status, "active");
+
+  // To'lov yoqilmagan guruh — hech narsa o'zgarmaydi.
+  assert.equal((await (await get(`/groups/${group.id}/home`, S1.h)).json()).billing, null);
+  assert.equal((await call(`/admin/groups/${group.id}/billing`, { enabled: true, trialDays: 7, graceDays: 1, monthlyPrice: 300000 }, S1.h, "PUT")).status, 403);
+  assert.equal((await call(`/admin/groups/${group.id}/billing`, { enabled: true, trialDays: 7, graceDays: 1, monthlyPrice: 300000 }, T.h, "PUT")).status, 200);
+
+  // Sinov: 7 kun, darslar ochiq.
+  const home = await (await get(`/groups/${group.id}/home`, S1.h)).json();
+  assert.equal(home.billing.state, "trial");
+  assert.equal(home.billing.price, 300000);
+  assert.ok(Math.abs(Date.parse(home.billing.trialUntil) - Date.now() - 7 * 86400e3) < 60e3);
+  assert.equal((await get(`/groups/${group.id}/lessons`, S1.h)).status, 200);
+
+  // Chek yuborish: faqat rasm/PDF, bittadan.
+  const jpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(200, 1)]).toString("base64");
+  const today = new Date(Date.now() + 5 * 3600e3).toISOString().slice(0, 10);
+  assert.equal((await call(`/groups/${group.id}/payments`, { amount: 300000, paidOn: today, file: { data: Buffer.from("salom dunyo bu matn").toString("base64"), mime: "text/plain", name: "a.txt" } }, S1.h)).status, 415);
+  const sent = await call(`/groups/${group.id}/payments`, { amount: 300000, paidOn: today, file: { data: jpg, mime: "image/jpeg", name: "chek.jpg" } }, S1.h);
+  assert.equal(sent.status, 200);
+  const pid = (await sent.json()).payment.id;
+  assert.equal((await call(`/groups/${group.id}/payments`, { amount: 300000, paidOn: today, file: { data: jpg, mime: "image/jpeg", name: "chek.jpg" } }, S1.h)).status, 409);
+  assert.equal((await get(`/payments/${pid}/file`, S2.h)).status, 404, "boshqa o'quvchi chekni ko'rmaydi");
+  assert.equal((await get(`/payments/${pid}/file`, T.h)).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/billing`, S1.h)).json()).info.state, "review");
+
+  // Moliya: raqamlar va cheklar navbati.
+  let fin = await (await get(`/staff/finance?group=${group.id}`, T.h)).json();
+  assert.deepEqual([fin.counts.total, fin.counts.review, fin.counts.trial], [3, 1, 2]);
+  assert.equal(fin.payments[0].status, "pending");
+  assert.equal((await get(`/staff/finance`, S1.h)).status, 403);
+
+  // Rad etish sababsiz bo'lmaydi; tasdiqlash +1 oy (qo'shilgan kundan).
+  assert.equal((await call(`/admin/payments/${pid}/decide`, { action: "reject" }, T.h)).status, 400);
+  assert.equal((await call(`/admin/payments/${pid}/decide`, { action: "approve" }, T.h)).status, 200);
+  assert.equal((await call(`/admin/payments/${pid}/decide`, { action: "approve" }, T.h)).status, 409);
+  const paid = (await (await get(`/groups/${group.id}/billing`, S1.h)).json()).info;
+  assert.equal(paid.state, "paid");
+  assert.ok(Date.parse(paid.paidUntil) - Date.now() > 27 * 86400e3);
+  fin = await (await get(`/staff/finance?group=${group.id}`, T.h)).json();
+  assert.equal(fin.monthSum, 300000);
+
+  // Sinov tugadi, imtiyoz kuni ham o'tdi — darslar yopiladi, bosh sahifa, chat va to'lov ochiq.
+  await pool.query("UPDATE cls_members SET trial_until=now()-interval '3 days' WHERE group_id=$1 AND user_id IN ($2,$3)", [group.id, S2.id, S3.id]);
+  const locked = await get(`/groups/${group.id}/lessons`, S2.h);
+  assert.equal(locked.status, 403);
+  assert.equal((await locked.json()).code, "billing_locked");
+  assert.equal((await get(`/groups/${group.id}/home`, S2.h)).status, 200);
+  assert.equal((await get(`/groups/${group.id}/chat`, S2.h)).status, 200);
+  assert.equal((await get(`/groups/${group.id}/lessons`, S1.h)).status, 200, "to'lagan o'quvchi ochiq");
+  assert.equal((await get(`/groups/${group.id}/lessons`, T.h)).status, 200, "ustoz yopilmaydi");
+  // 1 kun imtiyoz: muddati kecha o'tgan bo'lsa hali ochiq.
+  await pool.query("UPDATE cls_members SET trial_until=now()-interval '2 hours' WHERE group_id=$1 AND user_id=$2", [group.id, S3.id]);
+  assert.equal((await (await get(`/groups/${group.id}/billing`, S3.h)).json()).info.state, "grace");
+  assert.equal((await get(`/groups/${group.id}/lessons`, S3.h)).status, 200);
+
+  // Nasiya: belgilangan sanagacha ochiq.
+  const later = new Date(Date.now() + 5 * 3600e3 + 5 * 86400e3).toISOString().slice(0, 10);
+  assert.equal((await call(`/admin/groups/${group.id}/members/${S2.id}/billing`, { promiseUntil: later }, T.h, "PUT")).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/billing`, S2.h)).json()).info.state, "promise");
+  assert.equal((await get(`/groups/${group.id}/lessons`, S2.h)).status, 200);
+  assert.equal((await call(`/admin/groups/${group.id}/members/${S2.id}/billing`, { promiseUntil: "2020-01-01" }, T.h, "PUT")).status, 400);
+
+  // Ogohlantirib chiqarish: to'lamagan chiqariladi, nasiyadagi qoladi; bekor qilish ishlaydi.
+  await pool.query("UPDATE cls_members SET trial_until=now()-interval '3 days' WHERE group_id=$1 AND user_id=$2", [group.id, S3.id]);
+  const warn = await (await call(`/admin/groups/${group.id}/members/remove-unpaid`, { userIds: [S2.id, S3.id] }, T.h)).json();
+  assert.equal(warn.warned, 2);
+  assert.equal((await call(`/admin/groups/${group.id}/members/remove-unpaid`, { userIds: [S3.id], cancel: true }, T.h)).status, 200);
+  assert.equal((await pool.query("SELECT removal_due_at FROM cls_members WHERE group_id=$1 AND user_id=$2", [group.id, S3.id])).rows[0].removal_due_at, null);
+  await call(`/admin/groups/${group.id}/members/remove-unpaid`, { userIds: [S2.id, S3.id] }, T.h);
+  await pool.query("UPDATE cls_members SET removal_due_at=now()-interval '1 minute' WHERE group_id=$1", [group.id]);
+  await runBilling(true);
+  const st = Object.fromEntries((await pool.query("SELECT user_id,status FROM cls_members WHERE group_id=$1", [group.id])).rows.map((r: any) => [r.user_id, r.status]));
+  assert.deepEqual([st[S1.id], st[S2.id], st[S3.id]], ["active", "active", "removed"]);
+
+  // Eslatmalar bir marta yuboriladi.
+  await pool.query("UPDATE cls_members SET paid_until=now()+interval '2 days' WHERE group_id=$1 AND user_id=$2", [group.id, S1.id]);
+  await runBilling(true);
+  await runBilling(true);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM cls_billing_notices WHERE group_id=$1 AND user_id=$2 AND kind='due-3'", [group.id, S1.id])).rows[0].n, 1);
+
+  // Imtiyozli o'quvchi hech qachon yopilmaydi.
+  await pool.query("UPDATE cls_members SET promise_until=NULL, trial_until=now()-interval '30 days' WHERE group_id=$1 AND user_id=$2", [group.id, S2.id]);
+  assert.equal((await get(`/groups/${group.id}/lessons`, S2.h)).status, 403);
+  await call(`/admin/groups/${group.id}/members/${S2.id}/billing`, { exempt: true }, T.h, "PUT");
+  assert.equal((await get(`/groups/${group.id}/lessons`, S2.h)).status, 200);
 });

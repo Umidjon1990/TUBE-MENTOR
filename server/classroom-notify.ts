@@ -175,6 +175,7 @@ export function startClassNotifications() {
       await remindLiveSessions();
       await announceOpenedLessons();
       await runClassFlow();
+      await (await import("./classroom-billing")).runBilling();
       await processClassNotices();
     } catch {
       console.error("Class notification worker failed");

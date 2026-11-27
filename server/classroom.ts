@@ -311,6 +311,13 @@ export async function leaderboard(groupId: string) {
   ).rows.map((r: any, i: number) => ({ ...r, rank: i + 1 }));
 }
 
+/** O'qituvchilar guruhlari uchun yagona ichki kurs (darslarsiz, kurslar ro'yxatida ko'rinmaydi). */
+async function teachersCourse(): Promise<string> {
+  const found = (await pool.query("SELECT id FROM cls_courses WHERE level='teachers' ORDER BY created_at LIMIT 1")).rows[0];
+  if (found) return found.id;
+  return (await pool.query("INSERT INTO cls_courses(title,description,level) VALUES('O‘qituvchilar guruhi','Zoom uchrashuvlar, chat va qo‘llanma materiallari','teachers') RETURNING id")).rows[0].id;
+}
+
 /* ------------------------------------------------------------------ */
 /* Routes                                                              */
 /* ------------------------------------------------------------------ */
@@ -323,7 +330,7 @@ export function registerClassroom(app: Express) {
       await pool.query(
         `SELECT c.*, (SELECT count(*)::int FROM cls_lessons l WHERE l.course_id=c.id) AS lessons,
                 (SELECT count(*)::int FROM cls_groups g WHERE g.course_id=c.id AND NOT g.archived) AS groups
-           FROM cls_courses c WHERE NOT c.archived
+           FROM cls_courses c WHERE NOT c.archived AND c.level<>'teachers'
             AND ($1 OR c.owner_id=$2 OR EXISTS(SELECT 1 FROM cls_groups g JOIN cls_group_staff gs ON gs.group_id=g.id WHERE g.course_id=c.id AND gs.user_id=$2))
           ORDER BY c.created_at DESC`,
         [res.locals.staffRole === "admin", userOf(req)],
@@ -419,11 +426,14 @@ export function registerClassroom(app: Express) {
     ).rows,
   })));
   app.post(P + "/admin/groups", requireStaff, route(async (req) => {
-    const b = z.object({ courseId: uuid, name: z.string().trim().min(1).max(120) }).parse(req.body);
-    await needCourse(b.courseId, userOf(req));
+    const b = z.object({ courseId: uuid.optional(), name: z.string().trim().min(1).max(120), audience: z.enum(["students", "teachers"]).default("students") }).parse(req.body);
+    // O'qituvchilar guruhi darslarga bog'lanmaydi: ichki «O'qituvchilar» kursi ishlatiladi, oferta va intizom o'chiq.
+    const teachers = b.audience === "teachers";
+    const courseId = teachers ? await teachersCourse() : b.courseId || fail(400, "Kursni tanlang");
+    if (!teachers) await needCourse(courseId, userOf(req));
     const g = (await pool.query(
-      "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id) VALUES($1,$2,$3,$4) RETURNING *",
-      [b.courseId, b.name, inviteCode(), userOf(req)],
+      "INSERT INTO cls_groups(course_id,name,invite_code,teacher_id,audience,offer_required,discipline,leaderboard_mode) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+      [courseId, b.name, inviteCode(), userOf(req), b.audience, !teachers, !teachers, "top10"],
     )).rows[0];
     await pool.query("INSERT INTO cls_group_staff(group_id,user_id,role) VALUES($1,$2,'teacher') ON CONFLICT DO NOTHING", [g.id, userOf(req)]);
     return { group: g };
@@ -466,7 +476,9 @@ export function registerClassroom(app: Express) {
     ).rows;
     const announcements = (await pool.query("SELECT * FROM cls_announcements WHERE group_id=$1 ORDER BY pinned DESC, created_at DESC LIMIT 50", [id])).rows;
     const staff = await groupStaff(id);
-    return { group, members, schedule, announcements, staff, myRole: role };
+    const guides = (await pool.query("SELECT guide_id FROM cls_group_guides WHERE group_id=$1 ORDER BY created_at", [id])).rows.map((r) => r.guide_id);
+    const pro = (await pool.query("SELECT user_id, guide_id FROM cls_group_pro WHERE group_id=$1", [id])).rows;
+    return { group, members, schedule, announcements, staff, myRole: role, guides, pro };
   }));
   app.post(P + "/admin/groups/:id/members/:userId", requireStaff, route(async (req) => {
     await needGroup(uuid.parse(req.params.id), userOf(req));
@@ -573,7 +585,7 @@ export function registerClassroom(app: Express) {
   app.get(P + "/invite/:code", route(async (req) => {
     const code = z.string().min(6).max(40).parse(req.params.code);
     const g = (await pool.query(
-      "SELECT g.id,g.name,g.invite_active,g.archived,g.offer_required,c.title AS course_title,c.description FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.invite_code=$1",
+      "SELECT g.id,g.name,g.invite_active,g.archived,g.offer_required,g.audience,c.title AS course_title,c.description FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id WHERE g.invite_code=$1",
       [code],
     )).rows[0];
     if (!g || !g.invite_active || g.archived) fail(404, "Taklif havolasi eskirgan yoki noto‘g‘ri");
@@ -582,7 +594,7 @@ export function registerClassroom(app: Express) {
       status = (await pool.query("SELECT status FROM cls_members WHERE group_id=$1 AND user_id=$2", [g.id, req.session.userId])).rows[0]?.status || null;
     const offer = g.offer_required ? await currentOffer() : null;
     return {
-      group: { id: g.id, name: g.name, courseTitle: g.course_title, description: g.description },
+      group: { id: g.id, name: g.name, courseTitle: g.course_title, description: g.description, audience: g.audience },
       status,
       offer: offer && { version: offer.version, body: offer.body, consents: OFFER_CONSENTS },
     };
@@ -627,7 +639,7 @@ export function registerClassroom(app: Express) {
         role
           ? `SELECT g.id,g.name,c.title AS course_title,'active' AS status FROM cls_groups g JOIN cls_courses c ON c.id=g.course_id
               WHERE NOT g.archived AND ($2 OR EXISTS(SELECT 1 FROM cls_group_staff gs WHERE gs.group_id=g.id AND gs.user_id=$1)) ORDER BY g.created_at DESC`
-          : `SELECT g.id,g.name,c.title AS course_title,m.status FROM cls_members m JOIN cls_groups g ON g.id=m.group_id JOIN cls_courses c ON c.id=g.course_id
+          : `SELECT g.id,g.name,c.title AS course_title,m.status,g.audience FROM cls_members m JOIN cls_groups g ON g.id=m.group_id JOIN cls_courses c ON c.id=g.course_id
               WHERE m.user_id=$1 AND m.status IN ('active','pending') AND NOT g.archived ORDER BY m.joined_at DESC`,
         role ? [uid, role === "admin"] : [uid],
       )
@@ -654,7 +666,7 @@ export function registerClassroom(app: Express) {
       ? (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE group_id=$1 AND status='submitted'", [id])).rows[0].n
       : 0;
     return {
-      group: { id: group.id, name: group.name, allowPeerDm: group.allow_peer_dm },
+      group: { id: group.id, name: group.name, allowPeerDm: group.allow_peer_dm, audience: group.audience },
       teacher,
       todo,
       live,
@@ -662,6 +674,7 @@ export function registerClassroom(app: Express) {
       progress: { done: states.filter((s) => s.unlocked && s.passed).length, total: states.length },
       announcements,
       pendingReview,
+      billing: teacher ? null : await (await import("./classroom-billing")).billingInfo(id, uid),
     };
   }));
   app.get(P + "/groups/:id/lessons", requireAuth, route(async (req) => {

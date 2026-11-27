@@ -160,7 +160,7 @@ export function splitSentences(text: string) {
 }
 
 /* ---------------- Import ---------------- */
-const importSchema = z.object({
+export const importSchema = z.object({
   key: z.string().trim().min(1).max(60),
   version: z.number().int().min(1).max(10000).default(1),
   position: z.number().int().min(1).max(500),
@@ -184,6 +184,8 @@ const importSchema = z.object({
     proctor: z.enum(["off", "warn", "required"]).default("required"),
     passPercent: z.number().int().min(10).max(100).default(80),
     shadow: z.boolean().default(true),
+    /** Video bilan topshirish: o'qituvchi videoni ko'radi; AI faqat qisqa bo'laklarni tekshiradi. */
+    video: z.boolean().default(false),
   })).max(10).default([]),
 });
 
@@ -259,12 +261,12 @@ async function importLesson(c: Db, courseId: string, b: ImportLesson) {
   for (const t of b.tasks) {
     const ex = (await c.query("SELECT id FROM cls_tasks WHERE lesson_id=$1 AND title=$2", [lessonId, t.title])).rows[0];
     if (ex) {
-      await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7,prompt_ar=$8,prompt_uz=$9,text_uz=$10 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz)]);
+      await c.query("UPDATE cls_tasks SET text_ar=$2,max_seconds=$3,max_score=$4,proctor=$5,pass_percent=$6,shadow=$7,prompt_ar=$8,prompt_uz=$9,text_uz=$10,video=$11 WHERE id=$1", [ex.id, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz), t.video]);
       keepTasks.push(ex.id);
     } else
       keepTasks.push((await c.query(
-        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,prompt_ar,prompt_uz,text_uz) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id",
-        [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz)],
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,prompt_ar,prompt_uz,text_uz,video) VALUES($1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id",
+        [lessonId, t.title, t.textAr, t.maxSeconds, t.maxScore, t.proctor, t.passPercent, t.shadow, t.promptAr || null, t.promptUz || null, JSON.stringify(t.textUz), t.video],
       )).rows[0].id);
   }
   await c.query("DELETE FROM cls_tasks WHERE lesson_id=$1 AND NOT (id = ANY($2::uuid[]))", [lessonId, keepTasks]);

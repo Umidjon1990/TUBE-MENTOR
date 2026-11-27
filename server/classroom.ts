@@ -674,6 +674,7 @@ export function registerClassroom(app: Express) {
       progress: { done: states.filter((s) => s.unlocked && s.passed).length, total: states.length },
       announcements,
       pendingReview,
+      billing: teacher ? null : await (await import("./classroom-billing")).billingInfo(id, uid),
     };
   }));
   app.get(P + "/groups/:id/lessons", requireAuth, route(async (req) => {

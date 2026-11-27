@@ -2103,10 +2103,10 @@ test("class enrollment: offer agreement, minors, preapproved phones, bulk approv
   const course = (await (await call("/admin/courses", { title: "Oferta kursi" }, T.h)).json()).course;
   const group = (await (await call("/admin/groups", { courseId: course.id, name: "Oferta guruhi" }, T.h)).json()).group;
   const inv = await (await fetch(base + "/api/platform/class/invite/" + group.invite_code, { headers })).json();
-  assert.ok(inv.offer.body.includes("OMMAVIY OFERTA") && inv.offer.consents.length >= 8);
+  assert.ok(inv.offer.body.includes("ommaviy oferta") && inv.offer.body.includes("312 316 714") && inv.offer.consents.length === 4);
   // Roziliksiz yoki bandlardan biri yo'q — qo'shilib bo'lmaydi.
   assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar" }, A.h)).status, 400);
-  const partial = await agreement(); delete (partial.consents as any).refund;
+  const partial = await agreement(); delete (partial.consents as any).payment;
   assert.equal((await call(`/invite/${group.invite_code}/join`, { phone: "+998901000001", name: "Anvar", agreement: partial }, A.h)).status, 400);
   // 18 yoshdan kichik: ota-ona ma'lumotisiz rad etiladi.
   const young = await agreement(new Date().getFullYear() - 15);

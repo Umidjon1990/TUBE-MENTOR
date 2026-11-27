@@ -2464,3 +2464,75 @@ test("qo'llanma kodlari, o'qituvchi biriktirish va faqat o'qituvchiga materialla
   assert.equal((await req(`/admin/guides/cefrVocab1/teachers/${T.id}`, A.h, "DELETE", {})).status, 200);
   assert.equal((await req(`/guides/cefrVocab1/materials/${mid}`, T.h)).status, 404, "biriktirish olib tashlansa material yopiladi");
 });
+
+test("o'qituvchilar guruhi: qo'llanma biriktirish hammaga Bepul, Pro faqat tanlanganga, guruhdan chiqsa kirish yopiladi", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const mk = async (username: string, role = "student", phone?: string) => {
+    const pass = randomBytes(24).toString("hex");
+    await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,phone) VALUES($1,$1,$2,true,$3,$4)", [username, hashPassword(pass), role, phone ?? null]);
+    const login = await (await post("/api/platform/auth/password", { username, password: pass })).json();
+    const id = (await pool.query("SELECT id FROM users WHERE username=$1", [username])).rows[0].id;
+    return { h: { "x-platform-session": login.token }, id };
+  };
+  const A = await mk("tg_admin", "admin"), T1 = await mk("tg_t1"), T2 = await mk("tg_t2");
+  const req = (path: string, extra: Record<string, string>, method = "GET", body?: unknown) =>
+    fetch(base + "/api/platform" + path, { method, headers: { ...headers, ...extra }, body: body === undefined ? undefined : JSON.stringify(body) });
+
+  const created = await req("/class/admin/groups", A.h, "POST", { name: "O‘qituvchilar — Fonetika", audience: "teachers" });
+  assert.equal(created.status, 200);
+  const g = (await created.json()).group;
+  assert.deepEqual([g.audience, g.offer_required, g.discipline], ["teachers", false, false]);
+  const courses = await (await req("/class/admin/courses", A.h)).json();
+  assert.ok(!courses.courses.some((c: any) => c.level === "teachers"), "ichki kurs kurslar ro'yxatida ko'rinmaydi");
+  assert.equal((await req("/class/admin/groups", A.h, "POST", { name: "kurssiz o‘quvchilar" })).status, 400);
+
+  // O'qituvchilar havola orqali qo'shiladi (oferta so'ralmaydi), admin tasdiqlaydi.
+  const inv = await (await req("/class/invite/" + g.invite_code, T1.h)).json();
+  assert.equal(inv.group.audience, "teachers");
+  assert.equal(inv.offer, null);
+  for (const T of [T1, T2]) {
+    assert.equal((await req(`/class/invite/${g.invite_code}/join`, T.h, "POST", { name: "Ustoz", phone: "+998901234567" })).status, 200);
+    assert.equal((await req(`/class/admin/groups/${g.id}/members/${T.id}`, A.h, "POST", { action: "approve" })).status, 200);
+  }
+
+  // Qo'llanma biriktirish: faqat admin, faqat o'qituvchilar guruhiga.
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, T1.h, "PUT", { guides: ["fonetika"] })).status, 403);
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, A.h, "PUT", { guides: ["fonetika", "kids1"] })).status, 200);
+  const detail = await (await req(`/class/admin/groups/${g.id}`, A.h)).json();
+  assert.deepEqual(detail.guides.sort(), ["fonetika", "kids1"]);
+  for (const T of [T1, T2]) {
+    const mine = await (await req("/guides/teacher", T.h)).json();
+    assert.deepEqual(mine.guides.map((x: any) => [x.guideId, x.tier]).sort(), [["fonetika", "free"], ["kids1", "free"]]);
+    assert.deepEqual(mine.groups.map((x: any) => x.id), [g.id]);
+  }
+
+  // Pro faqat tanlangan a'zoga va guruhga biriktirilgan qo'llanma bo'yicha.
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, A.h, "PUT", { userId: T1.id, guideId: "a1", on: true })).status, 400);
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, T1.h, "PUT", { userId: T1.id, guideId: "fonetika", on: true })).status, 403);
+  assert.equal((await req(`/class/admin/groups/${g.id}/pro`, A.h, "PUT", { userId: T1.id, guideId: "fonetika", on: true })).status, 200);
+  const t1 = await (await req("/guides/access", T1.h)).json();
+  assert.deepEqual(t1.teacher.map((x: any) => [x.guideId, x.tier]).sort(), [["fonetika", "pro"], ["kids1", "free"]]);
+  const t2 = await (await req("/guides/access", T2.h)).json();
+  assert.ok(t2.teacher.every((x: any) => x.tier === "free"), "Pro boshqa a'zoga o'tmaydi");
+
+  // Guruh orqali biriktirilgan o'qituvchi materialni ochadi; guruhdan chiqsa yopiladi.
+  const up = await fetch(base + "/api/platform/admin/guides/fonetika/materials?kind=test&title=" + encodeURIComponent("1-dars"), {
+    method: "POST", headers: { "x-platform-key": key, ...A.h, "Content-Type": "application/pdf" }, body: Buffer.from("%PDF-1.4\n% t\n"),
+  });
+  const mid = (await up.json()).id;
+  assert.equal((await req(`/guides/fonetika/materials/${mid}`, T2.h)).status, 200);
+  assert.equal((await req(`/class/admin/groups/${g.id}/members/${T2.id}`, A.h, "POST", { action: "remove" })).status, 200);
+  assert.equal((await req(`/guides/fonetika/materials/${mid}`, T2.h)).status, 404);
+  assert.deepEqual((await (await req("/guides/teacher", T2.h)).json()).guides, []);
+
+  // Qo'llanma guruhdan olinsa, uning Pro'si ham o'chadi.
+  assert.equal((await req(`/class/admin/groups/${g.id}/guides`, A.h, "PUT", { guides: ["kids1"] })).status, 200);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM cls_group_pro WHERE group_id=$1", [g.id])).rows[0].n, 0);
+  assert.deepEqual((await (await req("/guides/access", T1.h)).json()).teacher.map((x: any) => x.guideId), ["kids1"]);
+
+  // O'quvchilar guruhiga qo'llanma biriktirilmaydi.
+  const course = await (await req("/class/admin/courses", A.h, "POST", { title: "A1" })).json();
+  const sg = (await (await req("/class/admin/groups", A.h, "POST", { name: "A1 guruh", courseId: course.course.id })).json()).group;
+  assert.equal(sg.audience, "students");
+  assert.equal((await req(`/class/admin/groups/${sg.id}/guides`, A.h, "PUT", { guides: ["kids1"] })).status, 400);
+});

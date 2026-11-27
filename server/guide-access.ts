@@ -52,12 +52,29 @@ async function userByPhone(raw: unknown) {
   const u = (await pool.query("SELECT id, full_name, phone FROM users WHERE phone=$1 AND is_active", [phone])).rows[0];
   return u || fail(404, "Bu raqam bilan ro‘yxatdan o‘tgan foydalanuvchi topilmadi. Avval saytda ro‘yxatdan o‘tsin.");
 }
-async function isTeacherOf(user: string, guide: string) {
+/**
+ * O'qituvchiga ochiq qo'llanmalar: admin to'g'ridan-to'g'ri biriktirganlari + a'zo bo'lgan o'qituvchilar guruhlariga
+ * biriktirilganlari (Bepul; admin tanlagan a'zoga Pro). Guruhdan chiqarilsa yoki guruh yopilsa — kirish ham yopiladi.
+ * Bir nechta manba bo'lsa, yuqorisi olinadi ('pro' > 'free').
+ */
+export async function teacherGuides(user: string): Promise<{ guideId: string; tier: string }[]> {
   const r = await pool.query(
-    "SELECT tier FROM guide_teachers t JOIN users u ON u.id=t.user_id WHERE t.user_id=$1 AND t.guide_id=$2 AND u.is_active",
-    [user, guide],
+    `SELECT x.guide_id AS "guideId", max(x.tier) AS tier, min(x.since) AS since FROM (
+       SELECT t.guide_id, t.tier, t.created_at AS since FROM guide_teachers t WHERE t.user_id=$1
+       UNION ALL
+       SELECT gg.guide_id, CASE WHEN p.user_id IS NULL THEN 'free' ELSE 'pro' END, gg.created_at
+         FROM cls_members m
+         JOIN cls_groups g ON g.id=m.group_id AND g.audience='teachers' AND NOT g.archived
+         JOIN cls_group_guides gg ON gg.group_id=g.id
+         LEFT JOIN cls_group_pro p ON p.group_id=g.id AND p.user_id=m.user_id AND p.guide_id=gg.guide_id
+        WHERE m.user_id=$1 AND m.status='active'
+     ) x JOIN users u ON u.id=$1 AND u.is_active GROUP BY x.guide_id ORDER BY min(x.since)`,
+    [user],
   );
-  return r.rows[0]?.tier as string | undefined;
+  return r.rows.map((x) => ({ guideId: x.guideId, tier: x.tier }));
+}
+async function isTeacherOf(user: string, guide: string) {
+  return (await teacherGuides(user)).find((g) => g.guideId === guide)?.tier;
 }
 async function isAdmin(user: string) {
   return (await pool.query("SELECT 1 FROM users WHERE id=$1 AND role='admin' AND is_active", [user])).rowCount! > 0;
@@ -74,9 +91,9 @@ export function registerGuideAccess(app: Express) {
     const user = userOf(req);
     const [owned, teacher] = await Promise.all([
       pool.query("SELECT guide_id AS \"guideId\", source, created_at AS \"createdAt\" FROM guide_access WHERE user_id=$1 ORDER BY created_at DESC", [user]),
-      pool.query("SELECT guide_id AS \"guideId\", tier FROM guide_teachers WHERE user_id=$1 ORDER BY created_at", [user]),
+      teacherGuides(user),
     ]);
-    return { owned: owned.rows, teacher: teacher.rows };
+    return { owned: owned.rows, teacher };
   }));
 
   app.post(G + "/redeem", requireAuth, route(async (req) => {
@@ -119,7 +136,18 @@ export function registerGuideAccess(app: Express) {
   /** O'qituvchi kabineti: biriktirilgan qo'llanmalar va ularning materiallari (fayl o'zi emas, ro'yxat). */
   app.get(G + "/teacher", requireAuth, route(async (req) => {
     const user = userOf(req);
-    const guides = (await pool.query("SELECT guide_id AS \"guideId\", tier FROM guide_teachers WHERE user_id=$1 ORDER BY created_at", [user])).rows;
+    const guides = await teacherGuides(user);
+    const groups = (
+      await pool.query(
+        `SELECT g.id, g.name,
+                (SELECT json_build_object('id',l.id,'title',l.title,'startsAt',l.starts_at,'status',l.status) FROM cls_live_sessions l
+                  WHERE l.group_id=g.id AND l.status<>'cancelled' AND l.starts_at+make_interval(mins=>l.duration_minutes) > now()
+                  ORDER BY l.starts_at LIMIT 1) AS live
+           FROM cls_members m JOIN cls_groups g ON g.id=m.group_id
+          WHERE m.user_id=$1 AND m.status='active' AND g.audience='teachers' AND NOT g.archived ORDER BY m.joined_at`,
+        [user],
+      )
+    ).rows;
     const ids = guides.map((g) => g.guideId);
     const mats = ids.length
       ? (await pool.query(
@@ -128,6 +156,7 @@ export function registerGuideAccess(app: Express) {
         )).rows
       : [];
     return {
+      groups,
       guides: guides.map((g) => ({
         ...g,
         materials: mats.filter((m) => m.guide_id === g.guideId).map((m) => ({ id: m.id, kind: m.kind, title: m.title, size: m.size, type: m.content_type })),
@@ -151,6 +180,47 @@ export function registerGuideAccess(app: Express) {
       next(e);
     }
   });
+
+  /* ---------------- O'qituvchilar guruhi: qo'llanma biriktirish va Pro (faqat admin) ---------------- */
+  const C = "/api/platform/class/admin/groups";
+  const teacherGroup = async (raw: unknown) => {
+    const id = z.string().uuid().parse(raw);
+    const g = (await pool.query("SELECT id, audience FROM cls_groups WHERE id=$1", [id])).rows[0];
+    if (!g) fail(404, "Guruh topilmadi");
+    if (g.audience !== "teachers") fail(400, "Qo‘llanma faqat o‘qituvchilar guruhiga biriktiriladi");
+    return id;
+  };
+  app.put(C + "/:id/guides", requireAdmin, route(async (req) => {
+    const id = await teacherGroup(req.params.id);
+    const guides = z.object({ guides: z.array(guideId).max(100) }).parse(req.body).guides;
+    const c = await pool.connect();
+    try {
+      await c.query("BEGIN");
+      await c.query("DELETE FROM cls_group_guides WHERE group_id=$1 AND NOT (guide_id = ANY($2))", [id, guides]);
+      await c.query("DELETE FROM cls_group_pro WHERE group_id=$1 AND NOT (guide_id = ANY($2))", [id, guides]);
+      for (const g of guides) await c.query("INSERT INTO cls_group_guides(group_id,guide_id) VALUES($1,$2) ON CONFLICT DO NOTHING", [id, g]);
+      await c.query("COMMIT");
+    } catch (e) {
+      await c.query("ROLLBACK").catch(() => {});
+      throw e;
+    } finally {
+      c.release();
+    }
+    return { guides };
+  }));
+  app.put(C + "/:id/pro", requireAdmin, route(async (req) => {
+    const id = await teacherGroup(req.params.id);
+    const b = z.object({ userId: z.string().min(1).max(100), guideId, on: z.boolean() }).parse(req.body);
+    if (b.on) {
+      const ok = (await pool.query(
+        "SELECT 1 FROM cls_members m JOIN cls_group_guides gg ON gg.group_id=m.group_id AND gg.guide_id=$3 WHERE m.group_id=$1 AND m.user_id=$2 AND m.status='active'",
+        [id, b.userId, b.guideId],
+      )).rowCount;
+      if (!ok) fail(400, "Pro faqat guruhning faol a’zosiga va guruhga biriktirilgan qo‘llanma bo‘yicha beriladi");
+      await pool.query("INSERT INTO cls_group_pro(group_id,user_id,guide_id,granted_by) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING", [id, b.userId, b.guideId, userOf(req)]);
+    } else await pool.query("DELETE FROM cls_group_pro WHERE group_id=$1 AND user_id=$2 AND guide_id=$3", [id, b.userId, b.guideId]);
+    return { ok: true };
+  }));
 
   /* ---------------- Admin ---------------- */
   app.get(A + "/summary", requireAdmin, route(async () => {

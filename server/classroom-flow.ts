@@ -195,7 +195,7 @@ async function timings(groupId: string) {
     const quickOpens = s ? (ended ? new Date(s.ended_at || s.starts_at).getTime() + (s.ended_at ? 0 : s.duration_minutes * 60000) : null) : r.opens_at ? new Date(r.opens_at).getTime() : null;
     const next = rows.slice(i + 1).find((x: any) => x.opens_at);
     // Jonli darsdan keyin: tezkor topshiriq — 1 soat, qolgan vazifalar — guruh muddati (standart 24 soat).
-    const mainDue = s && quickOpens ? quickOpens + (r.task_hours || 24) * H : next ? new Date(next.opens_at).getTime() : r.due_at ? new Date(r.due_at).getTime() : quickOpens ? quickOpens + 7 * 24 * H : null;
+    const mainDue = s && quickOpens ? quickOpens + (r.task_hours || 48) * H : next ? new Date(next.opens_at).getTime() : r.due_at ? new Date(r.due_at).getTime() : quickOpens ? quickOpens + 7 * 24 * H : null;
     map.set(r.id, { sessionId: s?.id || null, finalized: !!s?.finalized_at, recordingReady: s?.recording_state === "ready", quickOpens, quickDue: quickOpens ? quickOpens + (s ? 1 : 24) * H : null, mainDue, ended });
   });
   return map;

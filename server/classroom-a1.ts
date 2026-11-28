@@ -357,7 +357,7 @@ export function registerClassroomA1(app: Express) {
     const timing = (q: any[], l: any[]) => ({
       ...(part.kind === "vocab" ? { perQuestion: l.map((x: any) => questionSeconds(q[x.q], part.data.seconds || VOCAB_SECONDS)) } : {}),
       ...(part.data.text ? { text: part.data.text, textTitle: part.data.textTitle || "" } : {}),
-      ...(part.data.intro ? { intro: part.data.intro } : {}),
+      ...(part.data.intro && part.kind !== "vocab" ? { intro: part.data.intro } : {}),
     });
     if (open) return { attemptId: open.id, title: part.title, kind: part.kind, questions: present(open.layout.q, open.layout.l), startedAt: open.started_at, ...timing(open.layout.q, open.layout.l) };
     const used = (await pool.query("SELECT count(*)::int AS n FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].n;

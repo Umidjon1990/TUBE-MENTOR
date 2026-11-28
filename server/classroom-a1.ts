@@ -331,7 +331,7 @@ export function registerClassroomA1(app: Express) {
   app.get(P + "/groups/:id/parts/:partId/words", requireAuth, route(async (req) => {
     const { part } = await partContext(uuid.parse(req.params.id), uuid.parse(req.params.partId), userOf(req));
     if (part.kind !== "vocab") fail(400, "Bu so‘z topshirig‘i emas");
-    return { title: part.title, words: part.data.words, videos: part.data.videos || [] };
+    return { title: part.title, words: part.data.words, videos: part.data.videos || [], seconds: part.data.seconds || null, section: part.data.section || null };
   }));
   // So'zlar yodlandi: imtihon ochiladi.
   app.post(P + "/groups/:id/parts/:partId/learned", requireAuth, route(async (req) => {

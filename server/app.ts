@@ -90,7 +90,7 @@ export async function createApplication(
   // Zoom webhook imzosi xom tana bo'yicha tekshiriladi.
   app.use("/api/zoom/webhook", express.json({ limit: "256kb", verify: (req, _res, buf) => { (req as any).rawBody = Buffer.from(buf); } }));
   // O'quvchi audiosi (base64, ~8 MB gacha).
-  app.use(/^\/api\/platform\/class\/groups\/[^/]+\/tasks\/[^/]+\/submit$/, express.json({ limit: "12mb" }));
+  app.use(/^\/api\/platform\/class\/groups\/[^/]+\/tasks\/[^/]+\/submit$/, express.json({ limit: "22mb" }));
   // Chatga ovoz, rasm yoki PDF (base64, 10 MB gacha).
   app.use(/^\/api\/platform\/class\/groups\/[^/]+\/chat$/, express.json({ limit: "15mb" }));
   app.use(express.json({ limit: "10mb" }));

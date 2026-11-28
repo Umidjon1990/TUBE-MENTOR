@@ -463,12 +463,13 @@ export function registerClassStaff(app: Express) {
     if (!ids.length) return { items: [], counts: {} };
     const where =
       q.view === "attention"
-        ? `s.status='graded' AND s.auto AND (COALESCE(s.final_percent,0) < t.pass_percent OR COALESCE(jsonb_array_length(s.proctor->'events'),0) > 0)`
+        ? `s.status='graded' AND s.auto AND (s.flagged OR COALESCE(s.final_percent,0) < t.pass_percent OR COALESCE(jsonb_array_length(s.proctor->'events'),0) > 0)`
         : `s.status='${q.view}'`;
     const rows = (
       await pool.query(
         `SELECT s.id, s.group_id, g.name AS group_name, s.user_id, COALESCE(NULLIF(m.display_name,''),u.full_name) AS name, s.audio_seconds, s.ai_percent, s.ai_diff,
-                s.final_percent, s.pauses, s.proctor, s.snapshots, s.auto, s.score, s.comment, s.status, s.late, s.created_at,
+                s.final_percent, s.pauses, s.proctor, s.snapshots, s.auto, s.score, s.comment, s.status, s.late, s.created_at, s.flagged, (s.sampled IS NOT NULL) AS sampled,
+                (s.video_key IS NOT NULL AND s.video_deleted_at IS NULL) AS video, (s.video_deleted_at IS NOT NULL) AS video_expired,
                 t.id AS task_id, t.title, t.text_ar, t.max_score, t.pass_percent
            FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id JOIN cls_groups g ON g.id=s.group_id
            JOIN users u ON u.id=s.user_id LEFT JOIN cls_members m ON m.group_id=s.group_id AND m.user_id=s.user_id
@@ -479,7 +480,7 @@ export function registerClassStaff(app: Express) {
     const counts = (
       await pool.query(
         `SELECT count(*) FILTER (WHERE s.status='submitted')::int AS submitted,
-                count(*) FILTER (WHERE s.status='graded' AND s.auto AND (COALESCE(s.final_percent,0) < t.pass_percent OR COALESCE(jsonb_array_length(s.proctor->'events'),0) > 0))::int AS attention
+                count(*) FILTER (WHERE s.status='graded' AND s.auto AND (s.flagged OR COALESCE(s.final_percent,0) < t.pass_percent OR COALESCE(jsonb_array_length(s.proctor->'events'),0) > 0))::int AS attention
            FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id WHERE s.group_id = ANY($1::uuid[])`,
         [ids],
       )

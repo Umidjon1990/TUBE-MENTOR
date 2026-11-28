@@ -61,6 +61,20 @@ export function compareRecitation(original: string, spoken: string) {
   return { percent, diff, words: n };
 }
 
+/** Bo'laklab tekshirish: aytilgan so'zlarning qanchasi asl matnda shu tartibda bor (aniqlik) va bo'laklar
+ *  yetarlicha uzunmi (jim turib qolmaganmi). Bo'laklardan tashqaridagi so'zlar "aytilmagan" hisoblanmaydi. */
+export function compareSampled(original: string, spoken: string, clipSeconds: number) {
+  const a = normalizeArabic(original), b = normalizeArabic(spoken);
+  const n = a.length, m = b.length;
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const matched = dp[0][0];
+  // Arabcha yoddan o'qishda soniyasiga ~2 so'z; bo'laklarda kamida soniyasiga 1 so'z kutiladi.
+  const expected = Math.max(3, Math.min(Math.round(n * 0.6), Math.round(clipSeconds * 1)));
+  const percent = Math.max(0, Math.min(100, Math.round((matched / Math.max(m, expected)) * 100)));
+  return { percent, matched, spoken: m };
+}
+
 /** ffmpeg bo'lsa: ovozni mono 24 kbit/s Opus (ogg) ga siqamiz — 2 daqiqa ≈ 360 KB. Bo'lmasa asl fayl qoladi. */
 export function compressAudio(input: Buffer, maxSeconds: number): Promise<{ data: Buffer; mime: string } | null> {
   return new Promise((resolve) => {
@@ -110,8 +124,8 @@ let transcriber: Transcriber = realTranscriber;
 
 /* ---------------- ChatGPT: so'zma-so'z hakamlik ---------------- */
 export type Judge = { percent: number; missing: string[]; wrong: { said: string; expected: string }[]; extra: string[]; note: string };
-type Judger = (original: string, spoken: string, lcs: number) => Promise<Judge>;
-const realJudge: Judger = async (original, spoken, lcs) => {
+type Judger = (original: string, spoken: string, lcs: number, sampled?: boolean) => Promise<Judge>;
+const realJudge: Judger = async (original, spoken, lcs, sampled) => {
   const key = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
   if (!key) throw new Error("OpenAI is not configured");
   openai ||= new OpenAI({ apiKey: key, ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }) });
@@ -126,9 +140,12 @@ const realJudge: Judger = async (original, spoken, lcs) => {
           "You grade an Arabic memorization (recitation) exam. ORIGINAL is the text the student had to memorize word for word. TRANSCRIPT is an automatic speech-to-text (Whisper) result of the student's recording. " +
           "Compare them word by word, ignoring diacritics (harakat), punctuation, hamza/alif/ta-marbuta spelling variants and obvious speech-recognition spelling errors of the SAME word. " +
           "Count as errors only words the student omitted, replaced with a different word, or added. Return JSON: {\"percent\": integer 0-100 = share of ORIGINAL words said correctly and in order, minus small penalty for added words, " +
-          "\"missing\": [original words not said], \"wrong\": [{\"said\": word, \"expected\": word}], \"extra\": [added words], \"note\": one short sentence in Uzbek (Latin script) for the student}. Be strict: the text must be memorized verbatim.",
+          "\"missing\": [original words not said], \"wrong\": [{\"said\": word, \"expected\": word}], \"extra\": [added words], \"note\": one short sentence in Uzbek (Latin script) for the student}. Be strict: the text must be memorized verbatim." +
+          (sampled
+            ? " IMPORTANT: to save cost, TRANSCRIPT contains only three short clips of the recording (from the beginning, the middle and the end), joined together. Do NOT count original words outside these clips as missing. percent = share of TRANSCRIPT words that match the ORIGINAL verbatim and in order (each clip must be a continuous fragment of the ORIGINAL; the last clip should come from the end of the ORIGINAL). \"missing\" lists only words skipped INSIDE a clip."
+            : ""),
       },
-      { role: "user", content: `ORIGINAL:\n${original}\n\nTRANSCRIPT:\n${spoken}\n\nAutomatic word-match score for reference: ${lcs}%` },
+      { role: "user", content: `ORIGINAL:\n${original}\n\nTRANSCRIPT${sampled ? " (three short clips: start, middle, end)" : ""}:\n${spoken}\n\nAutomatic word-match score for reference: ${lcs}%` },
     ],
   });
   const j = JSON.parse(r?.choices?.[0]?.message?.content || "{}");
@@ -197,7 +214,15 @@ async function sniffMime(data: Buffer, declared: string) {
 }
 
 /** Topshiriqni qabul qilish, kamera hisobotini tekshirish, AI bilan avtomatik baholash. */
-export async function submitRecitation(input: { groupId: string; taskId: string; userId: string; audio: Buffer; mime: string; seconds: number; proctor: ProctorReport | null; snapshots: Buffer[] }) {
+export type SampleInfo = { total: number; clips: [number, number][] };
+const MAX_VIDEO = 15 * 1024 * 1024;
+function videoMime(data: Buffer) {
+  const head = data.subarray(0, 12).toString("latin1");
+  if (data[0] === 0x1a && data[1] === 0x45 && data[2] === 0xdf && data[3] === 0xa3) return "video/webm";
+  if (head.slice(4, 8) === "ftyp") return "video/mp4";
+  return null;
+}
+export async function submitRecitation(input: { groupId: string; taskId: string; userId: string; audio: Buffer; mime: string; seconds: number; proctor: ProctorReport | null; snapshots: Buffer[]; video?: Buffer | null; sampled?: SampleInfo | null }) {
   const task = (await pool.query("SELECT t.*, l.id AS lesson_id FROM cls_tasks t JOIN cls_lessons l ON l.id=t.lesson_id WHERE t.id=$1", [input.taskId])).rows[0] || fail(404, "Vazifa topilmadi");
   const { teacher } = await membership(input.groupId, input.userId);
   const state = (await lessonStates(input.groupId, input.userId, teacher)).find((s) => s.id === task.lesson_id) || fail(404, "Vazifa bu guruhga tegishli emas");
@@ -206,6 +231,11 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   const mime = (await sniffMime(input.audio, input.mime)) || fail(415, "Audio formati tanilmadi");
   if (input.seconds > task.max_seconds + 10) fail(400, `Yozuv ${task.max_seconds} soniyadan oshmasin`);
   if (task.proctor === "required" && !input.proctor?.enabled) fail(400, "Bu vazifa old kamera yoqilgan holda yoziladi");
+  const video = task.video ? input.video || null : null;
+  if (task.video && !video) fail(400, "Bu vazifa video bilan topshiriladi. Brauzeringizni yangilang");
+  if (video && video.length > MAX_VIDEO) fail(413, "Video hajmi juda katta. Qisqaroq yozing");
+  const vMime = video ? videoMime(video) || fail(415, "Video formati tanilmadi") : null;
+  const sampled = input.sampled && input.sampled.clips.length ? input.sampled : null;
   const used = (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status<>'rejected'", [task.id, input.groupId, input.userId])).rows[0].n;
   const test = !!(await pool.query("SELECT is_test FROM users WHERE id=$1", [input.userId])).rows[0]?.is_test;
   if (used >= MAX_ATTEMPTS && !test) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
@@ -227,29 +257,38 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   const key = `class/audio/${input.groupId}/${id}.${ext}`;
   const store = classStore();
   await store.put(key, audio, audioMime);
+  // Video bucket'ga yoziladi; o'qituvchi uni vaqtinchalik havola orqali to'g'ridan-to'g'ri bucket'dan ko'radi.
+  const videoKey = video ? `class/video/${input.groupId}/${id}.${vMime === "video/mp4" ? "mp4" : "webm"}` : null;
+  if (video) await store.put(videoKey!, video, vMime!);
   // Yuz suratlari serverga saqlanmaydi (biometrik ma'lumot): faqat raqamli kamera hisoboti qoladi.
   const snaps: Buffer[] = [];
   const due = (await pool.query("SELECT due_at FROM cls_group_lessons WHERE group_id=$1 AND lesson_id=$2", [input.groupId, task.lesson_id])).rows[0]?.due_at;
   const late = !!due && new Date(due).getTime() < Date.now();
   await pool.query("UPDATE cls_submissions SET status='replaced' WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status='submitted'", [task.id, input.groupId, input.userId]);
   await pool.query(
-    `INSERT INTO cls_submissions(id,task_id,group_id,user_id,audio_key,audio_seconds,audio_mime,source,late,status,proctor,snapshots)
-     VALUES($1,$2,$3,$4,$5,$6,$7,'web',$8,'submitted',$9,$10)`,
-    [id, task.id, input.groupId, input.userId, key, Math.round(input.seconds), audioMime, late, proctor ? JSON.stringify(proctor) : null, snaps.length],
+    `INSERT INTO cls_submissions(id,task_id,group_id,user_id,audio_key,audio_seconds,audio_mime,source,late,status,proctor,snapshots,video_key,video_mime,video_bytes,sampled)
+     VALUES($1,$2,$3,$4,$5,$6,$7,'web',$8,'submitted',$9,$10,$11,$12,$13,$14)`,
+    [id, task.id, input.groupId, input.userId, key, Math.round(input.seconds), audioMime, late, proctor ? JSON.stringify(proctor) : null, snaps.length, videoKey, vMime, video?.length ?? null, sampled ? JSON.stringify(sampled) : null],
   );
-  let result: { accuracy: number; diff: DiffItem[]; pauses: number | null; final: number; score: number; judge: Judge | null } | null = null;
+  let result: { accuracy: number; diff: DiffItem[] | null; pauses: number | null; final: number; score: number; judge: Judge | null } | null = null;
   try {
     const t = await transcriber(audio, audioMime);
+    const clipSeconds = sampled ? sampled.clips.reduce((sum, [a, b]) => sum + Math.max(0, b - a), 0) : 0;
     const cmp = compareRecitation(task.text_ar, t.text);
+    const lcs = sampled ? compareSampled(task.text_ar, t.text, clipSeconds).percent : cmp.percent;
     let verdictAi: Judge | null = null;
-    if (judge && t.text.trim()) verdictAi = await judge(task.text_ar, t.text, cmp.percent).catch(() => null);
-    const accuracy = verdictAi ? verdictAi.percent : cmp.percent;
-    const pauses = countPauses(t.words);
+    if (judge && t.text.trim()) verdictAi = await judge(task.text_ar, t.text, lcs, !!sampled).catch(() => null);
+    const accuracy = verdictAi ? verdictAi.percent : lcs;
+    // Bo'laklarda to'xtalishni o'lchab bo'lmaydi; to'liq matn farqi ham ko'rsatilmaydi (bo'laklardan tashqarisi aytilmagan bo'lib chiqadi).
+    const pauses = sampled ? null : countPauses(t.words);
     const final = autoPercent(accuracy, pauses, verdict.warnings);
-    result = { accuracy, diff: cmp.diff, pauses, final, score: Math.round((task.max_score * final) / 100), judge: verdictAi };
+    const diff = sampled ? null : cmp.diff;
+    // O'qituvchi avval ko'rishi kerak bo'lganlar: o'tish chegarasiga yaqin yoki past ball, kamera ogohlantirishi.
+    const flagged = !!video && (final < task.pass_percent + 10 || verdict.warnings > 0);
+    result = { accuracy, diff, pauses, final, score: Math.round((task.max_score * final) / 100), judge: verdictAi };
     await pool.query(
-      `UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4, pauses=$5, final_percent=$6, score=$7, ai_judge=$8, status='graded', auto=true, graded_at=now() WHERE id=$1`,
-      [id, t.text.slice(0, 10000), accuracy, JSON.stringify(cmp.diff), pauses, final, result.score, verdictAi ? JSON.stringify(verdictAi) : null],
+      `UPDATE cls_submissions SET transcript=$2, ai_percent=$3, ai_diff=$4, pauses=$5, final_percent=$6, score=$7, ai_judge=$8, flagged=$9, status='graded', auto=true, graded_at=now() WHERE id=$1`,
+      [id, t.text.slice(0, 10000), accuracy, diff ? JSON.stringify(diff) : null, pauses, final, result.score, verdictAi ? JSON.stringify(verdictAi) : null, flagged],
     );
   } catch {
     // AI vaqtincha ishlamasa — o'qituvchi navbatiga tushadi (zaxira yo'l).
@@ -271,7 +310,33 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
     diff: result?.diff ?? null,
     judge: result?.judge ?? null,
     attemptsLeft: test ? 99 : MAX_ATTEMPTS - used - 1,
+    sampled: !!sampled,
+    video: !!video,
   };
+}
+
+/** Videolarni saqlash muddati: almashtirilgan urinishlar — 7 kun, qolganlari baholangandan 60 kun keyin o'chiriladi (baho qoladi). */
+let lastPrune = 0;
+export async function pruneRecitationVideos(now = Date.now(), force = false) {
+  if (!force && now - lastPrune < 6 * 3600 * 1000) return 0;
+  lastPrune = now;
+  const rows = (
+    await pool.query(
+      `SELECT id, video_key FROM cls_submissions WHERE video_key IS NOT NULL AND video_deleted_at IS NULL AND (
+         (status IN ('replaced','rejected') AND created_at < $1::timestamptz - interval '7 days') OR
+         (status='graded' AND COALESCE(graded_at,created_at) < $1::timestamptz - interval '60 days')) LIMIT 200`,
+      [new Date(now).toISOString()],
+    )
+  ).rows;
+  for (const r of rows) {
+    try {
+      await classStore().remove(r.video_key);
+      await pool.query("UPDATE cls_submissions SET video_deleted_at=now() WHERE id=$1", [r.id]);
+    } catch {
+      // keyingi safar qayta urinadi
+    }
+  }
+  return rows.length;
 }
 
 export function registerClassTasks(app: Express) {
@@ -286,6 +351,7 @@ export function registerClassTasks(app: Express) {
     proctor: z.enum(["off", "warn", "required"]).default("required"),
     passPercent: z.number().int().min(10).max(100).default(80),
     shadow: z.boolean().default(false),
+    video: z.boolean().default(false),
   });
   app.get(P + "/admin/lessons/:id/tasks", requireStaff, route(async (req) => {
     await needLesson(uuid.parse(req.params.id), userOf(req), "view");
@@ -296,8 +362,8 @@ export function registerClassTasks(app: Express) {
     const b = taskSchema.parse(req.body);
     const t = (
       await pool.query(
-        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow) SELECT $1,'recitation',$2,$3,$4,$5,$6,$7,$8 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
-        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore, b.proctor, b.passPercent, b.shadow],
+        "INSERT INTO cls_tasks(lesson_id,kind,title,text_ar,max_seconds,max_score,proctor,pass_percent,shadow,video) SELECT $1,'recitation',$2,$3,$4,$5,$6,$7,$8,$9 WHERE EXISTS(SELECT 1 FROM cls_lessons WHERE id=$1) RETURNING *",
+        [uuid.parse(req.params.id), b.title, b.textAr, b.maxSeconds, b.maxScore, b.proctor, b.passPercent, b.shadow, b.video],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Dars topilmadi");
@@ -309,8 +375,8 @@ export function registerClassTasks(app: Express) {
     const t = (
       await pool.query(
         `UPDATE cls_tasks SET title=COALESCE($2,title), text_ar=COALESCE($3,text_ar), max_seconds=COALESCE($4,max_seconds), max_score=COALESCE($5,max_score),
-                proctor=COALESCE($6,proctor), pass_percent=COALESCE($7,pass_percent), shadow=COALESCE($8,shadow) WHERE id=$1 RETURNING *`,
-        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null, b.proctor ?? null, b.passPercent ?? null, b.shadow ?? null],
+                proctor=COALESCE($6,proctor), pass_percent=COALESCE($7,pass_percent), shadow=COALESCE($8,shadow), video=COALESCE($9,video) WHERE id=$1 RETURNING *`,
+        [uuid.parse(req.params.id), b.title ?? null, b.textAr ?? null, b.maxSeconds ?? null, b.maxScore ?? null, b.proctor ?? null, b.passPercent ?? null, b.shadow ?? null, b.video ?? null],
       )
     ).rows[0];
     return t ? { task: t } : fail(404, "Vazifa topilmadi");
@@ -332,6 +398,8 @@ export function registerClassTasks(app: Express) {
         seconds: z.number().min(0.5).max(400),
         proctor: proctorSchema.nullable().optional(),
         snapshots: z.array(z.string().max(200_000)).max(4).optional().default([]),
+        video: z.string().max(21_000_000).nullable().optional(),
+        sampled: z.object({ total: z.number().min(0).max(400), clips: z.array(z.tuple([z.number().min(0).max(400), z.number().min(0).max(400)])).max(4) }).nullable().optional(),
       })
       .parse(req.body);
     const snapshots: Buffer[] = []; // eski mijozlar yuborsa ham saqlanmaydi
@@ -344,6 +412,8 @@ export function registerClassTasks(app: Express) {
       seconds: b.seconds,
       proctor: b.proctor ?? null,
       snapshots,
+      video: b.video ? Buffer.from(b.video, "base64") : null,
+      sampled: b.sampled ?? null,
     });
   }));
   const sendFile = (kind: "audio" | "snap") => async (req: Request, res: any, next: any) => {
@@ -364,6 +434,33 @@ export function registerClassTasks(app: Express) {
       next(error);
     }
   };
+  /** Video: o'quvchi o'zinikini, o'qituvchi hammasini. Bucket bo'lsa — vaqtinchalik havola (fayl serverdan o'tmaydi, trafik bepul). */
+  const videoAccess = async (req: Request) => {
+    const id = uuid.parse(req.params.id), me = userOf(req);
+    const s = (await pool.query("SELECT id,group_id,user_id,video_key,video_mime,video_deleted_at FROM cls_submissions WHERE id=$1", [id])).rows[0] || fail(404, "Topilmadi");
+    const { teacher } = await membership(s.group_id, me);
+    if (!teacher && s.user_id !== me) fail(404, "Topilmadi");
+    if (!s.video_key) fail(404, "Bu topshiriqda video yo‘q");
+    if (s.video_deleted_at) fail(410, "Video saqlash muddati tugagan (baho saqlangan)");
+    return s;
+  };
+  app.get(P + "/submissions/:id/video", requireAuth, route(async (req) => {
+    const s = await videoAccess(req);
+    const store = classStore();
+    return { url: store.url ? store.url(s.video_key, 3 * 3600) : `${P}/submissions/${s.id}/video-file`, mime: s.video_mime };
+  }));
+  app.get(P + "/submissions/:id/video-file", requireAuth, async (req, res, next) => {
+    try {
+      const s = await videoAccess(req);
+      const file = await classStore().get(s.video_key);
+      if (!file) return res.status(404).json({ message: "Fayl topilmadi" });
+      res.set({ "Content-Type": s.video_mime || file.mime, "Cache-Control": "private, max-age=3600", "Content-Length": String(file.data.length) });
+      res.end(file.data);
+    } catch (error) {
+      if (error instanceof ClassError) return res.status(error.status).json({ message: error.message });
+      next(error);
+    }
+  });
   /** Audio: o'quvchi o'zinikini, o'qituvchi hammasini. Kamera suratlari faqat o'qituvchiga. */
   app.get(P + "/submissions/:id/audio", requireAuth, sendFile("audio"));
   app.get(P + "/submissions/:id/snap/:n", requireAuth, sendFile("snap"));
@@ -377,16 +474,18 @@ export function registerClassTasks(app: Express) {
     const rows = (
       await pool.query(
         `SELECT s.id, s.user_id, COALESCE(NULLIF(m.display_name,''),u.full_name) AS name, s.audio_seconds, s.transcript, s.ai_percent, s.ai_diff, s.final_percent, s.pauses,
-                s.proctor, s.snapshots, s.auto, s.score, s.comment, s.status, s.late, s.source, s.created_at, t.id AS task_id, t.title, t.text_ar, t.max_score, t.pass_percent, l.title AS lesson_title
+                s.proctor, s.snapshots, s.auto, s.score, s.comment, s.status, s.late, s.source, s.created_at, s.flagged, (s.sampled IS NOT NULL) AS sampled,
+                (s.video_key IS NOT NULL AND s.video_deleted_at IS NULL) AS video, (s.video_deleted_at IS NOT NULL) AS video_expired, t.id AS task_id, t.title, t.text_ar, t.max_score, t.pass_percent, l.title AS lesson_title
            FROM cls_submissions s JOIN cls_tasks t ON t.id=s.task_id JOIN cls_lessons l ON l.id=t.lesson_id
            JOIN users u ON u.id=s.user_id LEFT JOIN cls_members m ON m.group_id=s.group_id AND m.user_id=s.user_id
-          WHERE s.group_id=$1 AND s.status=$2 ORDER BY ${status === "submitted" ? "s.created_at" : "s.created_at DESC"} LIMIT 100`,
+          WHERE s.group_id=$1 AND s.status=$2 ORDER BY ${status === "submitted" ? "s.created_at" : status === "graded" ? "(s.flagged AND s.auto) DESC, s.created_at DESC" : "s.created_at DESC"} LIMIT 100`,
         [id, status],
       )
     ).rows;
     return {
       items: rows.map((r: any) => ({ ...r, suggested: r.final_percent === null ? (r.ai_percent === null ? null : Math.round((r.max_score * r.ai_percent) / 100)) : r.score })),
       waiting: (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE group_id=$1 AND status='submitted'", [id])).rows[0].n,
+      flagged: (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE group_id=$1 AND status='graded' AND flagged AND auto", [id])).rows[0].n,
     };
   }));
   app.post(P + "/submissions/:id/grade", requireAuth, route(async (req) => {
@@ -397,7 +496,7 @@ export function registerClassTasks(app: Express) {
     if (!manage) fail(403, "Bahoni faqat o‘qituvchi o‘zgartiradi");
     if (s.status === "rejected" || s.status === "replaced") fail(409, "Bu yozuvni baholab bo‘lmaydi");
     if (b.score > s.max_score) fail(400, `Ball ${s.max_score} dan oshmasin`);
-    await pool.query("UPDATE cls_submissions SET score=$2, comment=$3, status='graded', auto=false, graded_at=now() WHERE id=$1", [id, b.score, b.comment]);
+    await pool.query("UPDATE cls_submissions SET score=$2, comment=$3, status='graded', auto=false, flagged=false, graded_at=now() WHERE id=$1", [id, b.score, b.comment]);
     await notifyUsers([s.user_id], s.group_id, { title: "O‘qituvchi bahoni tasdiqladi", body: `${s.title}: ${b.score}/${s.max_score}${b.comment ? " — " + b.comment.slice(0, 80) : ""}`, path: "natijalar", ref: `graded-${id}-${Date.now()}` });
     return { ok: true };
   }));

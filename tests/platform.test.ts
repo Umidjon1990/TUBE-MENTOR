@@ -2645,3 +2645,64 @@ test("sinfxona to'lovi: sinov haftasi, chek, tasdiqlash, nasiya, darslarni yopis
   await call(`/admin/groups/${group.id}/members/${S2.id}/billing`, { exempt: true }, T.h, "PUT");
   assert.equal((await get(`/groups/${group.id}/lessons`, S2.h)).status, 200);
 });
+
+test("yodlash videosi: o'qituvchi videoni ko'radi, AI faqat bo'laklarni tekshiradi, shubhalilari oldinda, muddat o'tsa video o'chadi", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { setTranscriber, setJudge, compareSampled, pruneRecitationVideos } = await import("../server/classroom-tasks");
+  const mk = async (u: string, role = "student", isTest = false) => {
+    const id = (await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,is_test) VALUES($1,$1,$2,true,$3,$4) RETURNING id", [u, hashPassword("pass-" + u), role, isTest])).rows[0].id;
+    const t = (await (await post("/api/platform/auth/password", { username: u, password: "pass-" + u })).json()).token;
+    return { id, h: { "x-platform-session": t } };
+  };
+  const T = await mk("vid_admin", "admin"), X = await mk("vid_tester", "student", true), O = await mk("vid_other");
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+  const get = (path: string, extra: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } });
+  const text = "أَسْكُنُ فِي بَيْتٍ صَغِيرٍ مَعَ عَائِلَتِي. البَيْتُ هَادِئٌ وَ جَمِيلٌ، وَ فِيهِ غُرْفَتَانِ وَ مَطْبَخٌ وَ حَمَّامٌ. أُحِبُّ بَيْتِي كَثِيرًا.";
+  // Bo'laklar: asl matndan uzluksiz parchalar — yuqori; boshqa gaplar — past.
+  assert.ok(compareSampled(text, "اسكن في بيت صغير مع عائلتي البيت هادئ وجميل احب بيتي كثيرا", 15).percent >= 80);
+  assert.ok(compareSampled(text, "انا طالب في المدرسة", 15).percent < 30);
+  const course = (await (await call("/admin/courses", { title: "Video sinov" }, T.h)).json()).course;
+  const content = { key: "v-01", position: 1, title: "1-dars", tasks: [{ title: "Savol-javob 1", textAr: text, promptAr: "أَيْنَ تَسْكُنُ؟", maxSeconds: 90, proctor: "off", video: true }] };
+  const imp = await (await call(`/admin/courses/${course.id}/import-lesson`, content, T.h)).json();
+  const group = (await (await call("/admin/groups", { courseId: course.id, name: "Video guruh" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true, offerRequired: false }, T.h, "PATCH");
+  for (const u of [X, O]) await call(`/invite/${group.invite_code}/join`, { phone: "+99890" + String(Math.random()).slice(2, 9), name: "O‘quvchi" }, u.h);
+  const lesson = await (await get(`/groups/${group.id}/lessons/${imp.lessonId}`, X.h)).json();
+  const task = lesson.tasks[0];
+  assert.equal(task.video, true);
+  const wav = Buffer.concat([Buffer.from("RIFF"), randomBytes(600)]);
+  const webmVideo = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), randomBytes(2000)]);
+  const sampled = { total: 40, clips: [[0, 5], [17.5, 22.5], [35, 40]] };
+  const submit = (extra: any) => call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: wav.toString("base64"), mime: "audio/wav", seconds: 40, sampled, ...extra }, X.h);
+  assert.equal((await submit({})).status, 400, "video majburiy");
+  let judgeSampled: boolean | undefined;
+  setTranscriber(async () => ({ text: "اسكن في بيت صغير مع عائلتي البيت هادئ وجميل احب بيتي كثيرا" }));
+  setJudge(async (_o: string, _s: string, lcs: number, s?: boolean) => ((judgeSampled = s), { percent: lcs, missing: [], wrong: [], extra: [], note: "" }));
+  const good = await (await submit({ video: webmVideo.toString("base64") })).json();
+  assert.equal(judgeSampled, true, "AI'ga bo'laklar ekani aytiladi");
+  assert.deepEqual([good.auto, good.sampled, good.video, good.diff, good.pauses], [true, true, true, null, null]);
+  assert.ok(good.finalPercent >= 90);
+  setTranscriber(async () => ({ text: "انا طالب في المدرسة" }));
+  const weak = await (await submit({ video: webmVideo.toString("base64") })).json();
+  assert.ok(weak.finalPercent < 50);
+  // O'qituvchi: shubhali (past ball) video ro'yxat boshida, videoni ko'ra oladi.
+  const review = await (await get(`/groups/${group.id}/review?status=graded`, T.h)).json();
+  assert.equal(review.flagged, 1);
+  assert.deepEqual([review.items[0].id, review.items[0].flagged, review.items[0].video, review.items[0].sampled], [weak.id, true, true, true]);
+  const v = await (await get(`/submissions/${weak.id}/video`, T.h)).json();
+  assert.ok(v.url.endsWith(`/submissions/${weak.id}/video-file`), "bucket bo'lmasa server orqali");
+  const file = await get(`/submissions/${weak.id}/video-file`, T.h);
+  assert.equal(file.headers.get("content-type"), "video/webm");
+  assert.equal(Buffer.from(await file.arrayBuffer()).length, webmVideo.length);
+  assert.equal((await get(`/submissions/${weak.id}/video`, X.h)).status, 200, "o'quvchi o'z videosini ko'radi");
+  assert.equal((await get(`/submissions/${weak.id}/video`, O.h)).status, 404, "boshqa o'quvchi ko'rmaydi");
+  // Qo'lda baholash — belgi olinadi.
+  assert.equal((await call(`/submissions/${weak.id}/grade`, { score: 6, comment: "Yaxshiroq yodlang" }, T.h)).status, 200);
+  assert.equal((await (await get(`/groups/${group.id}/review?status=graded`, T.h)).json()).flagged, 0);
+  // Muddat: 60 kundan keyin video o'chadi, baho qoladi.
+  assert.equal(await pruneRecitationVideos(Date.now() + 61 * 86400000, true), 2);
+  assert.equal((await get(`/submissions/${weak.id}/video`, T.h)).status, 410);
+  assert.equal((await pool.query("SELECT score FROM cls_submissions WHERE id=$1", [weak.id])).rows[0].score, 6);
+  setTranscriber(undefined); setJudge(undefined);
+});

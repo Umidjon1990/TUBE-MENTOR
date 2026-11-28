@@ -1868,8 +1868,8 @@ test("classroom live: chat permissions, Zoom join and recording import, recitati
   assert.equal((await pool.query("SELECT recording_state FROM cls_live_sessions WHERE id=$1", [now.id])).rows[0].recording_state, "ready");
   assert.equal(blobs.get(`class/recordings/${group.id}/${now.id}.mp4`)?.toString(), "MP4DATA");
   assert.ok(zoomCalls.includes("DELETE /meetings/u%2F1%3D%3D/recordings?action=trash"), "Zoom nusxasi savatga");
-  // Darsga kirmagan o'quvchi (P) yozuvni ruxsatsiz ko'ra olmaydi; qatnashgan (S) ko'radi.
-  assert.equal((await fetch(base + `/api/platform/class/live/${now.id}/recording`, { headers: { ...headers, ...P.h } })).status, 403);
+  // Dars tugagach yozuvni guruhning har bir o'quvchisi ko'radi: kirmagan (P) ham — avval yozuv, keyin topshiriqlar.
+  assert.equal((await fetch(base + `/api/platform/class/live/${now.id}/recording`, { headers: { ...headers, ...P.h } })).status, 200);
   const rec = await (await get(`/live/${now.id}/recording`, S.h)).json();
   assert.match(rec.url, /^https:\/\/bucket\.example\/class\/recordings\//);
   assert.equal((await call(`/admin/live/${later.id}`, {}, T.h, "DELETE")).status, 200);
@@ -2183,19 +2183,40 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   assert.equal(await flow.monthPoints(group.id, B.id), 1);
   assert.equal(await flow.monthPoints(group.id, C.id), 3);
   assert.equal(await flow.monthPoints(group.id, D.id), 0, "uzr ko'rib chiqilguncha ball yo'q");
-  // Yozuv: A ko'radi, C ko'ra olmaydi; D tasdiqlangach ko'radi.
-  assert.equal((await fetch(base + `/api/platform/class/live/${s.id}/recording`, { headers: { ...headers, ...C.h } })).status, 403);
+  // Yozuv: dars tugagach hamma ko'radi, kelmagan C ham (jarima balli saqlanadi).
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, true);
+  // O'qituvchi bir tugma bilan almashtiradi: «ruxsat so'rab ko'radi» rejimida kelmagan C ko'ra olmaydi, qatnashgan A ko'radi.
+  assert.equal((await call(`/admin/groups/${group.id}`, { freeRecording: false }, T.h, "PATCH")).status, 200);
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, false);
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, A.id, false)).ok, true);
+  assert.equal((await call(`/admin/groups/${group.id}`, { freeRecording: true }, T.h, "PATCH")).status, 200);
+  assert.equal(await flow.monthPoints(group.id, C.id), 3);
   const ex = (await get(`/admin/groups/${group.id}/excuses`, T.h)).excuses;
   assert.equal(ex.length, 1);
   await call(`/admin/excuses/${ex[0].id}`, { approve: true }, T.h);
   assert.equal((await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [s.id, D.id])).rows[0].status, "excused");
   assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, D.id, false)).ok, true);
-  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, false);
   // C ruxsat so'raydi → o'qituvchi rad etadi → ball qoladi.
   await call(`/live/${s.id}/excuse`, { reason: "Internet yo'q edi" }, C.h);
   const ex2 = (await get(`/admin/groups/${group.id}/excuses`, T.h)).excuses;
   await call(`/admin/excuses/${ex2[0].id}`, { approve: false }, T.h);
   assert.equal(await flow.monthPoints(group.id, C.id), 3);
+  // Kelmagan C: tezkor topshiriq yozuvni ko'rmaguncha yopiq; ko'rgach ochiladi (muddat — 1 kun), tezkor ≥85% bilan yozuvni chetlab o'tolmaydi.
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/quick`, {}, C.h)).status, 403);
+  const cq = (await get(`/groups/${group.id}/flow`, C.h)).lessons.find((l: any) => l.id === l1.id).steps.find((x: any) => x.key === "quick");
+  assert.deepEqual([cq.state, cq.afterWatch], ["locked", true]);
+  for (let t = 0; t < 3600; t += 30) await call(`/live/${s.id}/watch`, { from: t, to: t + 30, duration: 3600 }, C.h);
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/quick`, {}, C.h)).status, 200);
+  // Jonli darsi rejalashtirilgan dars Zoom'da dars boshlanmaguncha yopiq (sana o'tgan bo'lsa ham), boshlangach ochiladi.
+  const { lessonStates } = await import("../server/classroom");
+  await pool.query("UPDATE cls_group_lessons SET opens_at=now()-interval '1 hour' WHERE group_id=$1 AND lesson_id=$2", [group.id, l2.id]);
+  const s2 = (await pool.query("INSERT INTO cls_live_sessions(group_id,lesson_id,title,starts_at,duration_minutes,status) VALUES($1,$2,'2-dars jonli',now()+interval '1 hour',60,'scheduled') RETURNING id", [group.id, l2.id])).rows[0];
+  const st2 = async () => (await lessonStates(group.id, B.id)).find((l) => l.id === l2.id)!;
+  assert.deepEqual([(await st2()).unlocked, (await st2()).reason], [false, "live"]);
+  await pool.query("UPDATE cls_live_sessions SET status='live', started_at=now() WHERE id=$1", [s2.id]);
+  assert.equal((await st2()).unlocked, true);
+  await pool.query("UPDATE cls_live_sessions SET status='cancelled' WHERE id=$1", [s2.id]);
+  await pool.query("UPDATE cls_group_lessons SET opens_at=$3 WHERE group_id=$1 AND lesson_id=$2", [group.id, l2.id, soon]);
   // Asosiy topshiriq: yozuv ko'rilmaguncha yopiq.
   assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, A.h)).status, 403);
   // A tezkor topshiriqni 100% ishlaydi → asosiy ochiladi (o'tkazib yuborish).
@@ -2227,14 +2248,24 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   assert.equal(await flow.monthPoints(group.id, D.id), 0);
   // Chegaralar: C ga qo'lda 3 ball (chat odobi) → 6 → 1-ogohlantirish; yana 2 marta → 12.
   for (let i = 0; i < 3; i++) assert.equal((await call(`/admin/groups/${group.id}/penalties`, { userId: C.id, note: "Chatda haqorat " + i }, T.h)).status, 200);
-  assert.equal(await flow.monthPoints(group.id, C.id), 13, "3 kelmadi + 1 tezkor + 9 chat");
+  assert.equal(await flow.monthPoints(group.id, C.id), 12, "3 kelmadi + 9 chat (kelmagan o'quvchiga tezkor topshiriq uchun alohida ball yozilmaydi)");
   const levels = (await pool.query("SELECT level FROM cls_warnings WHERE group_id=$1 AND user_id=$2 ORDER BY level", [group.id, C.id])).rows.map((r: any) => r.level);
   assert.deepEqual(levels, [6, 10, 12]);
   const disc = await get(`/admin/groups/${group.id}/discipline`, T.h);
   assert.equal(disc.students[0].user_id, C.id);
   const del = await fetch(base + `/api/platform/class/admin/penalties/${disc.students[0].items[0].id}`, { method: "DELETE", headers: { ...headers, ...T.h }, body: "{}" });
   assert.equal(del.status, 200, await del.text());
-  assert.equal(await flow.monthPoints(group.id, C.id), 10);
+  assert.equal(await flow.monthPoints(group.id, C.id), 9);
+  // O'qituvchi hisoboti: dars bo'yicha kim nima qildi + reyting (tezkor topshiriq ham ballga qo'shiladi).
+  const rep = await get(`/admin/groups/${group.id}/report?lessonId=${l1.id}`, T.h);
+  assert.equal(rep.lesson.id, l1.id);
+  const ra = rep.rows.find((r: any) => r.userId === A.id), rc = rep.rows.find((r: any) => r.userId === C.id);
+  assert.deepEqual([ra.mark, ra.quick, ra.main, ra.status], ["present", 100, 100, "done"]);
+  assert.equal(rc.mark, "absent"); assert.ok(rc.penalties >= 3);
+  assert.equal(rep.ranking[0].userId, A.id); assert.equal(rep.ranking[0].points, 200);
+  assert.equal((await fetch(base + `/api/platform/class/admin/groups/${group.id}/report`, { headers: { ...headers, ...A.h } })).status, 403);
+  const res = await get(`/groups/${group.id}/results`, B.h);
+  assert.ok(res.leaderboard.some((r: any) => typeof r.penalties === "number"));
   // Mavzular va cheklist.
   const topics = await get(`/admin/groups/${group.id}/topics`, T.h);
   assert.equal(topics.topics[0].topic, "ism jumla");

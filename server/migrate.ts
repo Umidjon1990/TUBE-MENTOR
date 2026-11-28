@@ -42,6 +42,7 @@ export async function migrateDatabase() {
       "0027_offer_v2.sql",
       "0028_recitation_video.sql",
       "0029_task_hours.sql",
+      "0030_recording_access.sql",
     ]) {
       const exists = await client.query(
         "SELECT 1 FROM tube_migrations WHERE name=$1",

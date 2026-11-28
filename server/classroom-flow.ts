@@ -2,7 +2,8 @@
 // • Zoom'dagi haqiqiy qatnashish (kirish-chiqish webhooklari) → yakuniy davomat: Keldi (vaqtning ≥70%),
 //   Kechikdi (15 daqiqadan keyin kirgan), Uzrli, Kelmadi.
 // • Dars boshlanib 10 daqiqa o'tsa kirmaganlarga eslatma; kelmaganlarga 3 ball, kechikkanga 1 ball.
-// • Uzr: darsdan oldin (o'quvchi so'raydi yoki o'qituvchi belgilaydi) yoki keyin (yozuvni ko'rishga ruxsat).
+// • Uzr: darsdan oldin (o'quvchi so'raydi yoki o'qituvchi belgilaydi) yoki keyin.
+// • Darsga kirmagan o'quvchi: jarima balli yoziladi; dars yozuvini ko'radi (≥90%) → tezkor va qolgan topshiriqlar ochiladi (muddat — 1 kun).
 // • Jarima ballari oyiga: 6 → 1-ogohlantirish, 10 → 2-ogohlantirish, 12 → chetlatish to'g'risida o'qituvchiga xabar.
 // • Dars bosqichlari: oldindan → jonli dars → tezkor topshiriq (24 soat) → yozuvni ko'rish (≥90%) → asosiy topshiriq.
 //   Tezkor topshiriqdan ≥85% olgan o'quvchi yozuvni ko'rmasdan asosiy topshiriqqa o'tadi.
@@ -10,7 +11,7 @@ import type { Express, Request } from "express";
 import { z } from "zod";
 import { pool } from "./db";
 import { requireAuth } from "./auth";
-import { ClassError, answersSchema, grade, groupStaff, isTestUser, lessonStates, makeLayout, membership, needGroup, notifyUsers, present, questionSchema, requireStaff, route, uuid } from "./classroom";
+import { ClassError, answersSchema, grade, groupStaff, isTestUser, leaderboard, lessonStates, makeLayout, membership, needGroup, notifyUsers, present, questionSchema, requireStaff, route, uuid } from "./classroom";
 
 const P = "/api/platform/class";
 const userOf = (req: Request) => String(req.session.userId);
@@ -206,9 +207,15 @@ async function quickBest(groupId: string, userId: string) {
   )).rows.map((r: any) => [r.lesson_id, r.p]));
 }
 
-/** Yozuvni ko'rish huquqi: qatnashgan, uzrli yoki o'qituvchi ruxsat bergan o'quvchi. */
+/** Yozuvni ko'rish huquqi: dars tugagach guruhning har bir o'quvchisi; dars davomida — qatnashgan yoki uzrli o'quvchi. */
 export async function canWatch(session: any, userId: string, teacher: boolean) {
   if (teacher || (await isTestUser(userId))) return { ok: true as const };
+  // Darsga kirmagan o'quvchi ham dars tugagach yozuvni ko'radi (jarima balli baribir yoziladi), so'ng topshiriqlar ochiladi.
+  // (Guruh sozlamasi «free_recording» o'chirilgan bo'lsa — avvalgidek o'qituvchidan ruxsat so'raydi.)
+  if (session.status === "ended" || session.finalized_at) {
+    const free = (await pool.query("SELECT free_recording FROM cls_groups WHERE id=$1", [session.group_id])).rows[0]?.free_recording;
+    if (free !== false) return { ok: true as const };
+  }
   const mark = (await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;
   if (["present", "late", "excused"].includes(mark)) return { ok: true as const };
   const ex = (await pool.query("SELECT status FROM cls_excuses WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;
@@ -220,6 +227,14 @@ export async function canWatch(session: any, userId: string, teacher: boolean) {
   return { ok: false as const, request: ex || null };
 }
 
+/** Darsga kirmagan (yakuniy davomatda «Kelmadi») o'quvchi: tezkor topshiriq yozuvni ≥90% ko'rgach ochiladi, muddati — asosiy topshiriq bilan bir xil. */
+async function absentInfo(sessionId: string | null, userId: string) {
+  if (!sessionId) return { absent: false, watched: 0 };
+  const mark = (await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [sessionId, userId])).rows[0]?.status;
+  const watched = (await pool.query("SELECT percent FROM cls_watch WHERE session_id=$1 AND user_id=$2", [sessionId, userId])).rows[0]?.percent || 0;
+  return { absent: mark === "absent", watched };
+}
+
 /** Asosiy topshiriq ochiqmi: jonli darsi bo'lmagan dars, yozuv ≥90% ko'rilgan, tezkor ≥85%, qo'lda ochilgan yoki yozuv 24 soatda tayyor bo'lmagan. */
 export async function mainGate(groupId: string, lessonId: string, userId: string) {
   if (await isTestUser(userId)) return { ok: true, reason: "test" };
@@ -228,7 +243,7 @@ export async function mainGate(groupId: string, lessonId: string, userId: string
   if ((await pool.query("SELECT 1 FROM cls_unlocks WHERE group_id=$1 AND user_id=$2 AND lesson_id=$3", [groupId, userId, lessonId])).rowCount) return { ok: true, reason: "manual" };
   const watched = (await pool.query("SELECT percent FROM cls_watch WHERE session_id=$1 AND user_id=$2", [t.sessionId, userId])).rows[0]?.percent || 0;
   if (watched >= 90) return { ok: true, reason: "watched" };
-  if (((await quickBest(groupId, userId)).get(lessonId) ?? 0) >= 85) return { ok: true, reason: "skip" };
+  if (!(await absentInfo(t.sessionId, userId)).absent && ((await quickBest(groupId, userId)).get(lessonId) ?? 0) >= 85) return { ok: true, reason: "skip" };
   if (t.ended && !t.recordingReady && t.quickOpens && Date.now() > t.quickOpens + 24 * H) return { ok: true, reason: "no-recording" };
   return { ok: false, reason: t.ended ? "watch" : "live" };
 }
@@ -246,6 +261,7 @@ export async function penalizeOverdue(now = Date.now()) {
       if (quick.has(lessonId) && x.quickDue && x.quickDue < now && x.quickDue > now - 48 * H) {
         const late = (await pool.query(
           `SELECT m.user_id FROM cls_members m WHERE m.group_id=$1 AND m.status='active' AND NOT EXISTS(${excused})
+             AND NOT EXISTS(SELECT 1 FROM cls_marks mk WHERE mk.session_id=$4 AND mk.user_id=m.user_id AND mk.status='absent')
              AND NOT EXISTS(SELECT 1 FROM cls_quick_attempts a WHERE a.group_id=$1 AND a.lesson_id=$2 AND a.user_id=m.user_id AND a.submitted_at <= $3)`,
           [g.id, lessonId, new Date(x.quickDue), x.sessionId],
         )).rows;
@@ -307,7 +323,7 @@ async function lessonFlow(groupId: string, userId: string, teacher: boolean) {
     const quickPct = quick.get(s.id) ?? null;
     const hasQuick = (quickQ.get(s.id) || 0) > 0;
     const watched = x.sessionId ? watch.get(x.sessionId) || 0 : 0;
-    const skip = (quickPct ?? 0) >= 85;
+    const skip = (quickPct ?? 0) >= 85 && mark !== "absent";
     const task = tasks.get(s.id) || { total: 0, done: 0 };
     const pp = parts.get(s.id) || { total: 0, done: 0 };
     const mainHas = s.has_quiz || task.total > 0 || pp.total > 0;
@@ -316,8 +332,10 @@ async function lessonFlow(groupId: string, userId: string, teacher: boolean) {
     const liveItem = x.sessionId
       ? { key: "live", state: ["present", "late", "excused"].includes(mark || "") ? "done" : mark === "absent" ? "overdue" : mark === "pending" ? "todo" : x.ended ? "todo" : "locked", mark, excuse: excuses.get(x.sessionId) || null }
       : null;
-    const quickOpen = test || (!!x.quickOpens && x.quickOpens <= now && s.unlocked);
-    const quickItem = hasQuick ? { key: "quick", state: state(quickPct !== null, quickOpen, x.quickDue), percent: quickPct, opensAt: x.quickOpens, dueAt: x.quickDue } : null;
+    const absent = mark === "absent";
+    const quickOpen = test || (!!x.quickOpens && x.quickOpens <= now && s.unlocked && (!absent || watched >= 90));
+    const quickDue = absent ? x.mainDue : x.quickDue;
+    const quickItem = hasQuick ? { key: "quick", state: state(quickPct !== null, quickOpen, quickDue), percent: quickPct, opensAt: x.quickOpens, dueAt: quickDue, afterWatch: absent && watched < 90 } : null;
     const watchItem = x.sessionId ? { key: "watch", state: state(watched >= 90 || skip, x.ended && x.recordingReady, x.mainDue), percent: watched, skipped: skip && watched < 90, ready: x.recordingReady } : null;
     const mainOpen = test || s.unlocked && (!x.sessionId || watched >= 90 || skip || (x.ended && !x.recordingReady && !!x.quickOpens && now > x.quickOpens + 24 * H));
     const mainItem = mainHas ? { key: "main", state: state(mainDone, mainOpen, x.mainDue), best: s.best, passed: s.passed, dueAt: x.mainDue, tasks: task, parts: pp } : null;
@@ -402,6 +420,8 @@ export function registerClassroomFlow(app: Express) {
     const t = (await timings(id)).get(lessonId);
     const test = !teacher && (await isTestUser(uid));
     if (!teacher && !test && (!state.unlocked || !t?.quickOpens || t.quickOpens > Date.now())) fail(403, "Tezkor topshiriq dars tugagach ochiladi");
+    const ab = await absentInfo(t?.sessionId || null, uid);
+    if (!teacher && !test && ab.absent && ab.watched < 90) fail(403, "Darsga kirmagansiz: avval dars yozuvini oxirigacha ko‘ring, so‘ng tezkor topshiriq ochiladi");
     const done = (await pool.query("SELECT id FROM cls_quick_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL LIMIT 1", [id, lessonId, uid])).rowCount;
     // Bajarilgan bo'lsa ham qayta ishlash mumkin (mustahkamlash); eng yaxshi natija hisoblanadi.
     void done;
@@ -554,6 +574,43 @@ export function registerClassroomFlow(app: Express) {
     }
     rows.sort((a, b) => b.overdue - a.overdue || a.name.localeCompare(b.name));
     return { lessons, rows };
+  }));
+
+  // O'qituvchi hisoboti: tanlangan dars bo'yicha har o'quvchi — davomat, tezkor, asosiy test, qismlar, vazifalar, jarima; umumiy reyting.
+  app.get(P + "/admin/groups/:id/report", requireStaff, route(async (req) => {
+    const id = uuid.parse(req.params.id);
+    await needGroup(id, userOf(req), "view");
+    const members = (await pool.query("SELECT m.user_id, COALESCE(NULLIF(m.display_name,''),u.full_name) AS name FROM cls_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=$1 AND m.status='active' ORDER BY name", [id])).rows;
+    const flows = await Promise.all(members.map(async (m: any) => ({ m, flow: await lessonFlow(id, m.user_id, false) })));
+    const lessons = (await lessonStates(id, userOf(req), true)).map((l) => ({ id: l.id, position: l.position, title: l.title, kind: l.kind, opened: flows.some((f) => f.flow.find((x) => x.id === l.id)?.unlocked) }));
+    const wanted = typeof req.query.lessonId === "string" ? uuid.parse(req.query.lessonId) : null;
+    const lesson = (wanted && lessons.find((l) => l.id === wanted)) || [...lessons].reverse().find((l) => l.opened) || lessons[0] || null;
+    const pen = lesson
+      ? new Map<string, number>((await pool.query(
+          `SELECT p.user_id, sum(p.points)::int AS n FROM cls_penalties p WHERE p.group_id=$1 AND NOT p.cancelled
+              AND (p.ref=$2 OR p.ref IN (SELECT s.id::text FROM cls_live_sessions s WHERE s.group_id=$1 AND s.lesson_id=$2::uuid)) GROUP BY p.user_id`,
+          [id, lesson.id],
+        )).rows.map((r: any) => [r.user_id, r.n]))
+      : new Map<string, number>();
+    const rows = lesson
+      ? flows.map(({ m, flow }) => {
+          const l = flow.find((x) => x.id === lesson.id)!;
+          const step = (k: string) => (l.steps as any[]).find((x) => x.key === k) || null;
+          const live = step("live"), quick = step("quick"), watch = step("watch"), main = step("main");
+          const states = (l.steps as any[]).map((x) => x.state);
+          return {
+            userId: m.user_id, name: m.name, unlocked: l.unlocked,
+            mark: live?.mark || null, quick: quick ? quick.percent : null, watched: watch ? watch.percent : null,
+            main: main ? main.best : null, parts: main?.parts || null, tasks: main?.tasks || null,
+            status: !l.unlocked ? "locked" : states.length && states.every((x) => x === "done") ? "done" : states.includes("overdue") ? "overdue" : "todo",
+            penalties: pen.get(m.user_id) || 0,
+          };
+        })
+      : [];
+    const order = { overdue: 0, todo: 1, locked: 2, done: 3 } as Record<string, number>;
+    rows.sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+    const ranking = (await leaderboard(id)).map((r: any) => ({ rank: r.rank, userId: r.user_id, name: r.name, points: r.points, done: r.done, penalties: r.penalties }));
+    return { lessons, lesson, rows, ranking };
   }));
 
   // Mavzu bo'yicha xatolar: guruhning yarmidan ko'pi xato qilgan mavzular — qayta tushuntirish kerak.

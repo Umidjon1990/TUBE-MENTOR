@@ -88,6 +88,7 @@ const groupSettings = z.object({
   discipline: z.boolean().optional(),
   /** Darsdan keyingi vazifalar muddati, soat (tezkor topshiriq doim 1 soat). */
   taskHours: z.number().int().min(2).max(168).optional(),
+  freeRecording: z.boolean().optional(),
 });
 export const inviteCode = () => randomBytes(9).toString("base64url");
 
@@ -186,8 +187,8 @@ export async function membership(groupId: string, userId: string) {
 /* ------------------------------------------------------------------ */
 /* Lesson state (ochilish qoidasi)                                     */
 /* ------------------------------------------------------------------ */
-type LessonRow = { id: string; position: number; kind: string; title: string; pass_percent: number; has_quiz: boolean; opens_at: Date | null; due_at: Date | null; question_count: number; max_attempts: number | null; task_count: number };
-export type LessonState = LessonRow & { unlocked: boolean; reason: "open" | "date" | "previous" | "unscheduled"; best: number | null; attempts: number; passed: boolean };
+type LessonRow = { id: string; position: number; kind: string; title: string; pass_percent: number; has_quiz: boolean; opens_at: Date | null; due_at: Date | null; question_count: number; max_attempts: number | null; task_count: number; live_status?: string | null; live_at?: Date | null };
+export type LessonState = LessonRow & { unlocked: boolean; reason: "open" | "date" | "previous" | "unscheduled" | "live"; best: number | null; attempts: number; passed: boolean };
 
 /** Sinov hisobi (admin "O'quvchi sifatida kirish"): barcha qulflar ochiq, urinishlar cheklanmaydi, jarima yozilmaydi. */
 export async function isTestUser(userId: string) {
@@ -200,8 +201,11 @@ export async function lessonStates(groupId: string, userId: string, teacher = fa
       `SELECT l.id,l.position,l.kind,l.title,l.pass_percent,(q.lesson_id IS NOT NULL) AS has_quiz,
               COALESCE(jsonb_array_length(q.questions),0)::int AS question_count, q.max_attempts,
               gl.opens_at, gl.due_at,
-              (SELECT count(*)::int FROM cls_tasks t WHERE t.lesson_id=l.id) AS task_count
+              (SELECT count(*)::int FROM cls_tasks t WHERE t.lesson_id=l.id) AS task_count,
+              ls.status AS live_status, ls.starts_at AS live_at
          FROM cls_groups g JOIN cls_lessons l ON l.course_id=g.course_id
+         LEFT JOIN LATERAL (SELECT CASE WHEN s.finalized_at IS NOT NULL THEN 'ended' ELSE s.status END AS status, s.starts_at FROM cls_live_sessions s
+                             WHERE s.group_id=g.id AND s.lesson_id=l.id AND s.status<>'cancelled' ORDER BY s.starts_at DESC LIMIT 1) ls ON true
          LEFT JOIN cls_quizzes q ON q.lesson_id=l.id
          LEFT JOIN cls_group_lessons gl ON gl.group_id=g.id AND gl.lesson_id=l.id
         WHERE g.id=$1 ORDER BY l.position, l.created_at`,
@@ -226,7 +230,9 @@ export async function lessonStates(groupId: string, userId: string, teacher = fa
     const passed = l.has_quiz ? (b?.best ?? -1) >= l.pass_percent : true;
     let reason: LessonState["reason"] = "open";
     if (!teacher && !manual.has(l.id)) {
-      if (!l.opens_at) reason = "unscheduled";
+      // Jonli darsi bor dars: Zoom'da dars boshlangandan keyin ochiladi (oldingi darsdan o'tish shart emas).
+      if (l.live_status) reason = l.live_status === "live" || l.live_status === "ended" ? "open" : "live";
+      else if (!l.opens_at) reason = "unscheduled";
       else if (new Date(l.opens_at) > now) reason = "date";
       else if (!previousPassed) reason = "previous";
     }
@@ -293,18 +299,29 @@ export function grade(questions: any[], layout: { q: number; o: number[] }[], an
 /* Leaderboard                                                         */
 /* ------------------------------------------------------------------ */
 export async function leaderboard(groupId: string) {
+  // Ball: har darsning eng yaxshi natijalari (asosiy test %, tezkor topshiriq %, qo'shimcha qismlar — mustahkamlash, tarjima, so'zlar %)
+  // + baholangan og'zaki vazifalar balli. Jarima ballari alohida ko'rsatiladi.
   return (
     await pool.query(
       `WITH best AS (
          SELECT user_id, lesson_id, max(effective_percent) AS p FROM cls_attempts
           WHERE group_id=$1 AND submitted_at IS NOT NULL GROUP BY user_id, lesson_id),
+       quick AS (
+         SELECT user_id, sum(p)::int AS q, count(*)::int AS n FROM (
+           SELECT user_id, lesson_id, max(percent) AS p FROM cls_quick_attempts WHERE group_id=$1 AND submitted_at IS NOT NULL GROUP BY user_id, lesson_id) x GROUP BY user_id),
+       parts AS (
+         SELECT user_id, sum(p)::int AS q, count(*)::int AS n FROM (
+           SELECT user_id, part_id, max(percent) AS p FROM cls_part_attempts WHERE group_id=$1 AND submitted_at IS NOT NULL GROUP BY user_id, part_id) x GROUP BY user_id),
        tasks AS (
-         SELECT user_id, sum(best)::int AS t FROM (
+         SELECT user_id, sum(best)::int AS t, count(*)::int AS n FROM (
            SELECT s.user_id, max(COALESCE(s.score,0)) AS best FROM cls_submissions s
             WHERE s.group_id=$1 AND s.status='graded' GROUP BY s.user_id, s.task_id) x GROUP BY user_id)
        SELECT m.user_id, COALESCE(NULLIF(m.display_name,''), u.full_name) AS name,
-              (COALESCE((SELECT sum(p) FROM best b WHERE b.user_id=m.user_id),0) + COALESCE((SELECT t FROM tasks t WHERE t.user_id=m.user_id),0))::int AS points,
-              (SELECT count(*) FROM best b WHERE b.user_id=m.user_id)::int AS done
+              (COALESCE((SELECT sum(p) FROM best b WHERE b.user_id=m.user_id),0) + COALESCE((SELECT q FROM quick WHERE quick.user_id=m.user_id),0)
+               + COALESCE((SELECT q FROM parts WHERE parts.user_id=m.user_id),0) + COALESCE((SELECT t FROM tasks t WHERE t.user_id=m.user_id),0))::int AS points,
+              ((SELECT count(*) FROM best b WHERE b.user_id=m.user_id) + COALESCE((SELECT n FROM quick WHERE quick.user_id=m.user_id),0)
+               + COALESCE((SELECT n FROM parts WHERE parts.user_id=m.user_id),0) + COALESCE((SELECT n FROM tasks t WHERE t.user_id=m.user_id),0))::int AS done,
+              (SELECT COALESCE(sum(points),0) FROM cls_penalties pe WHERE pe.group_id=$1 AND pe.user_id=m.user_id AND NOT pe.cancelled)::int AS penalties
          FROM cls_members m JOIN users u ON u.id=m.user_id
         WHERE m.group_id=$1 AND m.status='active'
         ORDER BY points DESC, name`,
@@ -447,9 +464,9 @@ export function registerClassroom(app: Express) {
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
               allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived),
-              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline), task_hours=COALESCE($11,task_hours)
+              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline), task_hours=COALESCE($11,task_hours), free_recording=COALESCE($12,free_recording)
         WHERE id=$1 RETURNING *`,
-      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null, b.taskHours ?? null],
+      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null, b.taskHours ?? null, b.freeRecording ?? null],
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
@@ -778,7 +795,7 @@ export function registerClassroom(app: Express) {
     return {
       me,
       total: board.length,
-      leaderboard: visible.map((r: any) => ({ rank: r.rank, name: r.name, points: r.points, me: r.user_id === uid })),
+      leaderboard: visible.map((r: any) => ({ rank: r.rank, name: r.name, points: r.points, done: r.done, penalties: r.penalties, me: r.user_id === uid })),
       lessons,
       tasks,
     };

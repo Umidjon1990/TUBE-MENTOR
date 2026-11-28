@@ -86,6 +86,8 @@ const groupSettings = z.object({
   archived: z.boolean().optional(),
   offerRequired: z.boolean().optional(),
   discipline: z.boolean().optional(),
+  /** Darsdan keyingi vazifalar muddati, soat (tezkor topshiriq doim 1 soat). */
+  taskHours: z.number().int().min(2).max(168).optional(),
 });
 export const inviteCode = () => randomBytes(9).toString("base64url");
 
@@ -445,9 +447,9 @@ export function registerClassroom(app: Express) {
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
               allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived),
-              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline)
+              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline), task_hours=COALESCE($11,task_hours)
         WHERE id=$1 RETURNING *`,
-      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null],
+      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null, b.taskHours ?? null],
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));
@@ -693,7 +695,7 @@ export function registerClassroom(app: Express) {
     const { teacher } = await membership(id, uid);
     const state = (await lessonStates(id, uid, teacher)).find((s) => s.id === lessonId) || fail(404, "Dars topilmadi");
     if (!state.unlocked) fail(403, state.reason === "previous" ? "Avval oldingi dars testidan o‘ting" : "Bu dars hali ochilmagan");
-    const l = (await pool.query("SELECT id,title,kind,body,video_url,pass_percent FROM cls_lessons WHERE id=$1", [lessonId])).rows[0];
+    const l = (await pool.query("SELECT id,title,kind,body,video_url,pass_percent,source_key FROM cls_lessons WHERE id=$1", [lessonId])).rows[0];
     const q = (await pool.query("SELECT jsonb_array_length(questions)::int AS n,time_limit_minutes,max_attempts FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0];
     const tasks = (
       await pool.query(
@@ -723,7 +725,8 @@ export function registerClassroom(app: Express) {
     const quiz = (await pool.query("SELECT * FROM cls_quizzes WHERE lesson_id=$1", [lessonId])).rows[0] || fail(404, "Bu darsda test yo‘q");
     const open = (await pool.query("SELECT * FROM cls_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [id, lessonId, uid])).rows[0];
     if (open) return { attemptId: open.id, questions: present(quiz.questions, open.layout), timeLimitMinutes: quiz.time_limit_minutes, startedAt: open.started_at };
-    if (!teacher && state.attempts >= quiz.max_attempts && !(await isTestUser(uid))) fail(409, "Urinishlar soni tugadi");
+    // Testdan o'tgan o'quvchi mustahkamlash uchun cheklovsiz qayta ishlay oladi (eng yaxshi natija saqlanadi).
+    if (!teacher && !state.passed && state.attempts >= quiz.max_attempts && !(await isTestUser(uid))) fail(409, "Urinishlar soni tugadi");
     const layout = makeLayout(quiz.questions);
     const a = (await pool.query(
       "INSERT INTO cls_attempts(group_id,lesson_id,user_id,layout,max_score) VALUES($1,$2,$3,$4,$5) RETURNING id,started_at",

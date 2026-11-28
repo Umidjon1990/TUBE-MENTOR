@@ -180,7 +180,7 @@ type Timing = { sessionId: string | null; finalized: boolean; recordingReady: bo
 /** Har dars uchun: bog'langan jonli dars, tezkor topshiriq ochilishi/muddati, asosiy topshiriq muddati. */
 async function timings(groupId: string) {
   const rows = (await pool.query(
-    `SELECT l.id, l.position, gl.opens_at, gl.due_at,
+    `SELECT l.id, l.position, gl.opens_at, gl.due_at, g.task_hours,
             (SELECT row_to_json(s) FROM (SELECT id,starts_at,started_at,ended_at,duration_minutes,status,finalized_at,recording_state FROM cls_live_sessions s
                WHERE s.group_id=$1 AND s.lesson_id=l.id AND s.status<>'cancelled' ORDER BY s.starts_at DESC LIMIT 1) s) AS session
        FROM cls_groups g JOIN cls_lessons l ON l.course_id=g.course_id LEFT JOIN cls_group_lessons gl ON gl.group_id=g.id AND gl.lesson_id=l.id
@@ -193,8 +193,9 @@ async function timings(groupId: string) {
     const ended = !!s && (s.status === "ended" || !!s.finalized_at);
     const quickOpens = s ? (ended ? new Date(s.ended_at || s.starts_at).getTime() + (s.ended_at ? 0 : s.duration_minutes * 60000) : null) : r.opens_at ? new Date(r.opens_at).getTime() : null;
     const next = rows.slice(i + 1).find((x: any) => x.opens_at);
-    const mainDue = next ? new Date(next.opens_at).getTime() : r.due_at ? new Date(r.due_at).getTime() : quickOpens ? quickOpens + 7 * 24 * H : null;
-    map.set(r.id, { sessionId: s?.id || null, finalized: !!s?.finalized_at, recordingReady: s?.recording_state === "ready", quickOpens, quickDue: quickOpens ? quickOpens + 24 * H : null, mainDue, ended });
+    // Jonli darsdan keyin: tezkor topshiriq — 1 soat, qolgan vazifalar — guruh muddati (standart 24 soat).
+    const mainDue = s && quickOpens ? quickOpens + (r.task_hours || 24) * H : next ? new Date(next.opens_at).getTime() : r.due_at ? new Date(r.due_at).getTime() : quickOpens ? quickOpens + 7 * 24 * H : null;
+    map.set(r.id, { sessionId: s?.id || null, finalized: !!s?.finalized_at, recordingReady: s?.recording_state === "ready", quickOpens, quickDue: quickOpens ? quickOpens + (s ? 1 : 24) * H : null, mainDue, ended });
   });
   return map;
 }
@@ -248,7 +249,7 @@ export async function penalizeOverdue(now = Date.now()) {
              AND NOT EXISTS(SELECT 1 FROM cls_quick_attempts a WHERE a.group_id=$1 AND a.lesson_id=$2 AND a.user_id=m.user_id AND a.submitted_at <= $3)`,
           [g.id, lessonId, new Date(x.quickDue), x.sessionId],
         )).rows;
-        for (const r of late) await addPenalty(g.id, r.user_id, "quick", lessonId, "Tezkor topshiriq 24 soatda bajarilmadi");
+        for (const r of late) await addPenalty(g.id, r.user_id, "quick", lessonId, "Tezkor topshiriq muddatida (dars tugagach 1 soatda) bajarilmadi");
       }
       if (main.has(lessonId) && x.mainDue && x.mainDue < now && x.mainDue > now - 48 * H) {
         const late = (await pool.query(
@@ -402,7 +403,8 @@ export function registerClassroomFlow(app: Express) {
     const test = !teacher && (await isTestUser(uid));
     if (!teacher && !test && (!state.unlocked || !t?.quickOpens || t.quickOpens > Date.now())) fail(403, "Tezkor topshiriq dars tugagach ochiladi");
     const done = (await pool.query("SELECT id FROM cls_quick_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL LIMIT 1", [id, lessonId, uid])).rowCount;
-    if (done && !teacher && !test) fail(409, "Tezkor topshiriq bajarilgan");
+    // Bajarilgan bo'lsa ham qayta ishlash mumkin (mustahkamlash); eng yaxshi natija hisoblanadi.
+    void done;
     const open = (await pool.query("SELECT * FROM cls_quick_attempts WHERE group_id=$1 AND lesson_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [id, lessonId, uid])).rows[0];
     if (open) return { attemptId: open.id, questions: present(quiz.questions, open.layout), dueAt: t?.quickDue };
     const layout = makeLayout(quiz.questions);

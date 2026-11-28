@@ -110,8 +110,10 @@ export function questionSeconds(q: any, base = VOCAB_SECONDS) {
   return q?.type === "match" ? Math.max(20, 8 * (q.pairs?.length || 4)) : q?.type === "order" ? Math.max(20, 2 * base) : base;
 }
 const GRACE_MS = 30_000;
-export function vocabExam(data: { words: z.infer<typeof wordSchema>[]; exam?: any[] }) {
+export function vocabExam(data: { words: z.infer<typeof wordSchema>[]; exam?: any[]; section?: string }) {
   if (!data.exam?.length) return vocabQuestions(data.words);
+  // Iboralar: «ta’rif» o'rnida qolip yozilgan — tayyor test yetarli.
+  if (data.section === "iboralar") return [...data.exam];
   const defs = vocabQuestions(data.words, "def");
   const chosen: any[] = [];
   while (chosen.length < 8 && defs.length) chosen.push(defs.splice(randomInt(defs.length), 1)[0]);

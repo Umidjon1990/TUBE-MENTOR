@@ -91,6 +91,12 @@ export function vocabQuestions(words: z.infer<typeof wordSchema>[], only?: "def"
 }
 
 /** So'z imtihoni: tayyor test bo'lsa — uning savollari va 8 ta tasodifiy ta'rif savoli; bo'lmasa har so'zga bittadan. */
+/** So'z testi vaqti: har savolga 10 soniya (moslashtirish — har juftga 8, gap tuzish — 20). So'zlarni ko'rib olishning oldini oladi. */
+export const VOCAB_SECONDS = 10;
+export function questionSeconds(q: any) {
+  return q?.type === "match" ? Math.max(20, 8 * (q.pairs?.length || 4)) : q?.type === "order" ? 20 : VOCAB_SECONDS;
+}
+const GRACE_MS = 30_000;
 export function vocabExam(data: { words: z.infer<typeof wordSchema>[]; exam?: any[] }) {
   if (!data.exam?.length) return vocabQuestions(data.words);
   const defs = vocabQuestions(data.words, "def");
@@ -323,28 +329,32 @@ export function registerClassroomA1(app: Express) {
       if (!learned) fail(403, "Avval so‘zlarni yodlash bo‘limidan o‘ting");
     }
     const open = (await pool.query("SELECT * FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [part.id, groupId, uid])).rows[0];
-    if (open) return { attemptId: open.id, title: part.title, kind: part.kind, questions: present(open.layout.q, open.layout.l) };
+    const timing = (q: any[], l: any[]) => (part.kind === "vocab" ? { perQuestion: l.map((x: any) => questionSeconds(q[x.q])) } : {});
+    if (open) return { attemptId: open.id, title: part.title, kind: part.kind, questions: present(open.layout.q, open.layout.l), startedAt: open.started_at, ...timing(open.layout.q, open.layout.l) };
     const used = (await pool.query("SELECT count(*)::int AS n FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].n;
     const passed = (await pool.query("SELECT max(percent) AS p FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].p >= part.pass_percent;
     if (!teacher && !test && !passed && used >= part.max_attempts) fail(409, "Urinishlar soni tugadi. O‘qituvchingizga yozing");
     const questions = part.kind === "vocab" ? vocabExam(part.data) : part.data.questions;
     const layout = makeLayout(questions);
     const a = (await pool.query(
-      "INSERT INTO cls_part_attempts(part_id,group_id,user_id,layout,max_score) VALUES($1,$2,$3,$4,$5) RETURNING id",
+      "INSERT INTO cls_part_attempts(part_id,group_id,user_id,layout,max_score) VALUES($1,$2,$3,$4,$5) RETURNING id,started_at",
       [part.id, groupId, uid, JSON.stringify({ q: questions, l: layout }), layout.length],
     )).rows[0];
-    return { attemptId: a.id, title: part.title, kind: part.kind, questions: present(questions, layout) };
+    return { attemptId: a.id, title: part.title, kind: part.kind, questions: present(questions, layout), startedAt: a.started_at, ...timing(questions, layout) };
   }));
   app.post(P + "/part-attempts/:id/submit", requireAuth, route(async (req) => {
     const id = uuid.parse(req.params.id), uid = userOf(req);
     const answers = answersSchema.parse(req.body).answers;
-    const a = (await pool.query("SELECT a.*, p.pass_percent FROM cls_part_attempts a JOIN cls_parts p ON p.id=a.part_id WHERE a.id=$1 AND a.user_id=$2", [id, uid])).rows[0] || fail(404, "Urinish topilmadi");
+    const a = (await pool.query("SELECT a.*, p.pass_percent, p.kind FROM cls_part_attempts a JOIN cls_parts p ON p.id=a.part_id WHERE a.id=$1 AND a.user_id=$2", [id, uid])).rows[0] || fail(404, "Urinish topilmadi");
     if (a.submitted_at) fail(409, "Bu urinish allaqachon yuborilgan");
-    const g = grade(a.layout.q, a.layout.l, a.layout.l.map((_: unknown, i: number) => answers[i] ?? null));
+    // So'z testi: umumiy vaqt (savollar vaqti yig'indisi + 30 soniya) o'tib yuborilsa — javoblar hisoblanmaydi.
+    const limit = a.kind === "vocab" ? a.layout.l.reduce((t: number, x: any) => t + questionSeconds(a.layout.q[x.q]) * 1000, 0) + GRACE_MS : null;
+    const overtime = limit !== null && Date.now() - new Date(a.started_at).getTime() > limit;
+    const g = grade(a.layout.q, a.layout.l, a.layout.l.map((_: unknown, i: number) => (overtime ? null : answers[i] ?? null)));
     const percent = Math.round((g.score / Math.max(1, g.max)) * 100);
     const r = await pool.query("UPDATE cls_part_attempts SET answers=$2,score=$3,percent=$4,submitted_at=now() WHERE id=$1 AND submitted_at IS NULL", [id, JSON.stringify(answers), g.score, percent]);
     if (!r.rowCount) fail(409, "Bu urinish allaqachon yuborilgan");
-    return { score: g.score, max: g.max, percent, passed: percent >= a.pass_percent, passPercent: a.pass_percent, review: g.review };
+    return { score: g.score, max: g.max, percent, passed: percent >= a.pass_percent, passPercent: a.pass_percent, review: g.review, overtime };
   }));
 
   // Ovoz: faqat bazadagi matnlar uchun (ixtiyoriy matn qabul qilinmaydi).

@@ -2314,6 +2314,12 @@ test("A1 lesson import: parts, match questions, vocab learn+exam, oral judge, te
   });
   assert.equal(vAns.includes(-1), false);
   assert.equal((await (await call(`/part-attempts/${va.attemptId}/submit`, { answers: vAns }, X.h)).json()).percent, 100);
+  // So'z testi vaqtli: har savolga 10 soniya; umumiy vaqt (+30 s) o'tgach javoblar hisoblanmaydi.
+  assert.deepEqual(va.perQuestion, [10, 10, 10, 10, 10]);
+  const vb = await (await call(`/groups/${group.id}/parts/${vocab.id}/attempts`, {}, X.h)).json();
+  await pool.query("UPDATE cls_part_attempts SET started_at=now()-interval '81 seconds' WHERE id=$1", [vb.attemptId]);
+  const late = await (await call(`/part-attempts/${vb.attemptId}/submit`, { answers: vAns }, X.h)).json();
+  assert.deepEqual([late.percent, late.overtime], [0, true]);
   // Og'zaki: ChatGPT hakami foizni beradi, yuz suratlari saqlanmaydi.
   setTranscriber(async () => ({ text: "انا احمد انا طالب" }));
   setJudge(async () => ({ percent: 92, missing: [], wrong: [], extra: [], note: "Yaxshi" }));

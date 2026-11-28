@@ -1716,7 +1716,7 @@ test("classroom: invite, approval, scheduled unlock, shuffled quiz with hidden a
   const right = layout2.map((l: any) => l.o.indexOf(questions[l.q].correct));
   const r2 = await (await call(`/attempts/${a2.attemptId}/submit`, { answers: right }, S)).json();
   assert.deepEqual([r2.percent, r2.passed, r2.review.length], [100, true, 2]);
-  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, S)).status, 409, "urinishlar tugadi");
+  assert.equal((await call(`/groups/${group.id}/lessons/${l1.id}/attempts`, {}, S)).status, 200, "o‘tgandan keyin mashq uchun qayta ishlash mumkin");
   lessons = (await (await get(`/groups/${group.id}/lessons`, S)).json()).lessons;
   assert.deepEqual(lessons.map((l: any) => l.unlocked), [true, true]);
 
@@ -2219,8 +2219,9 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   const fc = await get(`/groups/${group.id}/flow`, C.h);
   assert.equal(fc.points, 3);
   assert.equal(fc.lessons.find((l: any) => l.id === l1.id).steps[0].state, "overdue");
-  // Tezkor topshiriq muddati o'tdi (25 soat) → C va D ga emas (D uzrli), B ga 1 ball.
-  await pool.query("UPDATE cls_live_sessions SET ended_at=now()-interval '25 hours', started_at=now()-interval '26 hours', starts_at=now()-interval '26 hours' WHERE id=$1", [s.id]);
+  // Tezkor topshiriq muddati o'tdi (dars tugagach 1 soat; hozir 2 soat) → D ga emas (uzrli), B ga 1 ball; asosiy vazifalar muddati (24 soat) hali bor.
+  await pool.query("UPDATE cls_live_sessions SET ended_at=now()-interval '2 hours', started_at=now()-interval '3 hours', starts_at=now()-interval '3 hours' WHERE id=$1", [s.id]);
+  assert.equal(Math.round(((await get(`/groups/${group.id}/flow`, B.h)).lessons.find((l: any) => l.id === l1.id).steps.find((x: any) => x.key === "main").dueAt - Date.now()) / 3600000), 22, "vazifalar muddati: dars tugagach 24 soat");
   await flow.penalizeOverdue();
   assert.equal(await flow.monthPoints(group.id, B.id), 2);
   assert.equal(await flow.monthPoints(group.id, D.id), 0);

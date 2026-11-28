@@ -238,7 +238,8 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   const sampled = input.sampled && input.sampled.clips.length ? input.sampled : null;
   const used = (await pool.query("SELECT count(*)::int AS n FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status<>'rejected'", [task.id, input.groupId, input.userId])).rows[0].n;
   const test = !!(await pool.query("SELECT is_test FROM users WHERE id=$1", [input.userId])).rows[0]?.is_test;
-  if (used >= MAX_ATTEMPTS && !test) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
+  const passedBefore = (await pool.query("SELECT 1 FROM cls_submissions WHERE task_id=$1 AND group_id=$2 AND user_id=$3 AND status='graded' AND final_percent >= $4 LIMIT 1", [task.id, input.groupId, input.userId, task.pass_percent])).rowCount;
+  if (used >= MAX_ATTEMPTS && !test && !passedBefore) fail(409, `Bu vazifa uchun urinishlar tugadi (${MAX_ATTEMPTS} ta)`);
   const proctor = task.proctor === "off" ? null : input.proctor;
   const verdict = proctorVerdict(proctor);
   if (verdict.retake) {

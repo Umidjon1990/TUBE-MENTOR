@@ -325,7 +325,8 @@ export function registerClassroomA1(app: Express) {
     const open = (await pool.query("SELECT * FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NULL ORDER BY started_at DESC LIMIT 1", [part.id, groupId, uid])).rows[0];
     if (open) return { attemptId: open.id, title: part.title, kind: part.kind, questions: present(open.layout.q, open.layout.l) };
     const used = (await pool.query("SELECT count(*)::int AS n FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].n;
-    if (!teacher && !test && used >= part.max_attempts) fail(409, "Urinishlar soni tugadi. O‘qituvchingizga yozing");
+    const passed = (await pool.query("SELECT max(percent) AS p FROM cls_part_attempts WHERE part_id=$1 AND group_id=$2 AND user_id=$3 AND submitted_at IS NOT NULL", [part.id, groupId, uid])).rows[0].p >= part.pass_percent;
+    if (!teacher && !test && !passed && used >= part.max_attempts) fail(409, "Urinishlar soni tugadi. O‘qituvchingizga yozing");
     const questions = part.kind === "vocab" ? vocabExam(part.data) : part.data.questions;
     const layout = makeLayout(questions);
     const a = (await pool.query(

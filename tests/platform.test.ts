@@ -2185,6 +2185,11 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   assert.equal(await flow.monthPoints(group.id, D.id), 0, "uzr ko'rib chiqilguncha ball yo'q");
   // Yozuv: dars tugagach hamma ko'radi, kelmagan C ham (jarima balli saqlanadi).
   assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, true);
+  // O'qituvchi bir tugma bilan almashtiradi: «ruxsat so'rab ko'radi» rejimida kelmagan C ko'ra olmaydi, qatnashgan A ko'radi.
+  assert.equal((await call(`/admin/groups/${group.id}`, { freeRecording: false }, T.h, "PATCH")).status, 200);
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, C.id, false)).ok, false);
+  assert.equal((await flow.canWatch({ ...s, finalized_at: new Date() }, A.id, false)).ok, true);
+  assert.equal((await call(`/admin/groups/${group.id}`, { freeRecording: true }, T.h, "PATCH")).status, 200);
   assert.equal(await flow.monthPoints(group.id, C.id), 3);
   const ex = (await get(`/admin/groups/${group.id}/excuses`, T.h)).excuses;
   assert.equal(ex.length, 1);

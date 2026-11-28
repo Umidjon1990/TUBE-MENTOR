@@ -88,6 +88,7 @@ const groupSettings = z.object({
   discipline: z.boolean().optional(),
   /** Darsdan keyingi vazifalar muddati, soat (tezkor topshiriq doim 1 soat). */
   taskHours: z.number().int().min(2).max(168).optional(),
+  freeRecording: z.boolean().optional(),
 });
 export const inviteCode = () => randomBytes(9).toString("base64url");
 
@@ -463,9 +464,9 @@ export function registerClassroom(app: Express) {
     const g = (await pool.query(
       `UPDATE cls_groups SET name=COALESCE($2,name),invite_active=COALESCE($3,invite_active),auto_approve=COALESCE($4,auto_approve),
               allow_peer_dm=COALESCE($5,allow_peer_dm),leaderboard_mode=COALESCE($6,leaderboard_mode),late_penalty=COALESCE($7,late_penalty),archived=COALESCE($8,archived),
-              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline), task_hours=COALESCE($11,task_hours)
+              offer_required=COALESCE($9,offer_required), discipline=COALESCE($10,discipline), task_hours=COALESCE($11,task_hours), free_recording=COALESCE($12,free_recording)
         WHERE id=$1 RETURNING *`,
-      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null, b.taskHours ?? null],
+      [id, b.name ?? null, b.inviteActive ?? null, b.autoApprove ?? null, b.allowPeerDm ?? null, b.leaderboardMode ?? null, b.latePenalty ?? null, b.archived ?? null, b.offerRequired ?? null, b.discipline ?? null, b.taskHours ?? null, b.freeRecording ?? null],
     )).rows[0];
     return g ? { group: g } : fail(404, "Guruh topilmadi");
   }));

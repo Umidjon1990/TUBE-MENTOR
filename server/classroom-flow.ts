@@ -211,7 +211,11 @@ async function quickBest(groupId: string, userId: string) {
 export async function canWatch(session: any, userId: string, teacher: boolean) {
   if (teacher || (await isTestUser(userId))) return { ok: true as const };
   // Darsga kirmagan o'quvchi ham dars tugagach yozuvni ko'radi (jarima balli baribir yoziladi), so'ng topshiriqlar ochiladi.
-  if (session.status === "ended" || session.finalized_at) return { ok: true as const };
+  // (Guruh sozlamasi «free_recording» o'chirilgan bo'lsa — avvalgidek o'qituvchidan ruxsat so'raydi.)
+  if (session.status === "ended" || session.finalized_at) {
+    const free = (await pool.query("SELECT free_recording FROM cls_groups WHERE id=$1", [session.group_id])).rows[0]?.free_recording;
+    if (free !== false) return { ok: true as const };
+  }
   const mark = (await pool.query("SELECT status FROM cls_marks WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;
   if (["present", "late", "excused"].includes(mark)) return { ok: true as const };
   const ex = (await pool.query("SELECT status FROM cls_excuses WHERE session_id=$1 AND user_id=$2", [session.id, userId])).rows[0]?.status;

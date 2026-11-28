@@ -2240,9 +2240,9 @@ test("class flow: zoom attendance 70%, late/absent points, excuses, recording ac
   const fc = await get(`/groups/${group.id}/flow`, C.h);
   assert.equal(fc.points, 3);
   assert.equal(fc.lessons.find((l: any) => l.id === l1.id).steps[0].state, "overdue");
-  // Tezkor topshiriq muddati o'tdi (dars tugagach 1 soat; hozir 2 soat) → D ga emas (uzrli), B ga 1 ball; asosiy vazifalar muddati (24 soat) hali bor.
+  // Tezkor topshiriq muddati o'tdi (dars tugagach 1 soat; hozir 2 soat) → D ga emas (uzrli), B ga 1 ball; asosiy vazifalar muddati (48 soat) hali bor.
   await pool.query("UPDATE cls_live_sessions SET ended_at=now()-interval '2 hours', started_at=now()-interval '3 hours', starts_at=now()-interval '3 hours' WHERE id=$1", [s.id]);
-  assert.equal(Math.round(((await get(`/groups/${group.id}/flow`, B.h)).lessons.find((l: any) => l.id === l1.id).steps.find((x: any) => x.key === "main").dueAt - Date.now()) / 3600000), 22, "vazifalar muddati: dars tugagach 24 soat");
+  assert.equal(Math.round(((await get(`/groups/${group.id}/flow`, B.h)).lessons.find((l: any) => l.id === l1.id).steps.find((x: any) => x.key === "main").dueAt - Date.now()) / 3600000), 46, "vazifalar muddati: dars tugagach 48 soat (yangi guruh standarti)");
   await flow.penalizeOverdue();
   assert.equal(await flow.monthPoints(group.id, B.id), 2);
   assert.equal(await flow.monthPoints(group.id, D.id), 0);
@@ -2743,4 +2743,68 @@ test("yodlash videosi: o'qituvchi videoni ko'radi, AI faqat bo'laklarni tekshira
   assert.equal((await get(`/submissions/${weak.id}/video`, T.h)).status, 410);
   assert.equal((await pool.query("SELECT score FROM cls_submissions WHERE id=$1", [weak.id])).rows[0].score, 6);
   setTranscriber(undefined); setJudge(undefined);
+});
+
+test("B1: matnli qism, bo'limlar, iboralar vaqti, erkin gapirish videosi va B1 sinov kursi", async () => {
+  const { hashPassword } = await import("../server/auth");
+  const { setTranscriber, setSpeakJudge, speakFallback } = await import("../server/classroom-tasks");
+  const mk = async (u: string, role = "student", isTest = false) => {
+    const id = (await pool.query("INSERT INTO users(full_name,username,password_hash,email_verified,role,is_test) VALUES($1,$1,$2,true,$3,$4) RETURNING id", [u, hashPassword("pass-" + u), role, isTest])).rows[0].id;
+    const t = (await (await post("/api/platform/auth/password", { username: u, password: "pass-" + u })).json()).token;
+    return { id, h: { "x-platform-session": t } };
+  };
+  const T = await mk("b1_admin", "admin"), S = await mk("b1_student");
+  const call = (path: string, body: unknown, extra: Record<string, string>, method = "POST") =>
+    fetch(base + "/api/platform/class" + path, { method, headers: { ...headers, ...extra }, body: JSON.stringify(body) });
+  const get = (path: string, extra: Record<string, string>) => fetch(base + "/api/platform/class" + path, { headers: { ...headers, ...extra } });
+  const text = "يُعَدُّ النَّوْمُ الْمُرِيحُ مِنْ رَكَائِزِ أُسْلُوبِ الْحَيَاةِ الصِّحِّيِّ. تَجَنُّبُ اسْتِخْدَامِ الْأَجْهِزَةِ الْإِلِكْتْرُونِيَّةِ.";
+  const words = ["نَوْمٌ مُرِيحٌ:rohatli uyqu", "رَكِيزَةٌ:ustun", "تَهْوِيَةٌ:shamollatish", "عَشَاءٌ خَفِيفٌ:yengil kechki ovqat"].map((x) => ({ ar: x.split(":")[0], uz: x.split(":")[1] }));
+  const lesson = {
+    key: "b1-01", position: 1, title: "1-dars",
+    quick: { questions: [{ q: "S", options: ["a", "b"], correct: 0 }] },
+    quiz: { questions: [{ q: "Q", options: ["a", "b"], correct: 0 }] },
+    parts: [
+      { kind: "quiz", title: "Matnni tushunish", section: "text", text, textTitle: "خَمْسُ نَصَائِحَ", intro: "Matnni o‘qing", questions: [{ q: "T", options: ["a", "b"], correct: 0 }] },
+      { kind: "vocab", title: "Iboralar", section: "iboralar", seconds: 20, words, exam: [{ q: "I", options: ["a", "b"], correct: 0 }, { type: "order", q: "Tartiblang", words: ["أ", "ب", "ج"] }] },
+    ],
+    tasks: [{ title: "Iboralar bilan gapirish", textAr: "مِنْ وِجْهَةِ نَظَرِي، ... / عَلَى سَبِيلِ الْمِثَالِ، ...", promptAr: "تَحَدَّثْ عَنْ أَسَالِيبِ التَّعَلُّمِ", promptUz: "O‘rganish usullari haqida gapiring", mode: "speak", minSeconds: 50, maxSeconds: 75, proctor: "off", shadow: false }],
+  };
+  // B1 sinov kursi A1 dan alohida yaratiladi.
+  const seed = await (await fetch(base + "/api/platform/class/service/a1-pilot", { method: "POST", headers, body: JSON.stringify({ course: "b1", lessons: [lesson] }) })).json();
+  const c = (await pool.query("SELECT c.title, c.level, g.name FROM cls_courses c JOIN cls_groups g ON g.course_id=c.id WHERE g.id=$1", [seed.groupId])).rows[0];
+  assert.deepEqual([c.title, c.level, c.name], ["B1 kursi (sinov)", "B1", "B1 sinov guruhi"]);
+  assert.equal((await pool.query("SELECT task_hours FROM cls_groups WHERE id=$1", [seed.groupId])).rows[0].task_hours, 48, "vazifalar muddati — 48 soat");
+  // Oddiy guruh orqali o'quvchi sifatida tekshiramiz.
+  const group = (await (await call("/admin/groups", { courseId: seed.courseId, name: "B1 guruh" }, T.h)).json()).group;
+  await call(`/admin/groups/${group.id}`, { autoApprove: true, offerRequired: false }, T.h, "PATCH");
+  await call(`/invite/${group.invite_code}/join`, { phone: "+99890" + String(Math.random()).slice(2, 9), name: "B1 o‘quvchi" }, S.h);
+  const lessonId = (await pool.query("SELECT id FROM cls_lessons WHERE course_id=$1", [seed.courseId])).rows[0].id;
+  await pool.query("INSERT INTO cls_group_lessons(group_id,lesson_id,opens_at) VALUES($1,$2,now()-interval '1 hour') ON CONFLICT (group_id,lesson_id) DO UPDATE SET opens_at=EXCLUDED.opens_at", [group.id, lessonId]);
+  const l = await (await get(`/groups/${group.id}/lessons/${lessonId}`, S.h)).json();
+  assert.deepEqual(l.parts.map((p: any) => [p.section, p.hasText, p.seconds]), [["text", true, null], ["iboralar", false, 20]]);
+  const ta = await (await call(`/groups/${group.id}/parts/${l.parts[0].id}/attempts`, {}, S.h)).json();
+  assert.deepEqual([ta.text, ta.textTitle, ta.intro], [text, "خَمْسُ نَصَائِحَ", "Matnni o‘qing"]);
+  const tts = await call(`/groups/${group.id}/tts`, { source: "text", id: l.parts[0].id, index: 1 }, S.h);
+  assert.ok([200, 503].includes(tts.status), "matn gaplari ovozi (kalit bo'lmasa 503)");
+  await call(`/groups/${group.id}/parts/${l.parts[1].id}/learned`, {}, S.h);
+  const ia = await (await call(`/groups/${group.id}/parts/${l.parts[1].id}/attempts`, {}, S.h)).json();
+  assert.deepEqual([...ia.perQuestion].sort(), [20, 40], "iboralar: har savolga 20 soniya, gap tuzish — 40");
+  // Erkin gapirish: kamida 50 soniya; AI bo'laklarni baholaydi; AI bo'lmasa — arabcha so'zlar soni bo'yicha.
+  const task = l.tasks[0];
+  assert.deepEqual([task.mode, task.min_seconds], ["speak", 50]);
+  const wav = Buffer.concat([Buffer.from("RIFF"), randomBytes(600)]);
+  const sampled = { total: 60, clips: [[0, 5], [27.5, 32.5], [55, 60]] };
+  const submit = (seconds: number) => call(`/groups/${group.id}/tasks/${task.id}/submit`, { audio: wav.toString("base64"), mime: "audio/wav", seconds, sampled }, S.h);
+  assert.equal((await submit(30)).status, 400, "kamida 50 soniya");
+  let seen: any = null;
+  setTranscriber(async () => ({ text: "من وجهة نظري التعلم التطبيقي افضل على سبيل المثال اكتب كل يوم" }));
+  setSpeakJudge(async (topic: string, phrases: string, spoken: string, s: boolean) => ((seen = { topic, phrases, spoken, s }), { percent: 88, missing: [], wrong: [], extra: ["مِنْ وِجْهَةِ نَظَرِي"], note: "Yaxshi" }));
+  const r = await (await submit(62)).json();
+  assert.deepEqual([r.finalPercent, r.diff, r.pauses, r.judge.extra], [88, null, null, ["مِنْ وِجْهَةِ نَظَرِي"]]);
+  assert.ok(seen.s && seen.topic.includes("O‘rganish usullari") && seen.phrases.includes("عَلَى سَبِيلِ الْمِثَالِ"));
+  setSpeakJudge(null);
+  const fb = await (await submit(60)).json();
+  assert.equal(fb.finalPercent, speakFallback("من وجهة نظري التعلم التطبيقي افضل على سبيل المثال اكتب كل يوم"));
+  assert.ok(speakFallback("hello world") === 0);
+  setTranscriber(undefined); setSpeakJudge(undefined);
 });

@@ -159,6 +159,46 @@ const realJudge: Judger = async (original, spoken, lcs, sampled) => {
   };
 };
 let judge: Judger | null = realJudge;
+
+/* ---------------- Erkin gapirish (B1: iboralar bilan 60 soniya) ---------------- */
+type SpeakJudger = (topic: string, phrases: string, spoken: string, sampled: boolean) => Promise<Judge>;
+const realSpeakJudge: SpeakJudger = async (topic, phrases, spoken, sampled) => {
+  const key = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  if (!key) throw new Error("OpenAI is not configured");
+  openai ||= new OpenAI({ apiKey: key, ...(process.env.OPENAI_API_KEY ? {} : { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }) });
+  const r: any = await openai.chat.completions.create({
+    model: process.env.CLASS_JUDGE_MODEL || "gpt-4o-mini",
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You grade a B1-level Arabic speaking task. The student had to speak freely for about 60 seconds on TOPIC, using the TARGET PHRASES (Arabic discourse phrases). " +
+          "TRANSCRIPT is an automatic speech-to-text result" + (sampled ? " of only three short clips (beginning, middle, end) of the recording, joined together — judge only what is there, do not penalize for content outside the clips" : "") + ". " +
+          "Score 0-100: Arabic language actually spoken and mostly comprehensible (40), relevance to TOPIC (25), use of TARGET PHRASES (20, any phrase present in the clips counts), grammar and coherence (15). " +
+          "If the transcript is not Arabic, is empty, or is unrelated noise, give at most 10. Return JSON: {\"percent\": integer, \"used\": [target phrases heard], \"note\": one or two short sentences in Uzbek (Latin script) for the student: what was good and what to improve}.",
+      },
+      { role: "user", content: `TOPIC:\n${topic}\n\nTARGET PHRASES:\n${phrases}\n\nTRANSCRIPT:\n${spoken}` },
+    ],
+  });
+  const j = JSON.parse(r?.choices?.[0]?.message?.content || "{}");
+  return {
+    percent: Math.max(0, Math.min(100, Math.round(Number(j.percent)))),
+    missing: [], wrong: [], extra: Array.isArray(j.used) ? j.used.map(String).slice(0, 20) : [],
+    note: String(j.note || "").slice(0, 400),
+  };
+};
+let speakJudge: SpeakJudger | null = realSpeakJudge;
+/** Testlar uchun: null — AI o'chiq (arabcha so'zlar soni bo'yicha taxminiy baho). */
+export function setSpeakJudge(fn: SpeakJudger | null | undefined) {
+  speakJudge = fn === undefined ? realSpeakJudge : fn;
+}
+/** AI'siz zaxira baho: bo'laklarda arabcha so'zlar soni (15 soniyada ~25 so'z — a'lo). */
+export function speakFallback(spoken: string) {
+  const words = normalizeArabic(spoken).filter((w) => /[\u0621-\u064A]/.test(w)).length;
+  return Math.min(100, Math.round((words / 25) * 100));
+}
 /** Testlar uchun: null — hakam o'chiq (faqat avtomatik solishtirish). */
 export function setJudge(fn: Judger | null | undefined) {
   judge = fn === undefined ? realJudge : fn;
@@ -230,6 +270,7 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   if (!input.audio.length || input.audio.length > MAX_AUDIO) fail(413, "Audio hajmi juda katta");
   const mime = (await sniffMime(input.audio, input.mime)) || fail(415, "Audio formati tanilmadi");
   if (input.seconds > task.max_seconds + 10) fail(400, `Yozuv ${task.max_seconds} soniyadan oshmasin`);
+  if (task.min_seconds && input.seconds < task.min_seconds - 2) fail(400, `Kamida ${task.min_seconds} soniya gapiring`);
   if (task.proctor === "required" && !input.proctor?.enabled) fail(400, "Bu vazifa old kamera yoqilgan holda yoziladi");
   const video = task.video ? input.video || null : null;
   if (task.video && !video) fail(400, "Bu vazifa video bilan topshiriladi. Brauzeringizni yangilang");
@@ -275,15 +316,19 @@ export async function submitRecitation(input: { groupId: string; taskId: string;
   try {
     const t = await transcriber(audio, audioMime);
     const clipSeconds = sampled ? sampled.clips.reduce((sum, [a, b]) => sum + Math.max(0, b - a), 0) : 0;
-    const cmp = compareRecitation(task.text_ar, t.text);
-    const lcs = sampled ? compareSampled(task.text_ar, t.text, clipSeconds).percent : cmp.percent;
+    const speak = task.mode === "speak";
+    const cmp = speak ? { percent: 0, diff: null } : compareRecitation(task.text_ar, t.text);
+    const lcs = speak ? speakFallback(t.text) : sampled ? compareSampled(task.text_ar, t.text, clipSeconds).percent : cmp.percent;
     let verdictAi: Judge | null = null;
-    if (judge && t.text.trim()) verdictAi = await judge(task.text_ar, t.text, lcs, !!sampled).catch(() => null);
+    if (t.text.trim()) {
+      if (speak) verdictAi = speakJudge ? await speakJudge([task.prompt_ar, task.prompt_uz].filter(Boolean).join("\n"), task.text_ar, t.text, !!sampled).catch(() => null) : null;
+      else if (judge) verdictAi = await judge(task.text_ar, t.text, lcs, !!sampled).catch(() => null);
+    }
     const accuracy = verdictAi ? verdictAi.percent : lcs;
     // Bo'laklarda to'xtalishni o'lchab bo'lmaydi; to'liq matn farqi ham ko'rsatilmaydi (bo'laklardan tashqarisi aytilmagan bo'lib chiqadi).
-    const pauses = sampled ? null : countPauses(t.words);
+    const pauses = sampled || speak ? null : countPauses(t.words);
     const final = autoPercent(accuracy, pauses, verdict.warnings);
-    const diff = sampled ? null : cmp.diff;
+    const diff = sampled || speak ? null : cmp.diff;
     // O'qituvchi avval ko'rishi kerak bo'lganlar: o'tish chegarasiga yaqin yoki past ball, kamera ogohlantirishi.
     const flagged = !!video && (final < task.pass_percent + 10 || verdict.warnings > 0);
     result = { accuracy, diff, pauses, final, score: Math.round((task.max_score * final) / 100), judge: verdictAi };
